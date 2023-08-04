@@ -1,0 +1,23 @@
+controls = [
+    "fan1",
+    "fan2",
+    "fan3",
+    "fan4",
+    "fan5"
+]
+
+fans = [
+    "fan1",
+    "fan2",
+    "fan3",
+    "fan4",
+    "fan5"
+]
+
+temps = [
+    "temp1",
+    "temp1",
+    "temp1",
+    "temp1",
+    "temp1"
+]
