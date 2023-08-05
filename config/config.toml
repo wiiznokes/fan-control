@@ -1,0 +1,85 @@
+unit = "C"
+
+[[fans]]
+name = "fan1"
+
+[[fans]]
+name = "fan2"
+
+[[fans]]
+name = "fan3"
+
+[[fans]]
+name = "fan4"
+
+[[temps]]
+name = "temp1"
+
+[[temps]]
+name = "temp2"
+
+[[temps]]
+name = "temp3"
+
+[[controls]]
+
+[controls.TempMath]
+name = "max"
+kind = "Max"
+input = ["temp1", "temp2"]
+
+[[controls]]
+
+[controls.Graph]
+name = "graph1"
+input = "max"
+output = ["fan1"]
+
+[[controls.Graph.coord]]
+temp = 10
+percent = 10
+
+[[controls.Graph.coord]]
+temp = 50
+percent = 30
+
+[[controls.Graph.coord]]
+temp = 90
+percent = 100
+
+[[controls]]
+
+[controls.Flat]
+name = "flat1"
+value = 50
+output = ["fan2"]
+
+[[controls]]
+
+[controls.Linear]
+name = "graph1"
+input = "temp3"
+output = ["fan3"]
+
+[controls.Linear.min]
+temp = 10
+percent = 10
+
+[controls.Linear.max]
+temp = 70
+percent = 100
+
+[[controls]]
+
+[controls.Target]
+name = "graph1"
+input = "temp3"
+output = ["fan4"]
+
+[controls.Target.ideal]
+temp = 40
+percent = 10
+
+[controls.Target.load]
+temp = 70
+percent = 100

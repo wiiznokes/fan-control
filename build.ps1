@@ -1,0 +1,2 @@
+Clear-Host
+cargo run
