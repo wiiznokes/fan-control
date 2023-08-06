@@ -1,26 +1,5 @@
 unit = "C"
 
-[[fans]]
-name = "fan1"
-
-[[fans]]
-name = "fan2"
-
-[[fans]]
-name = "fan3"
-
-[[fans]]
-name = "fan4"
-
-[[temps]]
-name = "temp1"
-
-[[temps]]
-name = "temp2"
-
-[[temps]]
-name = "temp3"
-
 [[controls]]
 
 [controls.TempMath]

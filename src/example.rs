@@ -1,8 +1,7 @@
-use crate::config;
+use crate::config::{self, Hardware};
 
-pub fn config1() -> config::Config {
-    config::Config {
-        unit: config::Unit::C,
+pub fn hardware1() -> Hardware {
+    Hardware {
         fans: vec![
             config::Fan {
                 name: "fan1".into(),
@@ -28,6 +27,12 @@ pub fn config1() -> config::Config {
                 name: "temp3".into(),
             },
         ],
+    }
+}
+
+pub fn config1() -> config::Config {
+    config::Config {
+        unit: config::Unit::C,
         controls: vec![
             config::Control::TempMath(config::TempMath {
                 name: "max".into(),

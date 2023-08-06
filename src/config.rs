@@ -1,10 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Config {
-    pub unit: Unit,
+pub struct Hardware {
     pub fans: Vec<Fan>,
     pub temps: Vec<Temp>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Config {
+    pub unit: Unit,
     pub controls: Vec<Control>,
 }
 
