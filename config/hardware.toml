@@ -1,20 +1,20 @@
-[[controls]]
+[[Control]]
 name = "control1"
 
-[[controls]]
+[[Control]]
 name = "control2"
 
-[[controls]]
+[[Control]]
 name = "control3"
 
-[[controls]]
+[[Control]]
 name = "control4"
 
-[[temps]]
+[[Temp]]
 name = "temp1"
 
-[[temps]]
+[[Temp]]
 name = "temp2"
 
-[[temps]]
+[[Temp]]
 name = "temp3"

@@ -1,5 +1,5 @@
 {
-  "controls": [
+  "Control": [
     {
       "name": "control1"
     },
@@ -13,7 +13,7 @@
       "name": "control4"
     }
   ],
-  "temps": [
+  "Temp": [
     {
       "name": "temp1"
     },

@@ -1,38 +1,18 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Hardware {
-    pub controls: Vec<Control>,
-    pub temps: Vec<Temp>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    #[serde(rename = "CustomTemp")]
+    #[serde(default, rename = "CustomTemp")]
     pub custom_temps: Vec<CustomTemp>,
-    #[serde(rename = "Graph")]
+    #[serde(default, rename = "Graph")]
     pub graphs: Vec<Graph>,
-    #[serde(rename = "Flat")]
+    #[serde(default, rename = "Flat")]
     pub flats: Vec<Flat>,
-    #[serde(rename = "Linear")]
+    #[serde(default, rename = "Linear")]
     pub linears: Vec<Linear>,
-    #[serde(rename = "Target")]
+    #[serde(default, rename = "Target")]
     pub targets: Vec<Target>,
 }
-
-
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Control {
-    pub name: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Temp {
-    pub name: String,
-}
-
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CustomTempType {
@@ -98,21 +78,4 @@ pub struct Target {
     pub load_speed: u8,
     pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
-}
-
-
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Unit {
-    Fahrenheit,
-    Celsius,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Behavior {
-    CustomTemp(CustomTemp),
-    Graph(Graph),
-    Flat(Flat),
-    Linear(Linear),
-    Target(Target),
 }

@@ -1,4 +1,7 @@
-use crate::config::{Hardware, Control, Temp, Config, CustomTemp, CustomTempType, Graph, Coord, Flat, Linear, Target};
+use crate::conf::configs::{
+    Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
+};
+use crate::conf::hardware::{Control, Hardware, Temp};
 
 pub fn hardware1() -> Hardware {
     Hardware {
