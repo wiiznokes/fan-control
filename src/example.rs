@@ -1,93 +1,91 @@
-use crate::config::{self, Hardware};
+use crate::config::{Hardware, Control, Temp, Config, CustomTemp, CustomTempType, Graph, Coord, Flat, Linear, Target};
 
 pub fn hardware1() -> Hardware {
     Hardware {
         controls: vec![
-            config::Control {
+            Control {
                 name: "control1".into(),
             },
-            config::Control {
+            Control {
                 name: "control2".into(),
             },
-            config::Control {
+            Control {
                 name: "control3".into(),
             },
-            config::Control {
+            Control {
                 name: "control4".into(),
             },
         ],
         temps: vec![
-            config::Temp {
+            Temp {
                 name: "temp1".into(),
             },
-            config::Temp {
+            Temp {
                 name: "temp2".into(),
             },
-            config::Temp {
+            Temp {
                 name: "temp3".into(),
             },
         ],
     }
 }
 
-pub fn config1() -> config::Config {
-    config::Config {
-        behaviors: vec![
-            config::Behavior::TempMath(config::TempMath {
-                name: "max".into(),
-                kind: config::TempMathType::Max,
-                input: vec!["temp1".into(), "temp2".into()],
-            }),
-            config::Behavior::Graph(config::Graph {
-                name: "graph1".into(),
-                coord: vec![
-                    config::Coord {
-                        temp: 10,
-                        percent: 10,
-                    },
-                    config::Coord {
-                        temp: 50,
-                        percent: 30,
-                    },
-                    config::Coord {
-                        temp: 90,
-                        percent: 100,
-                    },
-                ],
-                input: "max".into(),
-                output: vec!["control1".into()],
-            }),
-            config::Behavior::Flat(config::Flat {
-                name: "flat1".into(),
-                value: 50,
-                output: vec!["control2".into()],
-            }),
-            config::Behavior::Linear(config::Linear {
-                name: "graph1".into(),
-                min: config::Coord {
+pub fn config1() -> Config {
+    Config {
+        custom_temps: vec![CustomTemp {
+            name: "max".into(),
+            kind: CustomTempType::Max,
+            input: vec!["temp1".into(), "temp2".into()],
+        }],
+        graphs: vec![Graph {
+            name: "graph1".into(),
+            coords: vec![
+                Coord {
                     temp: 10,
                     percent: 10,
                 },
-                max: config::Coord {
-                    temp: 70,
+                Coord {
+                    temp: 50,
+                    percent: 30,
+                },
+                Coord {
+                    temp: 90,
                     percent: 100,
                 },
-                input: "temp3".into(),
-                output: vec!["control3".into()],
-            }),
-            config::Behavior::Target(config::Target {
-                name: "graph1".into(),
-                ideal: config::Coord {
-                    temp: 40,
-                    percent: 10,
-                },
-                load: config::Coord {
-                    temp: 70,
-                    percent: 100,
-                },
-                input: "temp3".into(),
-                output: vec!["control4".into()],
-            }),
+            ],
+            input: "max".into(),
+            output: vec!["control1".into()],
+        }],
+        flats: vec![
+            Flat {
+                name: "flat1".into(),
+                value: 50,
+                output: vec!["control2".into()],
+            },
+            Flat {
+                name: "flat2".into(),
+                value: 100,
+                output: vec![],
+            },
         ],
+        linears: vec![Linear {
+            name: "graph1".into(),
+            min_temp: 10,
+            min_speed: 10,
+            max_temp: 70,
+            max_speed: 100,
+            input: "temp3".into(),
+            output: vec!["control3".into()],
+        }],
+        targets: vec![Target {
+            name: "graph1".into(),
+
+            idle_temp: 40,
+            idle_speed: 10,
+            load_temp: 70,
+            load_speed: 100,
+            input: "temp3".into(),
+            output: vec!["control4".into()],
+        }],
     }
 }

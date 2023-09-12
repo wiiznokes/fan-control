@@ -8,14 +8,18 @@ pub struct Hardware {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    pub behaviors: Vec<Behavior>,
+    #[serde(rename(serialize = "CustomTemp"))]
+    pub custom_temps: Vec<CustomTemp>,
+    #[serde(rename(serialize = "Graph"))]
+    pub graphs: Vec<Graph>,
+    #[serde(rename(serialize = "Flat"))]
+    pub flats: Vec<Flat>,
+    #[serde(rename(serialize = "Linear"))]
+    pub linears: Vec<Linear>,
+    #[serde(rename(serialize = "Target"))]
+    pub targets: Vec<Target>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Unit {
-    Fahrenheit,
-    Celsius,
-}
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -28,27 +32,20 @@ pub struct Temp {
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Behavior {
-    TempMath(TempMath),
-    Graph(Graph),
-    Flat(Flat),
-    Linear(Linear),
-    Target(Target),
-}
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum TempMathType {
+pub enum CustomTempType {
     Min,
     Max,
     Average,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct TempMath {
+pub struct CustomTemp {
     pub name: String,
-    pub kind: TempMathType,
-    pub input: Vec<String>, // Temp or TempMath
+    pub kind: CustomTempType,
+    pub input: Vec<String>, // Temp or CustomTemp
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -60,8 +57,9 @@ pub struct Coord {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
     pub name: String,
-    pub coord: Vec<Coord>,
-    pub input: String,       // Temp or TempMath
+    #[serde(rename(serialize = "Coord"))]
+    pub coords: Vec<Coord>,
+    pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
 }
 
@@ -75,17 +73,38 @@ pub struct Flat {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Linear {
     pub name: String,
-    pub min: Coord,
-    pub max: Coord,
-    pub input: String,       // Temp or TempMath
+    pub min_temp: u8,
+    pub min_speed: u8,
+    pub max_temp: u8,
+    pub max_speed: u8,
+    pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Target {
     pub name: String,
-    pub ideal: Coord,
-    pub load: Coord,
-    pub input: String,       // Temp or TempMath
+    pub idle_temp: u8,
+    pub idle_speed: u8,
+    pub load_temp: u8,
+    pub load_speed: u8,
+    pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
+}
+
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum Unit {
+    Fahrenheit,
+    Celsius,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum Behavior {
+    CustomTemp(CustomTemp),
+    Graph(Graph),
+    Flat(Flat),
+    Linear(Linear),
+    Target(Target),
 }
