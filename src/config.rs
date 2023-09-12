@@ -2,25 +2,24 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Hardware {
-    pub fans: Vec<Fan>,
+    pub controls: Vec<Control>,
     pub temps: Vec<Temp>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    pub unit: Unit,
-    pub controls: Vec<Control>,
+    pub behaviors: Vec<Behavior>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Unit {
-    F, // Fahrenheit
-    C, // Celsius
+    Fahrenheit,
+    Celsius,
 }
 
-// fan = control
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Fan {
+pub struct Control {
     pub name: String,
 }
 
@@ -30,7 +29,7 @@ pub struct Temp {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Control {
+pub enum Behavior {
     TempMath(TempMath),
     Graph(Graph),
     Flat(Flat),
@@ -54,8 +53,8 @@ pub struct TempMath {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Coord {
-    pub temp: i32,
-    pub percent: i32,
+    pub temp: u8,
+    pub percent: u8,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -63,14 +62,14 @@ pub struct Graph {
     pub name: String,
     pub coord: Vec<Coord>,
     pub input: String,       // Temp or TempMath
-    pub output: Vec<String>, // Fan
+    pub output: Vec<String>, // Control
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Flat {
     pub name: String,
     pub value: i32,
-    pub output: Vec<String>, // Fan
+    pub output: Vec<String>, // Control
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -79,7 +78,7 @@ pub struct Linear {
     pub min: Coord,
     pub max: Coord,
     pub input: String,       // Temp or TempMath
-    pub output: Vec<String>, // Fan
+    pub output: Vec<String>, // Control
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -88,5 +87,5 @@ pub struct Target {
     pub ideal: Coord,
     pub load: Coord,
     pub input: String,       // Temp or TempMath
-    pub output: Vec<String>, // Fan
+    pub output: Vec<String>, // Control
 }

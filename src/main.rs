@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write, path::Path};
+use std::{fs::{File, self}, io::Write, path::Path};
 
 use example::hardware1;
 
@@ -10,24 +10,25 @@ mod example;
 fn main() {
     let hardware1 = hardware1();
 
-    let res = serde_json::to_string(&hardware1).unwrap();
+    let res = serde_json::to_string_pretty(&hardware1).unwrap();
     write_file(Path::new("./config/hardware.json"), res);
-    let res = toml::to_string(&hardware1).unwrap();
+    let res = toml::to_string_pretty(&hardware1).unwrap();
     write_file(Path::new("./config/hardware.toml"), res);
 
     let config1 = config1();
 
-    let res = serde_json::to_string(&config1).unwrap();
+    let res = serde_json::to_string_pretty(&config1).unwrap();
     write_file(Path::new("./config/config1.json"), res);
-    let res = toml::to_string(&config1).unwrap();
+    let res = toml::to_string_pretty(&config1).unwrap();
     write_file(Path::new("./config/config1.toml"), res);
 }
 
 fn write_file(path: &Path, content: String) {
     if path.exists() {
         eprintln!("path {} already exist.", path.to_string_lossy());
-        return;
+        fs::remove_file(path).unwrap();
     }
+
 
     let mut file = File::create(path).unwrap();
 

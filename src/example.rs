@@ -2,18 +2,18 @@ use crate::config::{self, Hardware};
 
 pub fn hardware1() -> Hardware {
     Hardware {
-        fans: vec![
-            config::Fan {
-                name: "fan1".into(),
+        controls: vec![
+            config::Control {
+                name: "control1".into(),
             },
-            config::Fan {
-                name: "fan2".into(),
+            config::Control {
+                name: "control2".into(),
             },
-            config::Fan {
-                name: "fan3".into(),
+            config::Control {
+                name: "control3".into(),
             },
-            config::Fan {
-                name: "fan4".into(),
+            config::Control {
+                name: "control4".into(),
             },
         ],
         temps: vec![
@@ -32,14 +32,13 @@ pub fn hardware1() -> Hardware {
 
 pub fn config1() -> config::Config {
     config::Config {
-        unit: config::Unit::C,
-        controls: vec![
-            config::Control::TempMath(config::TempMath {
+        behaviors: vec![
+            config::Behavior::TempMath(config::TempMath {
                 name: "max".into(),
                 kind: config::TempMathType::Max,
                 input: vec!["temp1".into(), "temp2".into()],
             }),
-            config::Control::Graph(config::Graph {
+            config::Behavior::Graph(config::Graph {
                 name: "graph1".into(),
                 coord: vec![
                     config::Coord {
@@ -56,14 +55,14 @@ pub fn config1() -> config::Config {
                     },
                 ],
                 input: "max".into(),
-                output: vec!["fan1".into()],
+                output: vec!["control1".into()],
             }),
-            config::Control::Flat(config::Flat {
+            config::Behavior::Flat(config::Flat {
                 name: "flat1".into(),
                 value: 50,
-                output: vec!["fan2".into()],
+                output: vec!["control2".into()],
             }),
-            config::Control::Linear(config::Linear {
+            config::Behavior::Linear(config::Linear {
                 name: "graph1".into(),
                 min: config::Coord {
                     temp: 10,
@@ -74,9 +73,9 @@ pub fn config1() -> config::Config {
                     percent: 100,
                 },
                 input: "temp3".into(),
-                output: vec!["fan3".into()],
+                output: vec!["control3".into()],
             }),
-            config::Control::Target(config::Target {
+            config::Behavior::Target(config::Target {
                 name: "graph1".into(),
                 ideal: config::Coord {
                     temp: 40,
@@ -87,7 +86,7 @@ pub fn config1() -> config::Config {
                     percent: 100,
                 },
                 input: "temp3".into(),
-                output: vec!["fan4".into()],
+                output: vec!["control4".into()],
             }),
         ],
     }

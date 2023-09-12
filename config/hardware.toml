@@ -1,14 +1,14 @@
-[[fans]]
-name = "fan1"
+[[controls]]
+name = "control1"
 
-[[fans]]
-name = "fan2"
+[[controls]]
+name = "control2"
 
-[[fans]]
-name = "fan3"
+[[controls]]
+name = "control3"
 
-[[fans]]
-name = "fan4"
+[[controls]]
+name = "control4"
 
 [[temps]]
 name = "temp1"

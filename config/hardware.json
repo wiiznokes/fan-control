@@ -1,27 +1,27 @@
 {
-    "fans": [
-        {
-            "name": "fan1"
-        },
-        {
-            "name": "fan2"
-        },
-        {
-            "name": "fan3"
-        },
-        {
-            "name": "fan4"
-        }
-    ],
-    "temps": [
-        {
-            "name": "temp1"
-        },
-        {
-            "name": "temp2"
-        },
-        {
-            "name": "temp3"
-        }
-    ]
+  "controls": [
+    {
+      "name": "control1"
+    },
+    {
+      "name": "control2"
+    },
+    {
+      "name": "control3"
+    },
+    {
+      "name": "control4"
+    }
+  ],
+  "temps": [
+    {
+      "name": "temp1"
+    },
+    {
+      "name": "temp2"
+    },
+    {
+      "name": "temp3"
+    }
+  ]
 }
