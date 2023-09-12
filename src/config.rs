@@ -8,15 +8,15 @@ pub struct Hardware {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    #[serde(rename(serialize = "CustomTemp"))]
+    #[serde(rename = "CustomTemp")]
     pub custom_temps: Vec<CustomTemp>,
-    #[serde(rename(serialize = "Graph"))]
+    #[serde(rename = "Graph")]
     pub graphs: Vec<Graph>,
-    #[serde(rename(serialize = "Flat"))]
+    #[serde(rename = "Flat")]
     pub flats: Vec<Flat>,
-    #[serde(rename(serialize = "Linear"))]
+    #[serde(rename = "Linear")]
     pub linears: Vec<Linear>,
-    #[serde(rename(serialize = "Target"))]
+    #[serde(rename = "Target")]
     pub targets: Vec<Target>,
 }
 
@@ -57,7 +57,7 @@ pub struct Coord {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
     pub name: String,
-    #[serde(rename(serialize = "Coord"))]
+    #[serde(rename = "coord")]
     pub coords: Vec<Coord>,
     pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
@@ -73,9 +73,13 @@ pub struct Flat {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Linear {
     pub name: String,
+    #[serde(rename = "minTemp", alias = "min_temp")]
     pub min_temp: u8,
+    #[serde(rename = "minSpeed", alias = "min_speed")]
     pub min_speed: u8,
+    #[serde(rename = "maxTemp", alias = "max_temp")]
     pub max_temp: u8,
+    #[serde(rename = "maxSpeed", alias = "max_speed")]
     pub max_speed: u8,
     pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
@@ -84,9 +88,13 @@ pub struct Linear {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Target {
     pub name: String,
+    #[serde(rename = "idleTemp", alias = "idle_temp")]
     pub idle_temp: u8,
+    #[serde(rename = "idleSpeed", alias = "idle_speed")]
     pub idle_speed: u8,
+    #[serde(rename = "loadTemp", alias = "load_temp")]
     pub load_temp: u8,
+    #[serde(rename = "loadSpeed", alias = "load_speed")]
     pub load_speed: u8,
     pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control

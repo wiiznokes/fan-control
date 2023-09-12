@@ -12,7 +12,7 @@
   "Graph": [
     {
       "name": "graph1",
-      "Coord": [
+      "coord": [
         {
           "temp": 10,
           "percent": 10
@@ -49,10 +49,10 @@
   "Linear": [
     {
       "name": "graph1",
-      "min_temp": 10,
-      "min_speed": 10,
-      "max_temp": 70,
-      "max_speed": 100,
+      "minTemp": 10,
+      "minSpeed": 10,
+      "maxTemp": 70,
+      "maxSpeed": 100,
       "input": "temp3",
       "output": [
         "control3"
@@ -62,10 +62,10 @@
   "Target": [
     {
       "name": "graph1",
-      "idle_temp": 40,
-      "idle_speed": 10,
-      "load_temp": 70,
-      "load_speed": 100,
+      "idleTemp": 40,
+      "idleSpeed": 10,
+      "loadTemp": 70,
+      "loadSpeed": 100,
       "input": "temp3",
       "output": [
         "control4"
