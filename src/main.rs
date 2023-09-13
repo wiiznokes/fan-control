@@ -1,4 +1,4 @@
-use conf::{hardware::HardwareGenerator, lm_sensors::LmSensorsGenerator, libre_hardware_monitor::LHMGenerator};
+use conf::{hardware::{HardwareGenerator, FetchHardware}, lm_sensors::LmSensorsGenerator, libre_hardware_monitor::LHMGenerator};
 
 mod conf;
 
@@ -8,7 +8,7 @@ fn main() {
 
     let windows = false;
 
-    let hardware_generator: HardwareGenerator = if windows {
+    let hardware_generator: dyn HardwareGenerator<dyn FetchHardware> = if windows {
         LHMGenerator::new()
     } else {
         LmSensorsGenerator::new()

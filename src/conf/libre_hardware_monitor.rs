@@ -1,11 +1,13 @@
 
-use super::hardware::{HardwareGenerator, Temp, FetchHardware};
+use super::hardware::{HardwareGenerator, Temp, FetchHardware, Sensor};
 
 pub struct LHMGenerator {}
 
 impl LHMGenerator {}
 
-impl HardwareGenerator<LHMSensor> for LHMGenerator {
+impl HardwareGenerator for LHMGenerator {
+
+    
     fn new() -> Self {
         Self {}
     }
@@ -14,13 +16,15 @@ impl HardwareGenerator<LHMSensor> for LHMGenerator {
         todo!()
     }
 
-    fn generate_temps(&self) -> Vec<super::hardware::Temp<LHMSensor>> {
+    fn generate_temps(&self) -> Vec<Box<dyn Sensor>> {
         todo!()
     }
 
-    fn generate_fans(&self) -> Vec<super::hardware::Fan<LHMSensor>> {
+    fn generate_fans(&self) -> Vec<Box<dyn Sensor>> {
         todo!()
     }
+
+   
 }
 
 struct LHMSensor {
@@ -29,6 +33,13 @@ struct LHMSensor {
 
 impl FetchHardware for LHMSensor {
     fn get_value(&self) -> i32 {
+        todo!()
+    }
+}
+
+impl Sensor for LHMSensor {
+
+    fn name(&self) -> String {
         todo!()
     }
 }
