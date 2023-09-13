@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Hardware<S> {
+pub struct Hardware<S: FetchHardware> {
     #[serde(default, rename = "Control")]
     pub controls: Vec<Control>,
     #[serde(default, rename = "Temp")]
@@ -16,39 +16,35 @@ pub struct Control {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Temp<S> {
+pub struct Temp<S: FetchHardware> {
     pub name: String,
 
     #[serde(skip)]
-    pub sensor: S
-
+    pub sensor: S,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Fan<S> {
+pub struct Fan<S: FetchHardware> {
     pub name: String,
 
     #[serde(skip)]
-    pub sensor: S
+    pub sensor: S,
 }
-
 
 pub trait FetchHardware {
-
-    fn get_value() -> i32;
+    fn get_value(&self) -> i32;
 }
 
-
 pub trait SetHardware {
-    
     fn set_value(value: i32);
 }
 
-
-
-pub trait HardwareGenerator {
+pub trait HardwareGenerator<S: FetchHardware> {
     
+    fn new() -> Self
+    where
+        Self: Sized;
     fn generate_controls(&self) -> Vec<Control>;
-    fn generate_temps(&self) -> Vec<Temp>;
-    fn generate_fans(&self) -> Vec<Fan>;
+    fn generate_temps(&self) -> Vec<Temp<S>>;
+    fn generate_fans(&self) -> Vec<Fan<S>>;
 }

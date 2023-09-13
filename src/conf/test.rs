@@ -21,26 +21,28 @@ const CONFIG_PATH_JSON: &str = formatcp!("{SETTINGS_DIR_PATH}config1.json");
 #[test]
 #[serial]
 fn check_deserialization() {
-
-    parse_file(SETTINGS_PATH, false, |content|{
+    parse_file(SETTINGS_PATH, false, |content| {
         toml::from_str::<Settings>(&content)
     });
-    parse_file(HARDWARE_PATH, false, |content|{
-        toml::from_str::<Hardware>(&content)
+    parse_file(HARDWARE_PATH, false, |content| {
+        toml::from_str::<Hardware<String, String>>(&content)
     });
-    parse_file(CONFIG_PATH_TOML, false, |content|{
+    parse_file(CONFIG_PATH_TOML, false, |content| {
         toml::from_str::<Config>(&content)
     });
 
-    parse_file(CONFIG_PATH_JSON, false, |content|{
+    parse_file(CONFIG_PATH_JSON, false, |content| {
         serde_json::from_str::<Config>(&content)
     });
 }
 
-fn parse_file<T: Debug, E: Debug>(path: &str, print: bool, struct_generation: impl Fn(&String) -> Result<T, E>) {
+fn parse_file<T: Debug, E: Debug>(
+    path: &str,
+    print: bool,
+    struct_generation: impl Fn(&String) -> Result<T, E>,
+) {
     println!("read file: {}", path);
     if let Ok(content) = fs::read_to_string(Path::new(path)) {
-
         let output: T = struct_generation(&content).unwrap();
         if print {
             dbg!(output);
@@ -66,13 +68,9 @@ fn serialize() {
 
     let config1 = config1();
 
-    write_file(CONFIG_PATH_TOML, || {
-        toml::to_string_pretty(&config1)
-    });
+    write_file(CONFIG_PATH_TOML, || toml::to_string_pretty(&config1));
 
-    write_file(CONFIG_PATH_JSON, || {
-        serde_json::to_string_pretty(&config1)
-    });
+    write_file(CONFIG_PATH_JSON, || serde_json::to_string_pretty(&config1));
 }
 
 fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<String, E>) {
@@ -91,7 +89,7 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
-fn hardware1() -> Hardware {
+fn hardware1() -> Hardware<String, String> {
     Hardware {
         controls: vec![
             Control {
@@ -110,16 +108,20 @@ fn hardware1() -> Hardware {
         temps: vec![
             Temp {
                 name: "temp1".into(),
+                sensor: "".into(),
             },
             Temp {
                 name: "temp2".into(),
+                sensor: "".into(),
             },
             Temp {
                 name: "temp3".into(),
+                sensor: "".into(),
             },
         ],
         fans: vec![Fan {
             name: "fan1".into(),
+            sensor: "".into(),
         }],
     }
 }
