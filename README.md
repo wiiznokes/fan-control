@@ -23,3 +23,11 @@ Possibilité pour le troisième point
 - utiliser GRPC (mais ducoup, on est obligé d'utiliser protobuf alors que la config utilise serde)
 - utiliser une requete transcoder en JSON ou TOML.
 - regarder comment s'en sort Open RGB, qui utilise aussi une API sur le reseau.
+
+
+
+
+for Linux (Fedora)
+```
+sudo dnf install lm_sensors-devel
+```

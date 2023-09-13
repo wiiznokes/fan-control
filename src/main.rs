@@ -1,3 +1,6 @@
 mod conf;
 
-fn main() {}
+fn main() {
+
+}
+
