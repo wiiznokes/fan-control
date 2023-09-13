@@ -1,7 +1,7 @@
 use crate::conf::configs::{
     Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
 };
-use crate::conf::hardware::{Control, Hardware, Temp};
+use crate::conf::hardware::{Control, Hardware, Temp, Fan};
 
 pub fn hardware1() -> Hardware {
     Hardware {
@@ -28,6 +28,11 @@ pub fn hardware1() -> Hardware {
             },
             Temp {
                 name: "temp3".into(),
+            },
+        ],
+        fans: vec![
+            Fan {
+                name: "fan1".into(),
             },
         ],
     }
