@@ -1,19 +1,16 @@
 # fan-control-rs
 
 
-API:
 
-- set_timmer(delay: u8)
-- set_config(file_name: Option(String))
-- start()
-- stop()
-- status() -> Status
+Fonctionnement:
 
-- controls_values() -> (String, u8)
-- fans_values() -> (String, u8)
-- temps_values() -> (String, u8)
+- programme qui crée/update le fichier hardware.toml + settings.toml
+- programme qui verifie que une config est correcte.
+- programme qui applique la config. Les settings et la config en question load au debut du programme. Si on veut stoper fan-control-rs, on peut le faire en tuant le programme. Dans les fonctions de drop, la remise a 0 des pwm devra être implementer.
 
-- compute_behavior(behavior: Behavior) -> Option(u8)
+
+Deep in
+
 
 
 
