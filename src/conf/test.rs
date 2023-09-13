@@ -1,9 +1,9 @@
+use const_format::formatcp;
+use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-
-use const_format::formatcp;
 
 use crate::conf::configs::{
     Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
@@ -19,56 +19,67 @@ const CONFIG_PATH_TOML: &str = formatcp!("{SETTINGS_DIR_PATH}config1.toml");
 const CONFIG_PATH_JSON: &str = formatcp!("{SETTINGS_DIR_PATH}config1.json");
 
 #[test]
+#[serial]
+fn check_deserialization() {
+
+    parse_file(SETTINGS_PATH, false, |content|{
+        toml::from_str::<Settings>(&content)
+    });
+    parse_file(HARDWARE_PATH, false, |content|{
+        toml::from_str::<Hardware>(&content)
+    });
+    parse_file(CONFIG_PATH_TOML, false, |content|{
+        toml::from_str::<Config>(&content)
+    });
+
+    parse_file(CONFIG_PATH_JSON, false, |content|{
+        serde_json::from_str::<Config>(&content)
+    });
+}
+
+fn parse_file<T: Debug, E: Debug>(path: &str, print: bool, struct_generation: impl Fn(&String) -> Result<T, E>) {
+    println!("read file: {}", path);
+    if let Ok(content) = fs::read_to_string(Path::new(path)) {
+
+        let output: T = struct_generation(&content).unwrap();
+        if print {
+            dbg!(output);
+        }
+    }
+    println!("file {} succesfully parsed!", path);
+}
+
+#[test]
+#[serial]
 fn serialize() {
     let _ = fs::create_dir_all(SETTINGS_DIR_PATH);
 
-    write_file(Path::new(SETTINGS_PATH), || {
+    write_file(SETTINGS_PATH, || {
         let settings = Settings::default();
         toml::to_string_pretty(&settings)
     });
 
-    write_file(Path::new(HARDWARE_PATH), || {
+    write_file(HARDWARE_PATH, || {
         let hardware1 = hardware1();
         toml::to_string_pretty(&hardware1)
     });
 
     let config1 = config1();
 
-    write_file(Path::new(CONFIG_PATH_TOML), || {
+    write_file(CONFIG_PATH_TOML, || {
         toml::to_string_pretty(&config1)
     });
 
-    write_file(Path::new(CONFIG_PATH_JSON), || {
-        toml::to_string_pretty(&config1)
+    write_file(CONFIG_PATH_JSON, || {
+        serde_json::to_string_pretty(&config1)
     });
 }
 
-#[test]
-fn check_deserialization() {
-    if let Ok(content) = fs::read_to_string(Path::new(SETTINGS_PATH)) {
-        let output: Settings = toml::from_str(&content).unwrap();
-        dbg!(output);
-    }
+fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<String, E>) {
+    println!("write file: {}", path);
 
-    if let Ok(content) = fs::read_to_string(Path::new(HARDWARE_PATH)) {
-        let output: Hardware = toml::from_str(&content).unwrap();
-        dbg!(output);
-    }
-
-    if let Ok(content) = fs::read_to_string(Path::new(CONFIG_PATH_TOML)) {
-        let output: Config = toml::from_str(&content).unwrap();
-        dbg!(output);
-    }
-
-    if let Ok(content) = fs::read_to_string(Path::new(CONFIG_PATH_JSON)) {
-        let _: Config = toml::from_str(&content).unwrap();
-    }
-}
-
-fn write_file<T: Debug>(path: &Path, content_generation: impl Fn() -> Result<String, T>) {
-    println!("write file: {}", path.to_string_lossy());
-
-    if path.exists() {
+    let path_fs = Path::new(path);
+    if path_fs.exists() {
         fs::remove_file(path).unwrap();
     }
 
@@ -77,7 +88,7 @@ fn write_file<T: Debug>(path: &Path, content_generation: impl Fn() -> Result<Str
     let content = content_generation().unwrap();
     file.write_all(content.as_bytes()).unwrap();
 
-    println!("file {} succesfully writed!", path.to_string_lossy());
+    println!("file {} succesfully writed!", path);
 }
 
 fn hardware1() -> Hardware {
@@ -113,7 +124,7 @@ fn hardware1() -> Hardware {
     }
 }
 
-pub fn config1() -> Config {
+fn config1() -> Config {
     Config {
         custom_temps: vec![CustomTemp {
             name: "max".into(),
