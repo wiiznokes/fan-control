@@ -1,4 +1,7 @@
+#![feature(return_position_impl_trait_in_trait)]
+
 use conf::{hardware::{HardwareGenerator, FetchHardware}, lm_sensors::LmSensorsGenerator, libre_hardware_monitor::LHMGenerator};
+
 
 mod conf;
 
@@ -8,12 +11,14 @@ fn main() {
 
     let windows = false;
 
-    let hardware_generator: dyn HardwareGenerator<dyn FetchHardware> = if windows {
-        LHMGenerator::new()
+    /*
+    let hardware_generator = if windows {
+        Box::new(LHMGenerator::new())
     } else {
-        LmSensorsGenerator::new()
+        Box::new(LmSensorsGenerator::new())
     };
 
   
     let a = hardware_generator.generate_controls();
+     */
 }

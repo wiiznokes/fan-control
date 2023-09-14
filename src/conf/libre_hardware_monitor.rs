@@ -1,26 +1,27 @@
 
-use super::hardware::{HardwareGenerator, Temp, FetchHardware, Sensor};
+use super::hardware::{HardwareGenerator, Temp, FetchHardware, Control, Fan};
 
 pub struct LHMGenerator {}
 
-impl LHMGenerator {}
+
 
 impl HardwareGenerator for LHMGenerator {
 
+    type Output = LHMSensor;
     
-    fn new() -> Self {
-        Self {}
+    fn new() -> impl HardwareGenerator {
+        return Self{ };
     }
 
-    fn generate_controls(&self) -> Vec<super::hardware::Control> {
+    fn generate_controls(&self) -> Vec<Control> {
         todo!()
     }
 
-    fn generate_temps(&self) -> Vec<Box<dyn Sensor>> {
+    fn generate_temps(&self) -> Vec<Box<Temp<LHMSensor>>> {
         todo!()
     }
 
-    fn generate_fans(&self) -> Vec<Box<dyn Sensor>> {
+    fn generate_fans(&self) -> Vec<Box<Fan<LHMSensor>>> {
         todo!()
     }
 
@@ -35,11 +36,9 @@ impl FetchHardware for LHMSensor {
     fn get_value(&self) -> i32 {
         todo!()
     }
-}
 
-impl Sensor for LHMSensor {
-
-    fn name(&self) -> String {
-        todo!()
+    fn new(name: String) -> impl FetchHardware {
+        
+        Self {}
     }
 }

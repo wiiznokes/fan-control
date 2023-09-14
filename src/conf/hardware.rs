@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Hardware<S> {
+pub struct Hardware<Output: ?Sized + FetchHardware> {
     #[serde(default, rename = "Control")]
     pub controls: Vec<Control>,
     #[serde(default, rename = "Temp")]
-    pub temps: Vec<Temp<S>>,
+    pub temps: Vec<Box<Temp<Output>>>,
     #[serde(default, rename = "Fan")]
-    pub fans: Vec<Fan<S>>,
+    pub fans: Vec<Box<Fan<Output>>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -16,7 +16,7 @@ pub struct Control {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Temp<S> {
+pub struct Temp<S: ?Sized + FetchHardware> {
     pub name: String,
 
     #[serde(skip)]
@@ -24,7 +24,7 @@ pub struct Temp<S> {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Fan<S> {
+pub struct Fan<S: ?Sized + FetchHardware> {
     pub name: String,
 
     #[serde(skip)]
@@ -33,6 +33,8 @@ pub struct Fan<S> {
 
 pub trait FetchHardware {
     fn get_value(&self) -> i32;
+
+    fn new(name: String) -> impl FetchHardware;
 }
 
 pub trait SetHardware {
@@ -41,16 +43,11 @@ pub trait SetHardware {
 
 pub trait HardwareGenerator {
 
-    fn new() -> Self
-    where
-        Self: Sized;
+    type Output: ?Sized + FetchHardware;
+
+    fn new() -> impl HardwareGenerator;
 
     fn generate_controls(&self) -> Vec<Control>;
-    fn generate_temps(&self) -> Vec<Box<dyn Sensor>>;
-    fn generate_fans(&self) -> Vec<Box<dyn Sensor>>;
-}
-
-
-pub trait Sensor: FetchHardware {       
-    fn name(&self) -> String;
+    fn generate_temps(&self) -> Vec<Box<Temp<Self::Output>>>;
+    fn generate_fans(&self) -> Vec<Box<Fan<Self::Output>>>;
 }
