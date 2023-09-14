@@ -1,14 +1,16 @@
 #![feature(return_position_impl_trait_in_trait)]
 
-use conf::{hardware::{HardwareGenerator, FetchHardware}, lm_sensors::LmSensorsGenerator, libre_hardware_monitor::LHMGenerator};
-
+use conf::{
+    hardware::{FetchHardware, HardwareGenerator},
+    libre_hardware_monitor::LHMGenerator,
+    lm_sensors::LmSensorsGenerator,
+};
 
 mod conf;
 
 struct App {}
 
 fn main() {
-
     let windows = false;
 
     /*
@@ -18,7 +20,7 @@ fn main() {
         Box::new(LmSensorsGenerator::new())
     };
 
-  
+
     let a = hardware_generator.generate_controls();
      */
 }

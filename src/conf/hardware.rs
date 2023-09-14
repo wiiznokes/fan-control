@@ -25,15 +25,11 @@ pub struct Temp<'a, S: FetchHardware> {
     pub sensor: Option<&'a S>,
 }
 
-
-impl <'a, S:FetchHardware>Temp<'a, S> {
-    
+impl<'a, S: FetchHardware> Temp<'a, S> {
     pub fn new(name: String) -> Box<Temp<'a, S>> {
-
         Box::new(Self { name, sensor: None })
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Fan<'a, S: FetchHardware> {
@@ -43,20 +39,21 @@ pub struct Fan<'a, S: FetchHardware> {
     pub sensor: Option<&'a S>,
 }
 
-impl <'a, S:FetchHardware>Fan<'a, S> {
-    
+impl<'a, S: FetchHardware> Fan<'a, S> {
     pub fn new(name: String) -> Box<Fan<'a, S>> {
-
         Box::new(Self { name, sensor: None })
     }
 }
 
-
 pub trait FetchHardware
-where Self: Debug + Clone {
+where
+    Self: Debug + Clone,
+{
     fn get_value(&self) -> i32;
 
-    fn new(name: String) -> impl FetchHardware where Self: Sized;
+    fn new(name: String) -> impl FetchHardware
+    where
+        Self: Sized;
 }
 
 pub trait SetHardware {
@@ -64,7 +61,6 @@ pub trait SetHardware {
 }
 
 pub trait HardwareGenerator<'a> {
-
     type Output: FetchHardware;
 
     fn new() -> impl HardwareGenerator<'a>;

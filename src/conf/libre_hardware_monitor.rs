@@ -1,11 +1,8 @@
-
-use super::hardware::{HardwareGenerator, Temp, FetchHardware, Control, Fan};
+use super::hardware::{Control, Fan, FetchHardware, HardwareGenerator, Temp};
 
 pub struct LHMGenerator {}
 
-
-
-impl <'a>HardwareGenerator<'a> for LHMGenerator {
+impl<'a> HardwareGenerator<'a> for LHMGenerator {
     type Output = LHMSensor;
 
     fn new() -> impl HardwareGenerator<'a> {
@@ -26,9 +23,7 @@ impl <'a>HardwareGenerator<'a> for LHMGenerator {
 }
 
 #[derive(Debug, Clone)]
-pub struct LHMSensor {
-
-}
+pub struct LHMSensor {}
 
 impl FetchHardware for LHMSensor {
     fn get_value(&self) -> i32 {
@@ -36,7 +31,6 @@ impl FetchHardware for LHMSensor {
     }
 
     fn new(name: String) -> impl FetchHardware {
-        
         Self {}
     }
 }

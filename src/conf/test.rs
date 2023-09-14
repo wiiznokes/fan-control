@@ -113,9 +113,7 @@ fn hardware1<'a, S: FetchHardware>() -> Hardware<'a, S> {
             Temp::new("temp2".into()),
             Temp::new("temp3".into()),
         ],
-        fans: vec![
-            Fan::new("fan1".into())
-        ],
+        fans: vec![Fan::new("fan1".into())],
     }
 }
 
