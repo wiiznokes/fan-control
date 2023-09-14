@@ -1,0 +1,52 @@
+/// Shared reference to a sub-feature of some [`Kind`] (*e.g.,* temperature input),
+/// provided by a [`Chip`].
+///
+/// [`Kind`]: crate::value::Kind
+#[derive(Debug, Clone, Copy, Eq)]
+pub struct SubFeatureRef<'a> {
+    pub(crate) feature: FeatureRef<'a>,
+    pub(crate) raw: &'a sensors_subfeature,
+}
+
+
+
+
+This is my code:
+
+struct LmSensor<'a> {
+    sub_feature: SubFeatureRef<'a>
+}
+
+
+
+impl FetchHardware for LmSensor<'_> {
+    fn get_value(&self) -> i32 {
+        self.get_value()
+    }
+}
+
+what does the 'a means in this context (what is the lifecycle of sub_feature), and can you give an example
+on how can i use LmSensor with my trait:
+
+pub trait HardwareGenerator {
+
+    type Output: ?Sized + FetchHardware;
+
+    fn new() -> Self
+    where
+        Self: Sized;
+
+    fn generate_controls(&self) -> Vec<Control>;
+    fn generate_temps(&self) -> Vec<Box<Temp<Self::Output>>>;
+    fn generate_fans(&self) -> Vec<Box<Fan<Self::Output>>>;
+}
+
+
+
+Output associated type will be LmSensor in this case. But the 'a cause errors.
+
+I think this is because SubFeatureRef is just a reference on the large C tab of lm_sensor lib, so when the var goes out of scope, we can't drop the value. So what will be the lifetime in this case ? 
+
+let sensors = lm_sensors::Initializer::default().initialize().unwrap();
+
+is use to initialize the lib, so i guess 
