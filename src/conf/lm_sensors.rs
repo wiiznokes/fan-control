@@ -8,11 +8,11 @@ pub struct LmSensorsGenerator {
 
 impl LmSensorsGenerator {}
 
-impl HardwareGenerator for LmSensorsGenerator {
+impl <'a>HardwareGenerator<'a> for LmSensorsGenerator {
 
-    type Output = LmSensor;
+    type Output = LmSensor<'a>;
 
-    fn new() -> impl HardwareGenerator  {
+    fn new() -> impl HardwareGenerator<'a>  {
         // Initialize LM sensors library.
         let sensors = lm_sensors::Initializer::default().initialize().unwrap();
 
@@ -23,7 +23,7 @@ impl HardwareGenerator for LmSensorsGenerator {
         todo!()
     }
 
-    fn generate_temps(&self) -> Vec<Box<Temp<LmSensor>>> {
+    fn generate_temps(&self) -> Vec<Box<Temp<'a, Self::Output>>> {
         let temps = Vec::new();
 
         for chip in self.sensors.chip_iter(None) {
@@ -50,14 +50,14 @@ impl HardwareGenerator for LmSensorsGenerator {
 
                 let sensor = Temp {
                     name: name.to_string(),
-                    sensor: LmSensor{ sub_feature },
+                    sensor: Some(&LmSensor{ sub_feature }),
                 };
             }
         }
         temps
     }
 
-    fn generate_fans(&self) -> Vec<Box<Fan<LmSensor>>> {
+    fn generate_fans(&self) -> Vec<Box<Fan<'a, Self::Output>>> {
         todo!()
     }
 
@@ -67,13 +67,14 @@ impl HardwareGenerator for LmSensorsGenerator {
 
 
 
-struct LmSensor {
-    sub_feature: SubFeatureRef<'static>
+#[derive(Debug, Clone)]
+pub struct LmSensor<'a> {
+    sub_feature: SubFeatureRef<'a>
 }
 
 
 
-impl FetchHardware for LmSensor {
+impl <'a>FetchHardware for LmSensor<'a> {
     fn get_value(&self) -> i32 {
         self.get_value()
     }

@@ -5,30 +5,28 @@ pub struct LHMGenerator {}
 
 
 
-impl HardwareGenerator for LHMGenerator {
-
+impl <'a>HardwareGenerator<'a> for LHMGenerator {
     type Output = LHMSensor;
-    
-    fn new() -> impl HardwareGenerator {
-        return Self{ };
+
+    fn new() -> impl HardwareGenerator<'a> {
+        Self {}
     }
 
     fn generate_controls(&self) -> Vec<Control> {
         todo!()
     }
 
-    fn generate_temps(&self) -> Vec<Box<Temp<LHMSensor>>> {
+    fn generate_temps(&self) -> Vec<Box<Temp<'a, Self::Output>>> {
         todo!()
     }
 
-    fn generate_fans(&self) -> Vec<Box<Fan<LHMSensor>>> {
+    fn generate_fans(&self) -> Vec<Box<Fan<'a, Self::Output>>> {
         todo!()
     }
-
-   
 }
 
-struct LHMSensor {
+#[derive(Debug, Clone)]
+pub struct LHMSensor {
 
 }
 

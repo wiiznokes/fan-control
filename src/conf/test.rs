@@ -12,6 +12,7 @@ use crate::conf::hardware::{Control, Fan, Hardware, Temp};
 use crate::conf::settings::Settings;
 
 use super::hardware::FetchHardware;
+use super::lm_sensors::LmSensor;
 
 const SETTINGS_DIR_PATH: &str = "./test/config/";
 
@@ -27,7 +28,7 @@ fn check_deserialization() {
         toml::from_str::<Settings>(&content)
     });
     parse_file(HARDWARE_PATH, false, |content| {
-        toml::from_str::<Hardware<String, String>>(&content)
+        toml::from_str::<Hardware<LmSensor>>(&content)
     });
     parse_file(CONFIG_PATH_TOML, false, |content| {
         toml::from_str::<Config>(&content)
@@ -91,7 +92,7 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
-fn hardware1<S: FetchHardware>() -> Hardware<S> {
+fn hardware1<'a, S: FetchHardware>() -> Hardware<'a, S> {
     Hardware {
         controls: vec![
             Control {
@@ -108,23 +109,13 @@ fn hardware1<S: FetchHardware>() -> Hardware<S> {
             },
         ],
         temps: vec![
-            Temp {
-                name: "temp1".into(),
-                sensor: S::new("temp1".into())
-            },
-            Temp {
-                name: "temp2".into(),
-                sensor: "".into(),
-            },
-            Temp {
-                name: "temp3".into(),
-                sensor: "".into(),
-            },
+            Temp::new("temp1".into()),
+            Temp::new("temp2".into()),
+            Temp::new("temp3".into()),
         ],
-        fans: vec![Fan {
-            name: "fan1".into(),
-            sensor: "".into(),
-        }],
+        fans: vec![
+            Fan::new("fan1".into())
+        ],
     }
 }
 
