@@ -1,6 +1,11 @@
+#![allow(unused_variables)]
+#![allow(unreachable_code)]
+
 use lm_sensors::{feature::Kind, prelude::SharedChip, LMSensors, SubFeatureRef};
 
-use super::hardware::{Fan, FetchHardware, HardwareGenerator, Temp};
+use crate::conf::hardware::Temp;
+
+use super::hardware::{FetchHardware, HardwareGenerator, TempH};
 
 pub struct LmSensorsGenerator {
     sensors: LMSensors,
@@ -9,8 +14,8 @@ pub struct LmSensorsGenerator {
 impl LmSensorsGenerator {}
 
 impl<'a> HardwareGenerator<'a> for LmSensorsGenerator {
-    type Output = LmSensor<'a>;
 
+    type Output = LmSensor<'a>;
     fn new() -> impl HardwareGenerator<'a> {
         // Initialize LM sensors library.
         let sensors = lm_sensors::Initializer::default().initialize().unwrap();
@@ -18,12 +23,10 @@ impl<'a> HardwareGenerator<'a> for LmSensorsGenerator {
         Self { sensors }
     }
 
-    fn generate_controls(&self) -> Vec<super::hardware::Control> {
-        todo!()
-    }
+ 
 
-    fn generate_temps(&self) -> Vec<Box<Temp<'a, Self::Output>>> {
-        let temps = Vec::new();
+    fn temps(&self) -> Vec<Box<TempH<'a, Self::Output>>> {
+        let mut temps:Vec<Box<TempH<Self::Output>>> = Vec::new();
 
         for chip in self.sensors.chip_iter(None) {
             if let Some(path) = chip.path() {
@@ -46,19 +49,20 @@ impl<'a> HardwareGenerator<'a> for LmSensorsGenerator {
                 else {
                     continue;
                 };
-
-                let sensor = Temp {
-                    name: name.to_string(),
-                    sensor: Some(&LmSensor { sub_feature }),
+                    
+                let temp_h = TempH {
+                    temp: Temp {
+                        name: name.to_string()
+                    },
+                    sensor: &LmSensor { sub_feature }
                 };
+                temps.push(Box::new(temp_h))
             }
         }
         temps
     }
 
-    fn generate_fans(&self) -> Vec<Box<Fan<'a, Self::Output>>> {
-        todo!()
-    }
+  
 }
 
 #[derive(Debug, Clone)]
@@ -71,7 +75,7 @@ impl<'a> FetchHardware for LmSensor<'a> {
         self.get_value()
     }
 
-    fn new(name: String) -> impl FetchHardware {
+    fn new(name: String) -> Self {
         let a = todo!();
         Self { sub_feature: a }
     }
