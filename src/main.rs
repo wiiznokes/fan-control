@@ -13,7 +13,7 @@ struct App {}
 fn main() {
     let windows = false;
 
-    /*
+    
     let hardware_generator = if windows {
         Box::new(LHMGenerator::new())
     } else {
@@ -22,5 +22,5 @@ fn main() {
 
 
     let a = hardware_generator.generate_controls();
-     */
+    
 }
