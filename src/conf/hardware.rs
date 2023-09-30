@@ -1,6 +1,5 @@
 use std::fmt::Debug;
 
-use lm_sensors::SubFeatureRef;
 use serde::{Deserialize, Serialize};
 
 use crate::sensors::lm_sensors::LinuxTemp;

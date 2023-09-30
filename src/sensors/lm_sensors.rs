@@ -50,10 +50,11 @@ impl<'a> Generator<'a> for LinuxGenerator {
                 else {
                     continue;
                 };
+                    
 
                 let linux_temp = LinuxTemp {
-                    chip_ref,
-                    feature_ref,
+                    chip_ref: chip_ref.clone(),
+                    feature_ref: feature_ref.clone(),
                     sub_feature_ref,
                 };
                 

@@ -11,30 +11,22 @@ use sensors::hardware::Generator;
 struct App {}
 
 fn main() {
-    let windows = false;
 
-    #[cfg(target_os = "linux")]
-    {
+    let generator: Box<dyn Generator> = if cfg!(target_os = "linux") {
         use sensors::lm_sensors::LinuxGenerator;
-        let generator = LinuxGenerator::new();
-    }
-
-    #[cfg(target_os = "windows")]
-    {
+        Box::new(LinuxGenerator::new())
+    } else if cfg!(target_os = "windows") {
         use sensors::libre_hardware_monitor::WindowsGenerator;
-        let generator = WindowsGenerator::new();
-    }
-    
-
-    /*
-    
-    let hardware_generator = if windows {
-        Box::new(LHMGenerator::new())
+        Box::new(WindowsGenerator::new())
     } else {
-        Box::new(LmSensorsGenerator::new())
+        // Handle other platforms or provide a default generator
+        // For example, you can return an error or a default generator here.
+        // LinuxGenerator::new() or WindowsGenerator::new() could also be used as defaults.
+        panic!("Unsupported operating system");
     };
-
-
-    let a = hardware_generator.generate_controls();
-     */
+    
+    
+    let temps = generator.temps();
+    
+    
 }
