@@ -1,32 +1,20 @@
-use super::hardware::{FetchHardware, HardwareGenerator, TempH};
+use super::hardware::Generator;
 
-pub struct LHMGenerator {}
 
-impl<'a> HardwareGenerator<'a> for LHMGenerator {
+pub struct WindowsGenerator {}
 
-    type Output = LHMSensor
-    ;
-    fn new() -> impl HardwareGenerator<'a> {
+
+
+impl<'a> Generator<'a> for WindowsGenerator {
+
+
+    fn new() -> impl Generator<'a> {
+        
         Self {}
     }
 
-    fn temps(&self) -> Vec<Box<TempH<'a, Self::Output>>> {
+    fn temps(&self) -> Vec<Box<crate::conf::hardware::Temp<'a>>> {
         todo!()
     }
-
-
-  
 }
 
-#[derive(Debug, Clone)]
-pub struct LHMSensor {}
-
-impl FetchHardware for LHMSensor {
-    fn get_value(&self) -> i32 {
-        todo!()
-    }
-
-    fn new(_name: String) -> Self {
-        Self {}
-    }
-}

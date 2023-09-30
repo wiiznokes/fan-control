@@ -1,22 +1,23 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
 
-use lm_sensors::{feature::Kind, prelude::SharedChip, LMSensors, SubFeatureRef};
+use lm_sensors::{feature::Kind, prelude::SharedChip, LMSensors, SubFeatureRef, ChipRef, FeatureRef};
 
 use crate::conf::hardware::Temp;
 
-use super::hardware::{FetchHardware, HardwareGenerator, TempH};
+use super::hardware::Generator;
 
-pub struct LmSensorsGenerator {
+
+pub struct LinuxGenerator {
     sensors: LMSensors,
 }
 
-impl LmSensorsGenerator {}
 
-impl<'a> HardwareGenerator<'a> for LmSensorsGenerator {
 
-    type Output = LmSensor<'a>;
-    fn new() -> impl HardwareGenerator<'a> {
+
+impl<'a> Generator<'a> for LinuxGenerator {
+
+    fn new() -> impl Generator<'a> {
         // Initialize LM sensors library.
         let sensors = lm_sensors::Initializer::default().initialize().unwrap();
 
@@ -25,38 +26,43 @@ impl<'a> HardwareGenerator<'a> for LmSensorsGenerator {
 
  
 
-    fn temps(&self) -> Vec<Box<TempH<'a, Self::Output>>> {
-        let mut temps:Vec<Box<TempH<Self::Output>>> = Vec::new();
+    fn temps(&self) -> Vec<Box<Temp<'a>>> {
+        let mut temps:Vec<Box<Temp<'a>>> = Vec::new();
 
-        for chip in self.sensors.chip_iter(None) {
-            if let Some(path) = chip.path() {
-                println!("chip: {} at {} ({})", chip, chip.bus(), path.display());
+        for chip_ref in self.sensors.chip_iter(None) {
+            if let Some(path) = chip_ref.path() {
+                println!("chip: {} at {} ({})", chip_ref, chip_ref.bus(), path.display());
             } else {
-                println!("chip: {} at {}", chip, chip.bus());
+                println!("chip: {} at {}", chip_ref, chip_ref.bus());
             }
 
-            for feature in chip.feature_iter() {
-                if feature.kind() != Some(Kind::Temperature) {
+            for feature_ref in chip_ref.feature_iter() {
+                if feature_ref.kind() != Some(Kind::Temperature) {
                     continue;
                 }
 
-                let Some(Ok(name)) = feature.name() else {
+                let Some(Ok(name)) = feature_ref.name() else {
                     continue;
                 };
 
-                let Ok(sub_feature) =
-                    feature.sub_feature_by_kind(lm_sensors::value::Kind::FanInput)
+                let Ok(sub_feature_ref) =
+                    feature_ref.sub_feature_by_kind(lm_sensors::value::Kind::FanInput)
                 else {
                     continue;
                 };
-                    
-                let temp_h = TempH {
-                    temp: Temp {
-                        name: name.to_string()
-                    },
-                    sensor: &LmSensor { sub_feature }
+
+                let linux_temp = LinuxTemp {
+                    chip_ref,
+                    feature_ref,
+                    sub_feature_ref,
                 };
-                temps.push(Box::new(temp_h))
+                
+                let temp: Temp<'a> = Temp {
+                    name: name.to_string(),
+                    hardware_temp: Some(linux_temp)
+                    
+                };
+                temps.push(Box::new(temp))
             }
         }
         temps
@@ -65,18 +71,15 @@ impl<'a> HardwareGenerator<'a> for LmSensorsGenerator {
   
 }
 
+
+
 #[derive(Debug, Clone)]
-pub struct LmSensor<'a> {
-    sub_feature: SubFeatureRef<'a>,
-}
+pub struct LinuxTemp<'a> {
 
-impl<'a> FetchHardware for LmSensor<'a> {
-    fn get_value(&self) -> i32 {
-        self.get_value()
-    }
+    chip_ref: ChipRef<'a>,
 
-    fn new(name: String) -> Self {
-        let a = todo!();
-        Self { sub_feature: a }
-    }
+    feature_ref: FeatureRef<'a>,
+
+    pub sub_feature_ref: SubFeatureRef<'a>,
+
 }

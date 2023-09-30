@@ -91,7 +91,7 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
-fn hardware1() -> Hardware {
+fn hardware1() -> Hardware<'static> {
     Hardware {
         controls: vec![
             Control {
@@ -108,9 +108,9 @@ fn hardware1() -> Hardware {
             },
         ],
         temps: vec![
-            Temp {name: "temp1".into() },
-            Temp {name: "temp2".into() },
-            Temp {name: "temp3".into() },
+            Temp::new("temp1".into()),
+            Temp::new("temp2".into()),
+            Temp::new("temp3".into()),
         ],
         fans: vec![Fan {name: "fan1".into() },],
     }
