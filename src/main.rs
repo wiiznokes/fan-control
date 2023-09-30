@@ -26,7 +26,9 @@ fn main() {
     };
     
     
-    let temps = generator.temps();
+    let _temps = generator.temps();
+
+    
     
     
 }

@@ -8,11 +8,11 @@ use crate::conf::hardware::Temp;
 
 
 
-pub trait Generator<'a> {
+pub trait Generator {
 
 
-    fn new() -> impl Generator<'a> where Self: Sized;
+    fn new() -> impl Generator where Self: Sized;
 
 
-    fn temps(&self) -> Vec<Box<Temp<'a>>>;
+    fn temps<'a>(&'a self) -> Vec<Box<Temp<'a>>>;
 }

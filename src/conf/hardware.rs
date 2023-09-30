@@ -44,6 +44,7 @@ impl <'a>Temp<'a> {
 
         #[cfg(target_os = "linux")]
         {
+            // todo: move this part in Linux file
             match &self.hardware_temp {
                 Some(hardware_temp) => match hardware_temp.sub_feature_ref.raw_value() {
                     Ok(value) => {

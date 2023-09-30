@@ -1,6 +1,8 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
 
+use std::marker::PhantomData;
+
 use lm_sensors::{feature::Kind, prelude::SharedChip, LMSensors, SubFeatureRef, ChipRef, FeatureRef};
 
 use crate::conf::hardware::Temp;
@@ -10,14 +12,15 @@ use super::hardware::Generator;
 
 pub struct LinuxGenerator {
     sensors: LMSensors,
+
 }
 
 
 
 
-impl<'a> Generator<'a> for LinuxGenerator {
+impl Generator for LinuxGenerator {
 
-    fn new() -> impl Generator<'a> {
+    fn new() -> impl Generator {
         // Initialize LM sensors library.
         let sensors = lm_sensors::Initializer::default().initialize().unwrap();
 
@@ -26,8 +29,10 @@ impl<'a> Generator<'a> for LinuxGenerator {
 
  
 
-    fn temps(&self) -> Vec<Box<Temp<'a>>> {
-        let mut temps:Vec<Box<Temp<'a>>> = Vec::new();
+    fn temps<'a>(&'a self) -> Vec<Box<Temp<'a>>> {
+        let mut temps = Vec::new();
+
+        self.sensors
 
         for chip_ref in self.sensors.chip_iter(None) {
             if let Some(path) = chip_ref.path() {
@@ -35,6 +40,7 @@ impl<'a> Generator<'a> for LinuxGenerator {
             } else {
                 println!("chip: {} at {}", chip_ref, chip_ref.bus());
             }
+            
 
             for feature_ref in chip_ref.feature_iter() {
                 if feature_ref.kind() != Some(Kind::Temperature) {
@@ -53,12 +59,10 @@ impl<'a> Generator<'a> for LinuxGenerator {
                     
 
                 let linux_temp = LinuxTemp {
-                    chip_ref: chip_ref.clone(),
-                    feature_ref: feature_ref.clone(),
-                    sub_feature_ref,
+                    sub_feature_ref: sub_feature_ref,
                 };
                 
-                let temp: Temp<'a> = Temp {
+                let temp: Temp = Temp {
                     name: name.to_string(),
                     hardware_temp: Some(linux_temp)
                     
@@ -76,10 +80,6 @@ impl<'a> Generator<'a> for LinuxGenerator {
 
 #[derive(Debug, Clone)]
 pub struct LinuxTemp<'a> {
-
-    chip_ref: ChipRef<'a>,
-
-    feature_ref: FeatureRef<'a>,
 
     pub sub_feature_ref: SubFeatureRef<'a>,
 

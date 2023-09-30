@@ -5,15 +5,15 @@ pub struct WindowsGenerator {}
 
 
 
-impl<'a> Generator<'a> for WindowsGenerator {
+impl Generator for WindowsGenerator {
 
 
-    fn new() -> impl Generator<'a> {
+    fn new() -> impl Generator {
         
         Self {}
     }
 
-    fn temps(&self) -> Vec<Box<crate::conf::hardware::Temp<'a>>> {
+    fn temps<'a>(&'a self) -> Vec<Box<crate::conf::hardware::Temp<'a>>> {
         todo!()
     }
 }
