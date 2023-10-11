@@ -108,9 +108,9 @@ fn hardware1() -> Hardware<'static> {
             },
         ],
         temps: vec![
-            Temp::new("temp1".into()),
-            Temp::new("temp2".into()),
-            Temp::new("temp3".into()),
+            Temp::new("temp1".into(), None),
+            Temp::new("temp2".into(), None),
+            Temp::new("temp3".into(), None),
         ],
         fans: vec![Fan {name: "fan1".into() },],
     }

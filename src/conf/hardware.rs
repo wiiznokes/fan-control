@@ -32,7 +32,7 @@ pub struct Temp<'a> {
     
     #[cfg(target_os = "linux")]
     #[serde(skip)]
-    pub hardware_temp: Option<LinuxTemp<'a>>,
+    hardware_temp: Option<LinuxTemp<'a>>,
 }
 
 
@@ -40,7 +40,7 @@ pub struct Temp<'a> {
 impl <'a>Temp<'a> {
     
 
-    fn value(&self) -> Option<i32>{
+    pub fn value(&self) -> Option<i32>{
 
         #[cfg(target_os = "linux")]
         {
@@ -60,7 +60,7 @@ impl <'a>Temp<'a> {
         }
     }
 
-    pub fn new(name: String) -> Self {
-        Temp { name, hardware_temp: None }
+    pub fn new(name: String, hardware_temp: Option<LinuxTemp<'a>>) -> Self {
+        Temp { name, hardware_temp }
     }
 }

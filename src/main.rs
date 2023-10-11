@@ -19,16 +19,17 @@ fn main() {
         use sensors::libre_hardware_monitor::WindowsGenerator;
         Box::new(WindowsGenerator::new())
     } else {
-        // Handle other platforms or provide a default generator
-        // For example, you can return an error or a default generator here.
-        // LinuxGenerator::new() or WindowsGenerator::new() could also be used as defaults.
         panic!("Unsupported operating system");
     };
     
     
-    let _temps = generator.temps();
+    let temps = generator.temps();
 
-    
-    
+    for temp in temps {
+
+        if let Some(value) = temp.value() {
+            println!("{}: {}", temp.name, value);
+        }
+    }
     
 }

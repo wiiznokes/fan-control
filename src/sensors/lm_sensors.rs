@@ -1,9 +1,8 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
 
-use std::marker::PhantomData;
 
-use lm_sensors::{feature::Kind, prelude::SharedChip, LMSensors, SubFeatureRef, ChipRef, FeatureRef};
+use lm_sensors::{feature::Kind, LMSensors, SubFeatureRef};
 
 use crate::conf::hardware::Temp;
 
@@ -16,12 +15,9 @@ pub struct LinuxGenerator {
 }
 
 
-
-
 impl Generator for LinuxGenerator {
 
     fn new() -> impl Generator {
-        // Initialize LM sensors library.
         let sensors = lm_sensors::Initializer::default().initialize().unwrap();
 
         Self { sensors }
@@ -29,19 +25,18 @@ impl Generator for LinuxGenerator {
 
  
 
-    fn temps<'a>(&'a self) -> Vec<Box<Temp<'a>>> {
+    fn temps<'a>(&'a self) -> Vec<Temp<'a>> {
         let mut temps = Vec::new();
 
-        self.sensors
-
         for chip_ref in self.sensors.chip_iter(None) {
+            /*
             if let Some(path) = chip_ref.path() {
                 println!("chip: {} at {} ({})", chip_ref, chip_ref.bus(), path.display());
             } else {
                 println!("chip: {} at {}", chip_ref, chip_ref.bus());
             }
+            */
             
-
             for feature_ref in chip_ref.feature_iter() {
                 if feature_ref.kind() != Some(Kind::Temperature) {
                     continue;
@@ -52,22 +47,23 @@ impl Generator for LinuxGenerator {
                 };
 
                 let Ok(sub_feature_ref) =
-                    feature_ref.sub_feature_by_kind(lm_sensors::value::Kind::FanInput)
+                    feature_ref.sub_feature_by_kind(lm_sensors::value::Kind::TemperatureInput)
                 else {
                     continue;
                 };
                     
 
                 let linux_temp = LinuxTemp {
-                    sub_feature_ref: sub_feature_ref,
+                    sub_feature_ref,
                 };
                 
-                let temp: Temp = Temp {
-                    name: name.to_string(),
-                    hardware_temp: Some(linux_temp)
-                    
-                };
-                temps.push(Box::new(temp))
+                let temp = Temp::new(
+                    name.to_string(),
+                    Some(linux_temp)
+                );
+
+              
+                temps.push(temp)
             }
         }
         temps

@@ -1,3 +1,5 @@
+use crate::conf::hardware::Temp;
+
 use super::hardware::Generator;
 
 
@@ -13,7 +15,7 @@ impl Generator for WindowsGenerator {
         Self {}
     }
 
-    fn temps<'a>(&'a self) -> Vec<Box<crate::conf::hardware::Temp<'a>>> {
+    fn temps<'a>(&'a self) -> Vec<Temp<'a>> {
         todo!()
     }
 }
