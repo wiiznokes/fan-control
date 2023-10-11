@@ -1,26 +1,35 @@
 #![feature(return_position_impl_trait_in_trait)]
 
-use conf::{
-    hardware::{FetchHardware, HardwareGenerator},
-    libre_hardware_monitor::LHMGenerator,
-    lm_sensors::LmSensorsGenerator,
-};
+
 
 mod conf;
+mod sensors;
+
+use sensors::hardware::Generator;
+
 
 struct App {}
 
 fn main() {
-    let windows = false;
 
-    
-    let hardware_generator = if windows {
-        Box::new(LHMGenerator::new())
+    let generator: Box<dyn Generator> = if cfg!(target_os = "linux") {
+        use sensors::lm_sensors::LinuxGenerator;
+        Box::new(LinuxGenerator::new())
+    } else if cfg!(target_os = "windows") {
+        use sensors::libre_hardware_monitor::WindowsGenerator;
+        Box::new(WindowsGenerator::new())
     } else {
-        Box::new(LmSensorsGenerator::new())
+        panic!("Unsupported operating system");
     };
+    
+    
+    let temps = generator.temps();
 
+    for temp in temps {
 
-    let a = hardware_generator.generate_controls();
+        if let Some(value) = temp.value() {
+            println!("{}: {}", temp.name, value);
+        }
+    }
     
 }
