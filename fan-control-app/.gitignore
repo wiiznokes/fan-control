@@ -1,0 +1,14 @@
+/target
+Cargo.lock
+/artefacts
+/.vscode
+/.idea
+/out
+netlist.cir
+graphics.txt
+/examples/scratchpad.rs
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
