@@ -19,7 +19,7 @@ use iced_aw::{TabLabel, Tabs};
 use schematic::circuit::CircuitAtom;
 use schematic::symbols::DesignerElement;
 
-pub fn main() -> iced::Result {
+pub fn run() -> iced::Result {
     Circe::run(Settings {
         window: iced::window::Settings {
             size: (800, 500),

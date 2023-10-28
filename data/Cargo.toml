@@ -1,12 +1,11 @@
 [package]
-name = "fan-control-sensors"
-version = "0.2.0"
+name = "data"
+version = "0.1.0"
 edition = "2021"
 
 
 [dependencies]
 const_format = "0.2.31"
-lm-sensors = "0.2.0"
 serde = { version = "1.0.181", features = ["derive"] }
 serde_json = "1.0.104"
 serial_test = "2.0.0"

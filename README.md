@@ -1,26 +1,58 @@
 # fan-control-rs
 
-
 UI plans: https://github.com/Ax9D/pw-viz/blob/main/assets/demo.png
-
 Iced example: https://github.com/ua-kxie/circe
 
-Fonctionnement:
-
-- programme qui crée/update le fichier hardware.toml + settings.toml
-- programme qui verifie que une config est correcte.
-- programme qui applique la config. Les settings et la config en question load au debut du programme. Si on veut stoper fan-control-rs, on peut le faire en tuant le programme. Dans les fonctions de drop, la remise a 0 des pwm devra être implementer.
-
-
-Deep in
 
 
 
+crates:
+- ui (define the UI), <- config
+- config (define the configs files, settings, hardware, ser/de),
+- hardware (define an abstraction around the hardware), <- config
 
-for Linux (Fedora)
+
+Arch:
+
+Each node/item/vertice have an unique ID, stored in a global hashmap.
+hardware is responsible to implement an interface for each hardware items
+
+
+trait HardwareSpec {
+
+    fn hardware_type() -> HardwareType;
+
+    fn hardware_id -> Option<u32>;
+
+
+}
+
+trait Hardware {
+    generate_temp_id<T: HardwareSpec>(&mut item: T);
+
+    value<T: HardwareSpec>(&item: T) -> Option<i32>;
+
+    set_value<T: HardwareSpec>(&item: T, value: i32);
+
+}
+
+
+
+
+
+
+Fedora
 ```
 sudo dnf install lm_sensors-devel
 ```
 
 Ubuntu
-- sudo apt install libsensors-dev
+```
+sudo apt install libsensors-dev
+```
+
+clean code
+```
+cargo clippy --all --fix --allow-dirty --allow-staged
+cargo fmt --all
+```

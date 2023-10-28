@@ -1,5 +1,5 @@
 [package]
-name = "fan-control-tray"
+name = "tray"
 version = "0.1.0"
 edition = "2021"
 

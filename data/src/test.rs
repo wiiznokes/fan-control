@@ -5,11 +5,12 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
-use crate::conf::configs::{
+use crate::configs::{
     Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
 };
-use crate::conf::hardware::{Control, Fan, Hardware, Temp};
-use crate::conf::settings::Settings;
+use crate::hardware::{Hardware, Control, Temp, Fan};
+//use crate::conf::hardware::{Control, Fan, Hardware, Temp};
+use crate::settings::Settings;
 
 
 
@@ -91,7 +92,7 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
-fn hardware1() -> Hardware<'static> {
+fn hardware1() -> Hardware {
     Hardware {
         controls: vec![
             Control {

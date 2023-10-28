@@ -1,13 +1,49 @@
-#![feature(return_position_impl_trait_in_trait)]
+//#![feature(return_position_impl_trait_in_trait)]
+
+use std::collections::HashMap;
+
+pub mod configs;
+pub mod settings;
+pub mod hardware;
+
+
+#[cfg(test)]
+mod test;
 
 
 
-mod conf;
-mod sensors;
+pub mod id {
+    
+    pub struct Id {
+        prec_id: u32
+    }
+    
+    impl Id {
+        
+        pub fn new_id(&mut self) -> u32 {
+            
+            self.prec_id += 1;
+    
+            return self.prec_id;
+        }
+    }
+    
+}
 
-use sensors::hardware::Generator;
 
 
+
+
+
+
+
+
+//pub mod hardware;
+//mod sensors;
+
+//use sensors::hardware::Generator;
+
+/*
 struct App {}
 
 fn main() {
@@ -33,3 +69,4 @@ fn main() {
     }
     
 }
+ */

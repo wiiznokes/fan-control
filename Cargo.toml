@@ -1,9 +1,28 @@
-[workspace]
+[package]
+name = "fan-control"
+version = "0.1.0"
+edition = "2021"
 
+
+[workspace]
 members = [
-    "fan-control-sensors",
-    "fan-control-tray",
-    "fan-control-app",
+    "hardware",
+    "tray",
+    "ui",
+    "data"
 ]
 
-resolver = "2"
+
+[dependencies]
+data.workspace = true
+hardware.workspace = true
+#ui.workspace = true
+
+
+
+
+[workspace.dependencies]
+fan-control = { version = "0.1", path = "." }
+ui = { version = "0.1", path = "ui" }
+hardware = { version = "0.1", path = "hardware" }
+data = { version = "0.1", path = "data" }
