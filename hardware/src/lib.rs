@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use data::{
     node::HardwareType,
     serde::hardware::{Control, Fan, Temp},
@@ -10,12 +12,13 @@ pub mod linux;
 pub mod windows;
 
 #[derive(Debug, Clone)]
-enum HardwareError {}
+pub enum HardwareError {}
 
 pub trait HardwareGenerator<'a> {
     fn new() -> impl HardwareGenerator<'a>
     where
         Self: Sized;
+
     fn init<'b: 'a>(&'b mut self);
 
     fn validate(
