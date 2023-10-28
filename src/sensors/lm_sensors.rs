@@ -80,3 +80,20 @@ pub struct LinuxTemp<'a> {
     pub sub_feature_ref: SubFeatureRef<'a>,
 
 }
+
+
+impl <'a>LinuxTemp<'a> {
+    
+    pub fn value(&self) -> Option<i32> {
+        
+        match self.sub_feature_ref.raw_value() {
+            Ok(value) => {
+                Some(value as i32)
+            },
+            Err(e) => {
+                eprintln!("{}", e);
+                None
+            },
+        }
+    }
+}

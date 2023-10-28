@@ -43,24 +43,25 @@ impl <'a>Temp<'a> {
     pub fn value(&self) -> Option<i32>{
 
         #[cfg(target_os = "linux")]
-        {
-            // todo: move this part in Linux file
-            match &self.hardware_temp {
-                Some(hardware_temp) => match hardware_temp.sub_feature_ref.raw_value() {
-                    Ok(value) => {
-                        Some(value as i32)
-                    },
-                    Err(e) => {
-                        eprintln!("{}", e);
-                        None
-                    },
-                },
-                None => None,
-            }
+        if let Some(hardware_temp) = &self.hardware_temp {
+            hardware_temp.value()
+        } else {
+            None
         }
+        
+        #[cfg(target_os = "windows")]
+        todo!()
+       
     }
 
+    #[cfg(target_os = "linux")]
     pub fn new(name: String, hardware_temp: Option<LinuxTemp<'a>>) -> Self {
         Temp { name, hardware_temp }
     }
+
+    #[cfg(target_os = "windows")]
+    pub fn new(name: String) -> Self {
+        Temp { name }
+    }
+
 }
