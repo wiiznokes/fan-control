@@ -8,27 +8,26 @@ use tray_icon::{
 };
 
 fn main() {
-    
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/icon.png");
     let icon = load_icon(std::path::Path::new(path));
-
-
 
     let tray_menu = Menu::new();
     let quit_i = MenuItem::new("Quit", true, None);
 
-    tray_menu.append_items(&[
-        &PredefinedMenuItem::about(
-            None,
-            Some(AboutMetadata {
-                name: Some("tao".to_string()),
-                copyright: Some("Copyright tao".to_string()),
-                ..Default::default()
-            }),
-        ),
-        &PredefinedMenuItem::separator(),
-        &quit_i,
-    ]).unwrap();
+    tray_menu
+        .append_items(&[
+            &PredefinedMenuItem::about(
+                None,
+                Some(AboutMetadata {
+                    name: Some("tao".to_string()),
+                    copyright: Some("Copyright tao".to_string()),
+                    ..Default::default()
+                }),
+            ),
+            &PredefinedMenuItem::separator(),
+            &quit_i,
+        ])
+        .unwrap();
 
     let mut tray_icon = Some(
         TrayIconBuilder::new()
@@ -58,7 +57,6 @@ fn main() {
             println!("{event:?}");
         }
     });
-    
 
     App::run(Settings::default()).unwrap()
 }
@@ -89,8 +87,6 @@ impl Application for App {
         Text::new("hello").into()
     }
 }
-
-
 
 fn load_icon(path: &std::path::Path) -> tray_icon::Icon {
     let (icon_rgba, icon_width, icon_height) = {

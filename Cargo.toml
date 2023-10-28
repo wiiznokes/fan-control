@@ -6,10 +6,10 @@ edition = "2021"
 
 [workspace]
 members = [
+    "data",
     "hardware",
-    "tray",
-    "ui",
-    "data"
+    #"ui",
+    #"tray",
 ]
 
 
@@ -23,6 +23,6 @@ hardware.workspace = true
 
 [workspace.dependencies]
 fan-control = { version = "0.1", path = "." }
-ui = { version = "0.1", path = "ui" }
-hardware = { version = "0.1", path = "hardware" }
 data = { version = "0.1", path = "data" }
+hardware = { version = "0.1", path = "hardware" }
+ui = { version = "0.1", path = "ui" }

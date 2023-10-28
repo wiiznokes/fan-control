@@ -2,7 +2,6 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Hardware {
     #[serde(default, rename = "Control")]
@@ -26,7 +25,6 @@ pub struct Fan {
     #[serde(rename = "id")]
     pub hardware_id: String,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Temp {

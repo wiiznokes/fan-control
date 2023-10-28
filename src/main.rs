@@ -1,13 +1,5 @@
-
-use data::serde::configs;
-
 use hardware::{self, HardwareGenerator};
 
 fn main() {
-
-  
-    let hardware_generator = hardware::linux::LinuxGenerator::new();
-    
-    
-  
+    let _hardware_generator = hardware::linux::LinuxGenerator::new();
 }

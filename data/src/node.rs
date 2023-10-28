@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use crate::serde::{configs::{CustomTempType, Target, Linear, Flat, Graph, CustomTemp}, hardware::{Control, Fan, Temp}};
-
-
+use crate::serde::{
+    configs::{CustomTemp, Flat, Graph, Linear, Target},
+    hardware::{Control, Fan, Temp},
+};
 
 #[derive(Debug, Clone)]
 pub enum HardwareType {
@@ -10,7 +11,6 @@ pub enum HardwareType {
     Fan,
     Temp,
 }
-
 
 #[derive(Debug, Clone)]
 enum NodeType {
@@ -32,15 +32,12 @@ struct Node {
     input_id: Vec<u64>,
     output_id: Vec<u64>,
 
-    value: Option<i32>
+    value: Option<i32>,
 }
-
 
 struct AppGraph {
-
-    nodes: HashMap<u64, Node>
+    nodes: HashMap<u64, Node>,
 }
-
 
 #[derive(Debug, Clone)]
 enum UpdateError {
@@ -48,10 +45,7 @@ enum UpdateError {
 }
 
 impl AppGraph {
-    
-    pub fn update(&mut self, node: u64) -> Result<(), UpdateError> {
-
-
-        return Ok(())
+    pub fn update(&mut self, _node: u64) -> Result<(), UpdateError> {
+        Ok(())
     }
 }

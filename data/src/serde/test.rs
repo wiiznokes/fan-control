@@ -8,11 +8,9 @@ use std::path::Path;
 use crate::serde::configs::{
     Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
 };
-use crate::serde::hardware::{Hardware, Control, Temp, Fan};
+use crate::serde::hardware::{Control, Fan, Hardware, Temp};
 //use crate::conf::hardware::{Control, Fan, Hardware, Temp};
 use crate::serde::settings::Settings;
-
-
 
 const SETTINGS_DIR_PATH: &str = "./test/config/";
 
@@ -25,17 +23,17 @@ const CONFIG_PATH_JSON: &str = formatcp!("{SETTINGS_DIR_PATH}config1.json");
 #[serial]
 fn check_deserialization() {
     parse_file(SETTINGS_PATH, false, |content| {
-        toml::from_str::<Settings>(&content)
+        toml::from_str::<Settings>(content)
     });
     parse_file(HARDWARE_PATH, false, |content| {
-        toml::from_str::<Hardware>(&content)
+        toml::from_str::<Hardware>(content)
     });
     parse_file(CONFIG_PATH_TOML, false, |content| {
-        toml::from_str::<Config>(&content)
+        toml::from_str::<Config>(content)
     });
 
     parse_file(CONFIG_PATH_JSON, false, |content| {
-        serde_json::from_str::<Config>(&content)
+        serde_json::from_str::<Config>(content)
     });
 }
 
