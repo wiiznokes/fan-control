@@ -1,34 +1,32 @@
+use data::{node::HardwareType, serde::hardware::{Control, Temp, Fan}};
+
 
 #[cfg(target_os = "linux")]
-mod linux;
+pub mod linux;
 
 #[cfg(target_os = "windows")]
-mod windows;
+pub mod windows;
 
 
-
-trait HardwareSpec {
-
-    fn hardware_type(&self) -> HardwareType;
-
-    fn hardware_id(&self) -> Option<u32>;
-
-
+#[derive(Debug, Clone)]
+enum HardwareError {
+    
 }
 
 
 
-
-trait HardwareGenerator {
+pub trait HardwareGenerator {
 
     fn new() -> impl HardwareGenerator where Self: Sized;
 
-    fn temps<'a>(&'a self) -> Vec<Temp<'a>>;
+    fn validate(&self, hardware_type: &HardwareType, hardware_id: &String) -> Result<(), HardwareError>;
 
-    fn id<T: HardwareSpec>();
+    fn controls(&self) -> Vec<Control>;
+    fn temps(&self) -> Vec<Temp>;
+    fn fans(&self) -> Vec<Fan>;
 
-    fn value<T: HardwareSpec>(&item: T) -> Option<i32>;
+    fn value(hardware_id: &String) -> Result<Option<i32>, HardwareError>;
 
-    fn set_value<T: HardwareSpec>(&item: T, value: i32);
+    fn set_value(hardware_id: &String, value: i32) -> Result<(), HardwareError>;
 
 }

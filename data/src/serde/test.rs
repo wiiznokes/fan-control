@@ -5,12 +5,12 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
-use crate::configs::{
+use crate::serde::configs::{
     Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
 };
-use crate::hardware::{Hardware, Control, Temp, Fan};
+use crate::serde::hardware::{Hardware, Control, Temp, Fan};
 //use crate::conf::hardware::{Control, Fan, Hardware, Temp};
-use crate::settings::Settings;
+use crate::serde::settings::Settings;
 
 
 
@@ -97,23 +97,45 @@ fn hardware1() -> Hardware {
         controls: vec![
             Control {
                 name: "control1".into(),
+                hardware_id: "control1".into(),
             },
             Control {
                 name: "control2".into(),
+                hardware_id: "control2".into(),
             },
             Control {
                 name: "control3".into(),
+                hardware_id: "control3".into(),
             },
             Control {
                 name: "control4".into(),
+                hardware_id: "control4".into(),
             },
         ],
         temps: vec![
-            Temp::new("temp1".into(), None),
-            Temp::new("temp2".into(), None),
-            Temp::new("temp3".into(), None),
+            Temp {
+                name: "temp1".into(),
+                hardware_id: "temp1".into(),
+            },
+            Temp {
+                name: "temp2".into(),
+                hardware_id: "temp2".into(),
+            },
+            Temp {
+                name: "temp3".into(),
+                hardware_id: "temp3".into(),
+            },
         ],
-        fans: vec![Fan {name: "fan1".into() },],
+        fans: vec![
+            Fan {
+                name: "fan1".into(),
+                hardware_id: "fan1".into(),
+            },
+            Fan {
+                name: "fan2".into(),
+                hardware_id: "fan2".into(),
+            },
+        ],
     }
 }
 
