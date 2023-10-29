@@ -25,14 +25,14 @@ sudo dnf install lm_sensors-devel
 ```
 
 
-## clean code
+## clean code
 ```
 cargo clippy --all --fix --allow-dirty --allow-staged
 cargo fmt --all
 ```
 
 
-## clean git cache
+## clean git cache
 ```
 git rm -rf --cached .
 git add .
