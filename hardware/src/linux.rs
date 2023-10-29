@@ -9,9 +9,19 @@ use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 
 use crate::{HardwareError, HardwareGenerator};
 
-pub struct LinuxGenerator<'a> {
-    lib: LMSensors,
-    sensors: HashMap<String, Sensor<'a>>,
+pub struct LinuxGenerator {
+    lib: &'static LMSensors,
+    sensors: HashMap<String, Sensor<'static>>,
+}
+
+impl Drop for LinuxGenerator {
+    fn drop(&mut self) {
+        let boxed = Box::new(self.lib);
+        let ptr = Box::into_raw(boxed);
+        unsafe {
+            let _raw = Box::from_raw(ptr);
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -23,18 +33,15 @@ struct Sensor<'a> {
     id: String,
 }
 
-impl<'a> HardwareGenerator<'a> for LinuxGenerator<'a> {
-    fn new() -> impl HardwareGenerator<'a> {
+impl HardwareGenerator for LinuxGenerator {
+    fn new() -> impl HardwareGenerator {
         let lib = lm_sensors::Initializer::default().initialize().unwrap();
+        let boxed = Box::new(lib);
+        let leaked: &'static mut LMSensors = Box::leak(boxed);
 
-        LinuxGenerator {
-            lib,
-            sensors: HashMap::new(),
-        }
-    }
+        let mut sensors = HashMap::new();
 
-    fn init<'b: 'a>(&'b mut self) {
-        for chip_ref in self.lib.chip_iter(None) {
+        for chip_ref in leaked.chip_iter(None) {
             for feature_ref in chip_ref.feature_iter() {
                 match feature_ref.kind() {
                     Some(feature_kind) => match feature_kind {
@@ -55,7 +62,7 @@ impl<'a> HardwareGenerator<'a> for LinuxGenerator<'a> {
                                     info,
                                     id: id.clone(),
                                 };
-                                self.sensors.insert(id, sensor);
+                                sensors.insert(id, sensor);
                             }
                         }
                         feature::Kind::Temperature => {
@@ -75,7 +82,7 @@ impl<'a> HardwareGenerator<'a> for LinuxGenerator<'a> {
                                     info,
                                     id: id.clone(),
                                 };
-                                self.sensors.insert(id, sensor);
+                                sensors.insert(id, sensor);
                             }
                         }
                         _ => continue,
@@ -83,6 +90,11 @@ impl<'a> HardwareGenerator<'a> for LinuxGenerator<'a> {
                     None => continue,
                 };
             }
+        }
+
+        LinuxGenerator {
+            lib: leaked,
+            sensors,
         }
     }
 

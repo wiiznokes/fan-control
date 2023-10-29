@@ -1,19 +1,12 @@
 use crate::HardwareGenerator;
 
-
-
-
-pub struct WindowsGenerator {
-    
-}
-
-
+pub struct WindowsGenerator {}
 
 impl HardwareGenerator for WindowsGenerator {
-
     fn new() -> impl HardwareGenerator
     where
-        Self: Sized {
+        Self: Sized,
+    {
         Self {}
     }
 
@@ -41,4 +34,3 @@ impl HardwareGenerator for WindowsGenerator {
         todo!()
     }
 }
-

@@ -13,11 +13,10 @@ fn main() {
     let settings = settings_manager.init_settings();
 
     #[cfg(target_os = "linux")]
-    let mut hardware_generator = hardware::linux::LinuxGenerator::new();
+    let hardware_generator = hardware::linux::LinuxGenerator::new();
 
     #[cfg(target_os = "windows")]
     let mut hardware_generator = hardware::windows::WindowsGenerator::new();
-
 
     let hardware_file_path = settings_manager.hardware_file_path();
 
@@ -29,7 +28,7 @@ fn main() {
                 eprintln!("{}", e);
             }
             hardware
-        },
+        }
     };
 
     let _config = match settings.current_config {
@@ -39,7 +38,4 @@ fn main() {
         ),
         None => None,
     };
-
-
-
 }
