@@ -16,13 +16,10 @@ pub enum HardwareError {
     LmSensors,
 }
 
-pub trait HardwareGenerator<'a> {
-    fn new() -> impl HardwareGenerator<'a>
+pub trait HardwareGenerator {
+    fn new() -> impl HardwareGenerator
     where
         Self: Sized;
-
-    // lifetime workaround on Linux
-    fn init<'b: 'a>(&'b mut self);
 
     fn validate(
         &self,

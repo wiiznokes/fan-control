@@ -9,16 +9,12 @@ pub struct WindowsGenerator {
 
 
 
-impl<'a> HardwareGenerator<'a> for WindowsGenerator {
+impl HardwareGenerator for WindowsGenerator {
 
-    fn new() -> impl HardwareGenerator<'a>
+    fn new() -> impl HardwareGenerator
     where
         Self: Sized {
         Self {}
-    }
-
-    fn init<'b: 'a>(&'b mut self) {
-        todo!()
     }
 
     fn validate(

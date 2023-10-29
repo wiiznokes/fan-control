@@ -19,8 +19,6 @@ fn main() {
     let mut hardware_generator = hardware::windows::WindowsGenerator::new();
 
 
-    hardware_generator.init();
-
     let hardware_file_path = settings_manager.hardware_file_path();
 
     let _hardware = match SettingsManager::deserialize::<Hardware>(&hardware_file_path, true) {
