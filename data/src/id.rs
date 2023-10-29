@@ -1,13 +1,8 @@
 pub type Id = u32;
 
+#[derive(Default)]
 pub struct IdGenerator {
     prec_id: Id,
-}
-
-impl Default for IdGenerator {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl IdGenerator {

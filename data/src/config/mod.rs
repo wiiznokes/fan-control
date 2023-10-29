@@ -11,14 +11,13 @@ pub mod temp;
 mod serde_test;
 
 use crate::{
-    app_graph::{self, AppGraph},
+    app_graph::{self, AppGraph, Nodes},
     config::{
         control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph,
         linear::Linear, target::Target, temp::Temp,
     },
     id::IdGenerator,
 };
-use hardware::Hardware;
 use serde::{Deserialize, Serialize};
 
 use crate::app_graph::Node;
@@ -46,7 +45,7 @@ pub struct Config {
 impl Config {
     pub fn from_app_graph(app_graph: &AppGraph) -> Self {
         let mut config = Config::default();
-        for node in app_graph.0.values() {
+        for node in app_graph.nodes.values() {
             match &node.node_type {
                 app_graph::NodeType::Control(control) => config.controls.push(control.clone()),
                 app_graph::NodeType::Fan(fan) => config.fans.push(fan.clone()),
@@ -65,8 +64,7 @@ impl Config {
 }
 
 pub trait IntoNode {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &AppGraph, hardware: &Hardware)
-        -> Node;
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node;
 }
 
 pub trait Update {

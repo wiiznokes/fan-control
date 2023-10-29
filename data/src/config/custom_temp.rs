@@ -11,5 +11,5 @@ pub enum CustomTempType {
 pub struct CustomTemp {
     pub name: String,
     pub kind: CustomTempType,
-    pub input: Vec<String>, // Temp or CustomTemp
+    pub input: Vec<String>, // Temp
 }

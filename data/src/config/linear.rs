@@ -11,6 +11,5 @@ pub struct Linear {
     pub max_temp: u8,
     #[serde(rename = "maxSpeed", alias = "max_speed")]
     pub max_speed: u8,
-    pub input: String,       // Temp or CustomTemp
-    pub output: Vec<String>, // Control
+    pub input: Option<String>, // Temp or CustomTemp
 }

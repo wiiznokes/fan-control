@@ -168,7 +168,7 @@ fn generate_id_name_info(
     };
 
     let id = format!("{}-{}", chip_name, sub_feature_name);
-    let name = format!("{} {} {}", label, chip_name, sub_feature_name);
+    let name: String = format!("{} {}", label, chip_name);
     let info = format!(
         "chip path: {}\nchip name: {}\nbus: {}\nlabel: {}\nfeature: {}",
         chip_path.display(),

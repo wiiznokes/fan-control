@@ -4,5 +4,5 @@ use serde::{Deserialize, Serialize};
 pub struct Temp {
     pub name: String,
     #[serde(rename = "id")]
-    pub hardware_id: String,
+    pub hardware_id: Option<String>,
 }

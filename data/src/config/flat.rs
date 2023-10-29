@@ -4,5 +4,4 @@ use serde::{Deserialize, Serialize};
 pub struct Flat {
     pub name: String,
     pub value: i32,
-    pub output: Vec<String>, // Control
 }

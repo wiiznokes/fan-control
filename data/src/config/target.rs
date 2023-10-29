@@ -11,6 +11,5 @@ pub struct Target {
     pub load_temp: u8,
     #[serde(rename = "loadSpeed", alias = "load_speed")]
     pub load_speed: u8,
-    pub input: String,       // Temp or CustomTemp
-    pub output: Vec<String>, // Control
+    pub input: Option<String>, // Temp or CustomTemp
 }
