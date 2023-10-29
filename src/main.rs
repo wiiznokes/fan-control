@@ -1,5 +1,8 @@
 use clap::Parser;
-use data::{app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, AppState};
+use data::{
+    app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, id::IdGenerator,
+    AppState,
+};
 use hardware::{self, HardwareBridge};
 use ui::run_ui;
 
@@ -29,9 +32,11 @@ fn main() {
         None => None,
     };
 
+    let mut id_generator = IdGenerator::new();
+
     let app_graph = match config {
-        Some(config) => config.to_app_graph(&hardware),
-        None => AppGraph::new(),
+        Some(config) => AppGraph::from_config(config, &hardware, &mut id_generator),
+        None => AppGraph::default(),
     };
 
     let app_state = AppState {
@@ -40,6 +45,7 @@ fn main() {
         hardware_bridge: Box::new(hardware_bridge),
         hardware,
         app_graph,
+        id_generator,
     };
 
     run_ui(app_state).unwrap();

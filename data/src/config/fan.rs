@@ -1,7 +1,10 @@
 use hardware::Hardware;
 use serde::{Deserialize, Serialize};
 
-use crate::app_graph::{AppGraph, NbInput, Node, NodeType};
+use crate::{
+    app_graph::{AppGraph, NbInput, Node, NodeType},
+    id::IdGenerator,
+};
 
 use super::IntoNode;
 
@@ -13,7 +16,12 @@ pub struct Fan {
 }
 
 impl IntoNode for Fan {
-    fn to_node(self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node {
+    fn to_node(
+        self,
+        id_generator: &mut IdGenerator,
+        _app_graph: &AppGraph,
+        hardware: &Hardware,
+    ) -> Node {
         assert!(
             hardware
                 .fans
@@ -23,8 +31,10 @@ impl IntoNode for Fan {
                 != 1
         );
 
+        // maybe assert unique name
+
         Node {
-            id: app_graph.id_generator.new_id(),
+            id: id_generator.new_id(),
             node_type: NodeType::Fan(self),
             nb_input: NbInput::Fixed(0),
             input_ids: Vec::new(),

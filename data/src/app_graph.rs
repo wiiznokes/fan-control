@@ -1,31 +1,33 @@
 use std::collections::HashMap;
 
+use hardware::Hardware;
+
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
+use crate::config::{Config, IntoNode};
+use crate::BoxedHardwareBridge;
 
 use crate::id::{Id, IdGenerator};
 
-pub type Nodes = HashMap<Id, Node>;
-
-pub struct AppGraph {
-    pub id_generator: IdGenerator,
-    pub nodes: Nodes,
-}
-
-impl Default for AppGraph {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+#[derive(Default)]
+pub struct AppGraph(pub HashMap<Id, Node>);
 
 impl AppGraph {
-    pub fn new() -> Self {
-        AppGraph {
-            id_generator: IdGenerator::new(),
-            nodes: HashMap::new(),
+    pub fn from_config(
+        config: Config,
+        hardware: &Hardware,
+        id_generator: &mut IdGenerator,
+    ) -> Self {
+        let mut app_graph = AppGraph::default();
+
+        for fan in config.fans {
+            let node = fan.to_node(id_generator, &app_graph, hardware);
+            app_graph.0.insert(node.id, node);
         }
+
+        app_graph
     }
 }
 
@@ -55,4 +57,10 @@ pub enum NodeType {
 pub enum NbInput {
     Fixed(u32),
     Infinity,
+}
+
+impl Node {
+    pub fn update(&self, hardware_bridge: &BoxedHardwareBridge) -> Option<(Id, i32)> {
+        todo!()
+    }
 }

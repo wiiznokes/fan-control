@@ -10,13 +10,17 @@ pub mod settings;
 
 use app_graph::AppGraph;
 use hardware::{Hardware, HardwareBridge};
+use id::IdGenerator;
 
 use crate::{directories::DirManager, settings::Settings};
+
+pub type BoxedHardwareBridge = Box<dyn HardwareBridge>;
 
 pub struct AppState {
     pub dir_manager: DirManager,
     pub settings: Settings,
-    pub hardware_bridge: Box<dyn HardwareBridge>,
+    pub hardware_bridge: BoxedHardwareBridge,
     pub hardware: Hardware,
+    pub id_generator: IdGenerator,
     pub app_graph: AppGraph,
 }

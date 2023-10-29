@@ -10,16 +10,20 @@ pub mod temp;
 #[cfg(test)]
 mod serde_test;
 
-use crate::config::{
-    control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
-    target::Target, temp::Temp,
+use crate::{
+    app_graph::{self, AppGraph},
+    config::{
+        control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph,
+        linear::Linear, target::Target, temp::Temp,
+    },
+    id::IdGenerator,
 };
 use hardware::Hardware;
 use serde::{Deserialize, Serialize};
 
-use crate::app_graph::{AppGraph, Node};
+use crate::app_graph::Node;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Config {
     #[serde(default, rename = "Control")]
     pub controls: Vec<Control>,
@@ -40,20 +44,29 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn to_app_graph(self, hardware: &Hardware) -> AppGraph {
-        let mut nodes = AppGraph::new();
-
-        for fan in self.fans {
-            let node = fan.to_node(&mut nodes, hardware);
-            nodes.nodes.insert(node.id, node);
+    pub fn from_app_graph(app_graph: &AppGraph) -> Self {
+        let mut config = Config::default();
+        for node in app_graph.0.values() {
+            match &node.node_type {
+                app_graph::NodeType::Control(control) => config.controls.push(control.clone()),
+                app_graph::NodeType::Fan(fan) => config.fans.push(fan.clone()),
+                app_graph::NodeType::Temp(temp) => config.temps.push(temp.clone()),
+                app_graph::NodeType::CustomTemp(custom_temp) => {
+                    config.custom_temps.push(custom_temp.clone())
+                }
+                app_graph::NodeType::Graph(graph) => config.graphs.push(graph.clone()),
+                app_graph::NodeType::Flat(flat) => config.flats.push(flat.clone()),
+                app_graph::NodeType::Linear(linear) => config.linears.push(linear.clone()),
+                app_graph::NodeType::Target(target) => config.targets.push(target.clone()),
+            }
         }
-
-        nodes
+        config
     }
 }
 
 pub trait IntoNode {
-    fn to_node(self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node;
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &AppGraph, hardware: &Hardware)
+        -> Node;
 }
 
 pub trait Update {
