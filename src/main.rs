@@ -12,7 +12,8 @@ fn main() {
     let settings_manager = SettingsManager::new(args.config_dir_path);
     let settings = settings_manager.init_settings();
 
-    let hardware_generator = hardware::linux::LinuxGenerator::new();
+    let mut hardware_generator = hardware::linux::LinuxGenerator::new();
+    hardware_generator.init();
 
     let hardware_file_path = settings_manager.hardware_file_path();
 
@@ -36,5 +37,5 @@ fn main() {
     };
 
 
-    
+
 }

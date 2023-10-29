@@ -11,6 +11,7 @@ members = [
     "hardware",
     #"ui",
     #"tray",
+    "experimental"
 ]
 
 
