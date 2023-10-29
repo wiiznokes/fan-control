@@ -1,20 +1,15 @@
 use std::collections::HashMap;
 
-use data::{
-    config::Hardware,
-    items::{Control, Fan, Temp},
-    node::HardwareType,
-};
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 
-use crate::{HardwareError, HardwareGenerator};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareType, TempH};
 
-pub struct LinuxGenerator {
+pub struct LinuxBridge {
     lib: &'static LMSensors,
     sensors: HashMap<String, Sensor<'static>>,
 }
 
-impl Drop for LinuxGenerator {
+impl Drop for LinuxBridge {
     fn drop(&mut self) {
         let boxed = Box::new(self.lib);
         let ptr = Box::into_raw(boxed);
@@ -33,8 +28,8 @@ struct Sensor<'a> {
     id: String,
 }
 
-impl HardwareGenerator for LinuxGenerator {
-    fn new() -> impl HardwareGenerator {
+impl HardwareBridge for LinuxBridge {
+    fn new() -> impl HardwareBridge {
         let lib = lm_sensors::Initializer::default().initialize().unwrap();
         let boxed = Box::new(lib);
         let leaked: &'static mut LMSensors = Box::leak(boxed);
@@ -92,26 +87,9 @@ impl HardwareGenerator for LinuxGenerator {
             }
         }
 
-        LinuxGenerator {
+        LinuxBridge {
             lib: leaked,
             sensors,
-        }
-    }
-
-    fn validate(
-        &self,
-        hardware_type: &HardwareType,
-        hardware_id: &str,
-    ) -> Result<(), crate::HardwareError> {
-        match self.sensors.get(hardware_id) {
-            Some(sensor) => {
-                if sensor.hardware_type == *hardware_type {
-                    Ok(())
-                } else {
-                    Err(HardwareError::WrongType)
-                }
-            }
-            None => Err(HardwareError::IdNotFound),
         }
     }
 
@@ -120,17 +98,20 @@ impl HardwareGenerator for LinuxGenerator {
 
         for sensor in self.sensors.values() {
             match sensor.hardware_type {
-                HardwareType::Control => hardware.controls.push(Control {
+                HardwareType::Control => hardware.controls.push(ControlH {
                     name: sensor.name.clone(),
                     hardware_id: sensor.id.clone(),
+                    info: sensor.info.clone(),
                 }),
-                HardwareType::Fan => hardware.fans.push(Fan {
+                HardwareType::Fan => hardware.fans.push(FanH {
                     name: sensor.name.clone(),
                     hardware_id: sensor.id.clone(),
+                    info: sensor.info.clone(),
                 }),
-                HardwareType::Temp => hardware.temps.push(Temp {
+                HardwareType::Temp => hardware.temps.push(TempH {
                     name: sensor.name.clone(),
                     hardware_id: sensor.id.clone(),
+                    info: sensor.info.clone(),
                 }),
             }
         }
@@ -166,12 +147,8 @@ impl HardwareGenerator for LinuxGenerator {
 fn generate_id_name_info(
     chip_ref: &ChipRef,
     feature_ref: &FeatureRef,
-    _sub_feature_ref: &SubFeatureRef,
+    sub_feature_ref: &SubFeatureRef,
 ) -> Option<(String, String, String)> {
-    let Ok(sub_feature_ref) = feature_ref.sub_feature_by_kind(value::Kind::FanInput) else {
-        return None;
-    };
-
     let Some(chip_path) = chip_ref.path() else {
         return None;
     };

@@ -57,7 +57,7 @@ impl SettingsManager {
         self.config_dir_path.join(HARDWARE_FILENAME)
     }
 
-    pub fn config_file_path(&self, name: String) -> PathBuf {
+    pub fn config_file_path(&self, name: &String) -> PathBuf {
         self.config_dir_path.join(name)
     }
 

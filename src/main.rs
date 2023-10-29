@@ -1,10 +1,12 @@
 use clap::Parser;
 use data::{
     cli::Args,
-    config::{Config, Hardware},
+    config::Config,
     directories::SettingsManager,
+    node::{AppGraph, AppState},
 };
-use hardware::{self, HardwareGenerator};
+use hardware::{self, HardwareBridge};
+use ui::run_ui;
 
 fn main() {
     let args = Args::parse();
@@ -13,29 +15,38 @@ fn main() {
     let settings = settings_manager.init_settings();
 
     #[cfg(target_os = "linux")]
-    let hardware_generator = hardware::linux::LinuxGenerator::new();
+    let hardware_bridge = hardware::linux::LinuxBridge::new();
 
     #[cfg(target_os = "windows")]
-    let mut hardware_generator = hardware::windows::WindowsGenerator::new();
+    let hardware_bridge = hardware::windows::WindowsBridge::new();
 
     let hardware_file_path = settings_manager.hardware_file_path();
 
-    let _hardware = match SettingsManager::deserialize::<Hardware>(&hardware_file_path, true) {
-        Some(hardware) => hardware,
-        None => {
-            let hardware = hardware_generator.hardware();
-            if let Err(e) = SettingsManager::serialize(&hardware_file_path, &hardware) {
-                eprintln!("{}", e);
-            }
-            hardware
-        }
-    };
+    let hardware = hardware_bridge.hardware();
+    if let Err(e) = SettingsManager::serialize(&hardware_file_path, &hardware) {
+        eprintln!("{}", e);
+    }
 
-    let _config = match settings.current_config {
+    let config = match &settings.current_config {
         Some(config_name) => SettingsManager::deserialize::<Config>(
             &settings_manager.config_file_path(config_name),
             true,
         ),
         None => None,
     };
+
+    let app_graph = match config {
+        Some(config) => config.to_app_graph(&hardware),
+        None => AppGraph::new(),
+    };
+
+    let app_state = AppState {
+        settings_manager,
+        settings,
+        hardware_bridge: Box::new(hardware_bridge),
+        hardware,
+        app_graph,
+    };
+
+    run_ui(app_state).unwrap();
 }

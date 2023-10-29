@@ -9,7 +9,7 @@ license = "MIT"
 members = [
     "data",
     "hardware",
-    #"ui",
+    "ui",
     #"tray",
     #"experimental"
 ]
@@ -18,7 +18,7 @@ members = [
 [dependencies]
 data.workspace = true
 hardware.workspace = true
-#ui.workspace = true
+ui.workspace = true
 clap.workspace = true
 
 
@@ -29,3 +29,6 @@ data = { version = "0.1", path = "data" }
 hardware = { version = "0.1", path = "hardware" }
 ui = { version = "0.1", path = "ui" }
 clap = { version = "4.3.8", features = ["derive"] }
+serde = { version = "1.0.181", features = ["derive"] }
+serde_json = "1.0.104"
+toml = "0.7.6"

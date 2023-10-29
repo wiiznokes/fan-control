@@ -1,21 +1,13 @@
-use crate::HardwareGenerator;
+use crate::HardwareBridge;
 
 pub struct WindowsGenerator {}
 
-impl HardwareGenerator for WindowsGenerator {
-    fn new() -> impl HardwareGenerator
+impl HardwareBridge for WindowsBridge {
+    fn new() -> impl HardwareBridge
     where
         Self: Sized,
     {
         Self {}
-    }
-
-    fn validate(
-        &self,
-        hardware_type: &data::node::HardwareType,
-        hardware_id: &str,
-    ) -> Result<(), crate::HardwareError> {
-        todo!()
     }
 
     fn hardware(&self) -> data::config::Hardware {

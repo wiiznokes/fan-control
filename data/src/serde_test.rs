@@ -1,11 +1,12 @@
 use const_format::formatcp;
+use hardware::{ControlH, FanH, Hardware, TempH};
 use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
-use crate::config::{Config, Hardware};
+use crate::config::Config;
 use crate::items::{
     Control, Coord, CustomTemp, CustomTempType, Fan, Flat, Graph, Linear, Target, Temp,
 };
@@ -23,9 +24,6 @@ const CONFIG_PATH_JSON: &str = formatcp!("{SETTINGS_DIR_PATH}config1.json");
 fn check_deserialization() {
     parse_file(SETTINGS_PATH, false, |content| {
         toml::from_str::<Settings>(content)
-    });
-    parse_file(HARDWARE_PATH, false, |content| {
-        toml::from_str::<Hardware>(content)
     });
     parse_file(CONFIG_PATH_TOML, false, |content| {
         toml::from_str::<Config>(content)
@@ -92,6 +90,62 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
 fn hardware1() -> Hardware {
     Hardware {
         controls: vec![
+            ControlH {
+                name: "control1".into(),
+                hardware_id: "control1".into(),
+                info: "control1".into(),
+            },
+            ControlH {
+                name: "control2".into(),
+                hardware_id: "control2".into(),
+                info: "control2".into(),
+            },
+            ControlH {
+                name: "control3".into(),
+                hardware_id: "control3".into(),
+                info: "control3".into(),
+            },
+            ControlH {
+                name: "control4".into(),
+                hardware_id: "control4".into(),
+                info: "control4".into(),
+            },
+        ],
+        temps: vec![
+            TempH {
+                name: "temp1".into(),
+                hardware_id: "temp1".into(),
+                info: "temp1".into(),
+            },
+            TempH {
+                name: "temp2".into(),
+                hardware_id: "temp2".into(),
+                info: "temp2".into(),
+            },
+            TempH {
+                name: "temp3".into(),
+                hardware_id: "temp3".into(),
+                info: "temp3".into(),
+            },
+        ],
+        fans: vec![
+            FanH {
+                name: "fan1".into(),
+                hardware_id: "fan1".into(),
+                info: "fan1".into(),
+            },
+            FanH {
+                name: "fan2".into(),
+                hardware_id: "fan2".into(),
+                info: "fan2".into(),
+            },
+        ],
+    }
+}
+
+fn config1() -> Config {
+    Config {
+        controls: vec![
             Control {
                 name: "control1".into(),
                 hardware_id: "control1".into(),
@@ -99,14 +153,6 @@ fn hardware1() -> Hardware {
             Control {
                 name: "control2".into(),
                 hardware_id: "control2".into(),
-            },
-            Control {
-                name: "control3".into(),
-                hardware_id: "control3".into(),
-            },
-            Control {
-                name: "control4".into(),
-                hardware_id: "control4".into(),
             },
         ],
         temps: vec![
@@ -117,10 +163,6 @@ fn hardware1() -> Hardware {
             Temp {
                 name: "temp2".into(),
                 hardware_id: "temp2".into(),
-            },
-            Temp {
-                name: "temp3".into(),
-                hardware_id: "temp3".into(),
             },
         ],
         fans: vec![
@@ -133,11 +175,6 @@ fn hardware1() -> Hardware {
                 hardware_id: "fan2".into(),
             },
         ],
-    }
-}
-
-fn config1() -> Config {
-    Config {
         custom_temps: vec![CustomTemp {
             name: "max".into(),
             kind: CustomTempType::Max,

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use data::{config::Hardware, node::HardwareType};
+use serde::Serialize;
 
 #[cfg(target_os = "linux")]
 pub mod linux;
@@ -12,20 +12,13 @@ pub mod windows;
 #[derive(Debug, Clone)]
 pub enum HardwareError {
     IdNotFound,
-    WrongType,
     LmSensors,
 }
 
-pub trait HardwareGenerator {
-    fn new() -> impl HardwareGenerator
+pub trait HardwareBridge {
+    fn new() -> impl HardwareBridge
     where
         Self: Sized;
-
-    fn validate(
-        &self,
-        hardware_type: &HardwareType,
-        hardware_id: &str,
-    ) -> Result<(), HardwareError>;
 
     fn hardware(&self) -> Hardware;
 
@@ -33,4 +26,50 @@ pub trait HardwareGenerator {
     fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), HardwareError>;
 
     fn info(&self, hardware_id: &str) -> Result<String, HardwareError>;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HardwareType {
+    Control,
+    Fan,
+    Temp,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct ControlH {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+
+    #[serde(skip)]
+    pub info: String,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct FanH {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+
+    #[serde(skip)]
+    pub info: String,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct TempH {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+    #[serde(skip)]
+    pub info: String,
+}
+
+#[derive(Serialize, Debug, Clone, Default)]
+pub struct Hardware {
+    #[serde(default, rename = "Control")]
+    pub controls: Vec<ControlH>,
+    #[serde(default, rename = "Fan")]
+    pub fans: Vec<FanH>,
+    #[serde(default, rename = "Temp")]
+    pub temps: Vec<TempH>,
 }

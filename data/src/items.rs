@@ -1,4 +1,7 @@
+use hardware::Hardware;
 use serde::{Deserialize, Serialize};
+
+use crate::node::{AppGraph, NbInput, Node, NodeType};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -85,4 +88,29 @@ pub struct Target {
     pub load_speed: u8,
     pub input: String,       // Temp or CustomTemp
     pub output: Vec<String>, // Control
+}
+
+pub trait IntoNode {
+    fn to_node(self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node;
+}
+
+impl IntoNode for Fan {
+    fn to_node(self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node {
+        assert!(
+            hardware
+                .fans
+                .iter()
+                .filter(|fan| fan.hardware_id == self.hardware_id)
+                .count()
+                != 1
+        );
+
+        Node {
+            id: app_graph.id_generator.new_id(),
+            node_type: NodeType::Fan(self),
+            nb_input: NbInput::Fixed(0),
+            input_ids: Vec::new(),
+            value: None,
+        }
+    }
 }
