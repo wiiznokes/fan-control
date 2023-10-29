@@ -6,14 +6,14 @@
 
 
 
-## Repo structure
-- [hardware](./hardware/README.md): define an abstraction around the hardware. Depend on [data](./data/README.md)
+## Repo structure
+- [hardware](./hardware/README.md): define an abstraction around the hardware.
 - [data](./data/README.md): define structures used in the app (Node, Config), and there logic. Depend on [hardware](./hardware/README.md)
 - [ui](./ui/README.md): implement the UI. Depend on [data](./data/README.md)
 - the app: integrate all this crates into on executable
 
 
-## Dependencies
+## Dependencies
 
 #### Ubuntu
 ```
