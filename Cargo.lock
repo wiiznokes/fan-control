@@ -277,13 +277,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "experimental"
-version = "0.1.0"
-dependencies = [
- "lm-sensors",
-]
-
-[[package]]
 name = "fan-control"
 version = "0.1.0"
 dependencies = [

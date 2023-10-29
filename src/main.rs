@@ -12,7 +12,13 @@ fn main() {
     let settings_manager = SettingsManager::new(args.config_dir_path);
     let settings = settings_manager.init_settings();
 
+    #[cfg(target_os = "linux")]
     let mut hardware_generator = hardware::linux::LinuxGenerator::new();
+
+    #[cfg(target_os = "windows")]
+    let mut hardware_generator = hardware::windows::WindowsGenerator::new();
+
+
     hardware_generator.init();
 
     let hardware_file_path = settings_manager.hardware_file_path();
