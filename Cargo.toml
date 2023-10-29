@@ -2,6 +2,7 @@
 name = "fan-control"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 
 [workspace]
@@ -17,7 +18,7 @@ members = [
 data.workspace = true
 hardware.workspace = true
 #ui.workspace = true
-
+clap.workspace = true
 
 
 
@@ -26,3 +27,4 @@ fan-control = { version = "0.1", path = "." }
 data = { version = "0.1", path = "data" }
 hardware = { version = "0.1", path = "hardware" }
 ui = { version = "0.1", path = "ui" }
+clap = { version = "4.3.8", features = ["derive"] }

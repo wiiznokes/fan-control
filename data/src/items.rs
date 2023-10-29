@@ -1,17 +1,24 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Config {
-    #[serde(default, rename = "CustomTemp")]
-    pub custom_temps: Vec<CustomTemp>,
-    #[serde(default, rename = "Graph")]
-    pub graphs: Vec<Graph>,
-    #[serde(default, rename = "Flat")]
-    pub flats: Vec<Flat>,
-    #[serde(default, rename = "Linear")]
-    pub linears: Vec<Linear>,
-    #[serde(default, rename = "Target")]
-    pub targets: Vec<Target>,
+pub struct Control {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Fan {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Temp {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

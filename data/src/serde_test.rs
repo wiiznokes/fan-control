@@ -5,12 +5,11 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
-use crate::serde::configs::{
-    Config, Coord, CustomTemp, CustomTempType, Flat, Graph, Linear, Target,
+use crate::config::{Config, Hardware};
+use crate::items::{
+    Control, Coord, CustomTemp, CustomTempType, Fan, Flat, Graph, Linear, Target, Temp,
 };
-use crate::serde::hardware::{Control, Fan, Hardware, Temp};
-//use crate::conf::hardware::{Control, Fan, Hardware, Temp};
-use crate::serde::settings::Settings;
+use crate::settings::Settings;
 
 const SETTINGS_DIR_PATH: &str = "./test/config/";
 

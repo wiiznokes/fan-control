@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 
-use crate::serde::{
-    configs::{CustomTemp, Flat, Graph, Linear, Target},
-    hardware::{Control, Fan, Temp},
-};
+use crate::items::{Control, CustomTemp, Fan, Flat, Graph, Linear, Target, Temp};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HardwareType {
     Control,
     Fan,
@@ -33,6 +30,7 @@ struct Node {
     output_id: Vec<u64>,
 
     value: Option<i32>,
+    info: String,
 }
 
 struct AppGraph {

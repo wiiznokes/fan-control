@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use data::{
+    config::Hardware,
+    items::{Control, Fan, Temp},
     node::HardwareType,
-    serde::hardware::{Fan, Temp},
 };
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 
-use crate::HardwareGenerator;
+use crate::{HardwareError, HardwareGenerator};
 
 pub struct LinuxGenerator<'a> {
     lib: LMSensors,
@@ -85,32 +86,68 @@ impl<'a> HardwareGenerator<'a> for LinuxGenerator<'a> {
         }
     }
 
-    fn temps(&self) -> Vec<Temp> {
-        Vec::new()
-    }
-
     fn validate(
         &self,
-        _hardware_type: &HardwareType,
-        _hardware_id: &String,
+        hardware_type: &HardwareType,
+        hardware_id: &str,
     ) -> Result<(), crate::HardwareError> {
+        match self.sensors.get(hardware_id) {
+            Some(sensor) => {
+                if sensor.hardware_type == *hardware_type {
+                    Ok(())
+                } else {
+                    Err(HardwareError::WrongType)
+                }
+            }
+            None => Err(HardwareError::IdNotFound),
+        }
+    }
+
+    fn hardware(&self) -> Hardware {
+        let mut hardware = Hardware::default();
+
+        for sensor in self.sensors.values() {
+            match sensor.hardware_type {
+                HardwareType::Control => hardware.controls.push(Control {
+                    name: sensor.name.clone(),
+                    hardware_id: sensor.id.clone(),
+                }),
+                HardwareType::Fan => hardware.fans.push(Fan {
+                    name: sensor.name.clone(),
+                    hardware_id: sensor.id.clone(),
+                }),
+                HardwareType::Temp => hardware.temps.push(Temp {
+                    name: sensor.name.clone(),
+                    hardware_id: sensor.id.clone(),
+                }),
+            }
+        }
+
+        hardware
+    }
+
+    fn value(&self, hardware_id: &str) -> Result<Option<i32>, crate::HardwareError> {
+        match self.sensors.get(hardware_id) {
+            Some(sensor) => match sensor.sub_feature_ref.raw_value() {
+                Ok(value) => Ok(Some(value as i32)),
+                Err(e) => {
+                    eprintln!("{}", e);
+                    Err(HardwareError::LmSensors)
+                }
+            },
+            None => Err(HardwareError::IdNotFound),
+        }
+    }
+
+    fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), crate::HardwareError> {
         todo!()
     }
 
-    fn controls(&self) -> Vec<data::serde::hardware::Control> {
-        todo!()
-    }
-
-    fn fans(&self) -> Vec<Fan> {
-        todo!()
-    }
-
-    fn value(_hardware_id: &String) -> Result<Option<i32>, crate::HardwareError> {
-        todo!()
-    }
-
-    fn set_value(_hardware_id: &String, _value: i32) -> Result<(), crate::HardwareError> {
-        todo!()
+    fn info(&self, hardware_id: &str) -> Result<String, crate::HardwareError> {
+        match self.sensors.get(hardware_id) {
+            Some(sensor) => Ok(sensor.info.clone()),
+            None => Err(HardwareError::IdNotFound),
+        }
     }
 }
 

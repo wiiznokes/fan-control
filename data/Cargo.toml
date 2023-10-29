@@ -5,8 +5,12 @@ edition = "2021"
 
 
 [dependencies]
-const_format = "0.2.31"
 serde = { version = "1.0.181", features = ["derive"] }
 serde_json = "1.0.104"
-serial_test = "2.0.0"
 toml = "0.7.6"
+directories = "5.0"
+clap.workspace = true
+
+[dev-dependencies]
+serial_test = "2.0.0"
+const_format = "0.2.31"
