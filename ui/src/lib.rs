@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use data::node::AppState;
+use data::AppState;
 use iced::{self, executor, widget::Text, Application, Command};
 
 pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {

@@ -22,12 +22,12 @@ fn default_config_dir_path() -> PathBuf {
         .to_path_buf()
 }
 
-pub struct SettingsManager {
+pub struct DirManager {
     pub config_dir_path: PathBuf,
 }
 
-impl SettingsManager {
-    pub fn new(config_dir_path_opt: Option<PathBuf>) -> SettingsManager {
+impl DirManager {
+    pub fn new(config_dir_path_opt: Option<PathBuf>) -> DirManager {
         let config_dir_path = if let Some(config_dir_path) = config_dir_path_opt {
             match Args::validate_config_dir_path(&config_dir_path) {
                 Ok(_) => config_dir_path,
@@ -46,7 +46,7 @@ impl SettingsManager {
             }
         }
 
-        SettingsManager { config_dir_path }
+        DirManager { config_dir_path }
     }
 
     pub fn settings_file_path(&self) -> PathBuf {

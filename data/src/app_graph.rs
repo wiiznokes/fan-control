@@ -1,21 +1,11 @@
 use std::collections::HashMap;
 
-use hardware::{Hardware, HardwareBridge};
-
-use crate::{
-    directories::SettingsManager,
-    id::{Id, IdGenerator},
-    items::{Control, CustomTemp, Fan, Flat, Graph, Linear, Target, Temp},
-    settings::Settings,
+use crate::config::{
+    control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
+    target::Target, temp::Temp,
 };
 
-pub struct AppState {
-    pub settings_manager: SettingsManager,
-    pub settings: Settings,
-    pub hardware_bridge: Box<dyn HardwareBridge>,
-    pub hardware: Hardware,
-    pub app_graph: AppGraph,
-}
+use crate::id::{Id, IdGenerator};
 
 pub type Nodes = HashMap<Id, Node>;
 

@@ -7,10 +7,17 @@ use std::io::Write;
 use std::path::Path;
 
 use crate::config::Config;
-use crate::items::{
-    Control, Coord, CustomTemp, CustomTempType, Fan, Flat, Graph, Linear, Target, Temp,
-};
+
 use crate::settings::Settings;
+
+use super::control::Control;
+use super::custom_temp::{CustomTemp, CustomTempType};
+use super::fan::Fan;
+use super::flat::Flat;
+use super::graph::{Coord, Graph};
+use super::linear::Linear;
+use super::target::Target;
+use super::temp::Temp;
 
 const SETTINGS_DIR_PATH: &str = "./test/config/";
 

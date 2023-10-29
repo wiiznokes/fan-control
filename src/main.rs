@@ -1,18 +1,13 @@
 use clap::Parser;
-use data::{
-    cli::Args,
-    config::Config,
-    directories::SettingsManager,
-    node::{AppGraph, AppState},
-};
+use data::{app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, AppState};
 use hardware::{self, HardwareBridge};
 use ui::run_ui;
 
 fn main() {
     let args = Args::parse();
 
-    let settings_manager = SettingsManager::new(args.config_dir_path);
-    let settings = settings_manager.init_settings();
+    let dir_manager = DirManager::new(args.config_dir_path);
+    let settings = dir_manager.init_settings();
 
     #[cfg(target_os = "linux")]
     let hardware_bridge = hardware::linux::LinuxBridge::new();
@@ -20,18 +15,17 @@ fn main() {
     #[cfg(target_os = "windows")]
     let hardware_bridge = hardware::windows::WindowsBridge::new();
 
-    let hardware_file_path = settings_manager.hardware_file_path();
+    let hardware_file_path = dir_manager.hardware_file_path();
 
     let hardware = hardware_bridge.hardware();
-    if let Err(e) = SettingsManager::serialize(&hardware_file_path, &hardware) {
+    if let Err(e) = DirManager::serialize(&hardware_file_path, &hardware) {
         eprintln!("{}", e);
     }
 
     let config = match &settings.current_config {
-        Some(config_name) => SettingsManager::deserialize::<Config>(
-            &settings_manager.config_file_path(config_name),
-            true,
-        ),
+        Some(config_name) => {
+            DirManager::deserialize::<Config>(&dir_manager.config_file_path(config_name), true)
+        }
         None => None,
     };
 
@@ -41,7 +35,7 @@ fn main() {
     };
 
     let app_state = AppState {
-        settings_manager,
+        dir_manager,
         settings,
         hardware_bridge: Box::new(hardware_bridge),
         hardware,
