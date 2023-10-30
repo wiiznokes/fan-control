@@ -1,8 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{id::IdGenerator, app_graph::{Nodes, Node, NodeType, NbInput}};
+use crate::{
+    app_graph::{NbInput, Node, NodeType},
+    id::IdGenerator,
+};
 
-use super::{IsValid, IntoNode};
+use super::IsValid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Flat {
@@ -10,11 +13,8 @@ pub struct Flat {
     pub value: u16,
 }
 
-
-impl IntoNode for Flat {
-    fn to_node(self, id_generator: &mut IdGenerator, _nodes: &Nodes) -> Node {
-    
-
+impl Flat {
+    pub fn to_node(self, id_generator: &mut IdGenerator) -> Node {
         Node {
             id: id_generator.new_id(),
             node_type: NodeType::Flat(self),
@@ -24,7 +24,6 @@ impl IntoNode for Flat {
         }
     }
 }
-
 
 impl IsValid for Flat {
     fn is_valid(&self) -> bool {

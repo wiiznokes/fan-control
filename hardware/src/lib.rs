@@ -15,6 +15,8 @@ pub enum HardwareError {
     LmSensors,
 }
 
+pub type Value = i32;
+
 pub trait HardwareBridge {
     fn new() -> impl HardwareBridge
     where
@@ -22,10 +24,8 @@ pub trait HardwareBridge {
 
     fn hardware(&self) -> Hardware;
 
-    fn value(&self, hardware_id: &str) -> Result<i32, HardwareError>;
-    fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), HardwareError>;
-
-    fn info(&self, hardware_id: &str) -> Result<String, HardwareError>;
+    fn value(&self, internal_index: &usize) -> Result<Value, HardwareError>;
+    fn set_value(&self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,6 +43,9 @@ pub struct ControlH {
 
     #[serde(skip)]
     pub info: String,
+
+    #[serde(skip)]
+    pub internal_index: usize,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -53,6 +56,9 @@ pub struct FanH {
 
     #[serde(skip)]
     pub info: String,
+
+    #[serde(skip)]
+    pub internal_index: usize,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -62,6 +68,9 @@ pub struct TempH {
     pub hardware_id: String,
     #[serde(skip)]
     pub info: String,
+
+    #[serde(skip)]
+    pub internal_index: usize,
 }
 
 #[derive(Serialize, Debug, Clone, Default)]
@@ -72,4 +81,30 @@ pub struct Hardware {
     pub fans: Vec<FanH>,
     #[serde(default, rename = "Temp")]
     pub temps: Vec<TempH>,
+}
+
+impl Hardware {
+    pub fn get_internal_index(
+        &self,
+        hardware_id: &String,
+        hardware_type: HardwareType,
+    ) -> Option<usize> {
+        match hardware_type {
+            HardwareType::Control => self
+                .controls
+                .iter()
+                .find(|control| &control.hardware_id == hardware_id)
+                .map(|control| control.internal_index),
+            HardwareType::Fan => self
+                .fans
+                .iter()
+                .find(|fan| &fan.hardware_id == hardware_id)
+                .map(|fan| fan.internal_index),
+            HardwareType::Temp => self
+                .temps
+                .iter()
+                .find(|temp| &temp.hardware_id == hardware_id)
+                .map(|temp| temp.internal_index),
+        }
+    }
 }

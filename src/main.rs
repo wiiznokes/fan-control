@@ -33,7 +33,7 @@ fn main() {
     };
 
     let app_graph = match config {
-        Some(config) => AppGraph::from_config(config),
+        Some(config) => AppGraph::from_config(config, &hardware),
         None => AppGraph::default(&hardware),
     };
 

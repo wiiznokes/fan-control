@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use hardware::Hardware;
+use hardware::{Hardware, Value};
 
+use crate::config::Config;
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
-use crate::config::{Config, IntoNode};
 
 use crate::id::{Id, IdGenerator};
 
@@ -38,6 +38,7 @@ impl AppGraph {
                 hardware_id: Some(control_h.hardware_id.clone()),
                 input: None,
                 auto: true,
+                hardware_internal_index: Some(control_h.internal_index),
             };
 
             let node = Node {
@@ -55,6 +56,7 @@ impl AppGraph {
             let fan = Fan {
                 name: fan_h.name.clone(),
                 hardware_id: Some(fan_h.hardware_id.clone()),
+                hardware_internal_index: Some(fan_h.internal_index),
             };
 
             let node = Node {
@@ -71,6 +73,7 @@ impl AppGraph {
             let temp = Temp {
                 name: temp_h.name.clone(),
                 hardware_id: Some(temp_h.hardware_id.clone()),
+                hardware_internal_index: Some(temp_h.internal_index),
             };
 
             let node = Node {
@@ -86,25 +89,25 @@ impl AppGraph {
         app_graph
     }
 
-    pub fn from_config(config: Config) -> Self {
+    pub fn from_config(config: Config, hardware: &Hardware) -> Self {
         let mut app_graph = AppGraph::new();
 
         // order: fan -> temp -> custom_temp -> behavior -> control
 
         for fan in config.fans {
-            let node = fan.to_node(&mut app_graph.id_generator, &app_graph.nodes);
+            let node = fan.to_node(&mut app_graph.id_generator, hardware);
             app_graph.nodes.insert(node.id, node);
         }
 
         for flat in config.flats {
-            let node = flat.to_node(&mut app_graph.id_generator, &app_graph.nodes);
+            let node = flat.to_node(&mut app_graph.id_generator);
             app_graph.nodes.insert(node.id, node);
         }
 
         // TODO: other items
 
         for control in config.controls {
-            let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes);
+            let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
             app_graph.root_nodes.push(node.id);
             app_graph.nodes.insert(node.id, node);
         }
@@ -120,7 +123,7 @@ pub struct Node {
     pub max_input: NbInput,
     pub inputs: Vec<Id>,
 
-    pub value: Option<i32>,
+    pub value: Option<Value>,
 }
 
 #[derive(Debug, Clone)]

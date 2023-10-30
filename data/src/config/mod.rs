@@ -11,16 +11,14 @@ pub mod temp;
 mod serde_test;
 
 use crate::{
-    app_graph::{self, AppGraph, Nodes},
+    app_graph::{self, AppGraph},
     config::{
         control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph,
         linear::Linear, target::Target, temp::Temp,
     },
-    id::IdGenerator, update::UpdateError,
 };
-use serde::{Deserialize, Serialize};
 
-use crate::app_graph::Node;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Config {
@@ -63,15 +61,6 @@ impl Config {
     }
 }
 
-pub trait IntoNode {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node;
-}
-
 pub trait IsValid {
     fn is_valid(&self) -> bool;
-}
-
-
-pub trait Update {
-    fn update(&self, values: Vec<i32>) -> Result<i32, UpdateError>;
 }

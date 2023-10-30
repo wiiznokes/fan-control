@@ -14,7 +14,7 @@ pub enum UpdateError {
     NodeNotFound,
     ValueIsNone,
     NodeIsInvalid,
-    Hardware(HardwareError)
+    Hardware(HardwareError),
 }
 
 pub struct Update {}
@@ -82,7 +82,6 @@ impl Node {
         nodes: &Nodes,
         hardware_bridge: &BoxedHardwareBridge,
     ) -> Result<i32, UpdateError> {
-        
         let mut input_values = Vec::new();
 
         for id in &self.inputs {
@@ -98,12 +97,12 @@ impl Node {
         match &self.node_type {
             crate::app_graph::NodeType::Control(control) => {
                 control.update(input_values[0], hardware_bridge)
-            },
+            }
             crate::app_graph::NodeType::Fan(_) => todo!(),
             crate::app_graph::NodeType::Temp(_) => todo!(),
             crate::app_graph::NodeType::CustomTemp(_) => todo!(),
             crate::app_graph::NodeType::Graph(_) => todo!(),
-            crate::app_graph::NodeType::Flat(flat) => return Ok(flat.value.into()),
+            crate::app_graph::NodeType::Flat(flat) => Ok(flat.value.into()),
             crate::app_graph::NodeType::Linear(_) => todo!(),
             crate::app_graph::NodeType::Target(_) => todo!(),
         }

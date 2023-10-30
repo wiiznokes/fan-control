@@ -1,16 +1,14 @@
-use std::collections::HashMap;
-
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use ouroboros::self_referencing;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareType, TempH};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareType, TempH, Value};
 
 #[self_referencing]
 pub struct LinuxBridge {
     lib: LMSensors,
     #[borrows(lib)]
     #[not_covariant]
-    sensors: HashMap<String, Sensor<'this>>,
+    sensors: Vec<Sensor<'this>>,
 }
 
 #[derive(Debug, Clone)]
@@ -35,22 +33,25 @@ impl HardwareBridge for LinuxBridge {
         let mut hardware = Hardware::default();
 
         self.with_sensors(|sensors| {
-            for sensor in sensors.values() {
+            for (i, sensor) in sensors.iter().enumerate() {
                 match sensor.hardware_type {
                     HardwareType::Control => hardware.controls.push(ControlH {
                         name: sensor.name.clone(),
                         hardware_id: sensor.id.clone(),
                         info: sensor.info.clone(),
+                        internal_index: i,
                     }),
                     HardwareType::Fan => hardware.fans.push(FanH {
                         name: sensor.name.clone(),
                         hardware_id: sensor.id.clone(),
                         info: sensor.info.clone(),
+                        internal_index: i,
                     }),
                     HardwareType::Temp => hardware.temps.push(TempH {
                         name: sensor.name.clone(),
                         hardware_id: sensor.id.clone(),
                         info: sensor.info.clone(),
+                        internal_index: i,
                     }),
                 }
             }
@@ -61,13 +62,14 @@ impl HardwareBridge for LinuxBridge {
             name: "control1".into(),
             hardware_id: "control1".into(),
             info: "control1".into(),
+            internal_index: 0,
         });
 
         hardware
     }
 
-    fn value(&self, hardware_id: &str) -> Result<i32, crate::HardwareError> {
-        self.with_sensors(|sensors| match sensors.get(hardware_id) {
+    fn value(&self, internal_index: &usize) -> Result<Value, crate::HardwareError> {
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor.sub_feature_ref.raw_value() {
                 Ok(value) => Ok(value as i32),
                 Err(e) => {
@@ -79,16 +81,9 @@ impl HardwareBridge for LinuxBridge {
         })
     }
 
-    fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), crate::HardwareError> {
-        println!("set value {} to {}", value, hardware_id);
+    fn set_value(&self, internal_index: &usize, value: Value) -> Result<(), crate::HardwareError> {
+        println!("set value {} to {}", value, internal_index);
         Ok(())
-    }
-
-    fn info(&self, hardware_id: &str) -> Result<String, crate::HardwareError> {
-        self.with_sensors(|sensors| match sensors.get(hardware_id) {
-            Some(sensor) => Ok(sensor.info.clone()),
-            None => Err(HardwareError::IdNotFound),
-        })
     }
 }
 
@@ -129,8 +124,8 @@ fn generate_id_name_info(
     Some((id, name, info))
 }
 
-fn generate_sub_feature_refs(lib: &LMSensors) -> HashMap<String, Sensor<'_>> {
-    let mut sensors = HashMap::new();
+fn generate_sub_feature_refs(lib: &LMSensors) -> Vec<Sensor<'_>> {
+    let mut sensors = Vec::new();
 
     for chip_ref in lib.chip_iter(None) {
         for feature_ref in chip_ref.feature_iter() {
@@ -151,9 +146,9 @@ fn generate_sub_feature_refs(lib: &LMSensors) -> HashMap<String, Sensor<'_>> {
                                 sub_feature_ref,
                                 name,
                                 info,
-                                id: id.clone(),
+                                id,
                             };
-                            sensors.insert(id, sensor);
+                            sensors.push(sensor);
                         }
                     }
                     feature::Kind::Temperature => {
@@ -171,9 +166,9 @@ fn generate_sub_feature_refs(lib: &LMSensors) -> HashMap<String, Sensor<'_>> {
                                 sub_feature_ref,
                                 name,
                                 info,
-                                id: id.clone(),
+                                id,
                             };
-                            sensors.insert(id, sensor);
+                            sensors.push(sensor);
                         }
                     }
                     _ => continue,

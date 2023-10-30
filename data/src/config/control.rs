@@ -1,11 +1,14 @@
+use hardware::{Hardware, HardwareType};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     app_graph::{NbInput, Node, NodeType, Nodes},
-    id::IdGenerator, BoxedHardwareBridge, update::UpdateError,
+    id::IdGenerator,
+    update::UpdateError,
+    BoxedHardwareBridge,
 };
 
-use super::{IntoNode, IsValid};
+use super::IsValid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -14,16 +17,53 @@ pub struct Control {
     pub hardware_id: Option<String>,
     pub input: Option<String>,
     pub auto: bool,
+
+    #[serde(skip)]
+    pub hardware_internal_index: Option<usize>,
 }
 
-impl IntoNode for Control {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node {
+impl Control {
+    pub fn to_node(
+        mut self,
+        id_generator: &mut IdGenerator,
+        nodes: &Nodes,
+        hardware: &Hardware,
+    ) -> Node {
+        match self.hardware_id {
+            Some(ref hardware_id) => {
+                match hardware.get_internal_index(hardware_id, HardwareType::Control) {
+                    Some(index) => self.hardware_internal_index = Some(index),
+                    None => {
+                        eprintln!(
+                            "hardware {} from config not found. Fall back to no id",
+                            hardware_id
+                        );
+                        self.hardware_id = None
+                    }
+                }
+            }
+            None => {
+                if self.hardware_internal_index.is_some() {
+                    eprintln!(
+                        "Control to Node: Inconsistent internal index found. name: {}",
+                        self.name
+                    );
+                    self.hardware_internal_index = None;
+                }
+            }
+        }
+
         let inputs = match &self.input {
             Some(input) => {
-                let Some(node) = nodes.values().find(|node| node.name() == input) else {
-                    panic!("Control to Node: can't find {} in app_graph", input)
-                };
-                vec![node.id]
+                if let Some(node) = nodes.values().find(|node| node.name() == input) {
+                    vec![node.id]
+                } else {
+                    eprintln!(
+                        "Control to Node: can't find {} in app_graph. Fall back: remove",
+                        input
+                    );
+                    Vec::new()
+                }
             }
             None => Vec::new(),
         };
@@ -40,20 +80,27 @@ impl IntoNode for Control {
 
 impl IsValid for Control {
     fn is_valid(&self) -> bool {
-        !self.auto && self.hardware_id.is_some() && self.input.is_some()
+        !self.auto
+            && self.hardware_id.is_some()
+            && self.hardware_internal_index.is_some()
+            && self.input.is_some()
     }
 }
 
-
 impl Control {
-    pub fn update(&self, value: i32, hardware_bridge: &BoxedHardwareBridge) -> Result<i32, UpdateError> {
-        
-        match &self.hardware_id {
-            Some(hardware_id) => {
-                hardware_bridge.set_value(&hardware_id, value).map_err(UpdateError::Hardware)?;
-                hardware_bridge.value(&hardware_id).map_err(UpdateError::Hardware)
-            },
-            None => return Err(UpdateError::NodeIsInvalid),
+    pub fn update(
+        &self,
+        value: i32,
+        hardware_bridge: &BoxedHardwareBridge,
+    ) -> Result<i32, UpdateError> {
+        match &self.hardware_internal_index {
+            Some(index) => {
+                hardware_bridge
+                    .set_value(index, value)
+                    .map_err(UpdateError::Hardware)?;
+                hardware_bridge.value(index).map_err(UpdateError::Hardware)
+            }
+            None => Err(UpdateError::NodeIsInvalid),
         }
     }
 }

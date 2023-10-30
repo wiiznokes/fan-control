@@ -186,6 +186,7 @@ mod test_helper {
             name: name.into(),
             hardware_id: name.into(),
             info: name.into(),
+            internal_index: 0,
         }
     }
     pub fn temp_h(name: &str) -> TempH {
@@ -193,6 +194,7 @@ mod test_helper {
             name: name.into(),
             hardware_id: name.into(),
             info: name.into(),
+            internal_index: 0,
         }
     }
     pub fn fan_h(name: &str) -> FanH {
@@ -200,6 +202,7 @@ mod test_helper {
             name: name.into(),
             hardware_id: name.into(),
             info: name.into(),
+            internal_index: 0,
         }
     }
 
@@ -209,18 +212,21 @@ mod test_helper {
             hardware_id: Some(name.into()),
             input: input.map(|i| i.into()),
             auto,
+            hardware_internal_index: None,
         }
     }
     pub fn temp(name: &str) -> Temp {
         Temp {
             name: name.into(),
             hardware_id: Some(name.into()),
+            hardware_internal_index: None,
         }
     }
     pub fn fan(name: &str) -> Fan {
         Fan {
             name: name.into(),
             hardware_id: Some(name.into()),
+            hardware_internal_index: None,
         }
     }
 
