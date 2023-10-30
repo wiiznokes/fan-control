@@ -87,6 +87,42 @@ impl Application for Ui {
     }
 }
 
+
+struct A {
+    a: String,
+}
+
+trait T {
+    fn get_a(&mut self) -> &mut String;
+}
+
+impl T for A {
+    fn get_a(&mut self) -> &mut String {
+        &mut self.a
+    }
+}
+
+fn change_a(a: &mut impl T) {
+    let mut refa = a.get_a();
+
+    refa.clear();
+    refa.push_str("hello from change");
+
+
+}
+
 fn main() {
-    Ui::run(Settings::default()).unwrap();
+
+
+    let mut a = A {
+        a: String::from("hello")
+    };
+
+    change_a(&mut a);
+
+    println!("{}", a.a);
+
+
+
+    //Ui::run(Settings::default()).unwrap();
 }

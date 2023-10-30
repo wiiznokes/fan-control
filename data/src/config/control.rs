@@ -8,7 +8,10 @@ use crate::{
     BoxedHardwareBridge,
 };
 
-use super::{IsValid, HardwareId};
+use super::{IsValid, HardwareId, sanitize_hardware_id};
+
+static CONTROL_ALLOWED_DEP: &'static [i32] = &[1, 2, 3, 4, 5];
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -47,29 +50,9 @@ impl Control {
         nodes: &Nodes,
         hardware: &Hardware,
     ) -> Node {
-        match self.hardware_id {
-            Some(ref hardware_id) => {
-                match hardware.get_internal_index(hardware_id, HardwareType::Control) {
-                    Some(index) => self.hardware_internal_index = Some(index),
-                    None => {
-                        eprintln!(
-                            "hardware {} from config not found. Fall back to no id",
-                            hardware_id
-                        );
-                        self.hardware_id = None
-                    }
-                }
-            }
-            None => {
-                if self.hardware_internal_index.is_some() {
-                    eprintln!(
-                        "Control to Node: Inconsistent internal index found. name: {}",
-                        self.name
-                    );
-                    self.hardware_internal_index = None;
-                }
-            }
-        }
+
+        sanitize_hardware_id(&mut self, hardware, HardwareType::Control);
+     
 
         let inputs = match &self.input {
             Some(input) => {

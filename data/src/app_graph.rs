@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use hardware::{Hardware, Value};
 
-use crate::config::Config;
+use crate::config::{Config, IsValid};
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
@@ -161,6 +161,21 @@ impl Node {
             NodeType::Flat(flat) => &flat.name,
             NodeType::Linear(linear) => &linear.name,
             NodeType::Target(target) => &target.name,
+        }
+    }
+}
+
+impl IsValid for Node {
+    fn is_valid(&self) -> bool {
+        match &self.node_type {
+            NodeType::Control(control) => control.is_valid(),
+            NodeType::Fan(fan) => fan.is_valid(),
+            NodeType::Temp(temp) => temp.is_valid(),
+            NodeType::CustomTemp(custom_temp) => custom_temp.is_valid(),
+            NodeType::Graph(graph) => graph.is_valid(),
+            NodeType::Flat(flat) => flat.is_valid(),
+            NodeType::Linear(linear) => linear.is_valid(),
+            NodeType::Target(target) => target.is_valid(),
         }
     }
 }

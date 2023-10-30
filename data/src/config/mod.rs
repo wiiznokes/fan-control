@@ -7,6 +7,7 @@ pub mod linear;
 pub mod target;
 pub mod temp;
 
+
 #[cfg(test)]
 mod serde_test;
 
@@ -78,28 +79,23 @@ pub trait HardwareId {
 
 }
 
-pub fn verif_hardware_id(
+pub fn sanitize_hardware_id(
     node: &mut impl HardwareId,
     hardware: &Hardware,
     hardware_type: HardwareType,
 ) {
-    let hardware_id_ref = node.hardware_id_mut();
-    let internal_index_ref = node.internal_index_mut();
-
     match node.hardware_id() {
-        Some(ref hardware_id) => {
+        Some(hardware_id) => {
             match hardware.get_internal_index(hardware_id, hardware_type) {
                 Some(index) => {
-                    let mut index_ref = node.internal_index_mut();
-                    index_ref = &mut Some(index);
+                    let _ = node.internal_index_mut().replace(index);
                 },
                 None => {
                     eprintln!(
                         "hardware {} from config not found. Fall back to no id",
                         hardware_id
                     );
-                    let mut hardware_id_ref = node.hardware_id_mut();
-                    hardware_id_ref = &mut None
+                    node.hardware_id_mut().take();
                 }
             }
         }
@@ -108,8 +104,7 @@ pub fn verif_hardware_id(
                 eprintln!(
                     "Control to Node: Inconsistent internal index found: "
                 );
-                let mut index_ref = node.internal_index_mut();
-                index_ref = &mut None;
+                node.internal_index_mut().take();
             }
         }
     }
