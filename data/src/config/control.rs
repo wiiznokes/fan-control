@@ -1,4 +1,4 @@
-use hardware::{Hardware, HardwareType};
+use hardware::{Hardware, HardwareType, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     BoxedHardwareBridge,
 };
 
-use super::IsValid;
+use super::{IsValid, HardwareId};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -20,6 +20,24 @@ pub struct Control {
 
     #[serde(skip)]
     pub hardware_internal_index: Option<usize>,
+}
+
+impl HardwareId for Control {
+    fn hardware_id(&self) -> &Option<String> {
+        &self.hardware_id
+    }
+
+    fn hardware_id_mut(&mut self) -> &mut Option<String> {
+        &mut self.hardware_id
+    }
+
+    fn internal_index(&self) -> &Option<usize> {
+        &self.hardware_internal_index
+    }
+
+    fn internal_index_mut(&mut self) -> &mut Option<usize> {
+        &mut self.hardware_internal_index
+    }
 }
 
 impl Control {
@@ -62,6 +80,7 @@ impl Control {
                         "Control to Node: can't find {} in app_graph. Fall back: remove",
                         input
                     );
+                    self.input = None;
                     Vec::new()
                 }
             }
@@ -90,7 +109,7 @@ impl IsValid for Control {
 impl Control {
     pub fn update(
         &self,
-        value: i32,
+        value: Value,
         hardware_bridge: &BoxedHardwareBridge,
     ) -> Result<i32, UpdateError> {
         match &self.hardware_internal_index {

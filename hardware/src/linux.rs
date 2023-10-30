@@ -20,6 +20,14 @@ struct Sensor<'a> {
     id: String,
 }
 
+impl Drop for Sensor<'_> {
+    fn drop(&mut self) {
+        if self.hardware_type == HardwareType::Control {
+            // TODO: set to auto
+        }
+    }
+}
+
 impl HardwareBridge for LinuxBridge {
     fn new() -> impl HardwareBridge {
         LinuxBridgeBuilder {

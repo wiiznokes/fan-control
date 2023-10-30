@@ -99,6 +99,11 @@ impl AppGraph {
             app_graph.nodes.insert(node.id, node);
         }
 
+        for temp in config.temps {
+            let node = temp.to_node(&mut app_graph.id_generator, hardware);
+            app_graph.nodes.insert(node.id, node);
+        }
+
         for flat in config.flats {
             let node = flat.to_node(&mut app_graph.id_generator);
             app_graph.nodes.insert(node.id, node);

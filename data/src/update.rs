@@ -15,6 +15,7 @@ pub enum UpdateError {
     ValueIsNone,
     NodeIsInvalid,
     Hardware(HardwareError),
+    NoInputData
 }
 
 pub struct Update {}

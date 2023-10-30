@@ -18,6 +18,7 @@ use crate::{
     },
 };
 
+use hardware::{Hardware, HardwareType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -63,4 +64,53 @@ impl Config {
 
 pub trait IsValid {
     fn is_valid(&self) -> bool;
+}
+
+
+pub trait HardwareId {
+    
+    fn hardware_id(&self) -> &Option<String>;
+    fn hardware_id_mut(&mut self) -> &mut Option<String>;
+
+
+    fn internal_index(&self) -> &Option<usize>;
+    fn internal_index_mut(&mut self) -> &mut Option<usize>;
+
+}
+
+pub fn verif_hardware_id(
+    node: &mut impl HardwareId,
+    hardware: &Hardware,
+    hardware_type: HardwareType,
+) {
+    let hardware_id_ref = node.hardware_id_mut();
+    let internal_index_ref = node.internal_index_mut();
+
+    match node.hardware_id() {
+        Some(ref hardware_id) => {
+            match hardware.get_internal_index(hardware_id, hardware_type) {
+                Some(index) => {
+                    let mut index_ref = node.internal_index_mut();
+                    index_ref = &mut Some(index);
+                },
+                None => {
+                    eprintln!(
+                        "hardware {} from config not found. Fall back to no id",
+                        hardware_id
+                    );
+                    let mut hardware_id_ref = node.hardware_id_mut();
+                    hardware_id_ref = &mut None
+                }
+            }
+        }
+        None => {
+            if node.internal_index().is_some() {
+                eprintln!(
+                    "Control to Node: Inconsistent internal index found: "
+                );
+                let mut index_ref = node.internal_index_mut();
+                index_ref = &mut None;
+            }
+        }
+    }
 }
