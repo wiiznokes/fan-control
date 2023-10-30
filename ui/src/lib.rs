@@ -1,7 +1,9 @@
 #![allow(dead_code)]
 
+use std::time::Duration;
+
 use data::AppState;
-use iced::{self, executor, widget::Text, Application, Command};
+use iced::{self, executor, time, widget::Text, Application, Command};
 
 pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
     let settings = iced::Settings::with_flags(app_state);
@@ -13,7 +15,9 @@ pub struct Ui {
 }
 
 #[derive(Debug, Clone)]
-pub enum AppMsg {}
+pub enum AppMsg {
+    Tick,
+}
 
 impl Application for Ui {
     type Executor = executor::Default;
@@ -28,14 +32,24 @@ impl Application for Ui {
     }
 
     fn title(&self) -> String {
-        String::from("App")
+        String::from("fan-control-rs")
     }
 
-    fn update(&mut self, _message: Self::Message) -> iced::Command<Self::Message> {
+    fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
+        match message {
+            AppMsg::Tick => {
+                //self.app_state.app_graph.update(&self.app_state.hardware_bridge, &self.app_state.app_graph.root_nodes);
+            }
+        }
+
         Command::none()
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
         Text::new("hello").into()
+    }
+
+    fn subscription(&self) -> iced::Subscription<Self::Message> {
+        time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
     }
 }

@@ -72,9 +72,7 @@ impl Application for Ui {
             .push(Text::new(self.app_state.number.to_string()));
 
         let content = Column::new()
-            .push(
-                TextInput::new("", &self.app_state.name).on_input(|text| AppMsg::ChangeName(text)),
-            )
+            .push(TextInput::new("", &self.app_state.name).on_input(AppMsg::ChangeName))
             .push(Space::new(0, 30))
             .push(counter)
             .width(Length::Fill)

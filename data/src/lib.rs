@@ -7,6 +7,7 @@ pub mod config;
 pub mod directories;
 pub mod id;
 pub mod settings;
+pub mod update;
 
 use app_graph::AppGraph;
 use hardware::{Hardware, HardwareBridge};

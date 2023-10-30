@@ -1,11 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
 use crate::config::{Config, IntoNode};
-use crate::BoxedHardwareBridge;
 
 use crate::id::{Id, IdGenerator};
 
@@ -69,60 +68,6 @@ pub enum NbInput {
     Zero,
     One,
     Infinity,
-}
-
-impl AppGraph {
-    pub fn update(
-        &self,
-        hardware_bridge: &BoxedHardwareBridge,
-        app_graph: &AppGraph,
-        root_nodes: RootNodes,
-    ) -> Vec<(Id, i32)> {
-        let mut to_update: Vec<Id> = Vec::new();
-
-        let mut update = Vec::new();
-
-        for node_id in root_nodes {
-            let Some(node) = app_graph.nodes.get(&node_id) else {
-                continue;
-            };
-
-            if let Some(ids) = node.find_nodes_to_update(app_graph) {
-                to_update.extend(ids);
-            };
-        }
-
-        let mut updated: HashSet<Id> = HashSet::new();
-
-        for node_id in to_update {
-            if !updated.contains(&node_id) {
-                let Some(node) = app_graph.nodes.get(&node_id) else {
-                    continue;
-                };
-
-                let (id, value) = node.update(app_graph, hardware_bridge);
-                updated.insert(id);
-
-                update.push((id, value));
-            }
-        }
-
-        update
-    }
-}
-
-impl Node {
-    pub fn update(
-        &self,
-        _app_graph: &AppGraph,
-        _hardware_bridge: &BoxedHardwareBridge,
-    ) -> (Id, i32) {
-        todo!()
-    }
-
-    pub fn find_nodes_to_update(&self, _app_graph: &AppGraph) -> Option<Vec<Id>> {
-        todo!()
-    }
 }
 
 impl Node {
