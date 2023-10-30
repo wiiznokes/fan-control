@@ -66,3 +66,7 @@ impl Config {
 pub trait IntoNode {
     fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node;
 }
+
+pub trait IsValid {
+    fn is_valid(&self) -> bool;
+}

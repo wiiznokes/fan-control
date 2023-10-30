@@ -1,0 +1,4 @@
+unit = "Celsius"
+update_delay = 0
+disable_pwm_value = 0
+current_config = "config1.toml"

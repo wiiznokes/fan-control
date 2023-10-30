@@ -5,7 +5,7 @@ use crate::{
     id::IdGenerator,
 };
 
-use super::IntoNode;
+use super::{IntoNode, IsValid};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -35,5 +35,11 @@ impl IntoNode for Control {
             inputs,
             value: None,
         }
+    }
+}
+
+impl IsValid for Control {
+    fn is_valid(&self) -> bool {
+        !self.auto && self.hardware_id.is_some() && self.input.is_some()
     }
 }

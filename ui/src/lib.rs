@@ -45,11 +45,11 @@ impl Application for Ui {
                     &self.app_state.hardware_bridge,
                     &self.app_state.app_graph.root_nodes,
                 ) {
-                    Ok(_) => { },
+                    Ok(_) => {}
                     Err(e) => {
                         eprintln!("{:?}", e);
                         self.app_state.update.clear_cache();
-                    },
+                    }
                 }
             }
         }

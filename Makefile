@@ -1,6 +1,7 @@
 
 
-
+conf:
+	clear && cargo run -- -p ./config
 
 release:
 	clear && cargo run --release

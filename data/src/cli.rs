@@ -15,15 +15,6 @@ impl Args {
             return Err(format!("{} is not a directory", path.display()));
         }
 
-        match path.read_dir() {
-            Ok(mut entries) => {
-                if entries.next().is_none() {
-                    Ok(())
-                } else {
-                    Err(format!("{} directory is not empty", path.display()))
-                }
-            }
-            Err(e) => Err(e.to_string()),
-        }
+        Ok(())
     }
 }

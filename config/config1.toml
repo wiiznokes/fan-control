@@ -1,0 +1,9 @@
+[[Control]]
+name = "control1"
+id = "control1"
+input = "flat1"
+auto = false
+
+[[Flat]]
+name = "flat1"
+value = 50

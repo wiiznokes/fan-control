@@ -56,7 +56,6 @@ impl HardwareBridge for LinuxBridge {
             }
         });
 
-
         // TODO: remove this!
         hardware.controls.push(ControlH {
             name: "control1".into(),
@@ -81,8 +80,8 @@ impl HardwareBridge for LinuxBridge {
     }
 
     fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), crate::HardwareError> {
-        println!("set value {} to {}", value.to_string(), hardware_id);
-        return Ok(());
+        println!("set value {} to {}", value, hardware_id);
+        Ok(())
     }
 
     fn info(&self, hardware_id: &str) -> Result<String, crate::HardwareError> {

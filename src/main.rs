@@ -1,5 +1,8 @@
 use clap::Parser;
-use data::{app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, AppState, update::Update};
+use data::{
+    app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, update::Update,
+    AppState,
+};
 use hardware::{self, HardwareBridge};
 use ui::run_ui;
 
@@ -40,7 +43,7 @@ fn main() {
         hardware_bridge: Box::new(hardware_bridge),
         hardware,
         app_graph,
-        update: Update::new()
+        update: Update::new(),
     };
 
     run_ui(app_state).unwrap();

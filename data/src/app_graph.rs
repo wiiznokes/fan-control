@@ -96,6 +96,11 @@ impl AppGraph {
             app_graph.nodes.insert(node.id, node);
         }
 
+        for flat in config.flats {
+            let node = flat.to_node(&mut app_graph.id_generator, &app_graph.nodes);
+            app_graph.nodes.insert(node.id, node);
+        }
+
         // TODO: other items
 
         for control in config.controls {

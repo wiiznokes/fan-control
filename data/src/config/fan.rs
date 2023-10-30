@@ -5,7 +5,7 @@ use crate::{
     id::IdGenerator,
 };
 
-use super::IntoNode;
+use super::{IntoNode, IsValid};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Fan {
@@ -23,5 +23,11 @@ impl IntoNode for Fan {
             inputs: Vec::new(),
             value: None,
         }
+    }
+}
+
+impl IsValid for Fan {
+    fn is_valid(&self) -> bool {
+        self.hardware_id.is_some()
     }
 }

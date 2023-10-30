@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::IsValid;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Linear {
     pub name: String,
@@ -12,4 +14,10 @@ pub struct Linear {
     #[serde(rename = "maxSpeed", alias = "max_speed")]
     pub max_speed: u8,
     pub input: Option<String>, // Temp or CustomTemp
+}
+
+impl IsValid for Linear {
+    fn is_valid(&self) -> bool {
+        self.input.is_some()
+    }
 }

@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::IsValid;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Coord {
     pub temp: u8,
@@ -12,4 +14,10 @@ pub struct Graph {
     #[serde(rename = "coord")]
     pub coords: Vec<Coord>,
     pub input: Option<String>, // Temp or CustomTemp
+}
+
+impl IsValid for Graph {
+    fn is_valid(&self) -> bool {
+        self.input.is_some() //TODO: add conditions on coords
+    }
 }

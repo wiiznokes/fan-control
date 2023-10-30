@@ -23,5 +23,5 @@ pub struct AppState {
     pub hardware_bridge: BoxedHardwareBridge,
     pub hardware: Hardware,
     pub app_graph: AppGraph,
-    pub update: Update
+    pub update: Update,
 }
