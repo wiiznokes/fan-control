@@ -45,6 +45,7 @@ pub struct ControlH {
     pub info: String,
 }
 
+
 #[derive(Serialize, Debug, Clone)]
 pub struct FanH {
     pub name: String,

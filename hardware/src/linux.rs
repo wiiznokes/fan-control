@@ -56,6 +56,14 @@ impl HardwareBridge for LinuxBridge {
             }
         });
 
+
+        // TODO: remove this!
+        hardware.controls.push(ControlH {
+            name: "control1".into(),
+            hardware_id: "control1".into(),
+            info: "control1".into(),
+        });
+
         hardware
     }
 
@@ -73,7 +81,8 @@ impl HardwareBridge for LinuxBridge {
     }
 
     fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), crate::HardwareError> {
-        todo!()
+        println!("set value {} to {}", value.to_string(), hardware_id);
+        return Ok(());
     }
 
     fn info(&self, hardware_id: &str) -> Result<String, crate::HardwareError> {
@@ -174,5 +183,6 @@ fn generate_sub_feature_refs(lib: &LMSensors) -> HashMap<String, Sensor<'_>> {
             };
         }
     }
+
     sensors
 }

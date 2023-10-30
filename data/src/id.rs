@@ -1,6 +1,6 @@
 pub type Id = u32;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct IdGenerator {
     prec_id: Id,
 }

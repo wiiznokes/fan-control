@@ -11,6 +11,7 @@ pub mod update;
 
 use app_graph::AppGraph;
 use hardware::{Hardware, HardwareBridge};
+use update::Update;
 
 use crate::{directories::DirManager, settings::Settings};
 
@@ -22,4 +23,5 @@ pub struct AppState {
     pub hardware_bridge: BoxedHardwareBridge,
     pub hardware: Hardware,
     pub app_graph: AppGraph,
+    pub update: Update
 }

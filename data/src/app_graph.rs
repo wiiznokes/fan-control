@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use hardware::Hardware;
+
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
@@ -11,7 +13,7 @@ use crate::id::{Id, IdGenerator};
 pub type Nodes = HashMap<Id, Node>;
 pub type RootNodes = Vec<Id>;
 
-#[derive(Default)]
+#[derive(Debug)]
 pub struct AppGraph {
     pub nodes: Nodes,
     pub id_generator: IdGenerator,
@@ -19,8 +21,73 @@ pub struct AppGraph {
 }
 
 impl AppGraph {
+    fn new() -> Self {
+        Self {
+            nodes: HashMap::new(),
+            id_generator: IdGenerator::new(),
+            root_nodes: Vec::new(),
+        }
+    }
+
+    pub fn default(hardware: &Hardware) -> Self {
+        let mut app_graph = AppGraph::new();
+
+        for control_h in &hardware.controls {
+            let control = Control {
+                name: control_h.name.clone(),
+                hardware_id: Some(control_h.hardware_id.clone()),
+                input: None,
+                auto: true,
+            };
+
+            let node = Node {
+                id: app_graph.id_generator.new_id(),
+                node_type: NodeType::Control(control),
+                max_input: NbInput::One,
+                inputs: Vec::new(),
+                value: None,
+            };
+            app_graph.root_nodes.push(node.id);
+            app_graph.nodes.insert(node.id, node);
+        }
+
+        for fan_h in &hardware.fans {
+            let fan = Fan {
+                name: fan_h.name.clone(),
+                hardware_id: Some(fan_h.hardware_id.clone()),
+            };
+
+            let node = Node {
+                id: app_graph.id_generator.new_id(),
+                node_type: NodeType::Fan(fan),
+                max_input: NbInput::Zero,
+                inputs: Vec::new(),
+                value: None,
+            };
+            app_graph.nodes.insert(node.id, node);
+        }
+
+        for temp_h in &hardware.temps {
+            let temp = Temp {
+                name: temp_h.name.clone(),
+                hardware_id: Some(temp_h.hardware_id.clone()),
+            };
+
+            let node = Node {
+                id: app_graph.id_generator.new_id(),
+                node_type: NodeType::Temp(temp),
+                max_input: NbInput::Zero,
+                inputs: Vec::new(),
+                value: None,
+            };
+            app_graph.nodes.insert(node.id, node);
+        }
+
+        app_graph
+    }
+
     pub fn from_config(config: Config) -> Self {
-        let mut app_graph = AppGraph::default();
+        let mut app_graph = AppGraph::new();
 
         // order: fan -> temp -> custom_temp -> behavior -> control
 

@@ -28,6 +28,8 @@ impl Application for Ui {
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let ui_state = Ui { app_state: flags };
 
+        dbg!(&ui_state.app_state.app_graph);
+
         (ui_state, Command::none())
     }
 
@@ -38,7 +40,17 @@ impl Application for Ui {
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
             AppMsg::Tick => {
-                //self.app_state.app_graph.update(&self.app_state.hardware_bridge, &self.app_state.app_graph.root_nodes);
+                match self.app_state.update.graph(
+                    &mut self.app_state.app_graph.nodes,
+                    &self.app_state.hardware_bridge,
+                    &self.app_state.app_graph.root_nodes,
+                ) {
+                    Ok(_) => { },
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        self.app_state.update.clear_cache();
+                    },
+                }
             }
         }
 

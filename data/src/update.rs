@@ -6,6 +6,7 @@ use crate::{
     BoxedHardwareBridge,
 };
 
+#[derive(Debug, Clone)]
 pub enum UpdateError {
     NodeNotFound,
 }
