@@ -10,20 +10,31 @@ use crate::BoxedHardwareBridge;
 use crate::id::{Id, IdGenerator};
 
 pub type Nodes = HashMap<Id, Node>;
+pub type RootNodes = Vec<Id>;
 
 #[derive(Default)]
 pub struct AppGraph {
     pub nodes: Nodes,
     pub id_generator: IdGenerator,
-    pub root_nodes: Vec<Id>,
+    pub root_nodes: RootNodes,
 }
 
 impl AppGraph {
     pub fn from_config(config: Config) -> Self {
         let mut app_graph = AppGraph::default();
 
+        // order: fan -> temp -> custom_temp -> behavior -> control
+
         for fan in config.fans {
             let node = fan.to_node(&mut app_graph.id_generator, &app_graph.nodes);
+            app_graph.nodes.insert(node.id, node);
+        }
+
+        // TODO: other items
+
+        for control in config.controls {
+            let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes);
+            app_graph.root_nodes.push(node.id);
             app_graph.nodes.insert(node.id, node);
         }
 
@@ -63,22 +74,37 @@ pub enum NbInput {
 impl AppGraph {
     pub fn update(
         &self,
-        _hardware_bridge: &BoxedHardwareBridge,
+        hardware_bridge: &BoxedHardwareBridge,
         app_graph: &AppGraph,
-        controls_id: Vec<Id>,
+        root_nodes: RootNodes,
     ) -> Vec<(Id, i32)> {
-        let mut to_update: HashSet<Id> = HashSet::new();
+        let mut to_update: Vec<Id> = Vec::new();
 
-        let update = Vec::new();
+        let mut update = Vec::new();
 
-        for control_id in controls_id {
-            let Some(control) = app_graph.nodes.get(&control_id) else {
+        for node_id in root_nodes {
+            let Some(node) = app_graph.nodes.get(&node_id) else {
                 continue;
             };
 
-            if let Some(ids) = control.find_nodes_to_update(app_graph) {
-                to_update.extend(&ids);
+            if let Some(ids) = node.find_nodes_to_update(app_graph) {
+                to_update.extend(ids);
             };
+        }
+
+        let mut updated: HashSet<Id> = HashSet::new();
+
+        for node_id in to_update {
+            if !updated.contains(&node_id) {
+                let Some(node) = app_graph.nodes.get(&node_id) else {
+                    continue;
+                };
+
+                let (id, value) = node.update(app_graph, hardware_bridge);
+                updated.insert(id);
+
+                update.push((id, value));
+            }
         }
 
         update
@@ -88,13 +114,13 @@ impl AppGraph {
 impl Node {
     pub fn update(
         &self,
-        _hardware_bridge: &BoxedHardwareBridge,
         _app_graph: &AppGraph,
-    ) -> Vec<(Id, i32)> {
+        _hardware_bridge: &BoxedHardwareBridge,
+    ) -> (Id, i32) {
         todo!()
     }
 
-    pub fn find_nodes_to_update(&self, _app_graph: &AppGraph) -> Option<HashSet<Id>> {
+    pub fn find_nodes_to_update(&self, _app_graph: &AppGraph) -> Option<Vec<Id>> {
         todo!()
     }
 }
