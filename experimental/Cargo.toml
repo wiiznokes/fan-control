@@ -6,5 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lm-sensors = "0.2.0"
-ouroboros = "0.18.0"
+#lm-sensors = "0.2.0"
+#ouroboros = "0.18.0"
+iced = { version = "0.10", features = ["advanced", "smol"]}
+
