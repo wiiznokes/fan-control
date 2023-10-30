@@ -16,7 +16,7 @@ use crate::{
         control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph,
         linear::Linear, target::Target, temp::Temp,
     },
-    id::IdGenerator,
+    id::IdGenerator, update::UpdateError,
 };
 use serde::{Deserialize, Serialize};
 
@@ -69,4 +69,9 @@ pub trait IntoNode {
 
 pub trait IsValid {
     fn is_valid(&self) -> bool;
+}
+
+
+pub trait Update {
+    fn update(&self, values: Vec<i32>) -> Result<i32, UpdateError>;
 }

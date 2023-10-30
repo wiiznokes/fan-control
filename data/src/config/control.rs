@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     app_graph::{NbInput, Node, NodeType, Nodes},
-    id::IdGenerator,
+    id::IdGenerator, BoxedHardwareBridge, update::UpdateError,
 };
 
 use super::{IntoNode, IsValid};
@@ -41,5 +41,19 @@ impl IntoNode for Control {
 impl IsValid for Control {
     fn is_valid(&self) -> bool {
         !self.auto && self.hardware_id.is_some() && self.input.is_some()
+    }
+}
+
+
+impl Control {
+    pub fn update(&self, value: i32, hardware_bridge: &BoxedHardwareBridge) -> Result<i32, UpdateError> {
+        
+        match &self.hardware_id {
+            Some(hardware_id) => {
+                hardware_bridge.set_value(&hardware_id, value).map_err(UpdateError::Hardware)?;
+                hardware_bridge.value(&hardware_id).map_err(UpdateError::Hardware)
+            },
+            None => return Err(UpdateError::NodeIsInvalid),
+        }
     }
 }

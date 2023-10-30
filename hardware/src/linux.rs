@@ -66,10 +66,10 @@ impl HardwareBridge for LinuxBridge {
         hardware
     }
 
-    fn value(&self, hardware_id: &str) -> Result<Option<i32>, crate::HardwareError> {
+    fn value(&self, hardware_id: &str) -> Result<i32, crate::HardwareError> {
         self.with_sensors(|sensors| match sensors.get(hardware_id) {
             Some(sensor) => match sensor.sub_feature_ref.raw_value() {
-                Ok(value) => Ok(Some(value as i32)),
+                Ok(value) => Ok(value as i32),
                 Err(e) => {
                     eprintln!("{}", e);
                     Err(HardwareError::LmSensors)

@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use hardware::HardwareError;
+
 use crate::{
     app_graph::{Node, Nodes, RootNodes},
     config::IsValid,
@@ -10,6 +12,9 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum UpdateError {
     NodeNotFound,
+    ValueIsNone,
+    NodeIsInvalid,
+    Hardware(HardwareError)
 }
 
 pub struct Update {}
@@ -74,10 +79,34 @@ impl Update {
 impl Node {
     pub fn update(
         &self,
-        _nodes: &Nodes,
-        _hardware_bridge: &BoxedHardwareBridge,
+        nodes: &Nodes,
+        hardware_bridge: &BoxedHardwareBridge,
     ) -> Result<i32, UpdateError> {
-        todo!()
+        
+        let mut input_values = Vec::new();
+
+        for id in &self.inputs {
+            match nodes.get(id) {
+                Some(node) => match node.value {
+                    Some(value) => input_values.push(value),
+                    None => return Err(UpdateError::ValueIsNone),
+                },
+                None => return Err(UpdateError::NodeNotFound),
+            }
+        }
+
+        match &self.node_type {
+            crate::app_graph::NodeType::Control(control) => {
+                control.update(input_values[0], hardware_bridge)
+            },
+            crate::app_graph::NodeType::Fan(_) => todo!(),
+            crate::app_graph::NodeType::Temp(_) => todo!(),
+            crate::app_graph::NodeType::CustomTemp(_) => todo!(),
+            crate::app_graph::NodeType::Graph(_) => todo!(),
+            crate::app_graph::NodeType::Flat(flat) => return Ok(flat.value.into()),
+            crate::app_graph::NodeType::Linear(_) => todo!(),
+            crate::app_graph::NodeType::Target(_) => todo!(),
+        }
     }
 
     pub fn validate(&self, nodes: &Nodes, trace: &mut Vec<Id>) -> Result<bool, UpdateError> {

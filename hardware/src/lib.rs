@@ -22,7 +22,7 @@ pub trait HardwareBridge {
 
     fn hardware(&self) -> Hardware;
 
-    fn value(&self, hardware_id: &str) -> Result<Option<i32>, HardwareError>;
+    fn value(&self, hardware_id: &str) -> Result<i32, HardwareError>;
     fn set_value(&self, hardware_id: &str, value: i32) -> Result<(), HardwareError>;
 
     fn info(&self, hardware_id: &str) -> Result<String, HardwareError>;
