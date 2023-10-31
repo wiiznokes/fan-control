@@ -1633,7 +1633,8 @@ checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
 [[package]]
 name = "light_enum"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/light_enum.git#156d8acbd87e3ac2218e41813e099f6d68b7bc42"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e2167199e2a96c65299b38a8be62200414c3df9099991692a561970d5d6da8f"
 dependencies = [
  "quote",
  "syn 2.0.38",

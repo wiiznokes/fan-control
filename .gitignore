@@ -9,3 +9,5 @@ target/
 test/
 .idea/
 .vscode/
+/lib
+/etc
