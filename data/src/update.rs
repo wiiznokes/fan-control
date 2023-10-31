@@ -15,7 +15,7 @@ pub enum UpdateError {
     ValueIsNone,
     NodeIsInvalid,
     Hardware(HardwareError),
-    NoInputData
+    NoInputData,
 }
 
 pub struct Update {}
@@ -110,11 +110,10 @@ impl Node {
     }
 
     pub fn validate(&self, nodes: &Nodes, trace: &mut Vec<Id>) -> Result<bool, UpdateError> {
-
         if !self.is_valid() {
             return Ok(false);
         }
-      
+
         trace.push(self.id);
 
         for id in &self.inputs {

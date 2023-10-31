@@ -1,7 +1,10 @@
 use hardware::{Hardware, HardwareType};
 use serde::{Deserialize, Serialize};
 
-use crate::{id::IdGenerator, app_graph::{Node, NodeType, NbInput}};
+use crate::{
+    app_graph::{NbInput, Node, NodeType},
+    id::IdGenerator,
+};
 
 use super::IsValid;
 
@@ -50,7 +53,6 @@ impl Temp {
         }
     }
 }
-
 
 impl IsValid for Temp {
     fn is_valid(&self) -> bool {

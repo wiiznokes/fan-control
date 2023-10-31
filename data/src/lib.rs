@@ -25,5 +25,3 @@ pub struct AppState {
     pub app_graph: AppGraph,
     pub update: Update,
 }
-
-

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use iced::widget::{Button, Column, Container, Row, Space, TextInput};
-use iced::{self, executor, widget::Text, Application, Command, Settings};
+use iced::{self, executor, widget::Text, Application, Command};
 use iced::{time, Length};
 
 use std::time::Duration;
@@ -87,7 +87,6 @@ impl Application for Ui {
     }
 }
 
-
 struct A {
     a: String,
 }
@@ -103,26 +102,20 @@ impl T for A {
 }
 
 fn change_a(a: &mut impl T) {
-    let mut refa = a.get_a();
+    let refa = a.get_a();
 
     refa.clear();
     refa.push_str("hello from change");
-
-
 }
 
 fn main() {
-
-
     let mut a = A {
-        a: String::from("hello")
+        a: String::from("hello"),
     };
 
     change_a(&mut a);
 
     println!("{}", a.a);
-
-
 
     //Ui::run(Settings::default()).unwrap();
 }

@@ -8,10 +8,9 @@ use crate::{
     BoxedHardwareBridge,
 };
 
-use super::{IsValid, HardwareId, sanitize_hardware_id};
+use super::{sanitize_hardware_id, HardwareId, IsValid};
 
-static CONTROL_ALLOWED_DEP: &'static [i32] = &[1, 2, 3, 4, 5];
-
+static CONTROL_ALLOWED_DEP: &[i32] = &[1, 2, 3, 4, 5];
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -50,9 +49,7 @@ impl Control {
         nodes: &Nodes,
         hardware: &Hardware,
     ) -> Node {
-
         sanitize_hardware_id(&mut self, hardware, HardwareType::Control);
-     
 
         let inputs = match &self.input {
             Some(input) => {

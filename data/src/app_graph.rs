@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use hardware::{Hardware, Value};
 
-use crate::config::{Config, IsValid};
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
+use crate::config::{Config, IsValid};
 
 use crate::id::{Id, IdGenerator};
 

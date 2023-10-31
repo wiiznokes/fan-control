@@ -1,7 +1,11 @@
 use hardware::Value;
 use serde::{Deserialize, Serialize};
 
-use crate::{app_graph::{Node, Nodes, NbInput, NodeType}, id::IdGenerator, update::UpdateError};
+use crate::{
+    app_graph::{NbInput, Node, NodeType, Nodes},
+    id::IdGenerator,
+    update::UpdateError,
+};
 
 use super::IsValid;
 
@@ -19,14 +23,8 @@ pub struct CustomTemp {
     pub input: Vec<String>,
 }
 
-
 impl CustomTemp {
-    pub fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes
-    ) -> Node {
-
+    pub fn to_node(mut self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node {
         let mut inputs = Vec::new();
 
         for name in &self.input {
@@ -59,13 +57,8 @@ impl IsValid for CustomTemp {
     }
 }
 
-
 impl CustomTemp {
-    pub fn update(
-        &self,
-        values: Vec<Value>,
-    ) -> Result<i32, UpdateError> {
-
+    pub fn update(&self, values: Vec<Value>) -> Result<i32, UpdateError> {
         if values.is_empty() {
             return Err(UpdateError::NoInputData);
         }

@@ -1,24 +1,17 @@
+#![allow(dead_code)]
+
 use light_enum::LightEnum;
 
-
 #[derive(LightEnum)]
-enum T {
+enum MyEnum {
     A(i32),
     B(i32),
-    C
+    C(i32),
 }
-
 
 pub fn main() {
+    let heavy = MyEnum::A(0);
+    let light = heavy.to_light();
 
-    let old_a = T::A(0);
-
-    let l = old_a.to_light();
-
-    assert!(TLight::A == l);
-
+    assert!(light == MyEnumLight::A);
 }
-
-// to see generation:
-// cargo install cargo-expand
-// cargo expand --bin test
