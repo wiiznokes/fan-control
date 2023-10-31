@@ -12,7 +12,6 @@ members = [
     "ui",
     #"tray",
     "experimental",
-    "sensors-sys"
 ]
 
 

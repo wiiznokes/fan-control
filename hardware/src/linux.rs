@@ -64,15 +64,7 @@ impl HardwareBridge for LinuxBridge {
                 }
             }
         });
-
-        // TODO: remove this!
-        hardware.controls.push(ControlH {
-            name: "control1".into(),
-            hardware_id: "control1".into(),
-            info: "control1".into(),
-            internal_index: 0,
-        });
-
+        
         hardware
     }
 
@@ -178,6 +170,13 @@ fn generate_sub_feature_refs(lib: &LMSensors) -> Vec<Sensor<'_>> {
                             };
                             sensors.push(sensor);
                         }
+                    }
+                    feature::Kind::Pwm => {
+                        let Ok(sub_feature_ref) =
+                            feature_ref.sub_feature_by_kind(value::Kind::FanInput)
+                        else {
+                            continue;
+                        };
                     }
                     _ => continue,
                 },

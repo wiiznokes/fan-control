@@ -7,5 +7,5 @@ edition = "2021"
 serde.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
-lm-sensors = "0.2.0"
+lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
 ouroboros = "0.18.0"
