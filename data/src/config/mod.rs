@@ -11,11 +11,12 @@ pub mod temp;
 mod serde_test;
 
 use crate::{
-    app_graph::{self, AppGraph},
+    app_graph::{self, AppGraph, NbInput, NodeTypeLight, Nodes},
     config::{
         control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph,
         linear::Linear, target::Target, temp::Temp,
     },
+    id::Id,
 };
 
 use hardware::{Hardware, HardwareType};
@@ -99,4 +100,65 @@ pub fn sanitize_hardware_id(
             }
         }
     }
+}
+
+pub trait Inputs {
+    fn clear_inputs(&mut self);
+    fn get_inputs(&self) -> Vec<&String>;
+}
+
+pub fn sanitize_inputs(
+    item: &mut impl Inputs,
+    nodes: &Nodes,
+    max_input: NbInput,
+    allowed_dep: &[NodeTypeLight],
+) -> Vec<Id> {
+    let mut inputs = Vec::new();
+
+    match max_input {
+        NbInput::Zero => {
+            if !item.get_inputs().is_empty() {
+                item.clear_inputs();
+            };
+            return inputs;
+        }
+        NbInput::One => {
+            if !item.get_inputs().len() > 1 {
+                item.clear_inputs();
+                return inputs;
+            }
+        }
+        _ => {}
+    };
+
+    for name in item.get_inputs() {
+        if let Some(node) = nodes.values().find(|node| node.name() == name) {
+            if !allowed_dep.contains(&node.node_type.to_light()) {
+                eprintln!(
+                    "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
+                    node.node_type.to_light(),
+                    name
+                );
+                item.clear_inputs();
+                inputs.clear();
+                return inputs;
+            }
+            inputs.push(node.id)
+        } else {
+            eprintln!(
+                "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",
+                name
+            );
+            item.clear_inputs();
+            inputs.clear();
+            return inputs;
+        }
+    }
+
+    if max_input == NbInput::One && !inputs.len() > 1 {
+        item.clear_inputs();
+        inputs.clear();
+        return inputs;
+    }
+    inputs
 }

@@ -16,3 +16,6 @@ fix:
 clean-git:
 	git rm -rf --cached .
 	git add .
+
+expand:
+	clear && cargo expand

@@ -7,7 +7,7 @@ use crate::{
     update::UpdateError,
 };
 
-use super::IsValid;
+use super::{Inputs, IsValid};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CustomTempType {
@@ -21,6 +21,20 @@ pub struct CustomTemp {
     pub name: String,
     pub kind: CustomTempType,
     pub input: Vec<String>,
+}
+
+impl Inputs for CustomTemp {
+    fn clear_inputs(&mut self) {
+        todo!()
+    }
+
+    fn get_inputs(&self) -> Vec<&String> {
+        let mut v = Vec::with_capacity(self.input.len());
+        for input in &self.input {
+            v.push(input)
+        }
+        v
+    }
 }
 
 impl CustomTemp {

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use hardware::{Hardware, Value};
+use light_enum::LightEnum;
 
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
@@ -131,7 +132,7 @@ pub struct Node {
     pub value: Option<Value>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, LightEnum)]
 pub enum NodeType {
     Control(Control),
     Fan(Fan),

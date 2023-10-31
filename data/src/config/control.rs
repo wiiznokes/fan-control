@@ -1,16 +1,23 @@
+use std::vec;
+
 use hardware::{Hardware, HardwareType, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::{NbInput, Node, NodeType, Nodes},
+    app_graph::{NbInput, Node, NodeType, NodeTypeLight, Nodes},
     id::IdGenerator,
     update::UpdateError,
     BoxedHardwareBridge,
 };
 
-use super::{sanitize_hardware_id, HardwareId, IsValid};
+use super::{sanitize_hardware_id, sanitize_inputs, HardwareId, Inputs, IsValid};
 
-static CONTROL_ALLOWED_DEP: &[i32] = &[1, 2, 3, 4, 5];
+static CONTROL_ALLOWED_DEP: &[NodeTypeLight] = &[
+    NodeTypeLight::Flat,
+    NodeTypeLight::Graph,
+    NodeTypeLight::Target,
+    NodeTypeLight::Linear,
+];
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -42,6 +49,19 @@ impl HardwareId for Control {
     }
 }
 
+impl Inputs for Control {
+    fn clear_inputs(&mut self) {
+        self.input.take();
+    }
+
+    fn get_inputs(&self) -> Vec<&String> {
+        match &self.input {
+            Some(input) => vec![input],
+            None => Vec::new(),
+        }
+    }
+}
+
 impl Control {
     pub fn to_node(
         mut self,
@@ -50,22 +70,7 @@ impl Control {
         hardware: &Hardware,
     ) -> Node {
         sanitize_hardware_id(&mut self, hardware, HardwareType::Control);
-
-        let inputs = match &self.input {
-            Some(input) => {
-                if let Some(node) = nodes.values().find(|node| node.name() == input) {
-                    vec![node.id]
-                } else {
-                    eprintln!(
-                        "Control to Node: can't find {} in app_graph. Fall back: remove",
-                        input
-                    );
-                    self.input = None;
-                    Vec::new()
-                }
-            }
-            None => Vec::new(),
-        };
+        let inputs = sanitize_inputs(&mut self, nodes, NbInput::One, CONTROL_ALLOWED_DEP);
 
         Node {
             id: id_generator.new_id(),
