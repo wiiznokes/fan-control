@@ -1,10 +1,7 @@
 use std::process::Command;
 
-
 fn main() {
-
     if cfg!(target_os = "linux") {
-
         let output = Command::new("git")
             .arg("submodule")
             .arg("update")
@@ -13,7 +10,10 @@ fn main() {
             .expect("Failed to fetch submodules");
 
         if !output.status.success() {
-            eprintln!("Error executing 'git submodule update --init': {:?}", output);
+            eprintln!(
+                "Error executing 'git submodule update --init': {:?}",
+                output
+            );
             println!("Maybe git is not installed ?");
             std::process::exit(1);
         }
@@ -32,6 +32,5 @@ fn main() {
             println!("Maybe make, bison, flex, or clang is not installed ?");
             std::process::exit(1);
         }
-
     }
 }

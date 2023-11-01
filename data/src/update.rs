@@ -6,7 +6,6 @@ use crate::{
     app_graph::{Node, Nodes, RootNodes},
     config::IsValid,
     id::Id,
-    BoxedHardwareBridge,
 };
 
 #[derive(Debug, Clone)]
@@ -31,12 +30,7 @@ impl Update {
         Self {}
     }
 
-    pub fn graph(
-        &mut self,
-        nodes: &mut Nodes,
-        hardware_bridge: &BoxedHardwareBridge,
-        root_nodes: &RootNodes,
-    ) -> Result<(), UpdateError> {
+    pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
         let mut to_update: Vec<Id> = Vec::new();
 
         for node_id in root_nodes {
@@ -60,7 +54,7 @@ impl Update {
                     return Err(UpdateError::NodeNotFound);
                 };
 
-                let value = node.update(nodes, hardware_bridge)?;
+                let value = node.update(nodes)?;
 
                 let Some(node) = nodes.get_mut(&node_id) else {
                     return Err(UpdateError::NodeNotFound);
@@ -78,11 +72,7 @@ impl Update {
 }
 
 impl Node {
-    pub fn update(
-        &self,
-        nodes: &Nodes,
-        hardware_bridge: &BoxedHardwareBridge,
-    ) -> Result<i32, UpdateError> {
+    pub fn update(&self, nodes: &Nodes) -> Result<i32, UpdateError> {
         let mut input_values = Vec::new();
 
         for id in &self.inputs {
@@ -96,9 +86,7 @@ impl Node {
         }
 
         match &self.node_type {
-            crate::app_graph::NodeType::Control(control) => {
-                control.update(input_values[0], hardware_bridge)
-            }
+            crate::app_graph::NodeType::Control(control) => control.update(input_values[0]),
             crate::app_graph::NodeType::Fan(_) => todo!(),
             crate::app_graph::NodeType::Temp(_) => todo!(),
             crate::app_graph::NodeType::CustomTemp(_) => todo!(),

@@ -1,13 +1,12 @@
-use std::{vec, rc::Rc};
+use std::{rc::Rc, vec};
 
-use hardware::{Hardware, Value, ControlH};
+use hardware::{ControlH, Hardware, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     app_graph::{NbInput, Node, NodeType, NodeTypeLight, Nodes},
     id::IdGenerator,
     update::UpdateError,
-    BoxedHardwareBridge,
 };
 
 use super::{sanitize_inputs, Inputs, IsValid};
@@ -88,35 +87,23 @@ impl Control {
 
 impl IsValid for Control {
     fn is_valid(&self) -> bool {
-        !self.auto
-            && self.hardware_id.is_some()
-            && self.control_h.is_some()
-            && self.input.is_some()
+        !self.auto && self.hardware_id.is_some() && self.control_h.is_some() && self.input.is_some()
     }
 }
 
 impl Control {
-    pub fn update(
-        &self,
-        _value: Value,
-        hardware_bridge: &BoxedHardwareBridge,
-    ) -> Result<i32, UpdateError> {
+    pub fn update(&self, _value: Value) -> Result<i32, UpdateError> {
         match &self.control_h {
-            Some(control_h) => hardware_bridge
-                .value(&control_h.internal_index.io)
-                .map_err(UpdateError::Hardware),
+            Some(control_h) => control_h.bridge.value().map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }
 
-    pub fn enable(
-        &self,
-        auto: bool,
-        hardware_bridge: &BoxedHardwareBridge,
-    ) -> Result<(), UpdateError> {
+    pub fn enable(&self, auto: bool) -> Result<(), UpdateError> {
         match &self.control_h {
-            Some(control_h) => hardware_bridge
-                .set_value(&control_h.internal_index.enable, !(auto as i32))
+            Some(control_h) => control_h
+                .bridge
+                .set_value(!(auto as i32))
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }

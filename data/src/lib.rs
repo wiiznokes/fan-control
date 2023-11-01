@@ -20,7 +20,6 @@ pub type BoxedHardwareBridge = Box<dyn HardwareBridge>;
 pub struct AppState {
     pub dir_manager: DirManager,
     pub settings: Settings,
-    pub hardware_bridge: BoxedHardwareBridge,
     pub hardware: Hardware,
     pub app_graph: AppGraph,
     pub update: Update,

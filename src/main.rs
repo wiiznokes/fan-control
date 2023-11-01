@@ -13,7 +13,7 @@ fn main() {
     let settings = dir_manager.init_settings();
 
     #[cfg(target_os = "linux")]
-    let (hardware_bridge, hardware) = hardware::linux::LinuxBridge::new();
+    let hardware = hardware::linux::LinuxBridge::generate_hardware();
 
     #[cfg(target_os = "windows")]
     let hardware_bridge = hardware::windows::WindowsBridge::new();
@@ -39,7 +39,6 @@ fn main() {
     let app_state = AppState {
         dir_manager,
         settings,
-        hardware_bridge: Box::new(hardware_bridge),
         hardware,
         app_graph,
         update: Update::new(),
