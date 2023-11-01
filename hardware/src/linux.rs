@@ -134,7 +134,7 @@ fn generate_sub_feature_refs<'a>(lib: &'a LMSensors, hardware: &mut Hardware) ->
                                 info,
                                 internal_index: sensors.len() - 1,
                             };
-                            hardware.fans.push(fan_h);
+                            hardware.fans.push(fan_h.into());
                         }
                     }
                     feature::Kind::Temperature => {
@@ -159,7 +159,7 @@ fn generate_sub_feature_refs<'a>(lib: &'a LMSensors, hardware: &mut Hardware) ->
                                 info,
                                 internal_index: sensors.len() - 1,
                             };
-                            hardware.temps.push(temp_h);
+                            hardware.temps.push(temp_h.into());
                         }
                     }
                     feature::Kind::Pwm => {
@@ -197,7 +197,7 @@ fn generate_sub_feature_refs<'a>(lib: &'a LMSensors, hardware: &mut Hardware) ->
                                     enable: sensors.len() - 1,
                                 },
                             };
-                            hardware.controls.push(control_h);
+                            hardware.controls.push(control_h.into());
                         }
                     }
                     _ => continue,

@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 
 use serde::Serialize;
+use std::rc::Rc;
 
 #[cfg(target_os = "linux")]
 pub mod linux;
@@ -80,9 +81,9 @@ pub struct TempH {
 #[derive(Serialize, Debug, Clone, Default)]
 pub struct Hardware {
     #[serde(default, rename = "Control")]
-    pub controls: Vec<ControlH>,
+    pub controls: Vec<Rc<ControlH>>,
     #[serde(default, rename = "Fan")]
-    pub fans: Vec<FanH>,
+    pub fans: Vec<Rc<FanH>>,
     #[serde(default, rename = "Temp")]
-    pub temps: Vec<TempH>,
+    pub temps: Vec<Rc<TempH>>,
 }

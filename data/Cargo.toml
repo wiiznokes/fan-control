@@ -13,8 +13,8 @@ serde_json.workspace = true
 toml.workspace = true
 directories = "5.0"
 clap.workspace = true
-light_enum = "0.1.0"
+light_enum = "0.1"
 
 [dev-dependencies]
-serial_test = "2.0.0"
-const_format = "0.2.31"
+serial_test = "2.0"
+const_format = "0.2"
