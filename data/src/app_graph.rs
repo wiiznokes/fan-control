@@ -57,7 +57,7 @@ impl AppGraph {
             let fan = Fan {
                 name: fan_h.name.clone(),
                 hardware_id: Some(fan_h.hardware_id.clone()),
-                hardware_index: Some(fan_h.internal_index),
+                fan_h: Some(fan_h.clone()),
             };
 
             let node = Node {
@@ -74,7 +74,7 @@ impl AppGraph {
             let temp = Temp {
                 name: temp_h.name.clone(),
                 hardware_id: Some(temp_h.hardware_id.clone()),
-                hardware_index: Some(temp_h.internal_index),
+                temp_h: Some(temp_h.clone()),
             };
 
             let node = Node {

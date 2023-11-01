@@ -1,4 +1,6 @@
-use hardware::Hardware;
+use std::rc::Rc;
+
+use hardware::{Hardware, TempH};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -15,7 +17,7 @@ pub struct Temp {
     pub hardware_id: Option<String>,
 
     #[serde(skip)]
-    pub hardware_index: Option<usize>,
+    pub temp_h: Option<Rc<TempH>>,
 }
 
 impl Temp {
@@ -27,18 +29,18 @@ impl Temp {
                     .iter()
                     .find(|temp_h| &temp_h.hardware_id == hardware_id)
                 {
-                    Some(temp_h) => self.hardware_index = Some(temp_h.internal_index),
+                    Some(temp_h) => self.temp_h = Some(temp_h.clone()),
                     None => {
                         eprintln!("Temp to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
                         self.hardware_id.take();
-                        self.hardware_index.take();
+                        self.temp_h.take();
                     }
                 }
             }
             None => {
-                if self.hardware_index.is_some() {
+                if self.temp_h.is_some() {
                     eprintln!("Temp to Node: inconsistent internal index");
-                    self.hardware_index.take();
+                    self.temp_h.take();
                 }
             }
         }
@@ -55,6 +57,6 @@ impl Temp {
 
 impl IsValid for Temp {
     fn is_valid(&self) -> bool {
-        self.hardware_id.is_some() && self.hardware_index.is_some()
+        self.hardware_id.is_some() && self.temp_h.is_some()
     }
 }

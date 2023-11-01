@@ -54,7 +54,7 @@ pub struct ControlH {
     pub bridge: Box<dyn HardwareItem>,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug)]
 pub struct FanH {
     pub name: String,
     #[serde(rename = "id")]
@@ -64,10 +64,10 @@ pub struct FanH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: usize,
+    pub bridge: Box<dyn HardwareItem>,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug)]
 pub struct TempH {
     pub name: String,
     #[serde(rename = "id")]
@@ -76,7 +76,7 @@ pub struct TempH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: usize,
+    pub bridge: Box<dyn HardwareItem>,
 }
 
 #[derive(Serialize, Debug, Clone, Default)]

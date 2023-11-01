@@ -1,4 +1,6 @@
-use hardware::Hardware;
+use std::rc::Rc;
+
+use hardware::{FanH, Hardware};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -15,7 +17,7 @@ pub struct Fan {
     pub hardware_id: Option<String>,
 
     #[serde(skip)]
-    pub hardware_index: Option<usize>,
+    pub fan_h: Option<Rc<FanH>>,
 }
 
 impl Fan {
@@ -27,18 +29,18 @@ impl Fan {
                     .iter()
                     .find(|fan_h| &fan_h.hardware_id == hardware_id)
                 {
-                    Some(fan_h) => self.hardware_index = Some(fan_h.internal_index),
+                    Some(fan_h) => self.fan_h = Some(fan_h.clone()),
                     None => {
                         eprintln!("Fan to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
                         self.hardware_id.take();
-                        self.hardware_index.take();
+                        self.fan_h.take();
                     }
                 }
             }
             None => {
-                if self.hardware_index.is_some() {
+                if self.fan_h.is_some() {
                     eprintln!("Fan to Node: inconsistent internal index");
-                    self.hardware_index.take();
+                    self.fan_h.take();
                 }
             }
         }
@@ -55,6 +57,6 @@ impl Fan {
 
 impl IsValid for Fan {
     fn is_valid(&self) -> bool {
-        self.hardware_id.is_some() && self.hardware_index.is_some()
+        self.hardware_id.is_some() && self.fan_h.is_some()
     }
 }

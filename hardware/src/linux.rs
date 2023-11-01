@@ -1,6 +1,6 @@
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 
-use crate::{ControlH, Hardware, HardwareBridge, HardwareError, HardwareItem, Value};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareItem, TempH, Value};
 
 pub struct LinuxBridge {}
 
@@ -105,6 +105,18 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
                         if let Some((id, name, info)) =
                             generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref)
                         {
+                            let sensor = InternalSubFeatureRef {
+                                sub_feature_type: SubFeatureType::Fan,
+                                sub_feature_ref,
+                            };
+
+                            let fan_h = FanH {
+                                name,
+                                hardware_id: id,
+                                info,
+                                bridge: Box::new(InternalSensor { sensor }),
+                            };
+                            hardware.fans.push(fan_h.into());
                         }
                     }
                     feature::Kind::Temperature => {
@@ -117,6 +129,18 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
                         if let Some((id, name, info)) =
                             generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref)
                         {
+                            let sensor = InternalSubFeatureRef {
+                                sub_feature_type: SubFeatureType::Temp,
+                                sub_feature_ref,
+                            };
+
+                            let temp_h = TempH {
+                                name,
+                                hardware_id: id,
+                                info,
+                                bridge: Box::new(InternalSensor { sensor }),
+                            };
+                            hardware.temps.push(temp_h.into());
                         }
                     }
                     feature::Kind::Pwm => {
