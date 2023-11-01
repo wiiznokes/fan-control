@@ -2,20 +2,11 @@
 run:
 	clear && cargo run
 
-
-libsensors:
-	$(MAKE) -C ./libsensors install PREFIX=./../libsensors_build ETCDIR=./../etc
-
-clean_libsensors:
-	$(MAKE) -C ./libsensors uninstall clean PREFIX=./../libsensors_build ETCDIR=./../etc
-
 conf:
 	clear && cargo run -- -p ./config
 
 release:
 	clear && cargo run --release
-
-
 
 fix:
 	cargo clippy --all --fix --allow-dirty --allow-staged

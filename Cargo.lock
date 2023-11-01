@@ -956,9 +956,9 @@ checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
 
 [[package]]
 name = "fdeflate"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d329bdeac514ee06249dabc27877490f17f5d371ec693360768b838e19f3ae10"
+checksum = "64d6dafc854908ff5da46ff3f8f473c6984119a2876a383a860246dd7841a868"
 dependencies = [
  "simd-adler32",
 ]
@@ -1655,7 +1655,7 @@ checksum = "da2479e8c062e40bf0066ffa0bc823de0a9368974af99c9f6df941d2c231e03f"
 [[package]]
 name = "lm-sensors"
 version = "0.2.0"
-source = "git+https://github.com/wiiznokes/lm-sensors.git?branch=pwm#42efd04175cd016651537e3006857146e4d67b70"
+source = "git+https://github.com/wiiznokes/lm-sensors.git?branch=pwm#bc9f27df3495e3c887f24102759b643fdc6b3dd1"
 dependencies = [
  "bitflags 2.4.1",
  "libc",
@@ -2670,8 +2670,9 @@ dependencies = [
 
 [[package]]
 name = "sensors-sys"
-version = "0.2.8"
-source = "git+https://github.com/koutheir/sensors-sys.git?rev=9a3ede3f4b0a86866c5092355f563c1da0012a4c#9a3ede3f4b0a86866c5092355f563c1da0012a4c"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "730dadb566f7403e6d1c601855a94809224865d60310407a708afd1e69a51a20"
 dependencies = [
  "bindgen",
  "cc",

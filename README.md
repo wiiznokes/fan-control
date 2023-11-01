@@ -17,15 +17,8 @@
 
 #### Ubuntu
 ```
-sudo apt install bison flex clang -y
+sudo apt install make bison flex clang -y
 ```
 #### Fedora
 ```
-sudo dnf install lm_sensors-devel
-```
-
-
-
-steps
-
-- create git submodule with this branch https://github.com/wiiznokes/libsensors/tree/pwm
+sudo dnf install make bison flex clang -y
