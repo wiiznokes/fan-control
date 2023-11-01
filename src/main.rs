@@ -13,14 +13,13 @@ fn main() {
     let settings = dir_manager.init_settings();
 
     #[cfg(target_os = "linux")]
-    let hardware_bridge = hardware::linux::LinuxBridge::new();
+    let (hardware_bridge, hardware) = hardware::linux::LinuxBridge::new();
 
     #[cfg(target_os = "windows")]
     let hardware_bridge = hardware::windows::WindowsBridge::new();
 
     let hardware_file_path = dir_manager.hardware_file_path();
 
-    let hardware = hardware_bridge.hardware();
     if let Err(e) = DirManager::serialize(&hardware_file_path, &hardware) {
         eprintln!("{}", e);
     }

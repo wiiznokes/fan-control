@@ -18,11 +18,9 @@ pub enum HardwareError {
 pub type Value = i32;
 
 pub trait HardwareBridge {
-    fn new() -> impl HardwareBridge
+    fn new() -> (impl HardwareBridge, Hardware)
     where
         Self: Sized;
-
-    fn hardware(&self) -> Hardware;
 
     fn value(&self, internal_index: &usize) -> Result<Value, HardwareError>;
     fn set_value(&self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
@@ -35,6 +33,12 @@ pub enum HardwareType {
     Temp,
 }
 
+#[derive(Debug, Clone)]
+pub struct InternalControlIndex {
+    pub io: usize,
+    pub enable: usize,
+}
+
 #[derive(Serialize, Debug, Clone)]
 pub struct ControlH {
     pub name: String,
@@ -45,7 +49,7 @@ pub struct ControlH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: usize,
+    pub internal_index: InternalControlIndex,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -81,30 +85,4 @@ pub struct Hardware {
     pub fans: Vec<FanH>,
     #[serde(default, rename = "Temp")]
     pub temps: Vec<TempH>,
-}
-
-impl Hardware {
-    pub fn get_internal_index(
-        &self,
-        hardware_id: &String,
-        hardware_type: HardwareType,
-    ) -> Option<usize> {
-        match hardware_type {
-            HardwareType::Control => self
-                .controls
-                .iter()
-                .find(|control| &control.hardware_id == hardware_id)
-                .map(|control| control.internal_index),
-            HardwareType::Fan => self
-                .fans
-                .iter()
-                .find(|fan| &fan.hardware_id == hardware_id)
-                .map(|fan| fan.internal_index),
-            HardwareType::Temp => self
-                .temps
-                .iter()
-                .find(|temp| &temp.hardware_id == hardware_id)
-                .map(|temp| temp.internal_index),
-        }
-    }
 }

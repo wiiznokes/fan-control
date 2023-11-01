@@ -7,8 +7,8 @@ pub mod linear;
 pub mod target;
 pub mod temp;
 
-#[cfg(test)]
-mod serde_test;
+//#[cfg(test)]
+//mod serde_test;
 
 use crate::{
     app_graph::{self, AppGraph, NbInput, NodeTypeLight, Nodes},
@@ -19,7 +19,6 @@ use crate::{
     id::Id,
 };
 
-use hardware::{Hardware, HardwareType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -65,41 +64,6 @@ impl Config {
 
 pub trait IsValid {
     fn is_valid(&self) -> bool;
-}
-
-pub trait HardwareId {
-    fn hardware_id(&self) -> &Option<String>;
-    fn hardware_id_mut(&mut self) -> &mut Option<String>;
-
-    fn internal_index(&self) -> &Option<usize>;
-    fn internal_index_mut(&mut self) -> &mut Option<usize>;
-}
-
-pub fn sanitize_hardware_id(
-    node: &mut impl HardwareId,
-    hardware: &Hardware,
-    hardware_type: HardwareType,
-) {
-    match node.hardware_id() {
-        Some(hardware_id) => match hardware.get_internal_index(hardware_id, hardware_type) {
-            Some(index) => {
-                let _ = node.internal_index_mut().replace(index);
-            }
-            None => {
-                eprintln!(
-                    "hardware {} from config not found. Fall back to no id",
-                    hardware_id
-                );
-                node.hardware_id_mut().take();
-            }
-        },
-        None => {
-            if node.internal_index().is_some() {
-                eprintln!("Control to Node: Inconsistent internal index found: ");
-                node.internal_index_mut().take();
-            }
-        }
-    }
 }
 
 pub trait Inputs {

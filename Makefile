@@ -1,8 +1,9 @@
 
+run:
+	clear && cargo run
 
 
-
-build_libsensors:
+libsensors:
 	$(MAKE) -C ./libsensors install PREFIX=./../libsensors_build ETCDIR=./../etc
 
 clean_libsensors:
@@ -14,8 +15,7 @@ conf:
 release:
 	clear && cargo run --release
 
-run:
-	clear && cargo run
+
 
 fix:
 	cargo clippy --all --fix --allow-dirty --allow-staged

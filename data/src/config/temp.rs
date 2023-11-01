@@ -1,4 +1,4 @@
-use hardware::{Hardware, HardwareType};
+use hardware::Hardware;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -15,31 +15,30 @@ pub struct Temp {
     pub hardware_id: Option<String>,
 
     #[serde(skip)]
-    pub hardware_internal_index: Option<usize>,
+    pub hardware_index: Option<usize>,
 }
 
 impl Temp {
     pub fn to_node(mut self, id_generator: &mut IdGenerator, hardware: &Hardware) -> Node {
-        match self.hardware_id {
-            Some(ref hardware_id) => {
-                match hardware.get_internal_index(hardware_id, HardwareType::Temp) {
-                    Some(index) => self.hardware_internal_index = Some(index),
+        match &self.hardware_id {
+            Some(hardware_id) => {
+                match hardware
+                    .temps
+                    .iter()
+                    .find(|temp_h| &temp_h.hardware_id == hardware_id)
+                {
+                    Some(temp_h) => self.hardware_index = Some(temp_h.internal_index),
                     None => {
-                        eprintln!(
-                            "hardware {} from config not found. Fall back to no id",
-                            hardware_id
-                        );
-                        self.hardware_id = None
+                        eprintln!("Temp to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
+                        self.hardware_id.take();
+                        self.hardware_index.take();
                     }
                 }
             }
             None => {
-                if self.hardware_internal_index.is_some() {
-                    eprintln!(
-                        "Temp to Node: Inconsistent internal index found. name: {}",
-                        self.name
-                    );
-                    self.hardware_internal_index = None;
+                if self.hardware_index.is_some() {
+                    eprintln!("Temp to Node: inconsistent internal index");
+                    self.hardware_index.take();
                 }
             }
         }
@@ -56,6 +55,6 @@ impl Temp {
 
 impl IsValid for Temp {
     fn is_valid(&self) -> bool {
-        self.hardware_id.is_some() && self.hardware_internal_index.is_some()
+        self.hardware_id.is_some() && self.hardware_index.is_some()
     }
 }

@@ -1,6 +1,6 @@
 use std::vec;
 
-use hardware::{Hardware, HardwareType, Value};
+use hardware::{Hardware, InternalControlIndex, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
     BoxedHardwareBridge,
 };
 
-use super::{sanitize_hardware_id, sanitize_inputs, HardwareId, Inputs, IsValid};
+use super::{sanitize_inputs, Inputs, IsValid};
 
 static CONTROL_ALLOWED_DEP: &[NodeTypeLight] = &[
     NodeTypeLight::Flat,
@@ -28,25 +28,7 @@ pub struct Control {
     pub auto: bool,
 
     #[serde(skip)]
-    pub hardware_internal_index: Option<usize>,
-}
-
-impl HardwareId for Control {
-    fn hardware_id(&self) -> &Option<String> {
-        &self.hardware_id
-    }
-
-    fn hardware_id_mut(&mut self) -> &mut Option<String> {
-        &mut self.hardware_id
-    }
-
-    fn internal_index(&self) -> &Option<usize> {
-        &self.hardware_internal_index
-    }
-
-    fn internal_index_mut(&mut self) -> &mut Option<usize> {
-        &mut self.hardware_internal_index
-    }
+    pub hardware_index: Option<InternalControlIndex>,
 }
 
 impl Inputs for Control {
@@ -69,7 +51,29 @@ impl Control {
         nodes: &Nodes,
         hardware: &Hardware,
     ) -> Node {
-        sanitize_hardware_id(&mut self, hardware, HardwareType::Control);
+        match &self.hardware_id {
+            Some(hardware_id) => {
+                match hardware
+                    .controls
+                    .iter()
+                    .find(|control_h| &control_h.hardware_id == hardware_id)
+                {
+                    Some(control_h) => self.hardware_index = Some(control_h.internal_index.clone()),
+                    None => {
+                        eprintln!("Control to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
+                        self.hardware_id.take();
+                        self.hardware_index.take();
+                    }
+                }
+            }
+            None => {
+                if self.hardware_index.is_some() {
+                    eprintln!("Control to Node: inconsistent internal index");
+                    self.hardware_index.take();
+                }
+            }
+        }
+
         let inputs = sanitize_inputs(&mut self, nodes, NbInput::One, CONTROL_ALLOWED_DEP);
 
         Node {
@@ -86,7 +90,7 @@ impl IsValid for Control {
     fn is_valid(&self) -> bool {
         !self.auto
             && self.hardware_id.is_some()
-            && self.hardware_internal_index.is_some()
+            && self.hardware_index.is_some()
             && self.input.is_some()
     }
 }
@@ -94,16 +98,26 @@ impl IsValid for Control {
 impl Control {
     pub fn update(
         &self,
-        value: Value,
+        _value: Value,
         hardware_bridge: &BoxedHardwareBridge,
     ) -> Result<i32, UpdateError> {
-        match &self.hardware_internal_index {
-            Some(index) => {
-                hardware_bridge
-                    .set_value(index, value)
-                    .map_err(UpdateError::Hardware)?;
-                hardware_bridge.value(index).map_err(UpdateError::Hardware)
-            }
+        match &self.hardware_index {
+            Some(indexes) => hardware_bridge
+                .value(&indexes.io)
+                .map_err(UpdateError::Hardware),
+            None => Err(UpdateError::NodeIsInvalid),
+        }
+    }
+
+    pub fn enable(
+        &self,
+        auto: bool,
+        hardware_bridge: &BoxedHardwareBridge,
+    ) -> Result<(), UpdateError> {
+        match &self.hardware_index {
+            Some(indexes) => hardware_bridge
+                .set_value(&indexes.enable, !(auto as i32))
+                .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }
