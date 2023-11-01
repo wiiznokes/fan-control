@@ -1,6 +1,6 @@
-use std::vec;
+use std::{vec, rc::Rc};
 
-use hardware::{Hardware, InternalControlIndex, Value};
+use hardware::{Hardware, Value, ControlH};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -28,7 +28,7 @@ pub struct Control {
     pub auto: bool,
 
     #[serde(skip)]
-    pub hardware_index: Option<InternalControlIndex>,
+    pub control_h: Option<Rc<ControlH>>,
 }
 
 impl Inputs for Control {
@@ -58,18 +58,18 @@ impl Control {
                     .iter()
                     .find(|control_h| &control_h.hardware_id == hardware_id)
                 {
-                    Some(control_h) => self.hardware_index = Some(control_h.internal_index.clone()),
+                    Some(control_h) => self.control_h = Some(control_h.clone()),
                     None => {
                         eprintln!("Control to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
                         self.hardware_id.take();
-                        self.hardware_index.take();
+                        self.control_h.take();
                     }
                 }
             }
             None => {
-                if self.hardware_index.is_some() {
+                if self.control_h.is_some() {
                     eprintln!("Control to Node: inconsistent internal index");
-                    self.hardware_index.take();
+                    self.control_h.take();
                 }
             }
         }
@@ -90,7 +90,7 @@ impl IsValid for Control {
     fn is_valid(&self) -> bool {
         !self.auto
             && self.hardware_id.is_some()
-            && self.hardware_index.is_some()
+            && self.control_h.is_some()
             && self.input.is_some()
     }
 }
@@ -101,9 +101,9 @@ impl Control {
         _value: Value,
         hardware_bridge: &BoxedHardwareBridge,
     ) -> Result<i32, UpdateError> {
-        match &self.hardware_index {
-            Some(indexes) => hardware_bridge
-                .value(&indexes.io)
+        match &self.control_h {
+            Some(control_h) => hardware_bridge
+                .value(&control_h.internal_index.io)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
@@ -114,9 +114,9 @@ impl Control {
         auto: bool,
         hardware_bridge: &BoxedHardwareBridge,
     ) -> Result<(), UpdateError> {
-        match &self.hardware_index {
-            Some(indexes) => hardware_bridge
-                .set_value(&indexes.enable, !(auto as i32))
+        match &self.control_h {
+            Some(control_h) => hardware_bridge
+                .set_value(&control_h.internal_index.enable, !(auto as i32))
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }

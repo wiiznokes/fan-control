@@ -39,7 +39,7 @@ impl AppGraph {
                 hardware_id: Some(control_h.hardware_id.clone()),
                 input: None,
                 auto: true,
-                hardware_index: Some(control_h.internal_index.clone()),
+                control_h: Some(control_h.clone()),
             };
 
             let node = Node {
