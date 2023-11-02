@@ -7,8 +7,8 @@ pub mod linear;
 pub mod target;
 pub mod temp;
 
-//#[cfg(test)]
-//mod serde_test;
+#[cfg(test)]
+mod serde_test;
 
 use crate::{
     config::{

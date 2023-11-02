@@ -19,6 +19,7 @@ pub struct Target {
     pub load_speed: u8,
     pub input: Option<String>,
 
+    #[serde(skip)]
     pub idle_has_been_reatch: bool,
 }
 
