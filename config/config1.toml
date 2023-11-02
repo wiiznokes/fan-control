@@ -1,6 +1,6 @@
 [[Control]]
 name = "control1"
-id = "control1"
+id = "nct6798-isa-0290-pwm1"
 input = "flat1"
 auto = false
 

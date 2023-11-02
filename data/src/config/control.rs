@@ -20,6 +20,7 @@ pub struct Control {
     #[serde(skip)]
     pub control_h: Option<Rc<ControlH>>,
 
+    #[serde(skip)]
     pub manual_has_been_set: bool,
 }
 

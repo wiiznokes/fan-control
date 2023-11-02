@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 
 use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareItem, TempH, Value};
@@ -12,12 +14,18 @@ enum SubFeatureType {
     Temp,
 }
 
-#[derive(Debug)]
 struct InternalSubFeatureRef {
     sub_feature_type: SubFeatureType,
     sub_feature_ref: SubFeatureRef<'static>,
 }
 
+impl Debug for InternalSubFeatureRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InternalSubFeatureRef")
+            .field("sub_feature_type", &self.sub_feature_type)
+            .finish()
+    }
+}
 #[derive(Debug)]
 struct InternalSensor {
     sensor: InternalSubFeatureRef,

@@ -28,7 +28,7 @@ impl Application for Ui {
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let ui_state = Ui { app_state: flags };
 
-        //dbg!(&ui_state.app_state.app_graph);
+        dbg!(&ui_state.app_state.app_graph);
 
         (ui_state, Command::none())
     }

@@ -252,12 +252,14 @@ pub fn sanitize_inputs(item: &mut impl Inputs, nodes: &Nodes, node_type: NodeTyp
     match node_type.max_input() {
         NbInput::Zero => {
             if !item.get_inputs().is_empty() {
+                eprintln!("{:?}: number of dep allowed == {:?}", node_type, node_type.max_input());
                 item.clear_inputs();
             };
             return inputs;
         }
         NbInput::One => {
-            if !item.get_inputs().len() > 1 {
+            if item.get_inputs().len() > 1 {
+                eprintln!("{:?}: number of dep allowed == {:?}", node_type, node_type.max_input());
                 item.clear_inputs();
                 return inputs;
             }
@@ -289,7 +291,7 @@ pub fn sanitize_inputs(item: &mut impl Inputs, nodes: &Nodes, node_type: NodeTyp
         }
     }
 
-    if node_type.max_input() == NbInput::One && !inputs.len() > 1 {
+    if node_type.max_input() == NbInput::One && inputs.len() > 1 {
         item.clear_inputs();
         inputs.clear();
         return inputs;
