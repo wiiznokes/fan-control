@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::IsValid;
+use crate::node::IsValid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Coord {

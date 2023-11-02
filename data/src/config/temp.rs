@@ -1,14 +1,13 @@
 use std::rc::Rc;
 
-use hardware::{Hardware, TempH};
+use hardware::{Hardware, TempH, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::{NbInput, Node, NodeType},
     id::IdGenerator,
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    update::UpdateError,
 };
-
-use super::IsValid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Temp {
@@ -21,7 +20,34 @@ pub struct Temp {
 }
 
 impl Temp {
-    pub fn to_node(mut self, id_generator: &mut IdGenerator, hardware: &Hardware) -> Node {
+    pub fn get_value(&self) -> Result<Value, UpdateError> {
+        match &self.temp_h {
+            Some(temp_h) => temp_h.bridge.get_value().map_err(UpdateError::Hardware),
+            None => Err(UpdateError::NodeIsInvalid),
+        }
+    }
+}
+
+impl IsValid for Temp {
+    fn is_valid(&self) -> bool {
+        self.hardware_id.is_some() && self.temp_h.is_some()
+    }
+}
+impl Inputs for Temp {
+    fn clear_inputs(&mut self) {}
+
+    fn get_inputs(&self) -> Vec<&String> {
+        Vec::new()
+    }
+}
+
+impl ToNode for Temp {
+    fn to_node(
+        mut self,
+        id_generator: &mut IdGenerator,
+        nodes: &Nodes,
+        hardware: &Hardware,
+    ) -> Node {
         match &self.hardware_id {
             Some(hardware_id) => {
                 match hardware
@@ -45,18 +71,13 @@ impl Temp {
             }
         }
 
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Temp);
+
         Node {
             id: id_generator.new_id(),
             node_type: NodeType::Temp(self),
-            max_input: NbInput::Zero,
-            inputs: Vec::new(),
+            inputs,
             value: None,
         }
-    }
-}
-
-impl IsValid for Temp {
-    fn is_valid(&self) -> bool {
-        self.hardware_id.is_some() && self.temp_h.is_some()
     }
 }

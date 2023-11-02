@@ -188,7 +188,7 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
 }
 
 impl HardwareItem for InternalSensor {
-    fn value(&self) -> Result<Value, crate::HardwareError> {
+    fn get_value(&self) -> Result<Value, crate::HardwareError> {
         match self.sensor.sub_feature_ref.raw_value() {
             Ok(value) => Ok(value as i32),
             Err(e) => {
@@ -201,21 +201,24 @@ impl HardwareItem for InternalSensor {
     fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
         panic!("can't set the value of a sensor");
     }
+
+    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
+        panic!("can't set the mode of a sensor");
+    }
 }
 
 impl HardwareItem for InternalControl {
-    fn value(&self) -> Result<Value, crate::HardwareError> {
-        match self.io.sub_feature_ref.raw_value() {
-            Ok(value) => Ok(value as i32),
-            Err(e) => {
-                eprintln!("{}", e);
-                Err(HardwareError::LmSensors)
-            }
-        }
+    fn get_value(&self) -> Result<Value, crate::HardwareError> {
+        panic!("can't get the value of a control");
     }
 
     fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
         println!("set value {} to a control", value);
+        Ok(())
+    }
+
+    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
+        println!("set mode {} to a control", value);
         Ok(())
     }
 }

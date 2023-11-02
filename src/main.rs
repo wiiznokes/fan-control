@@ -1,7 +1,6 @@
 use clap::Parser;
 use data::{
-    app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, update::Update,
-    AppState,
+    cli::Args, config::Config, directories::DirManager, node::AppGraph, update::Update, AppState,
 };
 use hardware::{self, HardwareBridge};
 use ui::run_ui;

@@ -4,19 +4,10 @@ use hardware::{ControlH, Hardware, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::{NbInput, Node, NodeType, NodeTypeLight, Nodes},
     id::IdGenerator,
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
     update::UpdateError,
 };
-
-use super::{sanitize_inputs, Inputs, IsValid};
-
-static CONTROL_ALLOWED_DEP: &[NodeTypeLight] = &[
-    NodeTypeLight::Flat,
-    NodeTypeLight::Graph,
-    NodeTypeLight::Target,
-    NodeTypeLight::Linear,
-];
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Control {
@@ -28,6 +19,37 @@ pub struct Control {
 
     #[serde(skip)]
     pub control_h: Option<Rc<ControlH>>,
+
+    pub is_set_auto: bool,
+}
+
+impl Control {
+    pub fn set_value(&self, value: Value) -> Result<Value, UpdateError> {
+        match &self.control_h {
+            Some(control_h) => control_h
+                .bridge
+                .set_value(value)
+                .map(|_| value)
+                .map_err(UpdateError::Hardware),
+            None => Err(UpdateError::NodeIsInvalid),
+        }
+    }
+
+    pub fn set_mode(&self, auto: bool) -> Result<(), UpdateError> {
+        match &self.control_h {
+            Some(control_h) => control_h
+                .bridge
+                .set_mode(!(auto as i32))
+                .map_err(UpdateError::Hardware),
+            None => Err(UpdateError::NodeIsInvalid),
+        }
+    }
+}
+
+impl IsValid for Control {
+    fn is_valid(&self) -> bool {
+        !self.auto && self.hardware_id.is_some() && self.control_h.is_some() && self.input.is_some()
+    }
 }
 
 impl Inputs for Control {
@@ -43,8 +65,8 @@ impl Inputs for Control {
     }
 }
 
-impl Control {
-    pub fn to_node(
+impl ToNode for Control {
+    fn to_node(
         mut self,
         id_generator: &mut IdGenerator,
         nodes: &Nodes,
@@ -73,39 +95,13 @@ impl Control {
             }
         }
 
-        let inputs = sanitize_inputs(&mut self, nodes, NbInput::One, CONTROL_ALLOWED_DEP);
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Control);
 
         Node {
             id: id_generator.new_id(),
             node_type: NodeType::Control(self),
-            max_input: NbInput::One,
             inputs,
             value: None,
-        }
-    }
-}
-
-impl IsValid for Control {
-    fn is_valid(&self) -> bool {
-        !self.auto && self.hardware_id.is_some() && self.control_h.is_some() && self.input.is_some()
-    }
-}
-
-impl Control {
-    pub fn update(&self, _value: Value) -> Result<i32, UpdateError> {
-        match &self.control_h {
-            Some(control_h) => control_h.bridge.value().map_err(UpdateError::Hardware),
-            None => Err(UpdateError::NodeIsInvalid),
-        }
-    }
-
-    pub fn enable(&self, auto: bool) -> Result<(), UpdateError> {
-        match &self.control_h {
-            Some(control_h) => control_h
-                .bridge
-                .set_value(!(auto as i32))
-                .map_err(UpdateError::Hardware),
-            None => Err(UpdateError::NodeIsInvalid),
         }
     }
 }

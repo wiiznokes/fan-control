@@ -3,9 +3,8 @@ use std::collections::HashSet;
 use hardware::HardwareError;
 
 use crate::{
-    app_graph::{Node, Nodes, RootNodes},
-    config::IsValid,
     id::Id,
+    node::{IsValid, Node, Nodes, RootNodes},
 };
 
 #[derive(Debug, Clone)]
@@ -86,14 +85,15 @@ impl Node {
         }
 
         match &self.node_type {
-            crate::app_graph::NodeType::Control(control) => control.update(input_values[0]),
-            crate::app_graph::NodeType::Fan(_) => todo!(),
-            crate::app_graph::NodeType::Temp(_) => todo!(),
-            crate::app_graph::NodeType::CustomTemp(_) => todo!(),
-            crate::app_graph::NodeType::Graph(_) => todo!(),
-            crate::app_graph::NodeType::Flat(flat) => Ok(flat.value.into()),
-            crate::app_graph::NodeType::Linear(_) => todo!(),
-            crate::app_graph::NodeType::Target(_) => todo!(),
+            crate::node::NodeType::Control(control) => control.set_value(input_values[0]),
+
+            crate::node::NodeType::Fan(fan) => fan.get_value(),
+            crate::node::NodeType::Temp(temp) => temp.get_value(),
+            crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),
+            crate::node::NodeType::Graph(_) => todo!(),
+            crate::node::NodeType::Flat(flat) => Ok(flat.value.into()),
+            crate::node::NodeType::Linear(_) => todo!(),
+            crate::node::NodeType::Target(_) => todo!(),
         }
     }
 

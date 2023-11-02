@@ -2,12 +2,10 @@ use hardware::Value;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::{NbInput, Node, NodeType, Nodes},
     id::IdGenerator,
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes},
     update::UpdateError,
 };
-
-use super::{Inputs, IsValid};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CustomTempType {
@@ -25,7 +23,7 @@ pub struct CustomTemp {
 
 impl Inputs for CustomTemp {
     fn clear_inputs(&mut self) {
-        todo!()
+        self.input.clear();
     }
 
     fn get_inputs(&self) -> Vec<&String> {
@@ -39,26 +37,11 @@ impl Inputs for CustomTemp {
 
 impl CustomTemp {
     pub fn to_node(mut self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node {
-        let mut inputs = Vec::new();
-
-        for name in &self.input {
-            if let Some(node) = nodes.values().find(|node| node.name() == name) {
-                inputs.push(node.id)
-            } else {
-                eprintln!(
-                    "CustomTemp to Node: can't find {} in app_graph. Fall back: remove",
-                    name
-                );
-                self.input.clear();
-                inputs.clear();
-                break;
-            }
-        }
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::CustomTemp);
 
         Node {
             id: id_generator.new_id(),
             node_type: NodeType::CustomTemp(self),
-            max_input: NbInput::Infinity,
             inputs,
             value: None,
         }

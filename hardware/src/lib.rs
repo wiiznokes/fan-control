@@ -30,9 +30,11 @@ pub enum HardwareType {
 }
 
 pub trait HardwareItem: Debug {
-    fn value(&self) -> Result<Value, HardwareError>;
+    fn get_value(&self) -> Result<Value, HardwareError>;
 
     fn set_value(&self, value: Value) -> Result<(), HardwareError>;
+
+    fn set_mode(&self, value: Value) -> Result<(), HardwareError>;
 }
 
 #[derive(Debug, Clone)]

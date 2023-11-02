@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
+use crate::config::Config;
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
-use crate::config::{Config, IsValid};
 
 use crate::id::{Id, IdGenerator};
 
@@ -40,12 +40,12 @@ impl AppGraph {
                 input: None,
                 auto: true,
                 control_h: Some(control_h.clone()),
+                is_set_auto: false,
             };
 
             let node = Node {
                 id: app_graph.id_generator.new_id(),
                 node_type: NodeType::Control(control),
-                max_input: NbInput::One,
                 inputs: Vec::new(),
                 value: None,
             };
@@ -63,7 +63,6 @@ impl AppGraph {
             let node = Node {
                 id: app_graph.id_generator.new_id(),
                 node_type: NodeType::Fan(fan),
-                max_input: NbInput::Zero,
                 inputs: Vec::new(),
                 value: None,
             };
@@ -80,7 +79,6 @@ impl AppGraph {
             let node = Node {
                 id: app_graph.id_generator.new_id(),
                 node_type: NodeType::Temp(temp),
-                max_input: NbInput::Zero,
                 inputs: Vec::new(),
                 value: None,
             };
@@ -96,12 +94,12 @@ impl AppGraph {
         // order: fan -> temp -> custom_temp -> behavior -> control
 
         for fan in config.fans {
-            let node = fan.to_node(&mut app_graph.id_generator, hardware);
+            let node = fan.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
             app_graph.nodes.insert(node.id, node);
         }
 
         for temp in config.temps {
-            let node = temp.to_node(&mut app_graph.id_generator, hardware);
+            let node = temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
             app_graph.nodes.insert(node.id, node);
         }
 
@@ -126,7 +124,6 @@ impl AppGraph {
 pub struct Node {
     pub id: Id,
     pub node_type: NodeType,
-    pub max_input: NbInput,
     pub inputs: Vec<Id>,
 
     pub value: Option<Value>,
@@ -142,13 +139,6 @@ pub enum NodeType {
     Flat(Flat),
     Linear(Linear),
     Target(Target),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum NbInput {
-    Zero,
-    One,
-    Infinity,
 }
 
 impl Node {
@@ -179,4 +169,108 @@ impl IsValid for Node {
             NodeType::Target(target) => target.is_valid(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NbInput {
+    Zero,
+    One,
+    Infinity,
+}
+
+impl NodeTypeLight {
+    pub fn allowed_dep(&self) -> &'static [NodeTypeLight] {
+        match self {
+            NodeTypeLight::Control => &[
+                NodeTypeLight::Flat,
+                NodeTypeLight::Graph,
+                NodeTypeLight::Target,
+                NodeTypeLight::Linear,
+            ],
+            NodeTypeLight::Fan => &[],
+            NodeTypeLight::Temp => &[],
+            NodeTypeLight::CustomTemp => &[NodeTypeLight::Temp],
+            NodeTypeLight::Graph => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeTypeLight::Flat => &[],
+            NodeTypeLight::Linear => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeTypeLight::Target => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+        }
+    }
+
+    pub fn max_input(&self) -> NbInput {
+        match self {
+            NodeTypeLight::Control => NbInput::One,
+            NodeTypeLight::Fan => NbInput::Zero,
+            NodeTypeLight::Temp => NbInput::Zero,
+            NodeTypeLight::CustomTemp => NbInput::Infinity,
+            NodeTypeLight::Graph => NbInput::One,
+            NodeTypeLight::Flat => NbInput::Zero,
+            NodeTypeLight::Linear => NbInput::One,
+            NodeTypeLight::Target => NbInput::One,
+        }
+    }
+}
+
+pub trait IsValid {
+    fn is_valid(&self) -> bool;
+}
+
+pub trait ToNode {
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, hardware: &Hardware) -> Node;
+}
+
+pub trait Inputs {
+    fn clear_inputs(&mut self);
+    fn get_inputs(&self) -> Vec<&String>;
+}
+
+pub fn sanitize_inputs(item: &mut impl Inputs, nodes: &Nodes, node_type: NodeTypeLight) -> Vec<Id> {
+    let mut inputs = Vec::new();
+
+    match node_type.max_input() {
+        NbInput::Zero => {
+            if !item.get_inputs().is_empty() {
+                item.clear_inputs();
+            };
+            return inputs;
+        }
+        NbInput::One => {
+            if !item.get_inputs().len() > 1 {
+                item.clear_inputs();
+                return inputs;
+            }
+        }
+        _ => {}
+    };
+
+    for name in item.get_inputs() {
+        if let Some(node) = nodes.values().find(|node| node.name() == name) {
+            if !node_type.allowed_dep().contains(&node.node_type.to_light()) {
+                eprintln!(
+                    "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
+                    node.node_type.to_light(),
+                    name
+                );
+                item.clear_inputs();
+                inputs.clear();
+                return inputs;
+            }
+            inputs.push(node.id)
+        } else {
+            eprintln!(
+                "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",
+                name
+            );
+            item.clear_inputs();
+            inputs.clear();
+            return inputs;
+        }
+    }
+
+    if node_type.max_input() == NbInput::One && !inputs.len() > 1 {
+        item.clear_inputs();
+        inputs.clear();
+        return inputs;
+    }
+    inputs
 }
