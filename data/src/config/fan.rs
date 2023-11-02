@@ -1,12 +1,12 @@
 use std::rc::Rc;
 
-use hardware::{FanH, Hardware, Value};
+use hardware::{FanH, Hardware};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::UpdateError,
+    update::{UpdateError, UpdateResult},
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -20,9 +20,13 @@ pub struct Fan {
 }
 
 impl Fan {
-    pub fn get_value(&self) -> Result<Value, UpdateError> {
+    pub fn get_value(&self) -> Result<UpdateResult, UpdateError> {
         match &self.fan_h {
-            Some(fan_h) => fan_h.bridge.get_value().map_err(UpdateError::Hardware),
+            Some(fan_h) => fan_h
+                .bridge
+                .get_value()
+                .map(UpdateResult::without_side_effect)
+                .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }

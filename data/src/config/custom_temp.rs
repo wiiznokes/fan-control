@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::UpdateError,
+    update::{UpdateError, UpdateResult},
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -42,7 +42,7 @@ impl IsValid for CustomTemp {
 }
 
 impl CustomTemp {
-    pub fn update(&self, values: Vec<Value>) -> Result<i32, UpdateError> {
+    pub fn update(&self, values: Vec<Value>) -> Result<UpdateResult, UpdateError> {
         if values.is_empty() {
             return Err(UpdateError::NoInputData);
         }
@@ -52,8 +52,7 @@ impl CustomTemp {
             CustomTempType::Max => *values.iter().min().unwrap(),
             CustomTempType::Average => values.iter().sum::<i32>() / values.len() as i32,
         };
-
-        Ok(value)
+        UpdateResult::without_side_effect(value).into()
     }
 }
 

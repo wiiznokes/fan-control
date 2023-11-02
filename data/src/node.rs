@@ -40,7 +40,7 @@ impl AppGraph {
                 input: None,
                 auto: true,
                 control_h: Some(control_h.clone()),
-                is_set_auto: false,
+                manual_has_been_set: false,
             };
 
             let node = Node {
@@ -113,7 +113,15 @@ impl AppGraph {
             app_graph.nodes.insert(node.id, node);
         }
 
-        // TODO: other items
+        for linear in config.linears {
+            let node = linear.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            app_graph.nodes.insert(node.id, node);
+        }
+
+        for target in config.targets {
+            let node = target.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            app_graph.nodes.insert(node.id, node);
+        }
 
         for control in config.controls {
             let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);

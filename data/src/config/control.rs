@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::UpdateError,
+    update::{UpdateError, UpdateResult},
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -20,16 +20,45 @@ pub struct Control {
     #[serde(skip)]
     pub control_h: Option<Rc<ControlH>>,
 
-    pub is_set_auto: bool,
+    pub manual_has_been_set: bool,
+}
+
+fn set_auto(node: &mut Node) {
+    if let NodeType::Control(control) = &mut node.node_type {
+        control.manual_has_been_set = true;
+    }
 }
 
 impl Control {
-    pub fn set_value(&self, value: Value) -> Result<Value, UpdateError> {
+    pub fn set_value(&self, value: Value) -> Result<UpdateResult, UpdateError> {
+        let clo = if self.manual_has_been_set {
+            UpdateResult::no_side_effect()
+        } else {
+            eprintln!("tring to set value control but auto is enable");
+            Box::new(|node: &mut Node| {
+                if let NodeType::Control(control) = &mut node.node_type {
+                    match control.set_mode(false) {
+                        Ok(_) => {
+                            control.manual_has_been_set = true;
+                        }
+                        Err(e) => {
+                            eprintln!("can't set control to manual {:?}", e);
+                            control.auto = true;
+                            control.manual_has_been_set = false;
+                        }
+                    }
+                }
+            })
+        };
+
         match &self.control_h {
             Some(control_h) => control_h
                 .bridge
                 .set_value(value)
-                .map(|_| value)
+                .map(|_| UpdateResult {
+                    value,
+                    side_effect: clo,
+                })
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }

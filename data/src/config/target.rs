@@ -1,7 +1,7 @@
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::UpdateError,
+    update::{UpdateError, UpdateResult},
 };
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
@@ -23,22 +23,38 @@ pub struct Target {
 }
 
 impl Target {
-    pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
+    pub fn update(&self, value: Value) -> Result<UpdateResult, UpdateError> {
         if self.idle_has_been_reatch {
             if value < self.load_temp.into() {
-                return Ok(self.idle_speed.into());
+                return UpdateResult::without_side_effect(self.idle_speed.into()).into();
             }
 
-            // _idleHasBeenReached = false;
-            return Ok(self.load_speed.into());
+            let load_reatch = |node: &mut Node| {
+                if let NodeType::Target(target) = &mut node.node_type {
+                    target.idle_has_been_reatch = false;
+                }
+            };
+            return UpdateResult {
+                value: self.load_speed.into(),
+                side_effect: Box::new(load_reatch),
+            }
+            .into();
         }
 
         if value > self.idle_temp.into() {
-            return Ok(self.load_speed.into());
+            return UpdateResult::without_side_effect(self.load_speed.into()).into();
         }
 
-        // _idleHasBeenReached = true;
-        Ok(self.idle_speed.into())
+        let idle_reatch = |node: &mut Node| {
+            if let NodeType::Target(target) = &mut node.node_type {
+                target.idle_has_been_reatch = true;
+            }
+        };
+        UpdateResult {
+            value: self.load_speed.into(),
+            side_effect: Box::new(idle_reatch),
+        }
+        .into()
     }
 }
 

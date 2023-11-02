@@ -1,7 +1,7 @@
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::UpdateError,
+    update::{UpdateError, UpdateResult},
 };
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
@@ -45,18 +45,18 @@ struct Affine {
 }
 
 impl Linear {
-    pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
+    pub fn update(&self, value: Value) -> Result<UpdateResult, UpdateError> {
         if value <= self.min_temp.into() {
-            return Ok(self.min_speed.into());
+            return UpdateResult::without_side_effect(self.min_speed.into()).into();
         }
 
         if value >= self.max_temp.into() {
-            return Ok(self.max_speed.into());
+            return UpdateResult::without_side_effect(self.max_speed.into()).into();
         }
 
         let affine = self.calcule_affine();
 
-        Ok(affine.a * value + affine.b)
+        UpdateResult::without_side_effect(affine.a * value + affine.b).into()
     }
 
     fn calcule_affine(&self) -> Affine {
