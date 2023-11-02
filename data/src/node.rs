@@ -103,8 +103,13 @@ impl AppGraph {
             app_graph.nodes.insert(node.id, node);
         }
 
+        for custom_temp in config.custom_temps {
+            let node = custom_temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            app_graph.nodes.insert(node.id, node);
+        }
+
         for flat in config.flats {
-            let node = flat.to_node(&mut app_graph.id_generator);
+            let node = flat.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
             app_graph.nodes.insert(node.id, node);
         }
 

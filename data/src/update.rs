@@ -92,7 +92,7 @@ impl Node {
             crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),
             crate::node::NodeType::Graph(_) => todo!(),
             crate::node::NodeType::Flat(flat) => Ok(flat.value.into()),
-            crate::node::NodeType::Linear(_) => todo!(),
+            crate::node::NodeType::Linear(linear) => linear.update(input_values[0]),
             crate::node::NodeType::Target(_) => todo!(),
         }
     }

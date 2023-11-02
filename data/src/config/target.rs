@@ -13,7 +13,9 @@ pub struct Target {
     pub load_temp: u8,
     #[serde(rename = "loadSpeed", alias = "load_speed")]
     pub load_speed: u8,
-    pub input: Option<String>, // Temp or CustomTemp
+    pub input: Option<String>,
+
+    pub idle_has_been_reatch: bool,
 }
 
 impl IsValid for Target {

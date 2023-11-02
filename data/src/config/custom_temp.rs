@@ -1,9 +1,9 @@
-use hardware::Value;
+use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes},
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
     update::UpdateError,
 };
 
@@ -35,19 +35,6 @@ impl Inputs for CustomTemp {
     }
 }
 
-impl CustomTemp {
-    pub fn to_node(mut self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node {
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::CustomTemp);
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::CustomTemp(self),
-            inputs,
-            value: None,
-        }
-    }
-}
-
 impl IsValid for CustomTemp {
     fn is_valid(&self) -> bool {
         !self.input.is_empty()
@@ -67,5 +54,23 @@ impl CustomTemp {
         };
 
         Ok(value)
+    }
+}
+
+impl ToNode for CustomTemp {
+    fn to_node(
+        mut self,
+        id_generator: &mut IdGenerator,
+        nodes: &Nodes,
+        _hardware: &Hardware,
+    ) -> Node {
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::CustomTemp);
+
+        Node {
+            id: id_generator.new_id(),
+            node_type: NodeType::CustomTemp(self),
+            inputs,
+            value: None,
+        }
     }
 }
