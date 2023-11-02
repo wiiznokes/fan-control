@@ -65,12 +65,6 @@ impl ToNode for CustomTemp {
         _hardware: &Hardware,
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::CustomTemp);
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::CustomTemp(self),
-            inputs,
-            value: None,
-        }
+        Node::new(id_generator, NodeType::CustomTemp(self), inputs)
     }
 }

@@ -73,12 +73,6 @@ impl ToNode for Fan {
         }
 
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Fan);
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::Fan(self),
-            inputs,
-            value: None,
-        }
+        Node::new(id_generator, NodeType::Fan(self), inputs)
     }
 }

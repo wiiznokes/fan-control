@@ -147,6 +147,15 @@ pub enum NodeType {
 }
 
 impl Node {
+    pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, inputs: Vec<Id>) -> Self {
+        Self {
+            id: id_generator.new_id(),
+            node_type,
+            inputs,
+            value: None,
+        }
+    }
+
     pub fn name(&self) -> &String {
         match &self.node_type {
             NodeType::Control(control) => &control.name,

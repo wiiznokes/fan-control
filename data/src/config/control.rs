@@ -96,12 +96,6 @@ impl ToNode for Control {
         }
 
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Control);
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::Control(self),
-            inputs,
-            value: None,
-        }
+        Node::new(id_generator, NodeType::Control(self), inputs)
     }
 }

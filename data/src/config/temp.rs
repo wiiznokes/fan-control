@@ -72,12 +72,6 @@ impl ToNode for Temp {
         }
 
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Temp);
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::Temp(self),
-            inputs,
-            value: None,
-        }
+        Node::new(id_generator, NodeType::Temp(self), inputs)
     }
 }

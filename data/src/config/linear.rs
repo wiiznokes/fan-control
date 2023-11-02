@@ -45,7 +45,7 @@ struct Affine {
 }
 
 impl Linear {
-    pub fn update(&self, value: Value) -> Result<i32, UpdateError> {
+    pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
             return Ok(self.min_speed.into());
         }
@@ -77,12 +77,6 @@ impl ToNode for Linear {
         _hardware: &Hardware,
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Linear);
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::Linear(self),
-            inputs,
-            value: None,
-        }
+        Node::new(id_generator, NodeType::Linear(self), inputs)
     }
 }
