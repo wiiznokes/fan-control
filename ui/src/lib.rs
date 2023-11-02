@@ -42,7 +42,6 @@ impl Application for Ui {
             AppMsg::Tick => {
                 match self.app_state.update.graph(
                     &mut self.app_state.app_graph.nodes,
-                    &self.app_state.hardware_bridge,
                     &self.app_state.app_graph.root_nodes,
                 ) {
                     Ok(_) => {}

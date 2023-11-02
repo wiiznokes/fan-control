@@ -1,13 +1,11 @@
-use hardware::Value;
+use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::{NbInput, Node, NodeType, Nodes},
     id::IdGenerator,
-    update::UpdateError,
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    update::{UpdateError, UpdateResult},
 };
-
-use super::{Inputs, IsValid};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CustomTempType {
@@ -25,7 +23,7 @@ pub struct CustomTemp {
 
 impl Inputs for CustomTemp {
     fn clear_inputs(&mut self) {
-        todo!()
+        self.input.clear();
     }
 
     fn get_inputs(&self) -> Vec<&String> {
@@ -37,34 +35,6 @@ impl Inputs for CustomTemp {
     }
 }
 
-impl CustomTemp {
-    pub fn to_node(mut self, id_generator: &mut IdGenerator, nodes: &Nodes) -> Node {
-        let mut inputs = Vec::new();
-
-        for name in &self.input {
-            if let Some(node) = nodes.values().find(|node| node.name() == name) {
-                inputs.push(node.id)
-            } else {
-                eprintln!(
-                    "CustomTemp to Node: can't find {} in app_graph. Fall back: remove",
-                    name
-                );
-                self.input.clear();
-                inputs.clear();
-                break;
-            }
-        }
-
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::CustomTemp(self),
-            max_input: NbInput::Infinity,
-            inputs,
-            value: None,
-        }
-    }
-}
-
 impl IsValid for CustomTemp {
     fn is_valid(&self) -> bool {
         !self.input.is_empty()
@@ -72,7 +42,7 @@ impl IsValid for CustomTemp {
 }
 
 impl CustomTemp {
-    pub fn update(&self, values: Vec<Value>) -> Result<i32, UpdateError> {
+    pub fn update(&self, values: Vec<Value>) -> Result<UpdateResult, UpdateError> {
         if values.is_empty() {
             return Err(UpdateError::NoInputData);
         }
@@ -82,7 +52,18 @@ impl CustomTemp {
             CustomTempType::Max => *values.iter().min().unwrap(),
             CustomTempType::Average => values.iter().sum::<i32>() / values.len() as i32,
         };
+        UpdateResult::without_side_effect(value).into()
+    }
+}
 
-        Ok(value)
+impl ToNode for CustomTemp {
+    fn to_node(
+        mut self,
+        id_generator: &mut IdGenerator,
+        nodes: &Nodes,
+        _hardware: &Hardware,
+    ) -> Node {
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::CustomTemp);
+        Node::new(id_generator, NodeType::CustomTemp(self), inputs)
     }
 }

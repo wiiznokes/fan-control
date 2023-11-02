@@ -1,6 +1,10 @@
+use crate::{
+    id::IdGenerator,
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    update::{UpdateError, UpdateResult},
+};
+use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
-
-use super::IsValid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Linear {
@@ -13,11 +17,66 @@ pub struct Linear {
     pub max_temp: u8,
     #[serde(rename = "maxSpeed", alias = "max_speed")]
     pub max_speed: u8,
-    pub input: Option<String>, // Temp or CustomTemp
+    pub input: Option<String>,
 }
 
 impl IsValid for Linear {
     fn is_valid(&self) -> bool {
-        self.input.is_some()
+        self.input.is_some() && self.max_temp > self.min_temp && self.max_speed > self.min_speed
+    }
+}
+
+impl Inputs for Linear {
+    fn clear_inputs(&mut self) {
+        self.input.take();
+    }
+
+    fn get_inputs(&self) -> Vec<&String> {
+        match &self.input {
+            Some(input) => vec![input],
+            None => Vec::new(),
+        }
+    }
+}
+
+struct Affine {
+    a: Value,
+    b: Value,
+}
+
+impl Linear {
+    pub fn update(&self, value: Value) -> Result<UpdateResult, UpdateError> {
+        if value <= self.min_temp.into() {
+            return UpdateResult::without_side_effect(self.min_speed.into()).into();
+        }
+
+        if value >= self.max_temp.into() {
+            return UpdateResult::without_side_effect(self.max_speed.into()).into();
+        }
+
+        let affine = self.calcule_affine();
+
+        UpdateResult::without_side_effect(affine.a * value + affine.b).into()
+    }
+
+    fn calcule_affine(&self) -> Affine {
+        let a = (self.max_speed - self.min_speed) / (self.max_temp - self.min_temp);
+
+        Affine {
+            a: a.into(),
+            b: (self.min_speed - a * self.min_temp).into(),
+        }
+    }
+}
+
+impl ToNode for Linear {
+    fn to_node(
+        mut self,
+        id_generator: &mut IdGenerator,
+        nodes: &Nodes,
+        _hardware: &Hardware,
+    ) -> Node {
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Linear);
+        Node::new(id_generator, NodeType::Linear(self), inputs)
     }
 }

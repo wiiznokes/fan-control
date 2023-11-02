@@ -2,7 +2,7 @@
 #![allow(unused_variables)]
 
 use serde::Serialize;
-use std::rc::Rc;
+use std::{fmt::Debug, rc::Rc};
 
 #[cfg(target_os = "linux")]
 pub mod linux;
@@ -19,12 +19,7 @@ pub enum HardwareError {
 pub type Value = i32;
 
 pub trait HardwareBridge {
-    fn new() -> (impl HardwareBridge, Hardware)
-    where
-        Self: Sized;
-
-    fn value(&self, internal_index: &usize) -> Result<Value, HardwareError>;
-    fn set_value(&self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
+    fn generate_hardware() -> Hardware;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,13 +29,21 @@ pub enum HardwareType {
     Temp,
 }
 
+pub trait HardwareItem: Debug {
+    fn get_value(&self) -> Result<Value, HardwareError>;
+
+    fn set_value(&self, value: Value) -> Result<(), HardwareError>;
+
+    fn set_mode(&self, value: Value) -> Result<(), HardwareError>;
+}
+
 #[derive(Debug, Clone)]
 pub struct InternalControlIndex {
     pub io: usize,
     pub enable: usize,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug)]
 pub struct ControlH {
     pub name: String,
     #[serde(rename = "id")]
@@ -50,10 +53,10 @@ pub struct ControlH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: InternalControlIndex,
+    pub bridge: Box<dyn HardwareItem>,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug)]
 pub struct FanH {
     pub name: String,
     #[serde(rename = "id")]
@@ -63,10 +66,10 @@ pub struct FanH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: usize,
+    pub bridge: Box<dyn HardwareItem>,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug)]
 pub struct TempH {
     pub name: String,
     #[serde(rename = "id")]
@@ -75,7 +78,7 @@ pub struct TempH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: usize,
+    pub bridge: Box<dyn HardwareItem>,
 }
 
 #[derive(Serialize, Debug, Clone, Default)]

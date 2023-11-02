@@ -1,12 +1,10 @@
 use std::collections::HashSet;
 
-use hardware::HardwareError;
+use hardware::{HardwareError, Value};
 
 use crate::{
-    app_graph::{Node, Nodes, RootNodes},
-    config::IsValid,
     id::Id,
-    BoxedHardwareBridge,
+    node::{IsValid, Node, Nodes, RootNodes},
 };
 
 #[derive(Debug, Clone)]
@@ -31,12 +29,7 @@ impl Update {
         Self {}
     }
 
-    pub fn graph(
-        &mut self,
-        nodes: &mut Nodes,
-        hardware_bridge: &BoxedHardwareBridge,
-        root_nodes: &RootNodes,
-    ) -> Result<(), UpdateError> {
+    pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
         let mut to_update: Vec<Id> = Vec::new();
 
         for node_id in root_nodes {
@@ -60,12 +53,14 @@ impl Update {
                     return Err(UpdateError::NodeNotFound);
                 };
 
-                let value = node.update(nodes, hardware_bridge)?;
+                let update_result = node.update(nodes)?;
 
                 let Some(node) = nodes.get_mut(&node_id) else {
                     return Err(UpdateError::NodeNotFound);
                 };
-                node.value = Some(value);
+
+                node.value = Some(update_result.value);
+                (update_result.side_effect)(node);
 
                 updated.insert(node.id);
             }
@@ -77,12 +72,32 @@ impl Update {
     pub fn clear_cache(&mut self) {}
 }
 
+pub struct UpdateResult {
+    pub value: Value,
+    pub side_effect: Box<dyn Fn(&mut Node)>,
+}
+
+impl UpdateResult {
+    pub fn without_side_effect(value: Value) -> UpdateResult {
+        UpdateResult {
+            value,
+            side_effect: UpdateResult::no_side_effect(),
+        }
+    }
+
+    pub fn no_side_effect() -> Box<dyn Fn(&mut Node)> {
+        Box::new(|_| {})
+    }
+}
+
+impl From<UpdateResult> for Result<UpdateResult, UpdateError> {
+    fn from(value: UpdateResult) -> Self {
+        Ok(value)
+    }
+}
+
 impl Node {
-    pub fn update(
-        &self,
-        nodes: &Nodes,
-        hardware_bridge: &BoxedHardwareBridge,
-    ) -> Result<i32, UpdateError> {
+    pub fn update(&self, nodes: &Nodes) -> Result<UpdateResult, UpdateError> {
         let mut input_values = Vec::new();
 
         for id in &self.inputs {
@@ -96,16 +111,17 @@ impl Node {
         }
 
         match &self.node_type {
-            crate::app_graph::NodeType::Control(control) => {
-                control.update(input_values[0], hardware_bridge)
+            crate::node::NodeType::Control(control) => control.set_value(input_values[0]),
+
+            crate::node::NodeType::Fan(fan) => fan.get_value(),
+            crate::node::NodeType::Temp(temp) => temp.get_value(),
+            crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),
+            crate::node::NodeType::Graph(_) => todo!(),
+            crate::node::NodeType::Flat(flat) => {
+                UpdateResult::without_side_effect(flat.value.into()).into()
             }
-            crate::app_graph::NodeType::Fan(_) => todo!(),
-            crate::app_graph::NodeType::Temp(_) => todo!(),
-            crate::app_graph::NodeType::CustomTemp(_) => todo!(),
-            crate::app_graph::NodeType::Graph(_) => todo!(),
-            crate::app_graph::NodeType::Flat(flat) => Ok(flat.value.into()),
-            crate::app_graph::NodeType::Linear(_) => todo!(),
-            crate::app_graph::NodeType::Target(_) => todo!(),
+            crate::node::NodeType::Linear(linear) => linear.update(input_values[0]),
+            crate::node::NodeType::Target(target) => target.update(input_values[0]),
         }
     }
 

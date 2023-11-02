@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    app_graph::{NbInput, Node, NodeType},
-    id::IdGenerator,
-};
+use hardware::Hardware;
 
-use super::IsValid;
+use crate::{
+    id::IdGenerator,
+    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Flat {
@@ -13,20 +13,28 @@ pub struct Flat {
     pub value: u16,
 }
 
-impl Flat {
-    pub fn to_node(self, id_generator: &mut IdGenerator) -> Node {
-        Node {
-            id: id_generator.new_id(),
-            node_type: NodeType::Flat(self),
-            max_input: NbInput::Zero,
-            inputs: Vec::new(),
-            value: None,
-        }
-    }
-}
-
 impl IsValid for Flat {
     fn is_valid(&self) -> bool {
         true
+    }
+}
+
+impl Inputs for Flat {
+    fn clear_inputs(&mut self) {}
+
+    fn get_inputs(&self) -> Vec<&String> {
+        Vec::new()
+    }
+}
+
+impl ToNode for Flat {
+    fn to_node(
+        mut self,
+        id_generator: &mut IdGenerator,
+        nodes: &Nodes,
+        _hardware: &Hardware,
+    ) -> Node {
+        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Flat);
+        Node::new(id_generator, NodeType::Flat(self), inputs)
     }
 }

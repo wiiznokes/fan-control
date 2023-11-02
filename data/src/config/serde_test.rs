@@ -1,5 +1,5 @@
 use const_format::formatcp;
-use hardware::Hardware;
+use hardware::{ControlH, FanH, Hardware, HardwareItem, TempH};
 use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
@@ -10,12 +10,15 @@ use crate::config::Config;
 
 use crate::settings::Settings;
 
-use super::custom_temp::CustomTempType;
+use super::control::Control;
+use super::custom_temp::{CustomTemp, CustomTempType};
 
+use super::fan::Fan;
 use super::flat::Flat;
 use super::graph::{Coord, Graph};
 use super::linear::Linear;
 use super::target::Target;
+use super::temp::Temp;
 
 const SETTINGS_DIR_PATH: &str = "./test/config/";
 
@@ -92,39 +95,76 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
+#[derive(Debug)]
+struct T {}
+
+impl HardwareItem for T {
+    fn get_value(&self) -> Result<hardware::Value, hardware::HardwareError> {
+        todo!()
+    }
+
+    fn set_value(&self, _value: hardware::Value) -> Result<(), hardware::HardwareError> {
+        todo!()
+    }
+
+    fn set_mode(&self, _value: hardware::Value) -> Result<(), hardware::HardwareError> {
+        todo!()
+    }
+}
+
 fn hardware1() -> Hardware {
     Hardware {
-        controls: vec![
-            test_helper::control_h("control1"),
-            test_helper::control_h("control2"),
-            test_helper::control_h("control3"),
-            test_helper::control_h("control4"),
-        ],
-        temps: vec![
-            test_helper::temp_h("temp1"),
-            test_helper::temp_h("temp2"),
-            test_helper::temp_h("temp3"),
-        ],
-        fans: vec![test_helper::fan_h("fan1"), test_helper::fan_h("fan2")],
+        controls: vec![ControlH {
+            name: "ControlH".into(),
+            hardware_id: "ControlH".into(),
+            info: "ControlH".into(),
+            bridge: Box::new(T {}),
+        }
+        .into()],
+        temps: vec![TempH {
+            name: "TempH".into(),
+            hardware_id: "TempH".into(),
+            info: "TempH".into(),
+            bridge: Box::new(T {}),
+        }
+        .into()],
+        fans: vec![FanH {
+            name: "FanH".into(),
+            hardware_id: "FanH".into(),
+            info: "FanH".into(),
+            bridge: Box::new(T {}),
+        }
+        .into()],
     }
 }
 
 fn config1() -> Config {
     Config {
-        controls: vec![
-            test_helper::control("control1", None, true),
-            test_helper::control("control1", Some("flat1"), true),
-            test_helper::control("control1", Some("target1"), false),
-        ],
-        temps: vec![test_helper::temp("temp1"), test_helper::temp("temp2")],
-        fans: vec![test_helper::fan("fan1"), test_helper::fan("fan2")],
-        custom_temps: vec![test_helper::custom_temp(
-            "max",
-            CustomTempType::Max,
-            vec!["temp1", "temp2"],
-        )],
+        controls: vec![Control {
+            name: "Control".into(),
+            hardware_id: Some("Control".into()),
+            input: None,
+            auto: true,
+            control_h: None,
+            manual_has_been_set: false,
+        }],
+        temps: vec![Temp {
+            name: "Temp".into(),
+            hardware_id: Some("temp".into()),
+            temp_h: None,
+        }],
+        fans: vec![Fan {
+            name: "Fan".into(),
+            hardware_id: None,
+            fan_h: None,
+        }],
+        custom_temps: vec![CustomTemp {
+            name: "CustomTemp".into(),
+            kind: CustomTempType::Max,
+            input: vec!["temp1".into(), "temp2".into()],
+        }],
         graphs: vec![Graph {
-            name: "graph1".into(),
+            name: "Graph".into(),
             coords: vec![
                 Coord {
                     temp: 10,
@@ -134,25 +174,15 @@ fn config1() -> Config {
                     temp: 50,
                     percent: 30,
                 },
-                Coord {
-                    temp: 90,
-                    percent: 100,
-                },
             ],
             input: Some("max".into()),
         }],
-        flats: vec![
-            Flat {
-                name: "flat1".into(),
-                value: 50,
-            },
-            Flat {
-                name: "flat2".into(),
-                value: 100,
-            },
-        ],
+        flats: vec![Flat {
+            name: "flat1".into(),
+            value: 50,
+        }],
         linears: vec![Linear {
-            name: "graph1".into(),
+            name: "Linear".into(),
             min_temp: 10,
             min_speed: 10,
             max_temp: 70,
@@ -160,85 +190,13 @@ fn config1() -> Config {
             input: Some("temp3".into()),
         }],
         targets: vec![Target {
-            name: "graph1".into(),
-
+            name: "Target".into(),
             idle_temp: 40,
             idle_speed: 10,
             load_temp: 70,
             load_speed: 100,
             input: Some("temp3".into()),
+            idle_has_been_reatch: false,
         }],
-    }
-}
-
-mod test_helper {
-    use hardware::{ControlH, FanH, TempH};
-
-    use crate::config::{
-        control::Control,
-        custom_temp::{CustomTemp, CustomTempType},
-        fan::Fan,
-        temp::Temp,
-    };
-
-    pub fn control_h(name: &str) -> ControlH {
-        ControlH {
-            name: name.into(),
-            hardware_id: name.into(),
-            info: name.into(),
-            internal_index: 0,
-        }
-    }
-    pub fn temp_h(name: &str) -> TempH {
-        TempH {
-            name: name.into(),
-            hardware_id: name.into(),
-            info: name.into(),
-            internal_index: 0,
-        }
-    }
-    pub fn fan_h(name: &str) -> FanH {
-        FanH {
-            name: name.into(),
-            hardware_id: name.into(),
-            info: name.into(),
-            internal_index: 0,
-        }
-    }
-
-    pub fn control(name: &str, input: Option<&str>, auto: bool) -> Control {
-        Control {
-            name: name.into(),
-            hardware_id: Some(name.into()),
-            input: input.map(|i| i.into()),
-            auto,
-            hardware_internal_index: None,
-        }
-    }
-    pub fn temp(name: &str) -> Temp {
-        Temp {
-            name: name.into(),
-            hardware_id: Some(name.into()),
-            hardware_internal_index: None,
-        }
-    }
-    pub fn fan(name: &str) -> Fan {
-        Fan {
-            name: name.into(),
-            hardware_id: Some(name.into()),
-            hardware_internal_index: None,
-        }
-    }
-
-    pub fn custom_temp(name: &str, kind: CustomTempType, input: Vec<&str>) -> CustomTemp {
-        CustomTemp {
-            name: name.into(),
-            kind,
-            input: vec_to_string(input),
-        }
-    }
-
-    pub fn vec_to_string(v: Vec<&str>) -> Vec<String> {
-        v.iter().map(|e| e.to_string()).collect()
     }
 }
