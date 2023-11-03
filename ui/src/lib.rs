@@ -28,13 +28,13 @@ impl Application for Ui {
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let ui_state = Ui { app_state: flags };
 
-        dbg!(&ui_state.app_state.app_graph);
+        //dbg!(&ui_state.app_state.app_graph);
 
         (ui_state, Command::none())
     }
 
     fn title(&self) -> String {
-        String::from("fan-control-rs")
+        String::from("fan-control")
     }
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {

@@ -1,7 +1,7 @@
 [[Control]]
 name = "control1"
 id = "nct6798-isa-0290-pwm1"
-input = "flat1"
+input = ""
 auto = false
 
 [[Control]]
@@ -42,7 +42,7 @@ loadSpeed = 100
 
 [[CustomTemp]]
 name = "custom_temp"
-kind = "Max"
+kind = "Average"
 input = [
     "temp1",
     "temp2",
@@ -54,11 +54,11 @@ input = [
 
 [[Temp]]
 name = "temp1"
-id = "nct6798-isa-0290-temp2_input"
+id = "nct6798-isa-0290-temp3_input"
 
 [[Temp]]
 name = "temp2"
-id = "nct6798-isa-0290-temp3_input"
+id = "nct6798-isa-0290-temp4_input"
 
 [[Temp]]
 name = "temp3"
