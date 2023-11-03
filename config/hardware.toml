@@ -99,8 +99,20 @@ name = "TSI0_TEMP nct6798-isa-0290"
 id = "nct6798-isa-0290-temp11_input"
 
 [[Temp]]
-name = "Composite nvme-pci-0500"
-id = "nvme-pci-0500-temp1_input"
+name = "Composite nvme-pci-0100"
+id = "nvme-pci-0100-temp1_input"
+
+[[Temp]]
+name = "Sensor 1 nvme-pci-0100"
+id = "nvme-pci-0100-temp2_input"
+
+[[Temp]]
+name = "Sensor 2 nvme-pci-0100"
+id = "nvme-pci-0100-temp3_input"
+
+[[Temp]]
+name = "Sensor 8 nvme-pci-0100"
+id = "nvme-pci-0100-temp9_input"
 
 [[Temp]]
 name = "temp1 iwlwifi_1-virtual-0"
@@ -119,17 +131,5 @@ name = "Tccd1 k10temp-pci-00c3"
 id = "k10temp-pci-00c3-temp3_input"
 
 [[Temp]]
-name = "Composite nvme-pci-0100"
-id = "nvme-pci-0100-temp1_input"
-
-[[Temp]]
-name = "Sensor 1 nvme-pci-0100"
-id = "nvme-pci-0100-temp2_input"
-
-[[Temp]]
-name = "Sensor 2 nvme-pci-0100"
-id = "nvme-pci-0100-temp3_input"
-
-[[Temp]]
-name = "Sensor 8 nvme-pci-0100"
-id = "nvme-pci-0100-temp9_input"
+name = "Composite nvme-pci-0500"
+id = "nvme-pci-0500-temp1_input"
