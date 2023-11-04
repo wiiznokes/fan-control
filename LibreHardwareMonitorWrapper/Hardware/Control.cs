@@ -2,12 +2,12 @@
 
 namespace LibreHardwareMonitorWrapper.Hardware;
 
-public class Control: BaseHardware
+public class Control : BaseHardware
 {
     private readonly ISensor _mSensor;
     private bool _isSetSpeed;
 
-    public Control(string id, string name, ISensor sensor, int index): base(id, name, index)
+    public Control(string id, string name, ISensor sensor, int index) : base(id, name, index, HardwareType.Control)
     {
         _mSensor = sensor;
     }
@@ -20,13 +20,13 @@ public class Control: BaseHardware
         return (int)temp;
     }
 
-    public  int GetMinSpeed()
+    public int GetMinSpeed()
     {
         if (_mSensor.Control != null) return (int)_mSensor.Control.MinSoftwareValue;
         return 0;
     }
 
-    public  int GetMaxSpeed()
+    public int GetMaxSpeed()
     {
         if (_mSensor.Control != null) return (int)_mSensor.Control.MaxSoftwareValue;
         return 100;

@@ -72,19 +72,13 @@ public class Lhm : IVisitor
         foreach (var hardware in hardwareArray)
         {
             var sensorArray = hardware.Sensors;
-            foreach (var sensor in sensorArray)
-            {
-                AddHardware(sensor);
-            }
+            foreach (var sensor in sensorArray) AddHardware(sensor);
 
             var subHardwareArray = hardware.SubHardware;
             foreach (var subHardware in subHardwareArray)
             {
                 var subSensorArray = subHardware.Sensors;
-                foreach (var subSensor in subSensorArray)
-                {
-                    AddHardware(subSensor);
-                }
+                foreach (var subSensor in subSensorArray) AddHardware(subSensor);
             }
         }
 
@@ -107,12 +101,12 @@ public class Lhm : IVisitor
                     break;
                 case SensorType.Fan:
                     id ??= SensorType.Control.ToString() + nbFan;
-                    State.Fans.Add(new Sensor(id, name, sensor, nbFan));
+                    State.Fans.Add(new Sensor(id, name, sensor, nbFan, HardwareType.Fan));
                     nbFan += 1;
                     break;
                 case SensorType.Temperature:
                     id ??= SensorType.Control.ToString() + nbTemp;
-                    State.Temps.Add(new Sensor(id, name, sensor, nbTemp));
+                    State.Temps.Add(new Sensor(id, name, sensor, nbTemp, HardwareType.Temp));
                     nbTemp += 1;
                     break;
 

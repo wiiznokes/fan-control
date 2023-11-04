@@ -12,7 +12,7 @@ public static class HardwareManager
         Lhm.Start();
         Lhm.CreateHardware();
     }
-    
+
     public static int GetValue(HardwareType type, int index)
     {
         Lhm.Update();
@@ -24,12 +24,12 @@ public static class HardwareManager
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
-    
+
     public static void SetValue(int index, int value)
     {
         State.Controls[index].SetSpeed(value);
     }
-    
+
     public static void SetAuto(int index)
     {
         State.Controls[index].SetAuto();

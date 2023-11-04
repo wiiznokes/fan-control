@@ -2,11 +2,11 @@ using LibreHardwareMonitor.Hardware;
 
 namespace LibreHardwareMonitorWrapper.Hardware;
 
-public class Sensor: BaseHardware
+public class Sensor : BaseHardware
 {
     private readonly ISensor _mSensor;
 
-    public Sensor(string id, string name, ISensor sensor, int index): base(id, name, index)
+    public Sensor(string id, string name, ISensor sensor, int index, HardwareType type) : base(id, name, index, type)
     {
         _mSensor = sensor;
     }
