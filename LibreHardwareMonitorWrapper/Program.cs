@@ -2,6 +2,10 @@
 
 
 using LibreHardwareMonitorWrapper;
+using LibreHardwareMonitorWrapper.Hardware;
+
+
+
 
 var server = new Server();
 
