@@ -11,3 +11,5 @@ test/
 .vscode/
 libsensors_build/
 etc/
+bin/
+obj/

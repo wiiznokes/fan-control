@@ -15,7 +15,7 @@ fn main() {
     let hardware = hardware::linux::LinuxBridge::generate_hardware();
 
     #[cfg(target_os = "windows")]
-    let hardware_bridge = hardware::windows::WindowsBridge::new();
+    let hardware = hardware::windows::WindowsBridge::generate_hardware();
 
     let hardware_file_path = dir_manager.hardware_file_path();
 
