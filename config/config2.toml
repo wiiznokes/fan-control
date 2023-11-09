@@ -1,0 +1,62 @@
+[[Control]]
+name = "control1"
+input = "flat1"
+auto = false
+
+[[Control]]
+name = "control2"
+input = "linear1"
+auto = false
+
+[[Control]]
+name = "control2"
+input = "target1"
+auto = false
+
+[[Flat]]
+name = "flat1"
+value = 50
+
+[[Linear]]
+name = "linear1"
+minTemp = 10
+minSpeed = 10
+maxTemp = 70
+maxSpeed = 100
+input = "custom_temp"
+
+
+
+[[Target]]
+name = "target1"
+idleTemp = 40
+idleSpeed = 10
+loadTemp = 70
+loadSpeed = 100
+
+
+
+
+[[CustomTemp]]
+name = "custom_temp"
+kind = "Average"
+input = [
+    "temp1",
+    "temp2",
+]
+
+
+
+
+
+[[Temp]]
+name = "temp1"
+id = "iwlwifi_1-virtual-0-temp1_input"
+
+[[Temp]]
+name = "temp2"
+id = "pch_cannonlake-virtual-0-temp1_input"
+
+[[Temp]]
+name = "temp3"
+id = "coretemp-isa-0000-temp3_input"
