@@ -61,7 +61,7 @@ impl ToNode for Temp {
                 {
                     Some(temp_h) => self.temp_h = Some(temp_h.clone()),
                     None => {
-                        eprintln!("Temp to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
+                        warn!("Temp to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
                         self.hardware_id.take();
                         self.temp_h.take();
                     }
@@ -69,7 +69,7 @@ impl ToNode for Temp {
             }
             None => {
                 if self.temp_h.is_some() {
-                    eprintln!("Temp to Node: inconsistent internal index");
+                    warn!("Temp to Node: inconsistent internal index");
                     self.temp_h.take();
                 }
             }

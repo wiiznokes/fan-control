@@ -24,3 +24,6 @@ expand:
 
 libsensors:
 	make -C ./libsensors/ install PREFIX=./../libsensors_build ETCDIR=./../etc
+
+test:
+	clear && cargo test

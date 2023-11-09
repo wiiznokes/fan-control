@@ -62,7 +62,7 @@ impl ToNode for Fan {
                 {
                     Some(fan_h) => self.fan_h = Some(fan_h.clone()),
                     None => {
-                        eprintln!("Fan to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
+                        warn!("Fan to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
                         self.hardware_id.take();
                         self.fan_h.take();
                     }
@@ -70,7 +70,7 @@ impl ToNode for Fan {
             }
             None => {
                 if self.fan_h.is_some() {
-                    eprintln!("Fan to Node: inconsistent internal index");
+                    warn!("Fan to Node: inconsistent internal index");
                     self.fan_h.take();
                 }
             }

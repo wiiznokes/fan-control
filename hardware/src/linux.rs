@@ -54,6 +54,7 @@ impl HardwareBridge for LinuxBridge {
         // is even safe Rust. The kernel will be in charge to release
         // memory when the process terminate.
         let leaked: &'static mut LMSensors = Box::leak(boxed);
+        info!("lmsensors just leaked");
 
         generate_hardware(leaked, &mut hardware);
 

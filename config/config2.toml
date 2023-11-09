@@ -1,16 +1,18 @@
 [[Control]]
-name = "control1"
+name = "control0"
 input = "flat1"
 auto = false
 
 [[Control]]
-name = "control2"
+name = "control1"
 input = "linear1"
+id = "control1"
 auto = false
 
 [[Control]]
 name = "control2"
 input = "target1"
+id = "control2"
 auto = false
 
 [[Flat]]
@@ -51,12 +53,8 @@ input = [
 
 [[Temp]]
 name = "temp1"
-id = "iwlwifi_1-virtual-0-temp1_input"
+id = "temp1"
 
 [[Temp]]
 name = "temp2"
-id = "pch_cannonlake-virtual-0-temp1_input"
-
-[[Temp]]
-name = "temp3"
-id = "coretemp-isa-0000-temp3_input"
+id = "temp2"

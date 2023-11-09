@@ -2,6 +2,9 @@
 #![feature(type_alias_impl_trait)]
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate log;
+
 pub mod cli;
 pub mod config;
 pub mod directories;

@@ -60,6 +60,7 @@ impl Update {
                 };
 
                 node.value = Some(update_result.value);
+                debug!("{} set to {}", node.name(), update_result.value);
                 (update_result.side_effect)(node);
 
                 updated.insert(node.id);

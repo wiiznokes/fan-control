@@ -3,9 +3,18 @@ use data::{
     cli::Args, config::Config, directories::DirManager, node::AppGraph, update::Update, AppState,
 };
 use hardware::{self, HardwareBridge};
+
 use ui::run_ui;
 
+#[macro_use]
+extern crate log;
+
+#[cfg(test)]
+mod integrated_test;
+
 fn main() {
+    env_logger::init();
+
     let args = Args::parse();
 
     let dir_manager = DirManager::new(args.config_dir_path);
@@ -20,7 +29,7 @@ fn main() {
     let hardware_file_path = dir_manager.hardware_file_path();
 
     if let Err(e) = DirManager::serialize(&hardware_file_path, &hardware) {
-        eprintln!("{}", e);
+        warn!("{}", e);
     }
 
     let config = match &settings.current_config {

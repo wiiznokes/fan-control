@@ -1,30 +1,17 @@
-Control = []
 Fan = []
 
-[[Temp]]
-name = "temp1 iwlwifi_1-virtual-0"
-id = "iwlwifi_1-virtual-0-temp1_input"
+[[Control]]
+name = "control1"
+id = "control1"
+
+[[Control]]
+name = "control2"
+id = "control2"
 
 [[Temp]]
-name = "temp1 pch_cannonlake-virtual-0"
-id = "pch_cannonlake-virtual-0-temp1_input"
+name = "temp1"
+id = "temp1"
 
 [[Temp]]
-name = "Package id 0 coretemp-isa-0000"
-id = "coretemp-isa-0000-temp1_input"
-
-[[Temp]]
-name = "Core 0 coretemp-isa-0000"
-id = "coretemp-isa-0000-temp2_input"
-
-[[Temp]]
-name = "Core 1 coretemp-isa-0000"
-id = "coretemp-isa-0000-temp3_input"
-
-[[Temp]]
-name = "Composite nvme-pci-0100"
-id = "nvme-pci-0100-temp1_input"
-
-[[Temp]]
-name = "temp1 acpitz-acpi-0"
-id = "acpitz-acpi-0-temp1_input"
+name = "temp2"
+id = "temp2"

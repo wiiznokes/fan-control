@@ -111,7 +111,7 @@ impl ToNode for Control {
                 {
                     Some(control_h) => self.control_h = Some(control_h.clone()),
                     None => {
-                        eprintln!("Control to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
+                        warn!("Control to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
                         self.hardware_id.take();
                         self.control_h.take();
                     }
@@ -119,7 +119,7 @@ impl ToNode for Control {
             }
             None => {
                 if self.control_h.is_some() {
-                    eprintln!("Control to Node: inconsistent internal index");
+                    warn!("Control to Node: inconsistent internal index");
                     self.control_h.take();
                 }
             }
