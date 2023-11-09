@@ -13,6 +13,17 @@
 - the app: integrate all this crates into on executable
 
 
+# Build
+
+## Linux
+```
+git submodule update --init
+make libsensors
+```
+## Windows
+```
+dotnet build
+```
 ## Dependencies
 
 #### Ubuntu

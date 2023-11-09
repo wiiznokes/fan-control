@@ -21,3 +21,6 @@ clean-git:
 
 expand:
 	clear && cargo expand
+
+libsensors:
+	make -C ./libsensors/ install PREFIX=./../libsensors_build ETCDIR=./../etc
