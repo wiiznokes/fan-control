@@ -30,86 +30,58 @@ impl Update {
         Self {}
     }
 
-    
-    fn update2(nodes: &mut Nodes, node_id: &Id, updated: &mut HashSet<Id> ) -> Result<Option<Value>, UpdateError> {
+    pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
+        let mut updated: HashSet<Id> = HashSet::new();
+
+        for node_id in root_nodes {
+            Self::update_rec(nodes, node_id, &mut updated)?;
+        }
+        Ok(())
+    }
+
+    pub fn clear_cache(&mut self) {}
+
+    fn update_rec(
+        nodes: &mut Nodes,
+        node_id: &Id,
+        updated: &mut HashSet<Id>,
+    ) -> Result<Option<Value>, UpdateError> {
+        if updated.contains(node_id) {
+            return match nodes.get(node_id) {
+                Some(node) => Ok(node.value),
+                None => Err(UpdateError::NodeNotFound),
+            };
+        }
+
+        let input_ids: Vec<Id>;
+        let mut input_values = Vec::new();
+        {
+            let Some(node) = nodes.get(node_id) else {
+                return Err(UpdateError::NodeNotFound);
+            };
+
+            if !node.is_valid() {
+                return Ok(None);
+            }
+            input_ids = node.inputs.clone();
+        }
+
+        for id in &input_ids {
+            match Self::update_rec(nodes, id, updated)? {
+                Some(value) => input_values.push(value),
+                None => return Ok(None),
+            }
+        }
 
         let Some(node) = nodes.get_mut(node_id) else {
             return Err(UpdateError::NodeNotFound);
         };
 
-        if !updated.contains(&node_id) {
+        node.update(&input_values)?;
+        updated.insert(node.id);
 
-            if !node.is_valid() {
-                return Ok(None);
-            }
-
-            let mut input_values = Vec::new();
-            for id in &node.inputs {
-                match Self::update2(nodes, id, updated)? {
-                    Some(value) => input_values.push(value),
-                    None => return Ok(None),
-                }
-            }
-            
-            node.update(&input_values)?;
-            updated.insert(node.id);
-        }
-
-        return Ok(node.value);
+        Ok(node.value)
     }
-     
-    
-
-    pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
-        let mut to_update: Vec<Id> = Vec::new();
-
-        for node_id in root_nodes {
-            let Some(node) = nodes.get(node_id) else {
-                return Err(UpdateError::NodeNotFound);
-            };
-
-            let mut ids = Vec::new();
-            if node.validate(nodes, &mut ids)? {
-                to_update.extend(ids);
-            };
-        }
-
-        let mut updated: HashSet<Id> = HashSet::new();
-
-        to_update.reverse();
-
-        let mut input_values = Vec::new();
-        for node_id in to_update {
-            if !updated.contains(&node_id) {
-                let Some(node) = nodes.get(&node_id) else {
-                    return Err(UpdateError::NodeNotFound);
-                };
-
-                input_values.clear();
-                for id in &node.inputs {
-                    match nodes.get(id) {
-                        Some(node) => match node.value {
-                            Some(value) => input_values.push(value),
-                            None => return Err(UpdateError::ValueIsNone),
-                        },
-                        None => return Err(UpdateError::NodeNotFound),
-                    }
-                }
-
-                let Some(node) = nodes.get_mut(&node_id) else {
-                    return Err(UpdateError::NodeNotFound);
-                };
-
-                node.update(&input_values)?;
-
-                updated.insert(node.id);
-            }
-        }
-
-        Ok(())
-    }
-
-    pub fn clear_cache(&mut self) {}
 }
 
 impl Node {
