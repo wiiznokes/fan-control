@@ -2,8 +2,23 @@
 
 use std::time::Duration;
 
-use data::AppState;
-use iced::{self, executor, time, widget::Text, Application, Command};
+use data::{
+    id::Id,
+    node::{validate_name, NodeType},
+    AppState,
+};
+use iced::{
+    self, executor, time,
+    widget::{Column, Container, Row},
+    Application, Command,
+};
+use item::control_view;
+
+#[macro_use]
+extern crate log;
+
+mod item;
+mod theme;
 
 pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
     let settings = iced::Settings::with_flags(app_state);
@@ -16,7 +31,17 @@ pub struct Ui {
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
+    NameChange(Id, String),
+    HardwareIdChange(Id, Option<String>),
+    InputReplaced(Id, InputReplaced),
+    ControlAutoChange(Id, bool),
     Tick,
+}
+
+#[derive(Debug, Clone)]
+pub struct InputReplaced {
+    pub input_id: Option<Id>,
+    pub input_name: Option<String>,
 }
 
 impl Application for Ui {
@@ -51,13 +76,88 @@ impl Application for Ui {
                     }
                 }
             }
+            AppMsg::NameChange(id, name) => {
+                let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
+
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                node.name_cached = name.clone();
+                if name_is_valid {
+                    node.is_error_name = false;
+                    match &mut node.node_type {
+                        data::node::NodeType::Control(i) => i.name = name,
+                        data::node::NodeType::Fan(i) => i.name = name,
+                        data::node::NodeType::Temp(i) => i.name = name,
+                        data::node::NodeType::CustomTemp(i) => i.name = name,
+                        data::node::NodeType::Graph(i) => i.name = name,
+                        data::node::NodeType::Flat(i) => i.name = name,
+                        data::node::NodeType::Linear(i) => i.name = name,
+                        data::node::NodeType::Target(i) => i.name = name,
+                    }
+                } else {
+                    node.is_error_name = true;
+                }
+            }
+            AppMsg::HardwareIdChange(id, hardware_id) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                match &mut node.node_type {
+                    data::node::NodeType::Control(i) => i.hardware_id = hardware_id,
+                    data::node::NodeType::Fan(i) => i.hardware_id = hardware_id,
+                    data::node::NodeType::Temp(i) => i.hardware_id = hardware_id,
+                    _ => panic!("node have no hardware id"),
+                }
+            }
+            AppMsg::InputReplaced(id, input) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                node.inputs.clear();
+                if let Some(input_id) = input.input_id {
+                    node.inputs.push(input_id);
+                }
+
+                match &mut node.node_type {
+                    data::node::NodeType::Control(i) => i.input = input.input_name,
+                    data::node::NodeType::Graph(i) => i.input = input.input_name,
+                    data::node::NodeType::Linear(i) => i.input = input.input_name,
+                    data::node::NodeType::Target(i) => i.input = input.input_name,
+                    _ => panic!("node have not exactly one input"),
+                }
+            }
+            AppMsg::ControlAutoChange(id, auto) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                let NodeType::Control(control) = &mut node.node_type else {
+                    panic!()
+                };
+                control.auto = auto;
+            }
         }
 
         Command::none()
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        Text::new("hello").into()
+        let mut controls = Vec::new();
+
+        for node in self.app_state.app_graph.nodes.values() {
+            match node.node_type.to_light() {
+                data::node::NodeTypeLight::Control => controls.push(control_view(
+                    node,
+                    &self.app_state.app_graph.nodes,
+                    &self.app_state.hardware,
+                )),
+                data::node::NodeTypeLight::Fan => {}
+                data::node::NodeTypeLight::Temp => {}
+                data::node::NodeTypeLight::CustomTemp => {}
+                data::node::NodeTypeLight::Graph => {}
+                data::node::NodeTypeLight::Flat => {}
+                data::node::NodeTypeLight::Linear => {}
+                data::node::NodeTypeLight::Target => {}
+            }
+        }
+
+        let content = Row::new().push(Column::with_children(controls));
+
+        Container::new(content).into()
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {

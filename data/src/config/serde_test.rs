@@ -140,14 +140,13 @@ fn hardware1() -> Hardware {
 
 fn config1() -> Config {
     Config {
-        controls: vec![Control {
-            name: "Control".into(),
-            hardware_id: Some("Control".into()),
-            input: None,
-            auto: true,
-            control_h: None,
-            manual_has_been_set: false,
-        }],
+        controls: vec![Control::new(
+            "Control".into(),
+            Some("Control".into()),
+            None,
+            true,
+            None,
+        )],
         temps: vec![Temp {
             name: "Temp".into(),
             hardware_id: Some("temp".into()),

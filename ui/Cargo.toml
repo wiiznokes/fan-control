@@ -6,4 +6,6 @@ edition = "2021"
 
 [dependencies]
 data.workspace = true
+hardware.workspace = true
 iced = { version = "0.10", features = ["canvas", "smol"] }
+log.workspace = true

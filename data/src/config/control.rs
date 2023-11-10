@@ -25,9 +25,26 @@ pub struct Control {
 }
 
 impl Control {
+    pub fn new(
+        name: String,
+        hardware_id: Option<String>,
+        input: Option<String>,
+        auto: bool,
+        control_h: Option<Rc<ControlH>>,
+    ) -> Self {
+        Self {
+            name: name.clone(),
+            hardware_id,
+            input,
+            auto,
+            control_h,
+            manual_has_been_set: false,
+        }
+    }
+
     pub fn set_value(&mut self, value: Value) -> Result<Value, UpdateError> {
         if !self.manual_has_been_set {
-            self.set_mode(false)?
+            self.set_mode(false)?;
         }
 
         match &self.control_h {
@@ -52,11 +69,9 @@ impl Control {
         match res {
             Ok(_) => {
                 self.manual_has_been_set = auto;
-                self.auto = auto;
             }
             Err(_) => {
                 self.manual_has_been_set = false;
-                self.auto = true;
             }
         }
         res

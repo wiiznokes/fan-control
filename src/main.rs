@@ -21,7 +21,8 @@ fn main() {
     let settings = dir_manager.init_settings();
 
     #[cfg(target_os = "linux")]
-    let hardware = hardware::linux::LinuxBridge::generate_hardware();
+    let hardware = hardware::hardware_test::TestBridge::generate_hardware();
+    //let hardware = hardware::linux::LinuxBridge::generate_hardware();
 
     #[cfg(target_os = "windows")]
     let hardware = hardware::windows::WindowsBridge::generate_hardware();

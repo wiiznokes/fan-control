@@ -34,21 +34,19 @@ impl AppGraph {
         let mut app_graph = AppGraph::new();
 
         for control_h in &hardware.controls {
-            let control = Control {
-                name: control_h.name.clone(),
-                hardware_id: Some(control_h.hardware_id.clone()),
-                input: None,
-                auto: true,
-                control_h: Some(control_h.clone()),
-                manual_has_been_set: false,
-            };
+            let control = Control::new(
+                control_h.name.clone(),
+                Some(control_h.hardware_id.clone()),
+                None,
+                true,
+                Some(control_h.clone()),
+            );
 
-            let node = Node {
-                id: app_graph.id_generator.new_id(),
-                node_type: NodeType::Control(control),
-                inputs: Vec::new(),
-                value: None,
-            };
+            let node = Node::new(
+                &mut app_graph.id_generator,
+                NodeType::Control(control),
+                Vec::new(),
+            );
             app_graph.root_nodes.push(node.id);
             app_graph.nodes.insert(node.id, node);
         }
@@ -60,12 +58,7 @@ impl AppGraph {
                 fan_h: Some(fan_h.clone()),
             };
 
-            let node = Node {
-                id: app_graph.id_generator.new_id(),
-                node_type: NodeType::Fan(fan),
-                inputs: Vec::new(),
-                value: None,
-            };
+            let node = Node::new(&mut app_graph.id_generator, NodeType::Fan(fan), Vec::new());
             app_graph.nodes.insert(node.id, node);
         }
 
@@ -76,12 +69,11 @@ impl AppGraph {
                 temp_h: Some(temp_h.clone()),
             };
 
-            let node = Node {
-                id: app_graph.id_generator.new_id(),
-                node_type: NodeType::Temp(temp),
-                inputs: Vec::new(),
-                value: None,
-            };
+            let node = Node::new(
+                &mut app_graph.id_generator,
+                NodeType::Temp(temp),
+                Vec::new(),
+            );
             app_graph.nodes.insert(node.id, node);
         }
 
@@ -140,6 +132,9 @@ pub struct Node {
     pub inputs: Vec<Id>,
 
     pub value: Option<Value>,
+
+    pub name_cached: String,
+    pub is_error_name: bool,
 }
 
 #[derive(Debug, Clone, LightEnum)]
@@ -154,18 +149,9 @@ pub enum NodeType {
     Target(Target),
 }
 
-impl Node {
-    pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, inputs: Vec<Id>) -> Self {
-        Self {
-            id: id_generator.new_id(),
-            node_type,
-            inputs,
-            value: None,
-        }
-    }
-
+impl NodeType {
     pub fn name(&self) -> &String {
-        match &self.node_type {
+        match self {
             NodeType::Control(control) => &control.name,
             NodeType::Fan(fan) => &fan.name,
             NodeType::Temp(temp) => &temp.name,
@@ -175,6 +161,24 @@ impl Node {
             NodeType::Linear(linear) => &linear.name,
             NodeType::Target(target) => &target.name,
         }
+    }
+}
+
+impl Node {
+    pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, inputs: Vec<Id>) -> Self {
+        let name_cached = node_type.name().clone();
+        Self {
+            id: id_generator.new_id(),
+            node_type,
+            inputs,
+            value: None,
+            name_cached,
+            is_error_name: false,
+        }
+    }
+
+    pub fn name(&self) -> &String {
+        self.node_type.name()
     }
 }
 
@@ -305,4 +309,18 @@ pub fn sanitize_inputs(item: &mut impl Inputs, nodes: &Nodes, node_type: NodeTyp
         return inputs;
     }
     inputs
+}
+
+pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
+    if name.is_empty() {
+        return false;
+    };
+
+    for node in nodes.values() {
+        if node.name() == name && &node.id != id {
+            return false;
+        }
+    }
+
+    true
 }
