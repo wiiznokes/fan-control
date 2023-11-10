@@ -1,7 +1,7 @@
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::{UpdateError, UpdateResult},
+    update::UpdateError,
 };
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
@@ -24,38 +24,22 @@ pub struct Target {
 }
 
 impl Target {
-    pub fn update(&self, value: Value) -> Result<UpdateResult, UpdateError> {
+    pub fn update(&mut self, value: Value) -> Result<Value, UpdateError> {
         if self.idle_has_been_reatch {
             if value < self.load_temp.into() {
-                return UpdateResult::without_side_effect(self.idle_speed.into()).into();
+                return Ok(self.idle_speed.into());
             }
 
-            let load_reatch = |node: &mut Node| {
-                if let NodeType::Target(target) = &mut node.node_type {
-                    target.idle_has_been_reatch = false;
-                }
-            };
-            return UpdateResult {
-                value: self.load_speed.into(),
-                side_effect: Box::new(load_reatch),
-            }
-            .into();
+            self.idle_has_been_reatch = false;
+            return Ok(self.load_speed.into());
         }
 
         if value > self.idle_temp.into() {
-            return UpdateResult::without_side_effect(self.load_speed.into()).into();
+            return Ok(self.load_speed.into());
         }
 
-        let idle_reatch = |node: &mut Node| {
-            if let NodeType::Target(target) = &mut node.node_type {
-                target.idle_has_been_reatch = true;
-            }
-        };
-        UpdateResult {
-            value: self.idle_speed.into(),
-            side_effect: Box::new(idle_reatch),
-        }
-        .into()
+        self.idle_has_been_reatch = true;
+        Ok(self.idle_speed.into())
     }
 }
 
@@ -92,9 +76,6 @@ impl ToNode for Target {
 
 #[cfg(test)]
 mod test {
-    use hardware::HardwareBridge;
-
-    use crate::node::{AppGraph, NodeType, ToNode};
 
     use super::Target;
 
@@ -102,7 +83,7 @@ mod test {
     fn test_update() {
         let _ = env_logger::try_init();
 
-        let target = Target {
+        let mut target = Target {
             name: "linear".to_string(),
             input: Some("temp1".into()),
             idle_temp: 40,
@@ -112,31 +93,9 @@ mod test {
             idle_has_been_reatch: false,
         };
 
-        let hardware = hardware::hardware_test::TestBridge::generate_hardware();
-        let mut app_graph = AppGraph::default(&hardware);
-        let mut node = target.to_node(&mut app_graph.id_generator, &app_graph.nodes, &hardware);
-
-        if let NodeType::Target(target) = &node.node_type {
-            let res = target.update(55).unwrap();
-            (res.side_effect)(&mut node);
-            assert!(res.value == 100);
-        }
-        if let NodeType::Target(target) = &node.node_type {
-            let res = target.update(30).unwrap();
-            (res.side_effect)(&mut node);
-            assert!(res.value == 10);
-        }
-
-        if let NodeType::Target(target) = &node.node_type {
-            let res = target.update(55).unwrap();
-            (res.side_effect)(&mut node);
-            assert!(res.value == 10);
-        }
-
-        if let NodeType::Target(target) = &node.node_type {
-            let res = target.update(70).unwrap();
-            (res.side_effect)(&mut node);
-            assert!(res.value == 100);
-        }
+        assert!(target.update(55).unwrap() == 100);
+        assert!(target.update(30).unwrap() == 10);
+        assert!(target.update(55).unwrap() == 10);
+        assert!(target.update(70).unwrap() == 100);
     }
 }

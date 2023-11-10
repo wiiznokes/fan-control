@@ -14,6 +14,7 @@ pub enum UpdateError {
     NodeIsInvalid,
     Hardware(HardwareError),
     NoInputData,
+    CantSetMode,
 }
 
 pub struct Update {}
@@ -28,6 +29,28 @@ impl Update {
     pub fn new() -> Self {
         Self {}
     }
+
+    /*
+    fn update2(nodes: &mut Nodes, node_id: &Id) -> Result<bool, UpdateError> {
+
+        let Some(node) = nodes.get_mut(node_id) else {
+            return Err(UpdateError::NodeNotFound);
+        };
+
+        if !node.is_valid() {
+            return Ok(false);
+        }
+
+        for id in &node.inputs {
+            if !Self::update2(nodes, id)? {
+                return Ok(false);
+            }
+        }
+
+
+        return Ok(true);
+    }
+     */
 
     pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
         let mut to_update: Vec<Id> = Vec::new();
@@ -47,21 +70,29 @@ impl Update {
 
         to_update.reverse();
 
+        let mut input_values = Vec::new();
         for node_id in to_update {
             if !updated.contains(&node_id) {
                 let Some(node) = nodes.get(&node_id) else {
                     return Err(UpdateError::NodeNotFound);
                 };
 
-                let update_result = node.update(nodes)?;
+                input_values.clear();
+                for id in &node.inputs {
+                    match nodes.get(id) {
+                        Some(node) => match node.value {
+                            Some(value) => input_values.push(value),
+                            None => return Err(UpdateError::ValueIsNone),
+                        },
+                        None => return Err(UpdateError::NodeNotFound),
+                    }
+                }
 
                 let Some(node) = nodes.get_mut(&node_id) else {
                     return Err(UpdateError::NodeNotFound);
                 };
 
-                node.value = Some(update_result.value);
-                debug!("{} set to {}", node.name(), update_result.value);
-                (update_result.side_effect)(node);
+                node.update(&input_values)?;
 
                 updated.insert(node.id);
             }
@@ -73,57 +104,22 @@ impl Update {
     pub fn clear_cache(&mut self) {}
 }
 
-pub struct UpdateResult {
-    pub value: Value,
-    pub side_effect: Box<dyn Fn(&mut Node)>,
-}
-
-impl UpdateResult {
-    pub fn without_side_effect(value: Value) -> UpdateResult {
-        UpdateResult {
-            value,
-            side_effect: UpdateResult::no_side_effect(),
-        }
-    }
-
-    pub fn no_side_effect() -> Box<dyn Fn(&mut Node)> {
-        Box::new(|_| {})
-    }
-}
-
-impl From<UpdateResult> for Result<UpdateResult, UpdateError> {
-    fn from(value: UpdateResult) -> Self {
-        Ok(value)
-    }
-}
-
 impl Node {
-    pub fn update(&self, nodes: &Nodes) -> Result<UpdateResult, UpdateError> {
-        let mut input_values = Vec::new();
+    pub fn update(&mut self, input_values: &Vec<Value>) -> Result<(), UpdateError> {
+        let value = match &mut self.node_type {
+            crate::node::NodeType::Control(control) => control.set_value(input_values[0])?,
 
-        for id in &self.inputs {
-            match nodes.get(id) {
-                Some(node) => match node.value {
-                    Some(value) => input_values.push(value),
-                    None => return Err(UpdateError::ValueIsNone),
-                },
-                None => return Err(UpdateError::NodeNotFound),
-            }
-        }
-
-        match &self.node_type {
-            crate::node::NodeType::Control(control) => control.set_value(input_values[0]),
-
-            crate::node::NodeType::Fan(fan) => fan.get_value(),
-            crate::node::NodeType::Temp(temp) => temp.get_value(),
-            crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),
+            crate::node::NodeType::Fan(fan) => fan.get_value()?,
+            crate::node::NodeType::Temp(temp) => temp.get_value()?,
+            crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values)?,
             crate::node::NodeType::Graph(_) => todo!(),
-            crate::node::NodeType::Flat(flat) => {
-                UpdateResult::without_side_effect(flat.value.into()).into()
-            }
-            crate::node::NodeType::Linear(linear) => linear.update(input_values[0]),
-            crate::node::NodeType::Target(target) => target.update(input_values[0]),
-        }
+            crate::node::NodeType::Flat(flat) => flat.value.into(),
+            crate::node::NodeType::Linear(linear) => linear.update(input_values[0])?,
+            crate::node::NodeType::Target(target) => target.update(input_values[0])?,
+        };
+        debug!("{} set to {}", self.name(), value);
+        self.value = Some(value);
+        Ok(())
     }
 
     pub fn validate(&self, nodes: &Nodes, trace: &mut Vec<Id>) -> Result<bool, UpdateError> {

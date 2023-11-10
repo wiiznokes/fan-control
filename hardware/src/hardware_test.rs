@@ -54,7 +54,7 @@ impl HardwareBridge for TestBridge {
 
 impl HardwareItem for InternalSensor {
     fn get_value(&self) -> Result<Value, crate::HardwareError> {
-        let nb = rand::thread_rng().gen_range(40..80);
+        let nb = rand::thread_rng().gen_range(30..80);
         Ok(nb)
     }
 

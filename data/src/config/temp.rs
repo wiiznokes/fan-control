@@ -1,12 +1,12 @@
 use std::rc::Rc;
 
-use hardware::{Hardware, TempH};
+use hardware::{Hardware, TempH, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::{UpdateError, UpdateResult},
+    update::UpdateError,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -20,13 +20,9 @@ pub struct Temp {
 }
 
 impl Temp {
-    pub fn get_value(&self) -> Result<UpdateResult, UpdateError> {
+    pub fn get_value(&self) -> Result<Value, UpdateError> {
         match &self.temp_h {
-            Some(temp_h) => temp_h
-                .bridge
-                .get_value()
-                .map(UpdateResult::without_side_effect)
-                .map_err(UpdateError::Hardware),
+            Some(temp_h) => temp_h.bridge.get_value().map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }

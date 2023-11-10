@@ -1,7 +1,7 @@
 use crate::{
     id::IdGenerator,
     node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
-    update::{UpdateError, UpdateResult},
+    update::UpdateError,
 };
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
@@ -46,19 +46,19 @@ struct Affine {
 }
 
 impl Linear {
-    pub fn update(&self, value: Value) -> Result<UpdateResult, UpdateError> {
+    pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
-            return UpdateResult::without_side_effect(self.min_speed.into()).into();
+            return Ok(self.min_speed.into());
         }
 
         if value >= self.max_temp.into() {
-            return UpdateResult::without_side_effect(self.max_speed.into()).into();
+            return Ok(self.max_speed.into());
         }
 
         let affine = self.calcule_affine();
 
         let final_value: f32 = affine.a * value as f32 + affine.b;
-        UpdateResult::without_side_effect(final_value as i32).into()
+        Ok(final_value as Value)
     }
 
     fn calcule_affine(&self) -> Affine {
@@ -102,8 +102,8 @@ mod test {
             input: Some("temp1".into()),
         };
 
-        assert!(linear.update(9).unwrap().value == 10);
-        assert!(linear.update(70).unwrap().value == 100);
-        assert!(linear.update(40).unwrap().value == 55);
+        assert!(linear.update(9).unwrap() == 10);
+        assert!(linear.update(70).unwrap() == 100);
+        assert!(linear.update(40).unwrap() == 55);
     }
 }
