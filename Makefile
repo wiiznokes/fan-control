@@ -25,5 +25,11 @@ expand:
 libsensors:
 	make -C ./libsensors/ install PREFIX=./../libsensors_build ETCDIR=./../etc
 
+clean-libsensors:
+	make -C ./libsensors/ clean uninstall PREFIX=./../libsensors_build ETCDIR=./../etc
+
 test:
 	clear && cargo test --workspace
+
+
+.PHONY: clean-libsensors libsensors
