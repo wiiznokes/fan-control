@@ -31,7 +31,7 @@ impl Update {
     }
 
     /*
-    fn update2(nodes: &mut Nodes, node_id: &Id) -> Result<bool, UpdateError> {
+    fn update2(nodes: &mut Nodes, node_id: &Id, updated: &mut HashSet<Id> ) -> Result<bool, UpdateError> {
 
         let Some(node) = nodes.get_mut(node_id) else {
             return Err(UpdateError::NodeNotFound);
@@ -42,15 +42,35 @@ impl Update {
         }
 
         for id in &node.inputs {
-            if !Self::update2(nodes, id)? {
+            if !Self::update2(nodes, id, updated)? {
                 return Ok(false);
             }
         }
 
+        if updated.contains(&node_id) {
+            return Ok(true)
+        }
+
+     
+        let mut input_values = Vec::new();
+        for id in &node.inputs {
+            match nodes.get(id) {
+                Some(input_node) => match input_node.value {
+                    Some(value) => input_values.push(value),
+                    None => return Err(UpdateError::ValueIsNone),
+                },
+                None => return Err(UpdateError::NodeNotFound),
+            }
+        }
+
+        node.update(&input_values)?;
+
+        updated.insert(node.id);
 
         return Ok(true);
     }
      */
+    
 
     pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
         let mut to_update: Vec<Id> = Vec::new();
