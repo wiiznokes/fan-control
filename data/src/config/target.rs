@@ -52,7 +52,7 @@ impl Target {
             }
         };
         UpdateResult {
-            value: self.load_speed.into(),
+            value: self.idle_speed.into(),
             side_effect: Box::new(idle_reatch),
         }
         .into()
@@ -87,5 +87,56 @@ impl ToNode for Target {
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Target);
         Node::new(id_generator, NodeType::Target(self), inputs)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use hardware::HardwareBridge;
+
+    use crate::node::{AppGraph, NodeType, ToNode};
+
+    use super::Target;
+
+    #[test]
+    fn test_update() {
+        let _ = env_logger::try_init();
+
+        let target = Target {
+            name: "linear".to_string(),
+            input: Some("temp1".into()),
+            idle_temp: 40,
+            idle_speed: 10,
+            load_temp: 70,
+            load_speed: 100,
+            idle_has_been_reatch: false,
+        };
+
+        let hardware = hardware::hardware_test::TestBridge::generate_hardware();
+        let mut app_graph = AppGraph::default(&hardware);
+        let mut node = target.to_node(&mut app_graph.id_generator, &app_graph.nodes, &hardware);
+
+        if let NodeType::Target(target) = &node.node_type {
+            let res = target.update(55).unwrap();
+            (res.side_effect)(&mut node);
+            assert!(res.value == 100);
+        }
+        if let NodeType::Target(target) = &node.node_type {
+            let res = target.update(30).unwrap();
+            (res.side_effect)(&mut node);
+            assert!(res.value == 10);
+        }
+
+        if let NodeType::Target(target) = &node.node_type {
+            let res = target.update(55).unwrap();
+            (res.side_effect)(&mut node);
+            assert!(res.value == 10);
+        }
+
+        if let NodeType::Target(target) = &node.node_type {
+            let res = target.update(70).unwrap();
+            (res.side_effect)(&mut node);
+            assert!(res.value == 100);
+        }
     }
 }

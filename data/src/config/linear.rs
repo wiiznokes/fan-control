@@ -68,11 +68,8 @@ impl Linear {
         let yb: f32 = self.max_speed.into();
 
         let a = (yb - ya) / (xb - xa);
-        
-        Affine {
-            a,
-            b: ya - a * xa,
-        }
+
+        Affine { a, b: ya - a * xa }
     }
 }
 
@@ -88,17 +85,13 @@ impl ToNode for Linear {
     }
 }
 
-
-
-
 #[cfg(test)]
-mod test{
+mod test {
     use super::Linear;
-
 
     #[test]
     fn test_update() {
-        env_logger::init();
+        let _ = env_logger::try_init();
 
         let linear = Linear {
             name: "linear".to_string(),
@@ -112,6 +105,5 @@ mod test{
         assert!(linear.update(9).unwrap().value == 10);
         assert!(linear.update(70).unwrap().value == 100);
         assert!(linear.update(40).unwrap().value == 55);
-
     }
 }

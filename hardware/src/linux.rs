@@ -39,7 +39,7 @@ struct InternalControl {
 
 impl Drop for InternalControl {
     fn drop(&mut self) {
-        println!("pwm sould be set to auto");
+        info!("pwm sould be set to auto");
         // TODO: set to auto
     }
 }

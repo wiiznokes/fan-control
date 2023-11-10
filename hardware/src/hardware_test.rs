@@ -12,12 +12,6 @@ struct InternalSensor {}
 #[derive(Debug)]
 struct InternalControl {}
 
-impl Drop for InternalControl {
-    fn drop(&mut self) {
-        println!("pwm sould be set to auto");
-        // TODO: set to auto
-    }
-}
 
 impl HardwareBridge for TestBridge {
     fn generate_hardware() -> Hardware {
