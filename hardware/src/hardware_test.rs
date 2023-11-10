@@ -12,7 +12,6 @@ struct InternalSensor {}
 #[derive(Debug)]
 struct InternalControl {}
 
-
 impl HardwareBridge for TestBridge {
     fn generate_hardware() -> Hardware {
         let mut hardware = Hardware::default();
