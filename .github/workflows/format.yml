@@ -23,5 +23,9 @@ jobs:
           rust-version: ${{ matrix.rust }}
           components: rustfmt, clippy
       - uses: actions/checkout@master
+
+      - name: Build libsensors
+        run: make libsensors
+
       - name: cargo format + clippy
         run: cargo fmt --all -- --check && cargo clippy --all

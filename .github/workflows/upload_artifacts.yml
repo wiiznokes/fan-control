@@ -14,12 +14,13 @@ jobs:
         with:
           rust-version: nightly
       - uses: actions/checkout@master
-      - name: build libsensors
-        run: |
-          make libsensors
+
+      - name: Build libsensors
+        run: make libsensors
+
       - name: build release
-        run: |
-          cargo build --release
+        run: cargo build --release
+        
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v3.1.2
         with:
