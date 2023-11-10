@@ -26,4 +26,4 @@ libsensors:
 	make -C ./libsensors/ install PREFIX=./../libsensors_build ETCDIR=./../etc
 
 test:
-	clear && cargo test
+	clear && cargo test --workspace

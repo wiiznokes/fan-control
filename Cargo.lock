@@ -792,6 +792,7 @@ dependencies = [
  "clap",
  "const_format",
  "directories",
+ "env_logger",
  "hardware",
  "light_enum",
  "log",

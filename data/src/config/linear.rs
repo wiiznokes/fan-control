@@ -39,9 +39,10 @@ impl Inputs for Linear {
     }
 }
 
+#[derive(Debug)]
 struct Affine {
-    a: Value,
-    b: Value,
+    a: f32,
+    b: f32,
 }
 
 impl Linear {
@@ -56,15 +57,21 @@ impl Linear {
 
         let affine = self.calcule_affine();
 
-        UpdateResult::without_side_effect(affine.a * value + affine.b).into()
+        let final_value: f32 = affine.a * value as f32 + affine.b;
+        UpdateResult::without_side_effect(final_value as i32).into()
     }
 
     fn calcule_affine(&self) -> Affine {
-        let a = (self.max_speed - self.min_speed) / (self.max_temp - self.min_temp);
+        let xa: f32 = self.min_temp.into();
+        let ya: f32 = self.min_speed.into();
+        let xb: f32 = self.max_temp.into();
+        let yb: f32 = self.max_speed.into();
 
+        let a = (yb - ya) / (xb - xa);
+        
         Affine {
-            a: a.into(),
-            b: (self.min_speed - a * self.min_temp).into(),
+            a,
+            b: ya - a * xa,
         }
     }
 }
@@ -78,5 +85,33 @@ impl ToNode for Linear {
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Linear);
         Node::new(id_generator, NodeType::Linear(self), inputs)
+    }
+}
+
+
+
+
+#[cfg(test)]
+mod test{
+    use super::Linear;
+
+
+    #[test]
+    fn test_update() {
+        env_logger::init();
+
+        let linear = Linear {
+            name: "linear".to_string(),
+            min_temp: 10,
+            min_speed: 10,
+            max_temp: 70,
+            max_speed: 100,
+            input: Some("temp1".into()),
+        };
+
+        assert!(linear.update(9).unwrap().value == 10);
+        assert!(linear.update(70).unwrap().value == 100);
+        assert!(linear.update(40).unwrap().value == 55);
+
     }
 }
