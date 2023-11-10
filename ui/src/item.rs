@@ -135,3 +135,17 @@ pub fn control_view<'a>(
 
     item_view(content.into())
 }
+
+
+
+fn test()  {
+
+    let v = vec![1,2,3,4];
+
+    let a = v.iter().map(|i| Text::new(i.to_string()).into()).collect::<Vec<_>>();
+
+    let c = Column::with_children(a);
+
+    let e: Element<AppMsg> = c.into();
+
+}

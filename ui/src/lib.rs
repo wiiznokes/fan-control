@@ -19,6 +19,7 @@ extern crate log;
 
 mod item;
 mod theme;
+mod widgets;
 
 pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
     let settings = iced::Settings::with_flags(app_state);
