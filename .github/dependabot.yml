@@ -1,0 +1,9 @@
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# disable until I don't get spam of notification (. before filename)
+
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: .
+    schedule:
+      interval: monthly
