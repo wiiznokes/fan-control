@@ -24,6 +24,9 @@ jobs:
           components: rustfmt, clippy
       - uses: actions/checkout@master
 
+      - name: Clone submodule
+        run: git submodule update --init libsensors
+
       - name: Build libsensors
         run: make libsensors
 
