@@ -27,7 +27,7 @@ jobs:
           path: target/release/fan-control
           
   # TODO: experiment cross compile: linux -> win
-  upload_linux_artifact:
+  upload_windows_artifact:
     runs-on: "windows-latest"
     strategy:
       matrix:
