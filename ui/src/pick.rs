@@ -10,9 +10,15 @@ use iced::{widget::PickList, Element, Length};
 use crate::AppMsg;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IdName<I> {
+    pub id: I,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Pick<I> {
+    Some(IdName<I>),
     None,
-    Some { name: String, id: I },
 }
 
 impl<I> Pick<I> {
@@ -20,30 +26,16 @@ impl<I> Pick<I> {
     where
         I: Clone,
     {
-        Pick::Some {
+        Pick::Some(IdName {
             name: name.to_string(),
             id: id.clone(),
-        }
-    }
-
-    pub fn display_only(optionnal_name: &Option<String>) -> Option<Self>
-    where
-        I: Default,
-    {
-        let pick = match optionnal_name {
-            Some(name) => Self::Some {
-                name: name.clone(),
-                id: I::default(),
-            },
-            None => Self::None,
-        };
-        Some(pick)
+        })
     }
 
     pub fn name(&self) -> Option<String> {
         match self {
             Pick::None => None,
-            Pick::Some { name, .. } => Some(name.clone()),
+            Pick::Some(IdName { name, .. }) => Some(name.clone()),
         }
     }
 
@@ -53,7 +45,31 @@ impl<I> Pick<I> {
     {
         match self {
             Pick::None => None,
-            Pick::Some { id, .. } => Some(id.clone()),
+            Pick::Some(IdName { id, .. }) => Some(id.clone()),
+        }
+    }
+
+    pub fn display_only(optionnal_name: &Option<String>) -> Option<Self>
+    where
+        I: Default,
+    {
+        let pick = match optionnal_name {
+            Some(name) => Self::Some(IdName {
+                name: name.clone(),
+                id: I::default(),
+            }),
+            None => Self::None,
+        };
+        Some(pick)
+    }
+
+    pub fn to_couple(&self) -> Option<(I, String)>
+    where
+        I: Clone,
+    {
+        match self {
+            Pick::Some(IdName { id, name }) => Some((id.clone(), name.clone())),
+            Pick::None => todo!(),
         }
     }
 }
@@ -61,7 +77,7 @@ impl<I> Pick<I> {
 impl<I> ToString for Pick<I> {
     fn to_string(&self) -> String {
         match &self {
-            Pick::Some { name, .. } => name.clone(),
+            Pick::Some(IdName { name, .. }) => name.clone(),
             Pick::None => "None".into(),
         }
     }
@@ -82,7 +98,12 @@ pub fn pick_input<'a>(
                 .to_light()
                 .allowed_dep()
                 .contains(&n.node_type.to_light())
-                && !node.inputs.contains(&n.id)
+                && !node
+                    .inputs
+                    .iter()
+                    .map(|i| i.0)
+                    .collect::<Vec<_>>()
+                    .contains(&n.id)
         })
         .map(|n| Pick::new(n.name(), &n.id))
         .collect::<Vec<_>>();

@@ -71,8 +71,8 @@ pub fn control_view<'a>(
 
 pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
         pick_hardware(node, &hardware.temps, false),
+        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
     ];
 
     item_view(node, content)
@@ -80,8 +80,8 @@ pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppM
 
 pub fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        Text::new(format!("{} RPM", node.value.unwrap_or(0))).into(),
         pick_hardware(node, &hardware.fans, false),
+        Text::new(format!("{} RPM", node.value.unwrap_or(0))).into(),
     ];
 
     item_view(node, content)
@@ -92,15 +92,16 @@ pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, App
         panic!()
     };
 
-    let inputs = custom_temp
-        .input
+    let inputs = node
+        .inputs
         .iter()
         .map(|i| {
             Row::new()
-                .push(Text::new(i))
+                .push(Text::new(i.1.clone()))
                 // todo: icon
                 .push(
-                    Button::new(Text::new("remove")), //.on_press(AppMsg::RemoveInput(node.id, Pick::new(i, id)))
+                    Button::new(Text::new("x"))
+                        .on_press(AppMsg::RemoveInput(node.id, Pick::new(&i.1, &i.0))),
                 )
                 .into()
         })
@@ -126,6 +127,7 @@ pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, App
             Box::new(AppMsg::AddInput),
         ),
         Column::with_children(inputs).into(),
+        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
     ];
 
     item_view(node, content)

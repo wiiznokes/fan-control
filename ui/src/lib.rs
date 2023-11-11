@@ -17,7 +17,7 @@ use iced::{
     Application, Command, Element, Length, Subscription,
 };
 use item::{control_view, custom_temp_view, fan_view, temp_view};
-use pick::Pick;
+use pick::{IdName, Pick};
 use theme::{CustomContainerStyle, CustomScrollableStyle};
 use utils::RemoveElem;
 
@@ -151,8 +151,9 @@ impl Application for Ui {
             AppMsg::ReplaceInput(id, pick) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                 node.inputs.clear();
-                if let Some(input_id) = pick.id() {
-                    node.inputs.push(input_id);
+
+                if let Some(id_name) = pick.to_couple() {
+                    node.inputs.push(id_name)
                 }
 
                 match &mut node.node_type {
@@ -173,7 +174,7 @@ impl Application for Ui {
             }
             AppMsg::AddInput(id, pick) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                node.inputs.push(pick.id().unwrap());
+                node.inputs.push(pick.to_couple().unwrap());
 
                 match &mut node.node_type {
                     NodeType::CustomTemp(i) => i.input.push(pick.name().unwrap()),
@@ -183,7 +184,7 @@ impl Application for Ui {
             AppMsg::RemoveInput(id, pick) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
-                node.inputs.remove_elem(|i| i == &pick.id().unwrap());
+                node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
 
                 match &mut node.node_type {
                     NodeType::CustomTemp(i) => {
