@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 #lm-sensors = "0.2.0"
 #ouroboros = "0.18.0"
-iced = { version = "0.10", features = ["advanced", "smol"]}
+#iced = { version = "0.10", features = ["advanced", "smol"]}
 

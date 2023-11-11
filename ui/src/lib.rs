@@ -4,16 +4,16 @@ use std::time::Duration;
 
 use data::{
     id::Id,
-    node::{validate_name, NodeType},
+    node::{validate_name, NodeType, NodeTypeLight},
     AppState,
 };
 use iced::{
-    self, executor, time,
+    self, executor, subscription, time,
     widget::{
         scrollable::{Direction, Properties},
         Column, Container, Row, Scrollable,
     },
-    Application, Command, Element, Length,
+    Application, Command, Element, Length, Subscription,
 };
 use item::{control_view, fan_view, temp_view};
 use pick::Pick;
@@ -85,14 +85,14 @@ impl Application for Ui {
                 if name_is_valid {
                     node.is_error_name = false;
                     match &mut node.node_type {
-                        data::node::NodeType::Control(i) => i.name = name,
-                        data::node::NodeType::Fan(i) => i.name = name,
-                        data::node::NodeType::Temp(i) => i.name = name,
-                        data::node::NodeType::CustomTemp(i) => i.name = name,
-                        data::node::NodeType::Graph(i) => i.name = name,
-                        data::node::NodeType::Flat(i) => i.name = name,
-                        data::node::NodeType::Linear(i) => i.name = name,
-                        data::node::NodeType::Target(i) => i.name = name,
+                        NodeType::Control(i) => i.name = name,
+                        NodeType::Fan(i) => i.name = name,
+                        NodeType::Temp(i) => i.name = name,
+                        NodeType::CustomTemp(i) => i.name = name,
+                        NodeType::Graph(i) => i.name = name,
+                        NodeType::Flat(i) => i.name = name,
+                        NodeType::Linear(i) => i.name = name,
+                        NodeType::Target(i) => i.name = name,
                     }
                 } else {
                     node.is_error_name = true;
@@ -100,11 +100,45 @@ impl Application for Ui {
             }
             AppMsg::HardwareIdChange(id, hardware_id) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                let hardware = &self.app_state.hardware;
 
                 match &mut node.node_type {
-                    data::node::NodeType::Control(i) => i.hardware_id = hardware_id,
-                    data::node::NodeType::Fan(i) => i.hardware_id = hardware_id,
-                    data::node::NodeType::Temp(i) => i.hardware_id = hardware_id,
+                    NodeType::Control(i) => {
+                        i.hardware_id = hardware_id;
+                        i.control_h = match &i.hardware_id {
+                            Some(hardware_id) => hardware
+                                .controls
+                                .iter()
+                                .find(|h| &h.hardware_id == hardware_id)
+                                .cloned(),
+
+                            None => None,
+                        }
+                    }
+                    NodeType::Fan(i) => {
+                        i.hardware_id = hardware_id;
+                        i.fan_h = match &i.hardware_id {
+                            Some(hardware_id) => hardware
+                                .fans
+                                .iter()
+                                .find(|h| &h.hardware_id == hardware_id)
+                                .cloned(),
+
+                            None => None,
+                        }
+                    }
+                    NodeType::Temp(i) => {
+                        i.hardware_id = hardware_id;
+                        i.temp_h = match &i.hardware_id {
+                            Some(hardware_id) => hardware
+                                .temps
+                                .iter()
+                                .find(|h| &h.hardware_id == hardware_id)
+                                .cloned(),
+
+                            None => None,
+                        }
+                    }
                     _ => panic!("node have no hardware id"),
                 }
             }
@@ -116,10 +150,10 @@ impl Application for Ui {
                 }
 
                 match &mut node.node_type {
-                    data::node::NodeType::Control(i) => i.input = pick.name,
-                    data::node::NodeType::Graph(i) => i.input = pick.name,
-                    data::node::NodeType::Linear(i) => i.input = pick.name,
-                    data::node::NodeType::Target(i) => i.input = pick.name,
+                    NodeType::Control(i) => i.input = pick.name,
+                    NodeType::Graph(i) => i.input = pick.name,
+                    NodeType::Linear(i) => i.input = pick.name,
+                    NodeType::Target(i) => i.input = pick.name,
                     _ => panic!("node have not exactly one input"),
                 }
             }
@@ -144,22 +178,18 @@ impl Application for Ui {
 
         for node in self.app_state.app_graph.nodes.values() {
             match node.node_type.to_light() {
-                data::node::NodeTypeLight::Control => controls.push(control_view(
+                NodeTypeLight::Control => controls.push(control_view(
                     node,
                     &self.app_state.app_graph.nodes,
                     &self.app_state.hardware,
                 )),
-                data::node::NodeTypeLight::Fan => {
-                    fans.push(fan_view(node, &self.app_state.hardware))
-                }
-                data::node::NodeTypeLight::Temp => {
-                    temps.push(temp_view(node, &self.app_state.hardware))
-                }
-                data::node::NodeTypeLight::CustomTemp => {}
-                data::node::NodeTypeLight::Graph => {}
-                data::node::NodeTypeLight::Flat => {}
-                data::node::NodeTypeLight::Linear => {}
-                data::node::NodeTypeLight::Target => {}
+                NodeTypeLight::Fan => fans.push(fan_view(node, &self.app_state.hardware)),
+                NodeTypeLight::Temp => temps.push(temp_view(node, &self.app_state.hardware)),
+                NodeTypeLight::CustomTemp => {}
+                NodeTypeLight::Graph => {}
+                NodeTypeLight::Flat => {}
+                NodeTypeLight::Linear => {}
+                NodeTypeLight::Target => {}
             }
         }
 
@@ -189,6 +219,7 @@ impl Application for Ui {
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
+        //Subscription::none()
     }
 }
 

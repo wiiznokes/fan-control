@@ -68,7 +68,7 @@ impl Control {
 
         match res {
             Ok(_) => {
-                self.manual_has_been_set = auto;
+                self.manual_has_been_set = !auto;
             }
             Err(_) => {
                 self.manual_has_been_set = false;

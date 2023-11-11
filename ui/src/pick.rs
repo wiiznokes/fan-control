@@ -82,15 +82,27 @@ pub fn pick_input<'a>(
     .into()
 }
 
-pub fn pick_hardware<'a, P: 'a>(node: &'a Node, hardwares: &'a [P]) -> Element<'a, AppMsg>
+pub fn pick_hardware<'a, P: 'a>(
+    node: &'a Node,
+    hardwares: &'a [Rc<P>],
+    one_ref: bool,
+) -> Element<'a, AppMsg>
 where
-    Pick<String>: From<&'a P>,
+    Pick<String>: From<&'a Rc<P>>,
 {
     let hardware_id = node.hardware_id().unwrap();
 
     let mut hardware_options = hardwares
         .iter()
         .filter_map(|h| {
+            if one_ref {
+                // we leverage rc to know if this specific hardware
+                // is already in use by one node
+                if Rc::strong_count(h) > 1 {
+                    return None;
+                }
+            }
+
             let pick: Pick<String> = h.into();
 
             match (hardware_id, &pick.name) {

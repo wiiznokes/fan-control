@@ -953,13 +953,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "experimental"
-version = "0.1.0"
-dependencies = [
- "iced",
-]
-
-[[package]]
 name = "fan-control"
 version = "0.1.0"
 dependencies = [

@@ -44,7 +44,7 @@ pub fn control_view<'a>(
     };
 
     let content = vec![
-        pick_hardware(node, &hardware.controls),
+        pick_hardware(node, &hardware.controls, true),
         pick_input(node, nodes, &control.input),
         Row::new()
             .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
@@ -63,7 +63,7 @@ pub fn control_view<'a>(
 pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
-        pick_hardware(node, &hardware.temps),
+        pick_hardware(node, &hardware.temps, false),
     ];
 
     item_view(node, content)
@@ -72,7 +72,7 @@ pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppM
 pub fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         Text::new(format!("{} RPM", node.value.unwrap_or(0))).into(),
-        pick_hardware(node, &hardware.fans),
+        pick_hardware(node, &hardware.fans, false),
     ];
 
     item_view(node, content)

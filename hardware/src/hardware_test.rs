@@ -73,12 +73,12 @@ impl HardwareItem for InternalControl {
     }
 
     fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        println!("set value {} to a control", value);
+        debug!("set value {} to a control", value);
         Ok(())
     }
 
     fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        println!("set mode {} to a control", value);
+        debug!("set mode {} to a control", value);
         Ok(())
     }
 }
