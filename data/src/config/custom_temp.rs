@@ -1,4 +1,5 @@
 use hardware::{Hardware, Value};
+use light_enum::Values;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,11 +8,22 @@ use crate::{
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Values, Default, PartialEq, Eq)]
 pub enum CustomTempKind {
+    #[default]
+    Average,
     Min,
     Max,
-    Average,
+}
+
+impl ToString for CustomTempKind {
+    fn to_string(&self) -> String {
+        match self {
+            CustomTempKind::Average => "Average".into(),
+            CustomTempKind::Max => "Max".into(),
+            CustomTempKind::Min => "Min".into(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

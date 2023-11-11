@@ -1,4 +1,7 @@
-use data::{node::{Node, NodeType, Nodes}, config::custom_temp::CustomTempKind};
+use data::{
+    config::custom_temp::CustomTempKind,
+    node::{Node, NodeType, Nodes},
+};
 use hardware::Hardware;
 use iced::{
     widget::{Button, Column, Container, PickList, Row, Text, TextInput, Toggler},
@@ -97,16 +100,24 @@ pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, App
                 .push(Text::new(i))
                 // todo: icon
                 .push(
-                    Button::new(Text::new("remove"))
-                    //.on_press(AppMsg::RemoveInput(node.id, Pick::new(i, id)))
+                    Button::new(Text::new("remove")), //.on_press(AppMsg::RemoveInput(node.id, Pick::new(i, id)))
                 )
                 .into()
         })
         .collect();
-    
-    //let pick_kind = PickList::new();
+
+    let kind_options = CustomTempKind::VALUES
+        .iter()
+        .filter(|k| &custom_temp.kind != *k)
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
+        AppMsg::ChangeCustomTempKind(node.id, k)
+    })
+    .into();
     let content = vec![
-        
+        pick_kind,
         pick_input(
             node,
             nodes,

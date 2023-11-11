@@ -1694,9 +1694,9 @@ dependencies = [
 
 [[package]]
 name = "light_enum"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e2167199e2a96c65299b38a8be62200414c3df9099991692a561970d5d6da8f"
+checksum = "6bc0262641402ac2177049f846a2384a69bdfd7d5a0ce7e98291b90f7ab5f3de"
 dependencies = [
  "quote",
  "syn 2.0.39",

@@ -3,9 +3,10 @@
 use std::time::Duration;
 
 use data::{
+    config::custom_temp::CustomTempKind,
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
-    AppState, config::custom_temp::CustomTempKind,
+    AppState,
 };
 use iced::{
     self, executor, subscription, time,
@@ -15,9 +16,10 @@ use iced::{
     },
     Application, Command, Element, Length, Subscription,
 };
-use item::{control_view, fan_view, temp_view, custom_temp_view};
+use item::{control_view, custom_temp_view, fan_view, temp_view};
 use pick::Pick;
 use theme::{CustomContainerStyle, CustomScrollableStyle};
+use utils::RemoveElem;
 
 #[macro_use]
 extern crate log;
@@ -25,6 +27,7 @@ extern crate log;
 mod item;
 mod pick;
 mod theme;
+mod utils;
 mod widgets;
 
 pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
@@ -168,9 +171,35 @@ impl Application for Ui {
                 };
                 control.auto = auto;
             }
-            AppMsg::AddInput(_, _) => todo!(),
-            AppMsg::RemoveInput(_, _) => todo!(),
-            AppMsg::ChangeCustomTempKind(_, _) => todo!(),
+            AppMsg::AddInput(id, pick) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                node.inputs.push(pick.id().unwrap());
+
+                match &mut node.node_type {
+                    NodeType::CustomTemp(i) => i.input.push(pick.name().unwrap()),
+                    _ => panic!("node have not multiple inputs"),
+                }
+            }
+            AppMsg::RemoveInput(id, pick) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                node.inputs.remove_elem(|i| i == &pick.id().unwrap());
+
+                match &mut node.node_type {
+                    NodeType::CustomTemp(i) => {
+                        i.input.remove_elem(|n| n == &pick.name().unwrap());
+                    }
+                    _ => panic!("node have not multiple inputs"),
+                }
+            }
+            AppMsg::ChangeCustomTempKind(id, kind) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                let NodeType::CustomTemp(custom_temp) = &mut node.node_type else {
+                    panic!()
+                };
+                custom_temp.kind = kind;
+            }
         }
 
         Command::none()
@@ -190,7 +219,9 @@ impl Application for Ui {
                 )),
                 NodeTypeLight::Fan => fans.push(fan_view(node, &self.app_state.hardware)),
                 NodeTypeLight::Temp => temps.push(temp_view(node, &self.app_state.hardware)),
-                NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, &self.app_state.app_graph.nodes)),
+                NodeTypeLight::CustomTemp => {
+                    temps.push(custom_temp_view(node, &self.app_state.app_graph.nodes))
+                }
                 NodeTypeLight::Graph => {}
                 NodeTypeLight::Flat => {}
                 NodeTypeLight::Linear => {}
