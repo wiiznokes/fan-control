@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-
+#![allow(unused_imports)]
 use std::time::Duration;
 
 use data::{
@@ -15,13 +15,15 @@ use iced::{
     },
     Application, Command, Element, Length,
 };
-use item::{control_view, temp_view};
+use item::{control_view, fan_view, temp_view};
+use pick::Pick;
 use theme::{CustomContainerStyle, CustomScrollableStyle};
 
 #[macro_use]
 extern crate log;
 
 mod item;
+mod pick;
 mod theme;
 mod widgets;
 
@@ -38,15 +40,9 @@ pub struct Ui {
 pub enum AppMsg {
     NameChange(Id, String),
     HardwareIdChange(Id, Option<String>),
-    InputReplaced(Id, InputReplaced),
+    InputReplaced(Id, Pick<Id>),
     ControlAutoChange(Id, bool),
     Tick,
-}
-
-#[derive(Debug, Clone)]
-pub struct InputReplaced {
-    pub input_id: Option<Id>,
-    pub input_name: Option<String>,
 }
 
 impl Application for Ui {
@@ -112,18 +108,18 @@ impl Application for Ui {
                     _ => panic!("node have no hardware id"),
                 }
             }
-            AppMsg::InputReplaced(id, input) => {
+            AppMsg::InputReplaced(id, pick) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                 node.inputs.clear();
-                if let Some(input_id) = input.input_id {
+                if let Some(input_id) = pick.id {
                     node.inputs.push(input_id);
                 }
 
                 match &mut node.node_type {
-                    data::node::NodeType::Control(i) => i.input = input.input_name,
-                    data::node::NodeType::Graph(i) => i.input = input.input_name,
-                    data::node::NodeType::Linear(i) => i.input = input.input_name,
-                    data::node::NodeType::Target(i) => i.input = input.input_name,
+                    data::node::NodeType::Control(i) => i.input = pick.name,
+                    data::node::NodeType::Graph(i) => i.input = pick.name,
+                    data::node::NodeType::Linear(i) => i.input = pick.name,
+                    data::node::NodeType::Target(i) => i.input = pick.name,
                     _ => panic!("node have not exactly one input"),
                 }
             }
@@ -144,6 +140,7 @@ impl Application for Ui {
         let mut controls = Vec::new();
 
         let mut temps = Vec::new();
+        let mut fans = Vec::new();
 
         for node in self.app_state.app_graph.nodes.values() {
             match node.node_type.to_light() {
@@ -152,7 +149,9 @@ impl Application for Ui {
                     &self.app_state.app_graph.nodes,
                     &self.app_state.hardware,
                 )),
-                data::node::NodeTypeLight::Fan => {}
+                data::node::NodeTypeLight::Fan => {
+                    fans.push(fan_view(node, &self.app_state.hardware))
+                }
                 data::node::NodeTypeLight::Temp => {
                     temps.push(temp_view(node, &self.app_state.hardware))
                 }
@@ -164,11 +163,9 @@ impl Application for Ui {
             }
         }
 
-        let content = Row::new()
-            .push(list_view(controls))
-            .push(list_view(temps))
-            .spacing(20)
-            .padding(25);
+        let list_views = vec![list_view(controls), list_view(temps), list_view(fans)];
+
+        let content = Row::with_children(list_views).spacing(20).padding(25);
 
         let container = Container::new(content)
             .style(iced::theme::Container::Custom(Box::new(

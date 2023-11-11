@@ -48,7 +48,7 @@ impl scrollable::StyleSheet for CustomScrollableStyle {
         let palette = style.extended_palette();
 
         scrollable::Scrollbar {
-            background: Some(color!(0xffffff).into()),
+            background: None,
             border_radius: 2.0.into(),
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
@@ -66,7 +66,7 @@ impl scrollable::StyleSheet for CustomScrollableStyle {
             let palette = style.extended_palette();
 
             scrollable::Scrollbar {
-                background: Some(color!(0xffffff).into()),
+                background: Some(Color::TRANSPARENT.into()),
                 border_radius: 2.0.into(),
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
