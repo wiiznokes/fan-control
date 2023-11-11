@@ -6,6 +6,7 @@ use iced::{color, widget::container, widget::text_input, Color};
 
 pub enum CustomContainerStyle {
     Item,
+    Background,
 }
 
 impl container::StyleSheet for CustomContainerStyle {
@@ -15,6 +16,13 @@ impl container::StyleSheet for CustomContainerStyle {
         match self {
             CustomContainerStyle::Item => container::Appearance {
                 background: Some(color!(0xffffff).into()),
+                border_radius: 0f32.into(),
+                border_width: 2f32,
+                border_color: color!(0xf0ff00),
+                ..Default::default()
+            },
+            CustomContainerStyle::Background => container::Appearance {
+                background: Some(color!(0x000000).into()),
                 border_radius: 0f32.into(),
                 border_width: 2f32,
                 border_color: color!(0xf0ff00),

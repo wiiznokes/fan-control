@@ -180,6 +180,16 @@ impl Node {
     pub fn name(&self) -> &String {
         self.node_type.name()
     }
+
+    #[allow(clippy::result_unit_err)]
+    pub fn hardware_id(&self) -> Result<&Option<String>, ()> {
+        match &self.node_type {
+            NodeType::Control(i) => Ok(&i.hardware_id),
+            NodeType::Fan(i) => Ok(&i.hardware_id),
+            NodeType::Temp(i) => Ok(&i.hardware_id),
+            _ => Err(()),
+        }
+    }
 }
 
 impl IsValid for Node {

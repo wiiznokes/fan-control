@@ -9,10 +9,14 @@ use data::{
 };
 use iced::{
     self, executor, time,
-    widget::{Column, Container, Row},
-    Application, Command,
+    widget::{
+        scrollable::{Direction, Properties},
+        Column, Container, Row, Scrollable,
+    },
+    Application, Command, Element, Length,
 };
-use item::control_view;
+use item::{control_view, temp_view};
+use theme::CustomContainerStyle;
 
 #[macro_use]
 extern crate log;
@@ -139,6 +143,8 @@ impl Application for Ui {
     fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
         let mut controls = Vec::new();
 
+        let mut temps = Vec::new();
+
         for node in self.app_state.app_graph.nodes.values() {
             match node.node_type.to_light() {
                 data::node::NodeTypeLight::Control => controls.push(control_view(
@@ -147,7 +153,9 @@ impl Application for Ui {
                     &self.app_state.hardware,
                 )),
                 data::node::NodeTypeLight::Fan => {}
-                data::node::NodeTypeLight::Temp => {}
+                data::node::NodeTypeLight::Temp => {
+                    temps.push(temp_view(node, &self.app_state.hardware))
+                }
                 data::node::NodeTypeLight::CustomTemp => {}
                 data::node::NodeTypeLight::Graph => {}
                 data::node::NodeTypeLight::Flat => {}
@@ -156,12 +164,35 @@ impl Application for Ui {
             }
         }
 
-        let content = Row::new().push(Column::with_children(controls));
+        let content = Row::new()
+            .push(list_view(controls))
+            .push(list_view(temps))
+            .spacing(20)
+            .padding(25);
 
-        Container::new(content).into()
+        let container = Container::new(content)
+            .style(iced::theme::Container::Custom(Box::new(
+                CustomContainerStyle::Background,
+            )))
+            .width(Length::Fill)
+            .height(Length::Fill);
+
+        Scrollable::new(container)
+            .direction(Direction::Both {
+                vertical: Properties::default(),
+                horizontal: Properties::default(),
+            })
+            .into()
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
     }
+}
+
+fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
+    Column::with_children(elements)
+        .spacing(20)
+        .padding(25)
+        .into()
 }
