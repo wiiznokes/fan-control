@@ -1,7 +1,7 @@
-use data::node::{Node, NodeType, Nodes};
+use data::{node::{Node, NodeType, Nodes}, config::custom_temp::CustomTempKind};
 use hardware::Hardware;
 use iced::{
-    widget::{Column, Container, PickList, Row, Text, TextInput, Toggler},
+    widget::{Button, Column, Container, PickList, Row, Text, TextInput, Toggler},
     Alignment, Element, Length, Padding,
 };
 
@@ -13,7 +13,7 @@ use crate::{
 
 fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
     let mut name =
-        TextInput::new("name", &node.name_cached).on_input(|str| AppMsg::NameChange(node.id, str));
+        TextInput::new("name", &node.name_cached).on_input(|str| AppMsg::Rename(node.id, str));
 
     if node.is_error_name {
         name = name.style(iced::theme::TextInput::Custom(Box::new(
@@ -45,11 +45,17 @@ pub fn control_view<'a>(
 
     let content = vec![
         pick_hardware(node, &hardware.controls, true),
-        pick_input(node, nodes, &control.input),
+        pick_input(
+            node,
+            nodes,
+            &control.input,
+            true,
+            Box::new(AppMsg::ReplaceInput),
+        ),
         Row::new()
             .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
             .push(Toggler::new(None, !control.auto, |is_active| {
-                AppMsg::ControlAutoChange(node.id, !is_active)
+                AppMsg::ChangeControlAuto(node.id, !is_active)
             }))
             // todo: need space_between here
             .align_items(Alignment::End)
@@ -78,6 +84,38 @@ pub fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMs
     item_view(node, content)
 }
 
-pub fn custom_temp<'a>(_node: &'a Node, _nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    todo!()
+pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+    let NodeType::CustomTemp(custom_temp) = &node.node_type else {
+        panic!()
+    };
+
+    let inputs = custom_temp
+        .input
+        .iter()
+        .map(|i| {
+            Row::new()
+                .push(Text::new(i))
+                // todo: icon
+                .push(
+                    Button::new(Text::new("remove"))
+                    //.on_press(AppMsg::RemoveInput(node.id, Pick::new(i, id)))
+                )
+                .into()
+        })
+        .collect();
+    
+    //let pick_kind = PickList::new();
+    let content = vec![
+        
+        pick_input(
+            node,
+            nodes,
+            &Some("Choose Temp".into()),
+            false,
+            Box::new(AppMsg::AddInput),
+        ),
+        Column::with_children(inputs).into(),
+    ];
+
+    item_view(node, content)
 }

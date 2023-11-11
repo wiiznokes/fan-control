@@ -5,7 +5,7 @@ use std::time::Duration;
 use data::{
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
-    AppState,
+    AppState, config::custom_temp::CustomTempKind,
 };
 use iced::{
     self, executor, subscription, time,
@@ -15,7 +15,7 @@ use iced::{
     },
     Application, Command, Element, Length, Subscription,
 };
-use item::{control_view, fan_view, temp_view};
+use item::{control_view, fan_view, temp_view, custom_temp_view};
 use pick::Pick;
 use theme::{CustomContainerStyle, CustomScrollableStyle};
 
@@ -38,10 +38,13 @@ pub struct Ui {
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
-    NameChange(Id, String),
-    HardwareIdChange(Id, Option<String>),
-    InputReplaced(Id, Pick<Id>),
-    ControlAutoChange(Id, bool),
+    Rename(Id, String),
+    ChangeHardware(Id, Pick<String>),
+    ReplaceInput(Id, Pick<Id>),
+    AddInput(Id, Pick<Id>),
+    RemoveInput(Id, Pick<Id>),
+    ChangeControlAuto(Id, bool),
+    ChangeCustomTempKind(Id, CustomTempKind),
     Tick,
 }
 
@@ -77,7 +80,7 @@ impl Application for Ui {
                     }
                 }
             }
-            AppMsg::NameChange(id, name) => {
+            AppMsg::Rename(id, name) => {
                 let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
@@ -98,13 +101,13 @@ impl Application for Ui {
                     node.is_error_name = true;
                 }
             }
-            AppMsg::HardwareIdChange(id, hardware_id) => {
+            AppMsg::ChangeHardware(id, pick) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                 let hardware = &self.app_state.hardware;
 
                 match &mut node.node_type {
                     NodeType::Control(i) => {
-                        i.hardware_id = hardware_id;
+                        i.hardware_id = pick.id();
                         i.control_h = match &i.hardware_id {
                             Some(hardware_id) => hardware
                                 .controls
@@ -116,7 +119,7 @@ impl Application for Ui {
                         }
                     }
                     NodeType::Fan(i) => {
-                        i.hardware_id = hardware_id;
+                        i.hardware_id = pick.id();
                         i.fan_h = match &i.hardware_id {
                             Some(hardware_id) => hardware
                                 .fans
@@ -128,7 +131,7 @@ impl Application for Ui {
                         }
                     }
                     NodeType::Temp(i) => {
-                        i.hardware_id = hardware_id;
+                        i.hardware_id = pick.id();
                         i.temp_h = match &i.hardware_id {
                             Some(hardware_id) => hardware
                                 .temps
@@ -142,22 +145,22 @@ impl Application for Ui {
                     _ => panic!("node have no hardware id"),
                 }
             }
-            AppMsg::InputReplaced(id, pick) => {
+            AppMsg::ReplaceInput(id, pick) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                 node.inputs.clear();
-                if let Some(input_id) = pick.id {
+                if let Some(input_id) = pick.id() {
                     node.inputs.push(input_id);
                 }
 
                 match &mut node.node_type {
-                    NodeType::Control(i) => i.input = pick.name,
-                    NodeType::Graph(i) => i.input = pick.name,
-                    NodeType::Linear(i) => i.input = pick.name,
-                    NodeType::Target(i) => i.input = pick.name,
+                    NodeType::Control(i) => i.input = pick.name(),
+                    NodeType::Graph(i) => i.input = pick.name(),
+                    NodeType::Linear(i) => i.input = pick.name(),
+                    NodeType::Target(i) => i.input = pick.name(),
                     _ => panic!("node have not exactly one input"),
                 }
             }
-            AppMsg::ControlAutoChange(id, auto) => {
+            AppMsg::ChangeControlAuto(id, auto) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
                 let NodeType::Control(control) = &mut node.node_type else {
@@ -165,6 +168,9 @@ impl Application for Ui {
                 };
                 control.auto = auto;
             }
+            AppMsg::AddInput(_, _) => todo!(),
+            AppMsg::RemoveInput(_, _) => todo!(),
+            AppMsg::ChangeCustomTempKind(_, _) => todo!(),
         }
 
         Command::none()
@@ -172,7 +178,6 @@ impl Application for Ui {
 
     fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
         let mut controls = Vec::new();
-
         let mut temps = Vec::new();
         let mut fans = Vec::new();
 
@@ -185,7 +190,7 @@ impl Application for Ui {
                 )),
                 NodeTypeLight::Fan => fans.push(fan_view(node, &self.app_state.hardware)),
                 NodeTypeLight::Temp => temps.push(temp_view(node, &self.app_state.hardware)),
-                NodeTypeLight::CustomTemp => {}
+                NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, &self.app_state.app_graph.nodes)),
                 NodeTypeLight::Graph => {}
                 NodeTypeLight::Flat => {}
                 NodeTypeLight::Linear => {}

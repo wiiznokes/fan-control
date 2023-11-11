@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum CustomTempType {
+pub enum CustomTempKind {
     Min,
     Max,
     Average,
@@ -17,7 +17,7 @@ pub enum CustomTempType {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CustomTemp {
     pub name: String,
-    pub kind: CustomTempType,
+    pub kind: CustomTempKind,
     pub input: Vec<String>,
 }
 
@@ -48,9 +48,9 @@ impl CustomTemp {
         }
 
         let value = match self.kind {
-            CustomTempType::Min => *values.iter().min().unwrap(),
-            CustomTempType::Max => *values.iter().min().unwrap(),
-            CustomTempType::Average => values.iter().sum::<i32>() / values.len() as i32,
+            CustomTempKind::Min => *values.iter().min().unwrap(),
+            CustomTempKind::Max => *values.iter().min().unwrap(),
+            CustomTempKind::Average => values.iter().sum::<i32>() / values.len() as i32,
         };
         Ok(value)
     }

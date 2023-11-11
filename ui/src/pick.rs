@@ -10,46 +10,59 @@ use iced::{widget::PickList, Element, Length};
 use crate::AppMsg;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Pick<I> {
-    pub name: Option<String>,
-    pub id: Option<I>,
+pub enum Pick<I> {
+    None,
+    Some { name: String, id: I },
 }
 
 impl<I> Pick<I> {
-    pub fn none() -> Self {
-        Pick {
-            name: None,
-            id: None,
-        }
-    }
-    pub fn with_name(name: &str) -> Self {
-        Pick {
-            name: Some(name.to_string()),
-            id: None,
-        }
-    }
-    pub fn with_name_id(name: &str, id: &I) -> Self
+    pub fn new(name: &str, id: &I) -> Self
     where
         I: Clone,
     {
-        Pick {
-            name: Some(name.to_string()),
-            id: Some(id.clone()),
+        Pick::Some {
+            name: name.to_string(),
+            id: id.clone(),
         }
     }
-    pub fn selected(option: &Option<String>) -> Option<Self> {
-        match option {
-            Some(str) => Some(Self::with_name(str)),
-            None => Some(Self::none()),
+
+    pub fn display_only(optionnal_name: &Option<String>) -> Option<Self>
+    where
+        I: Default,
+    {
+        let pick = match optionnal_name {
+            Some(name) => Self::Some {
+                name: name.clone(),
+                id: I::default(),
+            },
+            None => Self::None,
+        };
+        Some(pick)
+    }
+
+    pub fn name(&self) -> Option<String> {
+        match self {
+            Pick::None => None,
+            Pick::Some { name, .. } => Some(name.clone()),
+        }
+    }
+
+    pub fn id(&self) -> Option<I>
+    where
+        I: Clone,
+    {
+        match self {
+            Pick::None => None,
+            Pick::Some { id, .. } => Some(id.clone()),
         }
     }
 }
 
 impl<I> ToString for Pick<I> {
     fn to_string(&self) -> String {
-        match &self.name {
-            Some(name) => name.clone(),
-            None => "None".into(),
+        match &self {
+            Pick::Some { name, .. } => name.clone(),
+            Pick::None => "None".into(),
         }
     }
 }
@@ -58,6 +71,9 @@ pub fn pick_input<'a>(
     node: &'a Node,
     nodes: &'a Nodes,
     current_input: &Option<String>,
+    add_none: bool,
+    // todo: try to remove this box with sized
+    map_pick: Box<dyn Fn(Id, Pick<Id>) -> AppMsg>,
 ) -> Element<'a, AppMsg> {
     let mut input_options = nodes
         .values()
@@ -68,16 +84,18 @@ pub fn pick_input<'a>(
                 .contains(&n.node_type.to_light())
                 && !node.inputs.contains(&n.id)
         })
-        .map(|n| Pick::with_name_id(n.name(), &n.id))
+        .map(|n| Pick::new(n.name(), &n.id))
         .collect::<Vec<_>>();
 
-    if current_input.is_some() {
-        input_options.insert(0, Pick::none());
+    if add_none && current_input.is_some() {
+        input_options.insert(0, Pick::None);
     }
 
-    PickList::new(input_options, Pick::selected(current_input), |pick| {
-        AppMsg::InputReplaced(node.id, pick)
-    })
+    PickList::new(
+        input_options,
+        Pick::display_only(current_input),
+        move |pick| map_pick(node.id, pick),
+    )
     .width(Length::Fill)
     .into()
 }
@@ -105,7 +123,7 @@ where
 
             let pick: Pick<String> = h.into();
 
-            match (hardware_id, &pick.name) {
+            match (hardware_id, &pick.name()) {
                 (None, None) => Some(pick),
                 (None, Some(_)) => Some(pick),
                 (Some(_), None) => Some(pick),
@@ -121,11 +139,11 @@ where
         .collect::<Vec<Pick<String>>>();
 
     if hardware_id.is_some() {
-        hardware_options.insert(0, Pick::none());
+        hardware_options.insert(0, Pick::None);
     }
 
-    PickList::new(hardware_options, Pick::selected(hardware_id), |pick| {
-        AppMsg::HardwareIdChange(node.id, pick.name)
+    PickList::new(hardware_options, Pick::display_only(hardware_id), |pick| {
+        AppMsg::ChangeHardware(node.id, pick)
     })
     .width(Length::Fill)
     .into()
@@ -133,16 +151,16 @@ where
 
 impl From<&Rc<TempH>> for Pick<String> {
     fn from(value: &Rc<TempH>) -> Self {
-        Pick::with_name_id(&value.name, &value.hardware_id)
+        Pick::new(&value.name, &value.hardware_id)
     }
 }
 impl From<&Rc<ControlH>> for Pick<String> {
     fn from(value: &Rc<ControlH>) -> Self {
-        Pick::with_name_id(&value.name, &value.hardware_id)
+        Pick::new(&value.name, &value.hardware_id)
     }
 }
 impl From<&Rc<FanH>> for Pick<String> {
     fn from(value: &Rc<FanH>) -> Self {
-        Pick::with_name_id(&value.name, &value.hardware_id)
+        Pick::new(&value.name, &value.hardware_id)
     }
 }
