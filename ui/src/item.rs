@@ -14,8 +14,8 @@ use crate::{
 };
 
 fn item_view<'a>(node: &'a Node, content: Element<'a, AppMsg>) -> Element<'a, AppMsg> {
-    let mut name = TextInput::new("name", &node.name_cached)
-        .on_input(|str| AppMsg::NameChange(node.id, str));
+    let mut name =
+        TextInput::new("name", &node.name_cached).on_input(|str| AppMsg::NameChange(node.id, str));
 
     if node.is_error_name {
         name = name.style(iced::theme::TextInput::Custom(Box::new(

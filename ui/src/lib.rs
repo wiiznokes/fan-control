@@ -16,7 +16,7 @@ use iced::{
     Application, Command, Element, Length,
 };
 use item::{control_view, temp_view};
-use theme::CustomContainerStyle;
+use theme::{CustomContainerStyle, CustomScrollableStyle};
 
 #[macro_use]
 extern crate log;
@@ -182,6 +182,11 @@ impl Application for Ui {
                 vertical: Properties::default(),
                 horizontal: Properties::default(),
             })
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(iced::theme::Scrollable::Custom(Box::new(
+                CustomScrollableStyle::Background,
+            )))
             .into()
     }
 
