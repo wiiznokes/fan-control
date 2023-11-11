@@ -129,7 +129,7 @@ impl AppGraph {
 pub struct Node {
     pub id: Id,
     pub node_type: NodeType,
-    pub inputs: Vec<Id>,
+    pub inputs: Vec<(Id, String)>,
 
     pub value: Option<Value>,
 
@@ -165,7 +165,11 @@ impl NodeType {
 }
 
 impl Node {
-    pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, inputs: Vec<Id>) -> Self {
+    pub fn new(
+        id_generator: &mut IdGenerator,
+        node_type: NodeType,
+        inputs: Vec<(Id, String)>,
+    ) -> Self {
         let name_cached = node_type.name().clone();
         Self {
             id: id_generator.new_id(),
@@ -179,6 +183,16 @@ impl Node {
 
     pub fn name(&self) -> &String {
         self.node_type.name()
+    }
+
+    #[allow(clippy::result_unit_err)]
+    pub fn hardware_id(&self) -> Result<&Option<String>, ()> {
+        match &self.node_type {
+            NodeType::Control(i) => Ok(&i.hardware_id),
+            NodeType::Fan(i) => Ok(&i.hardware_id),
+            NodeType::Temp(i) => Ok(&i.hardware_id),
+            _ => Err(()),
+        }
     }
 }
 
@@ -250,7 +264,11 @@ pub trait Inputs {
     fn get_inputs(&self) -> Vec<&String>;
 }
 
-pub fn sanitize_inputs(item: &mut impl Inputs, nodes: &Nodes, node_type: NodeTypeLight) -> Vec<Id> {
+pub fn sanitize_inputs(
+    item: &mut impl Inputs,
+    nodes: &Nodes,
+    node_type: NodeTypeLight,
+) -> Vec<(Id, String)> {
     let mut inputs = Vec::new();
 
     match node_type.max_input() {
@@ -291,7 +309,7 @@ pub fn sanitize_inputs(item: &mut impl Inputs, nodes: &Nodes, node_type: NodeTyp
                 inputs.clear();
                 return inputs;
             }
-            inputs.push(node.id)
+            inputs.push((node.id, name.clone()))
         } else {
             eprintln!(
                 "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",

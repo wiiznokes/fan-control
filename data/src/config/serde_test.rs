@@ -11,7 +11,7 @@ use crate::config::Config;
 use crate::settings::Settings;
 
 use super::control::Control;
-use super::custom_temp::{CustomTemp, CustomTempType};
+use super::custom_temp::{CustomTemp, CustomTempKind};
 
 use super::fan::Fan;
 use super::flat::Flat;
@@ -159,7 +159,7 @@ fn config1() -> Config {
         }],
         custom_temps: vec![CustomTemp {
             name: "CustomTemp".into(),
-            kind: CustomTempType::Max,
+            kind: CustomTempKind::Max,
             input: vec!["temp1".into(), "temp2".into()],
         }],
         graphs: vec![Graph {

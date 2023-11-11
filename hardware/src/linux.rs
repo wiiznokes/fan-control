@@ -201,7 +201,7 @@ impl HardwareItem for InternalSensor {
         match self.sensor.sub_feature_ref.raw_value() {
             Ok(value) => Ok(value as i32),
             Err(e) => {
-                eprintln!("{}", e);
+                error!("{}", e);
                 Err(HardwareError::LmSensors)
             }
         }
@@ -222,12 +222,12 @@ impl HardwareItem for InternalControl {
     }
 
     fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        println!("set value {} to a control", value);
+        debug!("set value {} to a control", value);
         Ok(())
     }
 
     fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        println!("set mode {} to a control", value);
+        debug!("set mode {} to a control", value);
         Ok(())
     }
 }

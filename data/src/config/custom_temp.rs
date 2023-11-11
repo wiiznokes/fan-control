@@ -1,4 +1,5 @@
 use hardware::{Hardware, Value};
+use light_enum::Values;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,17 +8,28 @@ use crate::{
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum CustomTempType {
+#[derive(Serialize, Deserialize, Debug, Clone, Values, Default, PartialEq, Eq)]
+pub enum CustomTempKind {
+    #[default]
+    Average,
     Min,
     Max,
-    Average,
+}
+
+impl ToString for CustomTempKind {
+    fn to_string(&self) -> String {
+        match self {
+            CustomTempKind::Average => "Average".into(),
+            CustomTempKind::Max => "Max".into(),
+            CustomTempKind::Min => "Min".into(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CustomTemp {
     pub name: String,
-    pub kind: CustomTempType,
+    pub kind: CustomTempKind,
     pub input: Vec<String>,
 }
 
@@ -48,9 +60,9 @@ impl CustomTemp {
         }
 
         let value = match self.kind {
-            CustomTempType::Min => *values.iter().min().unwrap(),
-            CustomTempType::Max => *values.iter().min().unwrap(),
-            CustomTempType::Average => values.iter().sum::<i32>() / values.len() as i32,
+            CustomTempKind::Min => *values.iter().min().unwrap(),
+            CustomTempKind::Max => *values.iter().min().unwrap(),
+            CustomTempKind::Average => values.iter().sum::<i32>() / values.len() as i32,
         };
         Ok(value)
     }

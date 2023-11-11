@@ -1,4 +1,9 @@
-use iced::{color, widget::container, widget::text_input, Color};
+use iced::{
+    color,
+    widget::text_input,
+    widget::{container, scrollable},
+    Color,
+};
 
 /// apply custom theme
 ///
@@ -6,6 +11,7 @@ use iced::{color, widget::container, widget::text_input, Color};
 
 pub enum CustomContainerStyle {
     Item,
+    Background,
 }
 
 impl container::StyleSheet for CustomContainerStyle {
@@ -20,6 +26,59 @@ impl container::StyleSheet for CustomContainerStyle {
                 border_color: color!(0xf0ff00),
                 ..Default::default()
             },
+            CustomContainerStyle::Background => container::Appearance {
+                background: Some(color!(0x000000).into()),
+                border_radius: 0f32.into(),
+                border_width: 2f32,
+                border_color: color!(0xf0ff00),
+                ..Default::default()
+            },
+        }
+    }
+}
+
+pub enum CustomScrollableStyle {
+    Background,
+}
+
+impl scrollable::StyleSheet for CustomScrollableStyle {
+    type Style = iced::Theme;
+
+    fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
+        let palette = style.extended_palette();
+
+        scrollable::Scrollbar {
+            background: None,
+            border_radius: 2.0.into(),
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            scroller: scrollable::Scroller {
+                color: palette.background.strong.color,
+                border_radius: 2.0.into(),
+                border_width: 0.0,
+                border_color: Color::TRANSPARENT,
+            },
+        }
+    }
+
+    fn hovered(&self, style: &Self::Style, is_mouse_over_scrollbar: bool) -> scrollable::Scrollbar {
+        if is_mouse_over_scrollbar {
+            let palette = style.extended_palette();
+
+            scrollable::Scrollbar {
+                background: Some(Color::TRANSPARENT.into()),
+                border_radius: 2.0.into(),
+                border_width: 0.0,
+                border_color: Color::TRANSPARENT,
+                scroller: scrollable::Scroller {
+                    color: palette.primary.strong.color,
+                    border_radius: 2.0.into(),
+                    border_width: 0.0,
+                    border_color: Color::TRANSPARENT,
+                },
+            }
+        } else {
+            self.active(style)
         }
     }
 }

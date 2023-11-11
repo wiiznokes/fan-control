@@ -1,17 +1,34 @@
-use data::node::{Node, NodeType, Nodes};
+use data::{
+    config::custom_temp::CustomTempKind,
+    node::{Node, NodeType, Nodes},
+};
 use hardware::Hardware;
 use iced::{
-    widget::{Column, Container, PickList, Row, Text, TextInput, Toggler},
+    widget::{Button, Column, Container, PickList, Row, Text, TextInput, Toggler},
     Alignment, Element, Length, Padding,
 };
 
 use crate::{
+    pick::{pick_hardware, pick_input, Pick},
     theme::{CustomContainerStyle, CustomTextInputStyle},
-    AppMsg, InputReplaced,
+    AppMsg,
 };
 
-fn item_view(content: Element<AppMsg>) -> Element<AppMsg> {
-    Container::new(content)
+fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
+    let mut name =
+        TextInput::new("name", &node.name_cached).on_input(|str| AppMsg::Rename(node.id, str));
+
+    if node.is_error_name {
+        name = name.style(iced::theme::TextInput::Custom(Box::new(
+            CustomTextInputStyle::Error,
+        )));
+    }
+
+    content.insert(0, name.into());
+
+    let column = Column::with_children(content).spacing(5);
+
+    Container::new(column)
         .width(Length::Fixed(150.0))
         .padding(Padding::new(10.0))
         .style(iced::theme::Container::Custom(Box::new(
@@ -25,113 +42,93 @@ pub fn control_view<'a>(
     nodes: &'a Nodes,
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
-    debug!("build control ui");
-
     let NodeType::Control(control) = &node.node_type else {
         panic!()
     };
 
-    let mut name = TextInput::new("control name", &node.name_cached)
-        .on_input(|str| AppMsg::NameChange(node.id, str));
+    let content = vec![
+        pick_hardware(node, &hardware.controls, true),
+        pick_input(
+            node,
+            nodes,
+            &control.input,
+            true,
+            Box::new(AppMsg::ReplaceInput),
+        ),
+        Row::new()
+            .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
+            .push(Toggler::new(None, !control.auto, |is_active| {
+                AppMsg::ChangeControlAuto(node.id, !is_active)
+            }))
+            // todo: need space_between here
+            .align_items(Alignment::End)
+            .width(Length::Fill)
+            .into(),
+    ];
 
-    if node.is_error_name {
-        name = name.style(iced::theme::TextInput::Custom(Box::new(
-            CustomTextInputStyle::Error,
-        )));
-    }
+    item_view(node, content)
+}
 
-    let mut h_control_option = hardware
-        .controls
+pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+    let content = vec![
+        pick_hardware(node, &hardware.temps, false),
+        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
+    ];
+
+    item_view(node, content)
+}
+
+pub fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+    let content = vec![
+        pick_hardware(node, &hardware.fans, false),
+        Text::new(format!("{} RPM", node.value.unwrap_or(0))).into(),
+    ];
+
+    item_view(node, content)
+}
+
+pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+    let NodeType::CustomTemp(custom_temp) = &node.node_type else {
+        panic!()
+    };
+
+    let inputs = node
+        .inputs
         .iter()
-        .map(|h| Some(h.name.clone()))
-        .collect::<Vec<_>>();
-
-    h_control_option.insert(0, None);
-
-    let pick_h_control = PickList::new(
-        h_control_option
-            .iter()
-            .map(|h| match &h {
-                Some(name) => name.clone(),
-                None => "None".into(),
-            })
-            .collect::<Vec<_>>(),
-        if let Some(hardware_id) = &control.hardware_id {
-            Some(hardware_id.clone())
-        } else {
-            Some("None".into())
-        },
-        |hardware_id| AppMsg::HardwareIdChange(node.id, Some(hardware_id)),
-    )
-    .width(Length::Fill);
-
-    let mut input_option = nodes
-        .values()
-        .filter(|n| {
-            node.node_type
-                .to_light()
-                .allowed_dep()
-                .contains(&n.node_type.to_light())
-        })
-        .map(|n| (Some(n.id), Some(n.name().clone())))
-        .collect::<Vec<_>>();
-
-    input_option.insert(0, (None, None));
-
-    // todo: fork pick list and to allow giving a complex object as options
-    // similar to drop down menu in kotlin
-    let pick_behavior = PickList::new(
-        input_option
-            .iter()
-            .map(|i| match &i.1 {
-                Some(name) => name.clone(),
-                None => "None".into(),
-            })
-            .collect::<Vec<_>>(),
-        if let Some(input) = &control.input {
-            Some(input.clone())
-        } else {
-            Some("None".into())
-        },
-        move |node_name| {
-            let input_replaced = if node_name == "None" {
-                InputReplaced {
-                    input_id: None,
-                    input_name: None,
-                }
-            } else {
-                let f = input_option
-                    .iter()
-                    .find(|i| match &i.1 {
-                        Some(name) => name == &node_name,
-                        None => false,
-                    })
-                    .unwrap();
-                InputReplaced {
-                    input_id: f.0,
-                    input_name: f.1.clone(),
-                }
-            };
-            AppMsg::InputReplaced(node.id, input_replaced)
-        },
-    )
-    .width(Length::Fill);
-
-    let content = Column::new()
-        .push(name)
-        .push(pick_h_control)
-        .push(pick_behavior)
-        .push(
+        .map(|i| {
             Row::new()
-                .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
-                .push(Toggler::new(None, !control.auto, |is_active| {
-                    AppMsg::ControlAutoChange(node.id, !is_active)
-                }))
-                // todo: need space between here
-                .align_items(Alignment::End)
-                .width(Length::Fill),
-        )
-        .width(Length::Fill);
+                .push(Text::new(i.1.clone()))
+                // todo: icon
+                .push(
+                    Button::new(Text::new("x"))
+                        .on_press(AppMsg::RemoveInput(node.id, Pick::new(&i.1, &i.0))),
+                )
+                .into()
+        })
+        .collect();
 
-    item_view(content.into())
+    let kind_options = CustomTempKind::VALUES
+        .iter()
+        .filter(|k| &custom_temp.kind != *k)
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
+        AppMsg::ChangeCustomTempKind(node.id, k)
+    })
+    .into();
+    let content = vec![
+        pick_kind,
+        pick_input(
+            node,
+            nodes,
+            &Some("Choose Temp".into()),
+            false,
+            Box::new(AppMsg::AddInput),
+        ),
+        Column::with_children(inputs).into(),
+        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
+    ];
+
+    item_view(node, content)
 }

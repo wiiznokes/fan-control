@@ -63,7 +63,7 @@ impl Update {
             if !node.is_valid() {
                 return Ok(None);
             }
-            input_ids = node.inputs.clone();
+            input_ids = node.inputs.iter().map(|i| i.0).collect();
         }
 
         for id in &input_ids {
@@ -109,7 +109,7 @@ impl Node {
 
         trace.push(self.id);
 
-        for id in &self.inputs {
+        for (id, _) in &self.inputs {
             match nodes.get(id) {
                 Some(node) => {
                     if !node.validate(nodes, trace)? {
