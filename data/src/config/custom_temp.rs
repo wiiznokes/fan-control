@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
     update::UpdateError,
 };
 
@@ -33,20 +33,6 @@ pub struct CustomTemp {
     pub input: Vec<String>,
 }
 
-impl Inputs for CustomTemp {
-    fn clear_inputs(&mut self) {
-        self.input.clear();
-    }
-
-    fn get_inputs(&self) -> Vec<&String> {
-        let mut v = Vec::with_capacity(self.input.len());
-        for input in &self.input {
-            v.push(input)
-        }
-        v
-    }
-}
-
 impl IsValid for CustomTemp {
     fn is_valid(&self) -> bool {
         !self.input.is_empty()
@@ -69,13 +55,10 @@ impl CustomTemp {
 }
 
 impl ToNode for CustomTemp {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        _hardware: &Hardware,
-    ) -> Node {
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::CustomTemp);
-        Node::new(id_generator, NodeType::CustomTemp(self), inputs)
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
+        sanitize_inputs(
+            Node::new(id_generator, NodeType::CustomTemp(self), Vec::new()),
+            nodes,
+        )
     }
 }

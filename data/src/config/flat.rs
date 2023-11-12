@@ -4,7 +4,7 @@ use hardware::Hardware;
 
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -19,22 +19,11 @@ impl IsValid for Flat {
     }
 }
 
-impl Inputs for Flat {
-    fn clear_inputs(&mut self) {}
-
-    fn get_inputs(&self) -> Vec<&String> {
-        Vec::new()
-    }
-}
-
 impl ToNode for Flat {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        _hardware: &Hardware,
-    ) -> Node {
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Flat);
-        Node::new(id_generator, NodeType::Flat(self), inputs)
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
+        sanitize_inputs(
+            Node::new(id_generator, NodeType::Flat(self), Vec::new()),
+            nodes,
+        )
     }
 }

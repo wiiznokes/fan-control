@@ -88,69 +88,65 @@ pub enum NbInput {
     Infinity,
 }
 
-pub fn sanitize_inputs(
-    item: &mut impl Inputs,
-    nodes: &Nodes,
-    node_type: NodeTypeLight,
-) -> Vec<(Id, String)> {
-    let mut inputs = Vec::new();
-
+pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
+    node.inputs.clear();
+    let node_type = node.node_type.to_light();
     match node_type.max_input() {
         NbInput::Zero => {
-            if !item.get_inputs().is_empty() {
+            if !node.node_type.get_inputs().is_empty() {
                 eprintln!(
                     "{:?}: number of dep allowed == {:?}",
                     node_type,
                     node_type.max_input()
                 );
-                item.clear_inputs();
+                node.node_type.clear_inputs();
             };
-            return inputs;
+            return node;
         }
         NbInput::One => {
-            if item.get_inputs().len() > 1 {
+            if node.node_type.get_inputs().len() > 1 {
                 eprintln!(
                     "{:?}: number of dep allowed == {:?}",
                     node_type,
                     node_type.max_input()
                 );
-                item.clear_inputs();
-                return inputs;
+                node.node_type.clear_inputs();
+                return node;
             }
         }
         _ => {}
     };
 
-    for name in item.get_inputs() {
-        if let Some(node) = nodes.values().find(|node| node.name() == name) {
-            if !node_type.allowed_dep().contains(&node.node_type.to_light()) {
+    for name in node.node_type.get_inputs() {
+        if let Some(n) = nodes.values().find(|n| n.name() == &name) {
+            if !node_type.allowed_dep().contains(&n.node_type.to_light()) {
                 eprintln!(
                     "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
-                    node.node_type.to_light(),
+                    n.node_type.to_light(),
                     name
                 );
-                item.clear_inputs();
-                inputs.clear();
-                return inputs;
+                node.node_type.clear_inputs();
+                node.inputs.clear();
+                return node;
             }
-            inputs.push((node.id, name.clone()))
+            node.inputs.push((n.id, name.clone()))
         } else {
             eprintln!(
                 "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",
                 name
             );
-            item.clear_inputs();
-            inputs.clear();
-            return inputs;
+            node.node_type.clear_inputs();
+            node.inputs.clear();
+            return node;
         }
     }
 
-    if node_type.max_input() == NbInput::One && inputs.len() > 1 {
-        item.clear_inputs();
-        inputs.clear();
-        return inputs;
+    if node_type.max_input() == NbInput::One && node.inputs.len() > 1 {
+        node.node_type.clear_inputs();
+        node.inputs.clear();
+        return node;
     }
-    inputs
+    node
 }
 
 pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
@@ -324,11 +320,6 @@ impl IsValid for Node {
             NodeType::Target(target, ..) => target.is_valid(),
         }
     }
-}
-
-pub trait Inputs {
-    fn clear_inputs(&mut self);
-    fn get_inputs(&self) -> Vec<&String>;
 }
 
 impl NodeType {

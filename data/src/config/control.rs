@@ -1,11 +1,11 @@
-use std::{rc::Rc, vec};
+use std::rc::Rc;
 
 use hardware::{ControlH, Hardware, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
     update::UpdateError,
 };
 
@@ -84,19 +84,6 @@ impl IsValid for Control {
     }
 }
 
-impl Inputs for Control {
-    fn clear_inputs(&mut self) {
-        self.input.take();
-    }
-
-    fn get_inputs(&self) -> Vec<&String> {
-        match &self.input {
-            Some(input) => vec![input],
-            None => Vec::new(),
-        }
-    }
-}
-
 impl ToNode for Control {
     fn to_node(
         mut self,
@@ -127,7 +114,9 @@ impl ToNode for Control {
             }
         }
 
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Control);
-        Node::new(id_generator, NodeType::Control(self), inputs)
+        sanitize_inputs(
+            Node::new(id_generator, NodeType::Control(self), Vec::new()),
+            nodes,
+        )
     }
 }
