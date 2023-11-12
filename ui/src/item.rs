@@ -1,20 +1,77 @@
-use std::ops::{Add, RangeInclusive, Sub};
-
 use data::{
     config::custom_temp::CustomTempKind,
-    node::{Node, NodeType, Nodes},
+    node::{Node, NodeType, NodeTypeLight, Nodes},
 };
 use hardware::Hardware;
 use iced::{
-    widget::{Button, Column, Container, PickList, Row, Slider, Text, TextInput, Toggler},
+    widget::{
+        scrollable::{Direction, Properties},
+        Button, Column, Container, PickList, Row, Scrollable, Slider, Text, TextInput, Toggler,
+    },
     Alignment, Element, Length, Padding,
 };
 
 use crate::{
+    input_line::input_line,
     pick::{pick_hardware, pick_input, Pick},
-    theme::{CustomContainerStyle, CustomTextInputStyle},
+    theme::{CustomContainerStyle, CustomScrollableStyle, CustomTextInputStyle},
     AppMsg,
 };
+
+pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+    let mut controls = Vec::new();
+    let mut behaviors = Vec::new();
+    let mut temps = Vec::new();
+    let mut fans = Vec::new();
+
+    for node in nodes.values() {
+        match node.node_type.to_light() {
+            NodeTypeLight::Control => controls.push(control_view(node, nodes, hardware)),
+            NodeTypeLight::Fan => fans.push(fan_view(node, hardware)),
+            NodeTypeLight::Temp => temps.push(temp_view(node, hardware)),
+            NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, nodes)),
+            NodeTypeLight::Graph => {}
+            NodeTypeLight::Flat => behaviors.push(flat_view(node)),
+            NodeTypeLight::Linear => behaviors.push(linear_view(node, nodes)),
+            NodeTypeLight::Target => {}
+        }
+    }
+
+    let list_views = vec![
+        list_view(controls),
+        list_view(behaviors),
+        list_view(temps),
+        list_view(fans),
+    ];
+
+    let content = Row::with_children(list_views).spacing(20).padding(25);
+
+    let container = Container::new(content)
+        .style(iced::theme::Container::Custom(Box::new(
+            CustomContainerStyle::Background,
+        )))
+        .width(Length::Fill)
+        .height(Length::Fill);
+
+    Scrollable::new(container)
+        .direction(Direction::Both {
+            vertical: Properties::default(),
+            horizontal: Properties::default(),
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .style(iced::theme::Scrollable::Custom(Box::new(
+            CustomScrollableStyle::Background,
+        )))
+        .into()
+}
+
+fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
+    Column::with_children(elements)
+        .spacing(20)
+        .padding(25)
+        .into()
+}
 
 fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
     let mut name =
@@ -39,7 +96,7 @@ fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Eleme
         .into()
 }
 
-pub fn control_view<'a>(
+fn control_view<'a>(
     node: &'a Node,
     nodes: &'a Nodes,
     hardware: &'a Hardware,
@@ -71,7 +128,7 @@ pub fn control_view<'a>(
     item_view(node, content)
 }
 
-pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.temps, false),
         Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
@@ -80,7 +137,7 @@ pub fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppM
     item_view(node, content)
 }
 
-pub fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.fans, false),
         Text::new(format!("{} RPM", node.value.unwrap_or(0))).into(),
@@ -89,7 +146,7 @@ pub fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMs
     item_view(node, content)
 }
 
-pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
     let NodeType::CustomTemp(custom_temp) = &node.node_type else {
         panic!()
     };
@@ -135,7 +192,7 @@ pub fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, App
     item_view(node, content)
 }
 
-pub fn flat_view(node: &Node) -> Element<AppMsg> {
+fn flat_view(node: &Node) -> Element<AppMsg> {
     let NodeType::Flat(flat) = &node.node_type else {
         panic!()
     };
@@ -175,7 +232,7 @@ pub enum LinearMsg {
     MaxSpeed(u8, String),
 }
 
-pub fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
     let NodeType::Linear((linear, linear_cache)) = &node.node_type else {
         panic!()
     };
@@ -224,95 +281,4 @@ pub fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> 
     ];
 
     item_view(node, content)
-}
-
-trait MyFrom<T> {
-    fn from(value: T) -> Self;
-}
-
-impl MyFrom<i32> for u8 {
-    fn from(value: i32) -> Self {
-        value as u8
-    }
-}
-
-impl MyFrom<&str> for Option<u8> {
-    fn from(value: &str) -> Self {
-        match value.parse::<u8>() {
-            Ok(value) => Some(value),
-            Err(_) => None,
-        }
-    }
-}
-
-fn input_line<'a, V, F>(
-    info: &'a str,
-    value: &'a V,
-    cached_value: &str,
-    unit: &'a str,
-    range: &'a RangeInclusive<V>,
-    map_value: F,
-) -> Element<'a, AppMsg>
-where
-    V: Add<V, Output = V>,
-    V: Sub<V, Output = V>,
-    V: MyFrom<i32>,
-    V: PartialOrd + Clone + ToString + PartialEq,
-    Option<V>: for<'b> MyFrom<&'b str>,
-    F: 'a + Fn(V, String) -> AppMsg + 'a,
-{
-    // `map_value` is moved in `on_input` so we procuce buttons messages before
-    let plus_message = if range.end() > value {
-        let new_value = value.clone() + MyFrom::from(1);
-        let new_cached_value = new_value.to_string();
-        Some(map_value(new_value, new_cached_value))
-    } else {
-        None
-    };
-
-    let sub_message = if range.start() < value {
-        let new_value = value.clone() - MyFrom::from(1);
-        let new_cached_value = new_value.to_string();
-        Some(map_value(new_value, new_cached_value))
-    } else {
-        None
-    };
-
-    let mut input = TextInput::new("value", cached_value).on_input(move |s| {
-        let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
-            Some(value_not_tested) => match range.contains(&value_not_tested) {
-                true => value_not_tested,
-                false => value.clone(),
-            },
-            None => value.clone(),
-        };
-
-        map_value(final_value, s)
-    });
-
-    let is_error = match <Option<V> as MyFrom<_>>::from(cached_value) {
-        Some(value_from_string) => value != &value_from_string,
-        None => true,
-    };
-
-    if is_error {
-        input = input.style(iced::theme::TextInput::Custom(Box::new(
-            CustomTextInputStyle::Error,
-        )));
-    }
-
-    Row::new()
-        .push(Text::new(info))
-        .push(
-            Row::new()
-                .push(Text::new(":"))
-                .push(input)
-                .push(Text::new(unit))
-                .push(
-                    Column::new()
-                        .push(Button::new("+").on_press_maybe(plus_message))
-                        .push(Button::new("-").on_press_maybe(sub_message)),
-                ),
-        )
-        .into()
 }

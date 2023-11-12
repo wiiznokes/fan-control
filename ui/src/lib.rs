@@ -5,28 +5,20 @@ use std::time::Duration;
 use data::{
     config::custom_temp::CustomTempKind,
     id::Id,
-    node::{validate_name, NodeType, NodeTypeLight},
+    node::{validate_name, NodeType},
     AppState,
 };
-use hardware::Value;
-use iced::{
-    self, executor, subscription, time,
-    widget::{
-        scrollable::{Direction, Properties},
-        Column, Container, Row, Scrollable,
-    },
-    Application, Command, Element, Length, Subscription,
-};
-use item::{
-    control_view, custom_temp_view, fan_view, flat_view, linear_view, temp_view, LinearMsg,
-};
-use pick::{IdName, Pick};
-use theme::{CustomContainerStyle, CustomScrollableStyle};
+
+use iced::{self, executor, time, Application, Command, Element};
+use item::{items_view, LinearMsg};
+use pick::Pick;
+
 use utils::RemoveElem;
 
 #[macro_use]
 extern crate log;
 
+mod input_line;
 mod item;
 mod pick;
 mod theme;
@@ -64,9 +56,6 @@ impl Application for Ui {
 
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let ui_state = Ui { app_state: flags };
-
-        //dbg!(&ui_state.app_state.app_graph);
-
         (ui_state, Command::none())
     }
 
@@ -244,66 +233,12 @@ impl Application for Ui {
         Command::none()
     }
 
-    fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        let mut controls = Vec::new();
-        let mut behaviors = Vec::new();
-        let mut temps = Vec::new();
-        let mut fans = Vec::new();
-
-        let nodes = &self.app_state.app_graph.nodes;
-        let hardware = &self.app_state.hardware;
-
-        for node in self.app_state.app_graph.nodes.values() {
-            match node.node_type.to_light() {
-                NodeTypeLight::Control => controls.push(control_view(node, nodes, hardware)),
-                NodeTypeLight::Fan => fans.push(fan_view(node, hardware)),
-                NodeTypeLight::Temp => temps.push(temp_view(node, hardware)),
-                NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, nodes)),
-                NodeTypeLight::Graph => {}
-                NodeTypeLight::Flat => behaviors.push(flat_view(node)),
-                NodeTypeLight::Linear => behaviors.push(linear_view(node, nodes)),
-                NodeTypeLight::Target => {}
-            }
-        }
-
-        let list_views = vec![
-            list_view(controls),
-            list_view(behaviors),
-            list_view(temps),
-            list_view(fans),
-        ];
-
-        let content = Row::with_children(list_views).spacing(20).padding(25);
-
-        let container = Container::new(content)
-            .style(iced::theme::Container::Custom(Box::new(
-                CustomContainerStyle::Background,
-            )))
-            .width(Length::Fill)
-            .height(Length::Fill);
-
-        Scrollable::new(container)
-            .direction(Direction::Both {
-                vertical: Properties::default(),
-                horizontal: Properties::default(),
-            })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(iced::theme::Scrollable::Custom(Box::new(
-                CustomScrollableStyle::Background,
-            )))
-            .into()
+    fn view(&self) -> Element<Self::Message> {
+        items_view(&self.app_state.app_graph.nodes, &self.app_state.hardware)
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
         //Subscription::none()
     }
-}
-
-fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
-    Column::with_children(elements)
-        .spacing(20)
-        .padding(25)
-        .into()
 }
