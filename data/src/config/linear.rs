@@ -99,7 +99,7 @@ impl ToNode for Linear {
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Linear);
         let cache = self.cache();
-        Node::new(id_generator, NodeType::Linear((self, cache)), inputs)
+        Node::new(id_generator, NodeType::Linear(self, cache), inputs)
     }
 }
 

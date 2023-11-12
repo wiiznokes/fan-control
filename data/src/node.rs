@@ -4,6 +4,7 @@ use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
 use crate::config::linear::LinearCache;
+use crate::config::target::TargetCache;
 use crate::config::Config;
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
@@ -146,9 +147,8 @@ pub enum NodeType {
     CustomTemp(CustomTemp),
     Graph(Graph),
     Flat(Flat),
-    // todo: i think enum support 2 field, but not light_enum
-    Linear((Linear, LinearCache)),
-    Target(Target),
+    Linear(Linear, LinearCache),
+    Target(Target, TargetCache),
 }
 
 impl NodeType {
@@ -160,8 +160,8 @@ impl NodeType {
             NodeType::CustomTemp(custom_temp) => &custom_temp.name,
             NodeType::Graph(graph) => &graph.name,
             NodeType::Flat(flat) => &flat.name,
-            NodeType::Linear((linear, _)) => &linear.name,
-            NodeType::Target(target) => &target.name,
+            NodeType::Linear(linear, ..) => &linear.name,
+            NodeType::Target(target, ..) => &target.name,
         }
     }
 }
@@ -207,8 +207,8 @@ impl IsValid for Node {
             NodeType::CustomTemp(custom_temp) => custom_temp.is_valid(),
             NodeType::Graph(graph) => graph.is_valid(),
             NodeType::Flat(flat) => flat.is_valid(),
-            NodeType::Linear((linear, _)) => linear.is_valid(),
-            NodeType::Target(target) => target.is_valid(),
+            NodeType::Linear(linear, ..) => linear.is_valid(),
+            NodeType::Target(target, ..) => target.is_valid(),
         }
     }
 }

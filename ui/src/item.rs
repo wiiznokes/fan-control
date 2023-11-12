@@ -33,7 +33,7 @@ pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, A
             NodeTypeLight::Graph => {}
             NodeTypeLight::Flat => behaviors.push(flat_view(node)),
             NodeTypeLight::Linear => behaviors.push(linear_view(node, nodes)),
-            NodeTypeLight::Target => {}
+            NodeTypeLight::Target => behaviors.push(target_view(node, nodes))
         }
     }
 
@@ -233,7 +233,7 @@ pub enum LinearMsg {
 }
 
 fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Linear((linear, linear_cache)) = &node.node_type else {
+    let NodeType::Linear(linear, linear_cache) = &node.node_type else {
         panic!()
     };
 
@@ -277,6 +277,65 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "%",
             &(0..=100),
             |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MaxSpeed(val, cached_val)),
+        ),
+    ];
+
+    item_view(node, content)
+}
+
+#[derive(Debug, Clone)]
+pub enum TargetMsg {
+    IdleTemp(u8, String),
+    IdleSpeed(u8, String),
+    LoadTemp(u8, String),
+    LoadSpeed(u8, String),
+}
+
+fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+    let NodeType::Target(target, target_cache) = &node.node_type else {
+        panic!()
+    };
+
+    let content = vec![
+        pick_input(
+            node,
+            nodes,
+            &target.input,
+            true,
+            Box::new(AppMsg::ReplaceInput),
+        ),
+        Text::new(format!("{} %", node.value.unwrap_or(0))).into(),
+        input_line(
+            "idle temp",
+            &target.idle_temp,
+            &target_cache.idle_temp,
+            "°C",
+            &(0..=255),
+            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::IdleTemp(val, cached_val)),
+        ),
+        input_line(
+            "idle speed",
+            &target.idle_speed,
+            &target_cache.idle_speed,
+            "%",
+            &(0..=100),
+            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::IdleSpeed(val, cached_val)),
+        ),
+        input_line(
+            "load temp",
+            &target.load_temp,
+            &target_cache.load_temp,
+            "°C",
+            &(0..=255),
+            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::LoadTemp(val, cached_val)),
+        ),
+        input_line(
+            "load speed",
+            &target.load_speed,
+            &target_cache.load_speed,
+            "%",
+            &(0..=100),
+            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::LoadSpeed(val, cached_val)),
         ),
     ];
 

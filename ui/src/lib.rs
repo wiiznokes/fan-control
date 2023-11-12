@@ -10,7 +10,7 @@ use data::{
 };
 
 use iced::{self, executor, time, Application, Command, Element};
-use item::{items_view, LinearMsg};
+use item::{items_view, LinearMsg, TargetMsg};
 use pick::Pick;
 
 use utils::RemoveElem;
@@ -45,6 +45,7 @@ pub enum AppMsg {
     ChangeCustomTempKind(Id, CustomTempKind),
     ChangeFlatValue(Id, u16),
     ChangeLinear(Id, LinearMsg),
+    ChangeTarget(Id, TargetMsg),
     Tick,
 }
 
@@ -91,8 +92,8 @@ impl Application for Ui {
                         NodeType::CustomTemp(i) => i.name = name,
                         NodeType::Graph(i) => i.name = name,
                         NodeType::Flat(i) => i.name = name,
-                        NodeType::Linear((i, _)) => i.name = name,
-                        NodeType::Target(i) => i.name = name,
+                        NodeType::Linear(i, ..) => i.name = name,
+                        NodeType::Target(i, ..) => i.name = name,
                     }
                 } else {
                     node.is_error_name = true;
@@ -153,8 +154,8 @@ impl Application for Ui {
                 match &mut node.node_type {
                     NodeType::Control(i) => i.input = pick.name(),
                     NodeType::Graph(i) => i.input = pick.name(),
-                    NodeType::Linear((i, _)) => i.input = pick.name(),
-                    NodeType::Target(i) => i.input = pick.name(),
+                    NodeType::Linear(i, ..) => i.input = pick.name(),
+                    NodeType::Target(i, ..) => i.input = pick.name(),
                     _ => panic!("node have not exactly one input"),
                 }
             }
@@ -205,7 +206,7 @@ impl Application for Ui {
             }
             AppMsg::ChangeLinear(id, linear_msg) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                let NodeType::Linear((linear, linear_cache)) = &mut node.node_type else {
+                let NodeType::Linear(linear, linear_cache) = &mut node.node_type else {
                     panic!()
                 };
 
@@ -225,6 +226,31 @@ impl Application for Ui {
                     LinearMsg::MaxSpeed(max_speed, cached_value) => {
                         linear.max_speed = max_speed;
                         linear_cache.max_speed = cached_value;
+                    }
+                }
+            }
+            AppMsg::ChangeTarget(id, target_msg) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                let NodeType::Target(target, target_cache) = &mut node.node_type else {
+                    panic!()
+                };
+
+                match target_msg {
+                    TargetMsg::IdleTemp(idle_temp, cached_value) => {
+                        target.idle_temp = idle_temp;
+                        target_cache.idle_temp = cached_value;
+                    }
+                    TargetMsg::IdleSpeed(idle_speed, cached_value) => {
+                        target.idle_speed = idle_speed;
+                        target_cache.idle_speed = cached_value;
+                    }
+                    TargetMsg::LoadTemp(load_temp, cached_value) => {
+                        target.load_temp = load_temp;
+                        target_cache.load_temp = cached_value;
+                    }
+                    TargetMsg::LoadSpeed(load_speed, cached_value) => {
+                        target.load_speed = load_speed;
+                        target_cache.load_speed = cached_value;
                     }
                 }
             }

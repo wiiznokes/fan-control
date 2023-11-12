@@ -69,7 +69,7 @@ impl<I> Pick<I> {
     {
         match self {
             Pick::Some(IdName { id, name }) => Some((id.clone(), name.clone())),
-            Pick::None => todo!(),
+            Pick::None => None,
         }
     }
 }

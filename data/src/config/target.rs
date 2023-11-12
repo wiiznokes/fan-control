@@ -23,7 +23,24 @@ pub struct Target {
     pub idle_has_been_reatch: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct TargetCache {
+    pub idle_temp: String,
+    pub idle_speed: String,
+    pub load_temp: String,
+    pub load_speed: String,
+}
+
 impl Target {
+    pub fn cache(&self) -> TargetCache {
+        TargetCache {
+            idle_temp: self.idle_temp.to_string(),
+            idle_speed: self.idle_speed.to_string(),
+            load_temp: self.load_temp.to_string(),
+            load_speed: self.load_speed.to_string(),
+        }
+    }
+
     pub fn update(&mut self, value: Value) -> Result<Value, UpdateError> {
         if self.idle_has_been_reatch {
             if value < self.load_temp.into() {
@@ -70,7 +87,8 @@ impl ToNode for Target {
         _hardware: &Hardware,
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Target);
-        Node::new(id_generator, NodeType::Target(self), inputs)
+        let cache = self.cache();
+        Node::new(id_generator, NodeType::Target(self, cache), inputs)
     }
 }
 
