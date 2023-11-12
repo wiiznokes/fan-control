@@ -82,18 +82,36 @@ impl Application for Ui {
                 let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
                 node.name_cached = name.clone();
                 if name_is_valid {
                     node.is_error_name = false;
-                    match &mut node.node_type {
-                        NodeType::Control(i) => i.name = name,
-                        NodeType::Fan(i) => i.name = name,
-                        NodeType::Temp(i) => i.name = name,
-                        NodeType::CustomTemp(i) => i.name = name,
-                        NodeType::Graph(i) => i.name = name,
-                        NodeType::Flat(i) => i.name = name,
-                        NodeType::Linear(i, ..) => i.name = name,
-                        NodeType::Target(i, ..) => i.name = name,
+                    let previous_name = node.name().clone();
+                    node.node_type.set_name(&name);
+
+                    let node_id = node.id;
+                    // find nodes that depend on node.id
+                    // change the name in input and item.input
+
+                    for n in self.app_state.app_graph.nodes.values_mut() {
+                        if let Some(node_input) = n
+                            .inputs
+                            .iter_mut()
+                            .find(|node_input| node_input.0 == node_id)
+                        {
+                            node_input.1 = name.clone();
+                            let mut inputs = n.node_type.get_inputs();
+
+                            match inputs.iter().position(|n| n == &previous_name) {
+                                Some(index) => {
+                                    inputs[index] = name.clone();
+                                    n.node_type.set_inputs(inputs)
+                                }
+                                None => {
+                                    error!("input id found in node inputs but the corresponding name was not found in item input")
+                                }
+                            }
+                        }
                     }
                 } else {
                     node.is_error_name = true;

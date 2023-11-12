@@ -33,7 +33,7 @@ pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, A
             NodeTypeLight::Graph => {}
             NodeTypeLight::Flat => behaviors.push(flat_view(node)),
             NodeTypeLight::Linear => behaviors.push(linear_view(node, nodes)),
-            NodeTypeLight::Target => behaviors.push(target_view(node, nodes))
+            NodeTypeLight::Target => behaviors.push(target_view(node, nodes)),
         }
     }
 
