@@ -8,6 +8,7 @@ use data::{
     node::{validate_name, NodeType, NodeTypeLight},
     AppState,
 };
+use hardware::Value;
 use iced::{
     self, executor, subscription, time,
     widget::{
@@ -16,7 +17,7 @@ use iced::{
     },
     Application, Command, Element, Length, Subscription,
 };
-use item::{control_view, custom_temp_view, fan_view, temp_view};
+use item::{control_view, custom_temp_view, fan_view, flat_view, temp_view, LinearMsg};
 use pick::{IdName, Pick};
 use theme::{CustomContainerStyle, CustomScrollableStyle};
 use utils::RemoveElem;
@@ -48,6 +49,8 @@ pub enum AppMsg {
     RemoveInput(Id, Pick<Id>),
     ChangeControlAuto(Id, bool),
     ChangeCustomTempKind(Id, CustomTempKind),
+    ChangeFlatValue(Id, u16),
+    ChangeLinear(Id, LinearMsg),
     Tick,
 }
 
@@ -201,6 +204,30 @@ impl Application for Ui {
                 };
                 custom_temp.kind = kind;
             }
+            AppMsg::ChangeFlatValue(id, value) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                let NodeType::Flat(flat) = &mut node.node_type else {
+                    panic!()
+                };
+                flat.value = value;
+            }
+            AppMsg::ChangeLinear(id, linear_msg) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                let NodeType::Linear(linear) = &mut node.node_type else {
+                    panic!()
+                };
+
+                match linear_msg {
+                    LinearMsg::MinTemp(min_temp, cached_value) => {
+                        linear.min_temp = min_temp;
+                        linear.min_temp_cached = cached_value;
+                    },
+                    LinearMsg::MinSpeed(_) => todo!(),
+                    LinearMsg::MaxTemp(_) => todo!(),
+                    LinearMsg::MaxSpeed(_) => todo!(),
+                }
+            },
         }
 
         Command::none()
@@ -208,6 +235,7 @@ impl Application for Ui {
 
     fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
         let mut controls = Vec::new();
+        let mut behaviors = Vec::new();
         let mut temps = Vec::new();
         let mut fans = Vec::new();
 
@@ -224,13 +252,18 @@ impl Application for Ui {
                     temps.push(custom_temp_view(node, &self.app_state.app_graph.nodes))
                 }
                 NodeTypeLight::Graph => {}
-                NodeTypeLight::Flat => {}
+                NodeTypeLight::Flat => behaviors.push(flat_view(node)),
                 NodeTypeLight::Linear => {}
                 NodeTypeLight::Target => {}
             }
         }
 
-        let list_views = vec![list_view(controls), list_view(temps), list_view(fans)];
+        let list_views = vec![
+            list_view(controls),
+            list_view(behaviors),
+            list_view(temps),
+            list_view(fans),
+        ];
 
         let content = Row::with_children(list_views).spacing(20).padding(25);
 

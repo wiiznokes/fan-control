@@ -180,14 +180,14 @@ fn config1() -> Config {
             name: "flat1".into(),
             value: 50,
         }],
-        linears: vec![Linear {
-            name: "Linear".into(),
-            min_temp: 10,
-            min_speed: 10,
-            max_temp: 70,
-            max_speed: 100,
-            input: Some("temp3".into()),
-        }],
+        linears: vec![Linear::new(
+            "Linear".into(),
+            10,
+            10,
+            70,
+            100,
+            Some("temp3".into()),
+        )],
         targets: vec![Target {
             name: "Target".into(),
             idle_temp: 40,

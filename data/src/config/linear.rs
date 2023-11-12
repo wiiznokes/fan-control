@@ -11,6 +11,7 @@ pub struct Linear {
     pub name: String,
     #[serde(rename = "minTemp", alias = "min_temp")]
     pub min_temp: u8,
+    pub min_temp_cached: String,
     #[serde(rename = "minSpeed", alias = "min_speed")]
     pub min_speed: u8,
     #[serde(rename = "maxTemp", alias = "max_temp")]
@@ -46,6 +47,24 @@ struct Affine {
 }
 
 impl Linear {
+    pub fn new(
+        name: String,
+        min_temp: u8,
+         min_speed: u8,
+         max_temp: u8,
+         max_speed: u8,
+         input: Option<String>,
+    ) -> Self {
+        Linear {
+            name,
+            min_temp,
+            min_temp_cached: min_temp.to_string(),
+            min_speed,
+            max_temp,
+            max_speed,
+            input,
+        }
+    }
     pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
             return Ok(self.min_speed.into());
@@ -93,14 +112,14 @@ mod test {
     fn test_update() {
         let _ = env_logger::try_init();
 
-        let linear = Linear {
-            name: "linear".to_string(),
-            min_temp: 10,
-            min_speed: 10,
-            max_temp: 70,
-            max_speed: 100,
-            input: Some("temp1".into()),
-        };
+        let linear = Linear::new(
+            "Linear".into(),
+            10,
+            10,
+            70,
+            100,
+            Some("temp1".into()),
+        );
 
         assert!(linear.update(9).unwrap() == 10);
         assert!(linear.update(70).unwrap() == 100);
