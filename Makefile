@@ -3,7 +3,7 @@ run:
 	clear && cargo run
 
 conf:
-	clear && cargo run -- -p ./config
+	clear && cargo run -- -p ./.config
 
 config:
 	clear && ./target/debug/fan-control -p ./config

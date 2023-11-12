@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
     update::UpdateError,
 };
 
@@ -31,14 +31,6 @@ impl Fan {
 impl IsValid for Fan {
     fn is_valid(&self) -> bool {
         self.hardware_id.is_some() && self.fan_h.is_some()
-    }
-}
-
-impl Inputs for Fan {
-    fn clear_inputs(&mut self) {}
-
-    fn get_inputs(&self) -> Vec<&String> {
-        Vec::new()
     }
 }
 
@@ -72,7 +64,9 @@ impl ToNode for Fan {
             }
         }
 
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Fan);
-        Node::new(id_generator, NodeType::Fan(self), inputs)
+        sanitize_inputs(
+            Node::new(id_generator, NodeType::Fan(self), Vec::new()),
+            nodes,
+        )
     }
 }

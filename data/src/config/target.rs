@@ -1,6 +1,6 @@
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
     update::UpdateError,
 };
 use hardware::{Hardware, Value};
@@ -23,7 +23,24 @@ pub struct Target {
     pub idle_has_been_reatch: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct TargetCache {
+    pub idle_temp: String,
+    pub idle_speed: String,
+    pub load_temp: String,
+    pub load_speed: String,
+}
+
 impl Target {
+    pub fn cache(&self) -> TargetCache {
+        TargetCache {
+            idle_temp: self.idle_temp.to_string(),
+            idle_speed: self.idle_speed.to_string(),
+            load_temp: self.load_temp.to_string(),
+            load_speed: self.load_speed.to_string(),
+        }
+    }
+
     pub fn update(&mut self, value: Value) -> Result<Value, UpdateError> {
         if self.idle_has_been_reatch {
             if value < self.load_temp.into() {
@@ -49,28 +66,13 @@ impl IsValid for Target {
     }
 }
 
-impl Inputs for Target {
-    fn clear_inputs(&mut self) {
-        self.input.take();
-    }
-
-    fn get_inputs(&self) -> Vec<&String> {
-        match &self.input {
-            Some(input) => vec![input],
-            None => Vec::new(),
-        }
-    }
-}
-
 impl ToNode for Target {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        _hardware: &Hardware,
-    ) -> Node {
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Target);
-        Node::new(id_generator, NodeType::Target(self), inputs)
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
+        let cache = self.cache();
+        sanitize_inputs(
+            Node::new(id_generator, NodeType::Target(self, cache), Vec::new()),
+            nodes,
+        )
     }
 }
 

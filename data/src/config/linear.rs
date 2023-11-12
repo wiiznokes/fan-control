@@ -1,6 +1,6 @@
 use crate::{
     id::IdGenerator,
-    node::{sanitize_inputs, Inputs, IsValid, Node, NodeType, NodeTypeLight, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
     update::UpdateError,
 };
 use hardware::{Hardware, Value};
@@ -20,22 +20,17 @@ pub struct Linear {
     pub input: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct LinearCache {
+    pub min_temp: String,
+    pub min_speed: String,
+    pub max_temp: String,
+    pub max_speed: String,
+}
+
 impl IsValid for Linear {
     fn is_valid(&self) -> bool {
         self.input.is_some() && self.max_temp > self.min_temp && self.max_speed > self.min_speed
-    }
-}
-
-impl Inputs for Linear {
-    fn clear_inputs(&mut self) {
-        self.input.take();
-    }
-
-    fn get_inputs(&self) -> Vec<&String> {
-        match &self.input {
-            Some(input) => vec![input],
-            None => Vec::new(),
-        }
     }
 }
 
@@ -46,6 +41,15 @@ struct Affine {
 }
 
 impl Linear {
+    pub fn cache(&self) -> LinearCache {
+        LinearCache {
+            min_temp: self.min_temp.to_string(),
+            min_speed: self.min_speed.to_string(),
+            max_temp: self.max_temp.to_string(),
+            max_speed: self.max_speed.to_string(),
+        }
+    }
+
     pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
             return Ok(self.min_speed.into());
@@ -74,14 +78,12 @@ impl Linear {
 }
 
 impl ToNode for Linear {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        _hardware: &Hardware,
-    ) -> Node {
-        let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Linear);
-        Node::new(id_generator, NodeType::Linear(self), inputs)
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
+        let cache = self.cache();
+        sanitize_inputs(
+            Node::new(id_generator, NodeType::Linear(self, cache), Vec::new()),
+            nodes,
+        )
     }
 }
 
@@ -94,7 +96,7 @@ mod test {
         let _ = env_logger::try_init();
 
         let linear = Linear {
-            name: "linear".to_string(),
+            name: "Linear".into(),
             min_temp: 10,
             min_speed: 10,
             max_temp: 70,

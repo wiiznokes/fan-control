@@ -1,8 +1,11 @@
 use std::collections::HashMap;
+use std::vec;
 
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
+use crate::config::linear::LinearCache;
+use crate::config::target::TargetCache;
 use crate::config::Config;
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
@@ -19,6 +22,153 @@ pub struct AppGraph {
     pub nodes: Nodes,
     pub id_generator: IdGenerator,
     pub root_nodes: RootNodes,
+}
+
+#[derive(Debug, Clone)]
+pub struct Node {
+    pub id: Id,
+    pub node_type: NodeType,
+    pub inputs: Vec<(Id, String)>,
+
+    pub value: Option<Value>,
+
+    pub name_cached: String,
+    pub is_error_name: bool,
+}
+
+#[derive(Debug, Clone, LightEnum)]
+pub enum NodeType {
+    Control(Control),
+    Fan(Fan),
+    Temp(Temp),
+    CustomTemp(CustomTemp),
+    Graph(Graph),
+    Flat(Flat),
+    Linear(Linear, LinearCache),
+    Target(Target, TargetCache),
+}
+
+impl NodeTypeLight {
+    pub fn allowed_dep(&self) -> &'static [NodeTypeLight] {
+        match self {
+            NodeTypeLight::Control => &[
+                NodeTypeLight::Flat,
+                NodeTypeLight::Graph,
+                NodeTypeLight::Target,
+                NodeTypeLight::Linear,
+            ],
+            NodeTypeLight::Fan => &[],
+            NodeTypeLight::Temp => &[],
+            NodeTypeLight::CustomTemp => &[NodeTypeLight::Temp],
+            NodeTypeLight::Graph => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeTypeLight::Flat => &[],
+            NodeTypeLight::Linear => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeTypeLight::Target => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+        }
+    }
+
+    pub fn max_input(&self) -> NbInput {
+        match self {
+            NodeTypeLight::Control => NbInput::One,
+            NodeTypeLight::Fan => NbInput::Zero,
+            NodeTypeLight::Temp => NbInput::Zero,
+            NodeTypeLight::CustomTemp => NbInput::Infinity,
+            NodeTypeLight::Graph => NbInput::One,
+            NodeTypeLight::Flat => NbInput::Zero,
+            NodeTypeLight::Linear => NbInput::One,
+            NodeTypeLight::Target => NbInput::One,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NbInput {
+    Zero,
+    One,
+    Infinity,
+}
+
+pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
+    node.inputs.clear();
+    let node_type = node.node_type.to_light();
+    match node_type.max_input() {
+        NbInput::Zero => {
+            if !node.node_type.get_inputs().is_empty() {
+                eprintln!(
+                    "{:?}: number of dep allowed == {:?}",
+                    node_type,
+                    node_type.max_input()
+                );
+                node.node_type.clear_inputs();
+            };
+            return node;
+        }
+        NbInput::One => {
+            if node.node_type.get_inputs().len() > 1 {
+                eprintln!(
+                    "{:?}: number of dep allowed == {:?}",
+                    node_type,
+                    node_type.max_input()
+                );
+                node.node_type.clear_inputs();
+                return node;
+            }
+        }
+        _ => {}
+    };
+
+    for name in node.node_type.get_inputs() {
+        if let Some(n) = nodes.values().find(|n| n.name() == &name) {
+            if !node_type.allowed_dep().contains(&n.node_type.to_light()) {
+                eprintln!(
+                    "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
+                    n.node_type.to_light(),
+                    name
+                );
+                node.node_type.clear_inputs();
+                node.inputs.clear();
+                return node;
+            }
+            node.inputs.push((n.id, name.clone()))
+        } else {
+            eprintln!(
+                "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",
+                name
+            );
+            node.node_type.clear_inputs();
+            node.inputs.clear();
+            return node;
+        }
+    }
+
+    if node_type.max_input() == NbInput::One && node.inputs.len() > 1 {
+        node.node_type.clear_inputs();
+        node.inputs.clear();
+        return node;
+    }
+    node
+}
+
+pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
+    if name.is_empty() {
+        return false;
+    };
+
+    for node in nodes.values() {
+        if node.name() == name && &node.id != id {
+            return false;
+        }
+    }
+
+    true
+}
+
+pub trait ToNode {
+    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, hardware: &Hardware) -> Node;
+}
+
+pub trait IsValid {
+    fn is_valid(&self) -> bool;
 }
 
 impl AppGraph {
@@ -125,45 +275,6 @@ impl AppGraph {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Node {
-    pub id: Id,
-    pub node_type: NodeType,
-    pub inputs: Vec<(Id, String)>,
-
-    pub value: Option<Value>,
-
-    pub name_cached: String,
-    pub is_error_name: bool,
-}
-
-#[derive(Debug, Clone, LightEnum)]
-pub enum NodeType {
-    Control(Control),
-    Fan(Fan),
-    Temp(Temp),
-    CustomTemp(CustomTemp),
-    Graph(Graph),
-    Flat(Flat),
-    Linear(Linear),
-    Target(Target),
-}
-
-impl NodeType {
-    pub fn name(&self) -> &String {
-        match self {
-            NodeType::Control(control) => &control.name,
-            NodeType::Fan(fan) => &fan.name,
-            NodeType::Temp(temp) => &temp.name,
-            NodeType::CustomTemp(custom_temp) => &custom_temp.name,
-            NodeType::Graph(graph) => &graph.name,
-            NodeType::Flat(flat) => &flat.name,
-            NodeType::Linear(linear) => &linear.name,
-            NodeType::Target(target) => &target.name,
-        }
-    }
-}
-
 impl Node {
     pub fn new(
         id_generator: &mut IdGenerator,
@@ -205,140 +316,115 @@ impl IsValid for Node {
             NodeType::CustomTemp(custom_temp) => custom_temp.is_valid(),
             NodeType::Graph(graph) => graph.is_valid(),
             NodeType::Flat(flat) => flat.is_valid(),
-            NodeType::Linear(linear) => linear.is_valid(),
-            NodeType::Target(target) => target.is_valid(),
+            NodeType::Linear(linear, ..) => linear.is_valid(),
+            NodeType::Target(target, ..) => target.is_valid(),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum NbInput {
-    Zero,
-    One,
-    Infinity,
-}
-
-impl NodeTypeLight {
-    pub fn allowed_dep(&self) -> &'static [NodeTypeLight] {
+impl NodeType {
+    pub fn name(&self) -> &String {
         match self {
-            NodeTypeLight::Control => &[
-                NodeTypeLight::Flat,
-                NodeTypeLight::Graph,
-                NodeTypeLight::Target,
-                NodeTypeLight::Linear,
-            ],
-            NodeTypeLight::Fan => &[],
-            NodeTypeLight::Temp => &[],
-            NodeTypeLight::CustomTemp => &[NodeTypeLight::Temp],
-            NodeTypeLight::Graph => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
-            NodeTypeLight::Flat => &[],
-            NodeTypeLight::Linear => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
-            NodeTypeLight::Target => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeType::Control(control) => &control.name,
+            NodeType::Fan(fan) => &fan.name,
+            NodeType::Temp(temp) => &temp.name,
+            NodeType::CustomTemp(custom_temp) => &custom_temp.name,
+            NodeType::Graph(graph) => &graph.name,
+            NodeType::Flat(flat) => &flat.name,
+            NodeType::Linear(linear, ..) => &linear.name,
+            NodeType::Target(target, ..) => &target.name,
         }
     }
-
-    pub fn max_input(&self) -> NbInput {
+    pub fn set_name(&mut self, name: &str) {
+        let name_cloned = name.to_string();
         match self {
-            NodeTypeLight::Control => NbInput::One,
-            NodeTypeLight::Fan => NbInput::Zero,
-            NodeTypeLight::Temp => NbInput::Zero,
-            NodeTypeLight::CustomTemp => NbInput::Infinity,
-            NodeTypeLight::Graph => NbInput::One,
-            NodeTypeLight::Flat => NbInput::Zero,
-            NodeTypeLight::Linear => NbInput::One,
-            NodeTypeLight::Target => NbInput::One,
+            NodeType::Control(i) => i.name = name_cloned,
+            NodeType::Fan(i) => i.name = name_cloned,
+            NodeType::Temp(i) => i.name = name_cloned,
+            NodeType::CustomTemp(i) => i.name = name_cloned,
+            NodeType::Graph(i) => i.name = name_cloned,
+            NodeType::Flat(i) => i.name = name_cloned,
+            NodeType::Linear(i, ..) => i.name = name_cloned,
+            NodeType::Target(i, ..) => i.name = name_cloned,
         }
     }
-}
 
-pub trait IsValid {
-    fn is_valid(&self) -> bool;
-}
-
-pub trait ToNode {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, hardware: &Hardware) -> Node;
-}
-
-pub trait Inputs {
-    fn clear_inputs(&mut self);
-    fn get_inputs(&self) -> Vec<&String>;
-}
-
-pub fn sanitize_inputs(
-    item: &mut impl Inputs,
-    nodes: &Nodes,
-    node_type: NodeTypeLight,
-) -> Vec<(Id, String)> {
-    let mut inputs = Vec::new();
-
-    match node_type.max_input() {
-        NbInput::Zero => {
-            if !item.get_inputs().is_empty() {
-                eprintln!(
-                    "{:?}: number of dep allowed == {:?}",
-                    node_type,
-                    node_type.max_input()
-                );
-                item.clear_inputs();
-            };
-            return inputs;
-        }
-        NbInput::One => {
-            if item.get_inputs().len() > 1 {
-                eprintln!(
-                    "{:?}: number of dep allowed == {:?}",
-                    node_type,
-                    node_type.max_input()
-                );
-                item.clear_inputs();
-                return inputs;
+    pub fn clear_inputs(&mut self) {
+        match self {
+            NodeType::Control(i) => {
+                i.input.take();
             }
-        }
-        _ => {}
-    };
-
-    for name in item.get_inputs() {
-        if let Some(node) = nodes.values().find(|node| node.name() == name) {
-            if !node_type.allowed_dep().contains(&node.node_type.to_light()) {
-                eprintln!(
-                    "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
-                    node.node_type.to_light(),
-                    name
-                );
-                item.clear_inputs();
-                inputs.clear();
-                return inputs;
+            NodeType::CustomTemp(i) => {
+                i.input.clear();
             }
-            inputs.push((node.id, name.clone()))
-        } else {
-            eprintln!(
-                "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",
-                name
-            );
-            item.clear_inputs();
-            inputs.clear();
-            return inputs;
+            NodeType::Graph(i) => {
+                i.input.take();
+            }
+            NodeType::Linear(i, ..) => {
+                i.input.take();
+            }
+            NodeType::Target(i, ..) => {
+                i.input.take();
+            }
+            NodeType::Fan(_) => {}
+            NodeType::Temp(_) => {}
+            NodeType::Flat(_) => {}
+        };
+    }
+
+    pub fn get_inputs(&self) -> Vec<String> {
+        match self {
+            NodeType::Control(i) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
+            NodeType::Fan(_) => Vec::new(),
+            NodeType::Temp(_) => Vec::new(),
+            NodeType::CustomTemp(i) => i.input.clone(),
+            NodeType::Graph(i) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
+            NodeType::Flat(_) => Vec::new(),
+            NodeType::Linear(i, ..) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
+            NodeType::Target(i, ..) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
         }
     }
 
-    if node_type.max_input() == NbInput::One && inputs.len() > 1 {
-        item.clear_inputs();
-        inputs.clear();
-        return inputs;
+    pub fn set_inputs(&mut self, inputs: Vec<String>) {
+        match self {
+            NodeType::Control(i) => match inputs.get(0) {
+                Some(input) => {
+                    let _ = i.input.insert(input.clone());
+                }
+                None => {
+                    i.input.take();
+                }
+            },
+            NodeType::CustomTemp(i) => {
+                i.input = inputs;
+            }
+            NodeType::Graph(i) => match inputs.get(0) {
+                Some(input) => {
+                    let _ = i.input.insert(input.clone());
+                }
+                None => {
+                    i.input.take();
+                }
+            },
+            NodeType::Linear(i, ..) => match inputs.get(0) {
+                Some(input) => {
+                    let _ = i.input.insert(input.clone());
+                }
+                None => {
+                    i.input.take();
+                }
+            },
+            NodeType::Target(i, ..) => match inputs.get(0) {
+                Some(input) => {
+                    let _ = i.input.insert(input.clone());
+                }
+                None => {
+                    i.input.take();
+                }
+            },
+            NodeType::Fan(_) => {}
+            NodeType::Temp(_) => {}
+            NodeType::Flat(_) => {}
+        };
     }
-    inputs
-}
-
-pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
-    if name.is_empty() {
-        return false;
-    };
-
-    for node in nodes.values() {
-        if node.name() == name && &node.id != id {
-            return false;
-        }
-    }
-
-    true
 }

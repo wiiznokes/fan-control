@@ -186,7 +186,7 @@ fn config1() -> Config {
             min_speed: 10,
             max_temp: 70,
             max_speed: 100,
-            input: Some("temp3".into()),
+            input: Some("temp1".into()),
         }],
         targets: vec![Target {
             name: "Target".into(),

@@ -53,8 +53,8 @@ impl Config {
                 }
                 node::NodeType::Graph(graph) => config.graphs.push(graph.clone()),
                 node::NodeType::Flat(flat) => config.flats.push(flat.clone()),
-                node::NodeType::Linear(linear) => config.linears.push(linear.clone()),
-                node::NodeType::Target(target) => config.targets.push(target.clone()),
+                node::NodeType::Linear(linear, ..) => config.linears.push(linear.clone()),
+                node::NodeType::Target(target, ..) => config.targets.push(target.clone()),
             }
         }
         config

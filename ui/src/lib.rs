@@ -1,29 +1,24 @@
 #![allow(dead_code)]
-#![allow(unused_imports)]
+//#![allow(unused_imports)]
 use std::time::Duration;
 
 use data::{
     config::custom_temp::CustomTempKind,
     id::Id,
-    node::{validate_name, NodeType, NodeTypeLight},
+    node::{validate_name, NodeType},
     AppState,
 };
-use iced::{
-    self, executor, subscription, time,
-    widget::{
-        scrollable::{Direction, Properties},
-        Column, Container, Row, Scrollable,
-    },
-    Application, Command, Element, Length, Subscription,
-};
-use item::{control_view, custom_temp_view, fan_view, temp_view};
-use pick::{IdName, Pick};
-use theme::{CustomContainerStyle, CustomScrollableStyle};
+
+use iced::{self, executor, time, Application, Command, Element};
+use item::{items_view, LinearMsg, TargetMsg};
+use pick::Pick;
+
 use utils::RemoveElem;
 
 #[macro_use]
 extern crate log;
 
+mod input_line;
 mod item;
 mod pick;
 mod theme;
@@ -48,6 +43,9 @@ pub enum AppMsg {
     RemoveInput(Id, Pick<Id>),
     ChangeControlAuto(Id, bool),
     ChangeCustomTempKind(Id, CustomTempKind),
+    ChangeFlatValue(Id, u16),
+    ChangeLinear(Id, LinearMsg),
+    ChangeTarget(Id, TargetMsg),
     Tick,
 }
 
@@ -59,9 +57,6 @@ impl Application for Ui {
 
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let ui_state = Ui { app_state: flags };
-
-        //dbg!(&ui_state.app_state.app_graph);
-
         (ui_state, Command::none())
     }
 
@@ -87,18 +82,36 @@ impl Application for Ui {
                 let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
                 node.name_cached = name.clone();
                 if name_is_valid {
                     node.is_error_name = false;
-                    match &mut node.node_type {
-                        NodeType::Control(i) => i.name = name,
-                        NodeType::Fan(i) => i.name = name,
-                        NodeType::Temp(i) => i.name = name,
-                        NodeType::CustomTemp(i) => i.name = name,
-                        NodeType::Graph(i) => i.name = name,
-                        NodeType::Flat(i) => i.name = name,
-                        NodeType::Linear(i) => i.name = name,
-                        NodeType::Target(i) => i.name = name,
+                    let previous_name = node.name().clone();
+                    node.node_type.set_name(&name);
+
+                    let node_id = node.id;
+                    // find nodes that depend on node.id
+                    // change the name in input and item.input
+
+                    for n in self.app_state.app_graph.nodes.values_mut() {
+                        if let Some(node_input) = n
+                            .inputs
+                            .iter_mut()
+                            .find(|node_input| node_input.0 == node_id)
+                        {
+                            node_input.1 = name.clone();
+                            let mut inputs = n.node_type.get_inputs();
+
+                            match inputs.iter().position(|n| n == &previous_name) {
+                                Some(index) => {
+                                    inputs[index] = name.clone();
+                                    n.node_type.set_inputs(inputs)
+                                }
+                                None => {
+                                    error!("input id found in node inputs but the corresponding name was not found in item input")
+                                }
+                            }
+                        }
                     }
                 } else {
                     node.is_error_name = true;
@@ -159,8 +172,8 @@ impl Application for Ui {
                 match &mut node.node_type {
                     NodeType::Control(i) => i.input = pick.name(),
                     NodeType::Graph(i) => i.input = pick.name(),
-                    NodeType::Linear(i) => i.input = pick.name(),
-                    NodeType::Target(i) => i.input = pick.name(),
+                    NodeType::Linear(i, ..) => i.input = pick.name(),
+                    NodeType::Target(i, ..) => i.input = pick.name(),
                     _ => panic!("node have not exactly one input"),
                 }
             }
@@ -201,68 +214,75 @@ impl Application for Ui {
                 };
                 custom_temp.kind = kind;
             }
+            AppMsg::ChangeFlatValue(id, value) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                let NodeType::Flat(flat) = &mut node.node_type else {
+                    panic!()
+                };
+                flat.value = value;
+            }
+            AppMsg::ChangeLinear(id, linear_msg) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                let NodeType::Linear(linear, linear_cache) = &mut node.node_type else {
+                    panic!()
+                };
+
+                match linear_msg {
+                    LinearMsg::MinTemp(min_temp, cached_value) => {
+                        linear.min_temp = min_temp;
+                        linear_cache.min_temp = cached_value;
+                    }
+                    LinearMsg::MinSpeed(min_speed, cached_value) => {
+                        linear.min_speed = min_speed;
+                        linear_cache.min_speed = cached_value;
+                    }
+                    LinearMsg::MaxTemp(max_temp, cached_value) => {
+                        linear.max_temp = max_temp;
+                        linear_cache.max_temp = cached_value;
+                    }
+                    LinearMsg::MaxSpeed(max_speed, cached_value) => {
+                        linear.max_speed = max_speed;
+                        linear_cache.max_speed = cached_value;
+                    }
+                }
+            }
+            AppMsg::ChangeTarget(id, target_msg) => {
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                let NodeType::Target(target, target_cache) = &mut node.node_type else {
+                    panic!()
+                };
+
+                match target_msg {
+                    TargetMsg::IdleTemp(idle_temp, cached_value) => {
+                        target.idle_temp = idle_temp;
+                        target_cache.idle_temp = cached_value;
+                    }
+                    TargetMsg::IdleSpeed(idle_speed, cached_value) => {
+                        target.idle_speed = idle_speed;
+                        target_cache.idle_speed = cached_value;
+                    }
+                    TargetMsg::LoadTemp(load_temp, cached_value) => {
+                        target.load_temp = load_temp;
+                        target_cache.load_temp = cached_value;
+                    }
+                    TargetMsg::LoadSpeed(load_speed, cached_value) => {
+                        target.load_speed = load_speed;
+                        target_cache.load_speed = cached_value;
+                    }
+                }
+            }
         }
 
         Command::none()
     }
 
-    fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        let mut controls = Vec::new();
-        let mut temps = Vec::new();
-        let mut fans = Vec::new();
-
-        for node in self.app_state.app_graph.nodes.values() {
-            match node.node_type.to_light() {
-                NodeTypeLight::Control => controls.push(control_view(
-                    node,
-                    &self.app_state.app_graph.nodes,
-                    &self.app_state.hardware,
-                )),
-                NodeTypeLight::Fan => fans.push(fan_view(node, &self.app_state.hardware)),
-                NodeTypeLight::Temp => temps.push(temp_view(node, &self.app_state.hardware)),
-                NodeTypeLight::CustomTemp => {
-                    temps.push(custom_temp_view(node, &self.app_state.app_graph.nodes))
-                }
-                NodeTypeLight::Graph => {}
-                NodeTypeLight::Flat => {}
-                NodeTypeLight::Linear => {}
-                NodeTypeLight::Target => {}
-            }
-        }
-
-        let list_views = vec![list_view(controls), list_view(temps), list_view(fans)];
-
-        let content = Row::with_children(list_views).spacing(20).padding(25);
-
-        let container = Container::new(content)
-            .style(iced::theme::Container::Custom(Box::new(
-                CustomContainerStyle::Background,
-            )))
-            .width(Length::Fill)
-            .height(Length::Fill);
-
-        Scrollable::new(container)
-            .direction(Direction::Both {
-                vertical: Properties::default(),
-                horizontal: Properties::default(),
-            })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(iced::theme::Scrollable::Custom(Box::new(
-                CustomScrollableStyle::Background,
-            )))
-            .into()
+    fn view(&self) -> Element<Self::Message> {
+        items_view(&self.app_state.app_graph.nodes, &self.app_state.hardware)
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
         //Subscription::none()
     }
-}
-
-fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
-    Column::with_children(elements)
-        .spacing(20)
-        .padding(25)
-        .into()
 }
