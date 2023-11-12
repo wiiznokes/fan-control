@@ -17,7 +17,9 @@ use iced::{
     },
     Application, Command, Element, Length, Subscription,
 };
-use item::{control_view, custom_temp_view, fan_view, flat_view, temp_view, LinearMsg};
+use item::{
+    control_view, custom_temp_view, fan_view, flat_view, linear_view, temp_view, LinearMsg,
+};
 use pick::{IdName, Pick};
 use theme::{CustomContainerStyle, CustomScrollableStyle};
 use utils::RemoveElem;
@@ -100,7 +102,7 @@ impl Application for Ui {
                         NodeType::CustomTemp(i) => i.name = name,
                         NodeType::Graph(i) => i.name = name,
                         NodeType::Flat(i) => i.name = name,
-                        NodeType::Linear(i) => i.name = name,
+                        NodeType::Linear((i, _)) => i.name = name,
                         NodeType::Target(i) => i.name = name,
                     }
                 } else {
@@ -162,7 +164,7 @@ impl Application for Ui {
                 match &mut node.node_type {
                     NodeType::Control(i) => i.input = pick.name(),
                     NodeType::Graph(i) => i.input = pick.name(),
-                    NodeType::Linear(i) => i.input = pick.name(),
+                    NodeType::Linear((i, _)) => i.input = pick.name(),
                     NodeType::Target(i) => i.input = pick.name(),
                     _ => panic!("node have not exactly one input"),
                 }
@@ -214,20 +216,29 @@ impl Application for Ui {
             }
             AppMsg::ChangeLinear(id, linear_msg) => {
                 let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                let NodeType::Linear(linear) = &mut node.node_type else {
+                let NodeType::Linear((linear, linear_cache)) = &mut node.node_type else {
                     panic!()
                 };
 
                 match linear_msg {
                     LinearMsg::MinTemp(min_temp, cached_value) => {
                         linear.min_temp = min_temp;
-                        linear.min_temp_cached = cached_value;
-                    },
-                    LinearMsg::MinSpeed(_) => todo!(),
-                    LinearMsg::MaxTemp(_) => todo!(),
-                    LinearMsg::MaxSpeed(_) => todo!(),
+                        linear_cache.min_temp = cached_value;
+                    }
+                    LinearMsg::MinSpeed(min_speed, cached_value) => {
+                        linear.min_speed = min_speed;
+                        linear_cache.min_speed = cached_value;
+                    }
+                    LinearMsg::MaxTemp(max_temp, cached_value) => {
+                        linear.max_temp = max_temp;
+                        linear_cache.max_temp = cached_value;
+                    }
+                    LinearMsg::MaxSpeed(max_speed, cached_value) => {
+                        linear.max_speed = max_speed;
+                        linear_cache.max_speed = cached_value;
+                    }
                 }
-            },
+            }
         }
 
         Command::none()
@@ -239,21 +250,18 @@ impl Application for Ui {
         let mut temps = Vec::new();
         let mut fans = Vec::new();
 
+        let nodes = &self.app_state.app_graph.nodes;
+        let hardware = &self.app_state.hardware;
+
         for node in self.app_state.app_graph.nodes.values() {
             match node.node_type.to_light() {
-                NodeTypeLight::Control => controls.push(control_view(
-                    node,
-                    &self.app_state.app_graph.nodes,
-                    &self.app_state.hardware,
-                )),
-                NodeTypeLight::Fan => fans.push(fan_view(node, &self.app_state.hardware)),
-                NodeTypeLight::Temp => temps.push(temp_view(node, &self.app_state.hardware)),
-                NodeTypeLight::CustomTemp => {
-                    temps.push(custom_temp_view(node, &self.app_state.app_graph.nodes))
-                }
+                NodeTypeLight::Control => controls.push(control_view(node, nodes, hardware)),
+                NodeTypeLight::Fan => fans.push(fan_view(node, hardware)),
+                NodeTypeLight::Temp => temps.push(temp_view(node, hardware)),
+                NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, nodes)),
                 NodeTypeLight::Graph => {}
                 NodeTypeLight::Flat => behaviors.push(flat_view(node)),
-                NodeTypeLight::Linear => {}
+                NodeTypeLight::Linear => behaviors.push(linear_view(node, nodes)),
                 NodeTypeLight::Target => {}
             }
         }

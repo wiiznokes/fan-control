@@ -1,23 +1,8 @@
 [[Control]]
-name = "control0"
-input = "flat1"
-auto = false
-
-[[Control]]
 name = "control1"
 input = "linear1"
 id = "control1"
 auto = false
-
-[[Control]]
-name = "control2"
-input = "target1"
-id = "control2"
-auto = false
-
-[[Flat]]
-name = "flat1"
-value = 50
 
 [[Linear]]
 name = "linear1"
@@ -27,7 +12,9 @@ maxTemp = 70
 maxSpeed = 100
 input = "custom_temp"
 
-
+[[Flat]]
+name = "flat1"
+value = 50
 
 [[Target]]
 name = "target1"

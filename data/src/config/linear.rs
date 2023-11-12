@@ -11,7 +11,6 @@ pub struct Linear {
     pub name: String,
     #[serde(rename = "minTemp", alias = "min_temp")]
     pub min_temp: u8,
-    pub min_temp_cached: String,
     #[serde(rename = "minSpeed", alias = "min_speed")]
     pub min_speed: u8,
     #[serde(rename = "maxTemp", alias = "max_temp")]
@@ -19,6 +18,14 @@ pub struct Linear {
     #[serde(rename = "maxSpeed", alias = "max_speed")]
     pub max_speed: u8,
     pub input: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LinearCache {
+    pub min_temp: String,
+    pub min_speed: String,
+    pub max_temp: String,
+    pub max_speed: String,
 }
 
 impl IsValid for Linear {
@@ -47,24 +54,15 @@ struct Affine {
 }
 
 impl Linear {
-    pub fn new(
-        name: String,
-        min_temp: u8,
-         min_speed: u8,
-         max_temp: u8,
-         max_speed: u8,
-         input: Option<String>,
-    ) -> Self {
-        Linear {
-            name,
-            min_temp,
-            min_temp_cached: min_temp.to_string(),
-            min_speed,
-            max_temp,
-            max_speed,
-            input,
+    pub fn cache(&self) -> LinearCache {
+        LinearCache {
+            min_temp: self.min_temp.to_string(),
+            min_speed: self.min_speed.to_string(),
+            max_temp: self.max_temp.to_string(),
+            max_speed: self.max_speed.to_string(),
         }
     }
+
     pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
             return Ok(self.min_speed.into());
@@ -100,7 +98,8 @@ impl ToNode for Linear {
         _hardware: &Hardware,
     ) -> Node {
         let inputs = sanitize_inputs(&mut self, nodes, NodeTypeLight::Linear);
-        Node::new(id_generator, NodeType::Linear(self), inputs)
+        let cache = self.cache();
+        Node::new(id_generator, NodeType::Linear((self, cache)), inputs)
     }
 }
 
@@ -112,14 +111,14 @@ mod test {
     fn test_update() {
         let _ = env_logger::try_init();
 
-        let linear = Linear::new(
-            "Linear".into(),
-            10,
-            10,
-            70,
-            100,
-            Some("temp1".into()),
-        );
+        let linear = Linear {
+            name: "Linear".into(),
+            min_temp: 10,
+            min_speed: 10,
+            max_temp: 70,
+            max_speed: 100,
+            input: Some("temp1".into()),
+        };
 
         assert!(linear.update(9).unwrap() == 10);
         assert!(linear.update(70).unwrap() == 100);

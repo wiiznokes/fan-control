@@ -31,7 +31,7 @@ fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Eleme
     let column = Column::with_children(content).spacing(5);
 
     Container::new(column)
-        .width(Length::Fixed(150.0))
+        .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
         .style(iced::theme::Container::Custom(Box::new(
             CustomContainerStyle::Item,
@@ -170,13 +170,13 @@ pub fn flat_view(node: &Node) -> Element<AppMsg> {
 #[derive(Debug, Clone)]
 pub enum LinearMsg {
     MinTemp(u8, String),
-    MinSpeed(u8),
-    MaxTemp(u8),
-    MaxSpeed(u8),
+    MinSpeed(u8, String),
+    MaxTemp(u8, String),
+    MaxSpeed(u8, String),
 }
 
 pub fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Linear(linear) = &node.node_type else {
+    let NodeType::Linear((linear, linear_cache)) = &node.node_type else {
         panic!()
     };
 
@@ -192,17 +192,39 @@ pub fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> 
         input_line(
             "min temp",
             &linear.min_temp,
-            &linear.min_temp_cached,
+            &linear_cache.min_temp,
             "°C",
             &(0..=255),
-            &|val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MinTemp(val, cached_val)),
+            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MinTemp(val, cached_val)),
+        ),
+        input_line(
+            "min speed",
+            &linear.min_speed,
+            &linear_cache.min_speed,
+            "%",
+            &(0..=100),
+            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MinSpeed(val, cached_val)),
+        ),
+        input_line(
+            "max temp",
+            &linear.max_temp,
+            &linear_cache.max_temp,
+            "°C",
+            &(0..=255),
+            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MaxTemp(val, cached_val)),
+        ),
+        input_line(
+            "max speed",
+            &linear.max_speed,
+            &linear_cache.max_speed,
+            "%",
+            &(0..=100),
+            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MaxSpeed(val, cached_val)),
         ),
     ];
 
     item_view(node, content)
 }
-
-
 
 trait MyFrom<T> {
     fn from(value: T) -> Self;
@@ -214,8 +236,8 @@ impl MyFrom<i32> for u8 {
     }
 }
 
-impl MyFrom<String> for Option<u8> {
-    fn from(value: String) -> Self {
+impl MyFrom<&str> for Option<u8> {
+    fn from(value: &str) -> Self {
         match value.parse::<u8>() {
             Ok(value) => Some(value),
             Err(_) => None,
@@ -223,54 +245,61 @@ impl MyFrom<String> for Option<u8> {
     }
 }
 
-
 fn input_line<'a, V, F>(
     info: &'a str,
     value: &'a V,
     cached_value: &str,
     unit: &'a str,
     range: &'a RangeInclusive<V>,
-    map_value: &'a F,
+    map_value: F,
 ) -> Element<'a, AppMsg>
 where
     V: Add<V, Output = V>,
     V: Sub<V, Output = V>,
     V: MyFrom<i32>,
-    V: PartialOrd + Clone,
-    Option<V>: MyFrom<String>,
-    F: Fn(V, String) -> AppMsg + 'a,
+    V: PartialOrd + Clone + ToString + PartialEq,
+    Option<V>: for<'b> MyFrom<&'b str>,
+    F: 'a + Fn(V, String) -> AppMsg + 'a,
 {
-    let input = TextInput::new("value", cached_value).on_input(|s| {
-        let final_value = if let Some(final_value) = <Option<V> as MyFrom<_>>::from(s.clone()) {
-            if range.contains(&final_value) {
-                value.clone()
-            } else {
-                final_value
-            }
-        } else {
-            value.clone()
+    // `map_value` is moved in `on_input` so we procuce buttons messages before
+    let plus_message = if range.end() > value {
+        let new_value = value.clone() + MyFrom::from(1);
+        let new_cached_value = new_value.to_string();
+        Some(map_value(new_value, new_cached_value))
+    } else {
+        None
+    };
+
+    let sub_message = if range.start() < value {
+        let new_value = value.clone() - MyFrom::from(1);
+        let new_cached_value = new_value.to_string();
+        Some(map_value(new_value, new_cached_value))
+    } else {
+        None
+    };
+
+    let mut input = TextInput::new("value", cached_value).on_input(move |s| {
+        let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
+            Some(value_not_tested) => match range.contains(&value_not_tested) {
+                true => value_not_tested,
+                false => value.clone(),
+            },
+            None => value.clone(),
         };
 
-        map_value(final_value, s.clone())
+        map_value(final_value, s)
     });
 
-    let one: V = MyFrom::from(1);
-
-    let plus_message = if range.contains(&(value.clone() + one.clone())) {
-        Some(map_value(value.clone() + one.clone(), info.into()))
-    } else {
-        None
+    let is_error = match <Option<V> as MyFrom<_>>::from(cached_value) {
+        Some(value_from_string) => value != &value_from_string,
+        None => true,
     };
 
-    let sub_message = if range.contains(&(value.clone() - one.clone())) {
-        Some(map_value(value.clone() - one.clone(), info.into()))
-    } else {
-        None
-    };
-
-    let plus_button = Button::new("+").on_press_maybe(plus_message);
-
-    let sub_button = Button::new("-").on_press_maybe(sub_message);
+    if is_error {
+        input = input.style(iced::theme::TextInput::Custom(Box::new(
+            CustomTextInputStyle::Error,
+        )));
+    }
 
     Row::new()
         .push(Text::new(info))
@@ -279,7 +308,11 @@ where
                 .push(Text::new(":"))
                 .push(input)
                 .push(Text::new(unit))
-                .push(Row::new().push(plus_button).push(sub_button)),
+                .push(
+                    Column::new()
+                        .push(Button::new("+").on_press_maybe(plus_message))
+                        .push(Button::new("-").on_press_maybe(sub_message)),
+                ),
         )
         .into()
 }
