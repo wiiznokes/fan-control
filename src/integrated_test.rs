@@ -11,7 +11,7 @@ use hardware::{hardware_test, HardwareBridge};
 fn test_config() {
     env_logger::init();
 
-    let dir_manager = DirManager::new(Some(PathBuf::from("./config")));
+    let dir_manager = DirManager::new(Some(PathBuf::from("./.config")));
     let settings = dir_manager.init_settings();
 
     let hardware = hardware_test::TestBridge::generate_hardware();

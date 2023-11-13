@@ -7,12 +7,13 @@ use std::{fmt::Debug, rc::Rc};
 #[macro_use]
 extern crate log;
 
-#[cfg(target_os = "linux")]
+#[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
 pub mod linux;
 
-#[cfg(target_os = "windows")]
+#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
 pub mod windows;
 
+#[cfg(feature = "fake_hardware")]
 pub mod hardware_test;
 
 #[derive(Debug, Clone)]

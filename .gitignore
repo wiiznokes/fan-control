@@ -6,11 +6,9 @@ target/
 
 # custom
 
-test/
+.test/
 .idea/
 .vscode/*
 !.vscode/launch.json
-libsensors_build/
-etc/
 bin/
 obj/

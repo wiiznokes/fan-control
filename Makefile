@@ -2,6 +2,9 @@
 run:
 	clear && cargo run
 
+fake:
+	clear && cargo run --features fake_hardware -- -p ./.config
+
 conf:
 	clear && cargo run -- -p ./.config
 
@@ -23,13 +26,13 @@ expand:
 	clear && cargo expand
 
 libsensors:
-	make -C ./libsensors/ install PREFIX=./../libsensors_build ETCDIR=./../etc
+	make -C ./hardware/libsensors/ install PREFIX=./../../target/libsensors_build ETCDIR=./../../target/libsensors_build/etc
 
 clean-libsensors:
-	make -C ./libsensors/ clean uninstall PREFIX=./../libsensors_build ETCDIR=./../etc
+	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../target/libsensors_build ETCDIR=./../../target/libsensors_build/etc
 
 test:
-	clear && cargo test --workspace
+	clear && cargo test --all --all-features
 
 
 .PHONY: clean-libsensors libsensors
