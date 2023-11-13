@@ -10,7 +10,6 @@ members = [
     "data",
     "hardware",
     "ui",
-    #"tray",
 ]
 
 
