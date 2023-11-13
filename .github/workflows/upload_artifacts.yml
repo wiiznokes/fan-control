@@ -6,22 +6,16 @@ permissions:
 jobs:
   upload_linux_artifact:
     runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        rust: [ nightly ]
     steps:
       - uses: hecrj/setup-rust-action@v1
         with:
-          rust-version: nightly
+          rust-version: stable
       - uses: actions/checkout@master
 
-      - name: Clone submodule
-        run: git submodule update --init libsensors
-        
-      - name: Build libsensors
+      - name: Make libsensors
         run: make libsensors
 
-      - name: build release
+      - name: Build release
         run: cargo build --release
         
       - name: Upload Linux artifact
@@ -33,21 +27,18 @@ jobs:
   # TODO: experiment cross compile: linux -> win
   upload_windows_artifact:
     runs-on: "windows-latest"
-    strategy:
-      matrix:
-        rust: [ nightly ]
     steps:
       - uses: hecrj/setup-rust-action@v1
         with:
-          rust-version: nightly
+          rust-version: stable
       - uses: actions/checkout@master
-      - name: build lhm
-        run: |
-          cd LibreHardwareMonitorWrapper
-          dotnet build
-      - name: build release
-        run: |
-          cargo build --release
+
+      - name: Make lhm
+        run: make lmh
+
+      - name: Build release
+        run: cargo build --release
+
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v3.1.2
         with:

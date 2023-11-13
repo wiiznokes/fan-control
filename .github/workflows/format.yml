@@ -16,7 +16,7 @@ jobs:
     environment: dev
     strategy:
       matrix:
-        rust: [ nightly ]
+        rust: [ stable ]
     steps:
       - uses: hecrj/setup-rust-action@v1
         with:
@@ -24,10 +24,7 @@ jobs:
           components: rustfmt, clippy
       - uses: actions/checkout@master
 
-      - name: Clone submodule
-        run: git submodule update --init libsensors
-
-      - name: Build libsensors
+      - name: Make libsensors
         run: make libsensors
 
       - name: cargo format + clippy

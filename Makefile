@@ -26,10 +26,14 @@ expand:
 	clear && cargo expand
 
 libsensors:
+	git submodule update --init hardware/libsensors
 	make -C ./hardware/libsensors/ install PREFIX=./../../target/libsensors_build ETCDIR=./../../target/libsensors_build/etc
 
 clean-libsensors:
 	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../target/libsensors_build ETCDIR=./../../target/libsensors_build/etc
+
+lhm:
+	dotnet build
 
 test:
 	clear && cargo test --all --all-features
