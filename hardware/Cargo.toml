@@ -8,14 +8,14 @@ fake_hardware = ["rand"]
 
 
 [dependencies]
-serde.workspace = true
-serde_json.workspace = true
 log.workspace = true
-
-
 rand = {version = "0.8", optional = true}
 
 [target.'cfg(target_os = "linux")'.dependencies]
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
+serde.workspace = true
+serde_json.workspace = true
+
+
 
 [dev-dependencies]

@@ -6,44 +6,6 @@ use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareIte
 
 pub struct LinuxBridge {}
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum SubFeatureType {
-    PwmIo,
-    PwmEnable,
-    Fan,
-    Temp,
-}
-
-struct InternalSubFeatureRef {
-    sub_feature_type: SubFeatureType,
-    sub_feature_ref: SubFeatureRef<'static>,
-}
-
-impl Debug for InternalSubFeatureRef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("InternalSubFeatureRef")
-            .field("sub_feature_type", &self.sub_feature_type)
-            .finish()
-    }
-}
-#[derive(Debug)]
-struct InternalSensor {
-    sensor: InternalSubFeatureRef,
-}
-
-#[derive(Debug)]
-struct InternalControl {
-    io: InternalSubFeatureRef,
-    enable: InternalSubFeatureRef,
-}
-
-impl Drop for InternalControl {
-    fn drop(&mut self) {
-        info!("pwm sould be set to auto");
-        // TODO: set to auto
-    }
-}
-
 impl HardwareBridge for LinuxBridge {
     fn generate_hardware() -> Hardware {
         let mut hardware = Hardware::default();
@@ -193,6 +155,44 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
                 None => continue,
             };
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum SubFeatureType {
+    PwmIo,
+    PwmEnable,
+    Fan,
+    Temp,
+}
+
+struct InternalSubFeatureRef {
+    sub_feature_type: SubFeatureType,
+    sub_feature_ref: SubFeatureRef<'static>,
+}
+
+impl Debug for InternalSubFeatureRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InternalSubFeatureRef")
+            .field("sub_feature_type", &self.sub_feature_type)
+            .finish()
+    }
+}
+#[derive(Debug)]
+struct InternalSensor {
+    sensor: InternalSubFeatureRef,
+}
+
+#[derive(Debug)]
+struct InternalControl {
+    io: InternalSubFeatureRef,
+    enable: InternalSubFeatureRef,
+}
+
+impl Drop for InternalControl {
+    fn drop(&mut self) {
+        info!("pwm sould be set to auto");
+        // TODO: set to auto
     }
 }
 

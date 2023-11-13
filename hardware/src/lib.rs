@@ -7,10 +7,10 @@ use std::{fmt::Debug, rc::Rc};
 #[macro_use]
 extern crate log;
 
-#[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
 pub mod linux;
 
-#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+#[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
 pub mod windows;
 
 #[cfg(feature = "fake_hardware")]
