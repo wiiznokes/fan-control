@@ -22,14 +22,12 @@ fn main() {
 
     #[cfg(feature = "fake_hardware")]
     let hardware = hardware::hardware_test::TestBridge::generate_hardware();
-    
+
     #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
     let hardware = hardware::linux::LinuxBridge::generate_hardware();
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
     let hardware = hardware::windows::WindowsBridge::generate_hardware();
-    
-    
 
     let hardware_file_path = dir_manager.hardware_file_path();
 

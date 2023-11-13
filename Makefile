@@ -36,7 +36,7 @@ lhm:
 	dotnet build
 
 test:
-	clear && cargo test --all --all-features
+	cargo test --all --all-features
 
 
 .PHONY: clean-libsensors libsensors
