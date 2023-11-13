@@ -1,4 +1,4 @@
-[submodule "libsensors"]
+[submodule "hardware/libsensors"]
 	path = hardware/libsensors
 	url = https://github.com/wiiznokes/libsensors
 	branch = pwm
