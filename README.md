@@ -23,19 +23,7 @@
 
 
 # Build
+See instructions [here](./BUILD.md).
 
-## Linux
-```
-make libsensors
-make release
-```
-## Windows
-```
-todo
-```
-## Dependencies
-
-#### Linux
-```
-sudo apt install make bison flex clang -y
-```
+# Contributing
+Contributions are welcome, do not hesitate to open an issue, a pull request, etc...

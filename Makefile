@@ -33,7 +33,7 @@ clean-libsensors:
 	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../target/libsensors_build ETCDIR=./../../target/libsensors_build/etc
 
 lhm:
-	dotnet build
+	dotnet build ./hardware/LibreHardwareMonitorWrapper/ -c release
 
 test:
 	cargo test --all --all-features
