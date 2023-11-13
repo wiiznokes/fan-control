@@ -20,7 +20,7 @@ use super::linear::Linear;
 use super::target::Target;
 use super::temp::Temp;
 
-const SETTINGS_DIR_PATH: &str = "./test/config/";
+const SETTINGS_DIR_PATH: &str = "./.test/config/";
 
 const SETTINGS_PATH: &str = formatcp!("{SETTINGS_DIR_PATH}settings.toml");
 const HARDWARE_PATH: &str = formatcp!("{SETTINGS_DIR_PATH}hardware.toml");
