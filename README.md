@@ -26,19 +26,16 @@
 
 ## Linux
 ```
-git submodule update --init
 make libsensors
+make release
 ```
 ## Windows
 ```
-dotnet build
+todo
 ```
 ## Dependencies
 
-#### Ubuntu
+#### Linux
 ```
 sudo apt install make bison flex clang -y
 ```
-#### Fedora
-```
-sudo dnf install make bison flex clang -y
