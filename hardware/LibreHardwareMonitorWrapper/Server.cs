@@ -8,10 +8,10 @@ namespace LibreHardwareMonitorWrapper;
 public class Server
 {
     private const string Address = "127.0.0.1";
+    private readonly byte[] _buffer = new byte[1024];
     private readonly Socket _client;
     private readonly Socket _listener;
     private int _port = 55555;
-    private readonly byte[] _buffer = new byte[1024];
 
     public Server()
     {
@@ -25,10 +25,16 @@ public class Server
 
     public void SendHardware(string jsonText)
     {
+        var stringBuilder = new StringBuilder(jsonText);
+        stringBuilder.Append('\n');
+
+        var jsonTextWithLineDelimiter = stringBuilder.ToString();
+
         var stream = new NetworkStream(_client);
-        var bytes = Encoding.UTF8.GetBytes(jsonText);
-        Console.WriteLine("Sending hardware" + jsonText);
+        var bytes = Encoding.UTF8.GetBytes(jsonTextWithLineDelimiter);
+        Console.WriteLine("Sending hardware" + jsonTextWithLineDelimiter);
         stream.Write(bytes);
+        stream.Close();
         Console.WriteLine("Hardware send");
     }
 
@@ -40,7 +46,7 @@ public class Server
             if (!block_read()) return;
             var command = (Command)BitConverter.ToInt32(_buffer, 0);
             Console.WriteLine("Receive command: " + command);
-            
+
             int value;
             int index;
             switch (command)
@@ -100,7 +106,9 @@ public class Server
         try
         {
             var bytesRead = _client.Receive(_buffer);
-            return bytesRead != 0;
+            if (bytesRead != 0) return true;
+            Console.WriteLine("byte read == 0");
+            return false;
         }
         catch (Exception e)
         {

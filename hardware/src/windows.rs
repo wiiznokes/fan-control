@@ -1,8 +1,12 @@
-use std::{io::Read, net::TcpStream, rc::Rc};
+use std::{
+    io::{BufRead, BufReader},
+    net::TcpStream,
+    rc::Rc,
+};
 
 use serde::Deserialize;
 
-use crate::{ControlH, Hardware, HardwareBridge, HardwareItem, Value, HardwareError};
+use crate::{ControlH, Hardware, HardwareBridge, HardwareError, HardwareItem, Value};
 
 pub struct WindowsBridge {}
 
@@ -13,13 +17,13 @@ impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> Hardware {
         let mut hardware = Hardware::default();
 
-        let mut stream = try_connect();
-        println!("Connected to the server!");
+        let stream = try_connect();
 
         let mut data = String::new();
-        stream.read_to_string(&mut data).unwrap();
+        let mut buff_reader = BufReader::new(&stream);
+        buff_reader.read_line(&mut data).unwrap();
         let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data).unwrap();
-        
+
         for base_hardware in base_hardware_list {
             match base_hardware.hardware_type {
                 HardwareType::Control => hardware.controls.push(Rc::new(ControlH {
@@ -56,19 +60,31 @@ impl HardwareBridge for WindowsBridge {
 fn try_connect() -> TcpStream {
     for port in DEFAULT_PORT..65535 {
         match TcpStream::connect((IP, port)) {
-            Ok(stream) => return stream,
+            Ok(stream) => {
+                info!("connected to {}:{}", IP, port);
+                return stream;
+            }
             Err(_) => continue,
         }
     }
     panic!("can't find connection")
 }
 
-
 #[derive(Deserialize, Debug, Clone)]
 enum HardwareType {
     Control = 1,
     Fan = 2,
     Temp = 3,
+}
+
+#[derive(Debug, Clone)]
+enum Command {
+    SetAuto = 1,
+    SetValue = 2,
+
+    // command -> type -> index -> value
+    GetValue = 3,
+    Shutdown = 4,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -82,7 +98,6 @@ struct BaseHardware {
     #[serde(rename = "Type")]
     hardware_type: HardwareType,
 }
-
 
 #[derive(Debug)]
 struct InternalSensor {
@@ -102,9 +117,8 @@ impl Drop for InternalControl {
 }
 
 impl HardwareItem for InternalSensor {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {     
-        println!("get value");
-        return Ok(4);
+    fn get_value(&self) -> Result<Value, crate::HardwareError> {
+        Ok(4)
     }
 
     fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
@@ -131,6 +145,3 @@ impl HardwareItem for InternalControl {
         Ok(())
     }
 }
-
-
-
