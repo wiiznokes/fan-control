@@ -14,22 +14,26 @@ members = [
 ]
 
 
+[features]
+fake_hardware = [
+    "hardware/fake_hardware"
+]
+
+
 [dependencies]
 data.workspace = true
-hardware.workspace = true
 ui.workspace = true
 clap.workspace = true
 log.workspace = true
 env_logger.workspace = true
+hardware.workspace = true
 
 [dev-dependencies]
 
-
 [workspace.dependencies]
-fan-control = { version = "0.1", path = "." }
-data = { version = "0.1", path = "data" }
-hardware = { version = "0.1", path = "hardware" }
-ui = { version = "0.1", path = "ui" }
+hardware = { path = "hardware" }
+data = { path = "data" }
+ui = { path = "ui" }
 clap = { version = "4.3", features = ["derive"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"

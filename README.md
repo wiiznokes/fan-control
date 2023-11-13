@@ -6,7 +6,7 @@
 
 
 # Steps
-- [ ] finish hardware crate (windows, api, test feature)
+- [ ] finish hardware crate (windows, api)
 - [ ] impl UI for managing configs
 - [ ] impl UI for removing/adding nodes
 - [ ] package Msi, Deb, Rpm, Snap, Flatpak [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
