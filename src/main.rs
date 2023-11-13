@@ -21,7 +21,7 @@ fn main() {
     let settings = dir_manager.init_settings();
 
     #[cfg(feature = "fake_hardware")]
-    let hardware = hardware::hardware_test::TestBridge::generate_hardware();
+    let hardware = hardware::fake_hardware::FakeHardwareBridge::generate_hardware();
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
     let hardware = hardware::linux::LinuxBridge::generate_hardware();

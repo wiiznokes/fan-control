@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::{ControlH, Hardware, HardwareBridge, HardwareError, HardwareItem, TempH, Value};
 
-pub struct TestBridge {}
+pub struct FakeHardwareBridge {}
 
 #[derive(Debug)]
 struct InternalSensor {}
@@ -12,7 +12,7 @@ struct InternalSensor {}
 #[derive(Debug)]
 struct InternalControl {}
 
-impl HardwareBridge for TestBridge {
+impl HardwareBridge for FakeHardwareBridge {
     fn generate_hardware() -> Hardware {
         let mut hardware = Hardware::default();
 

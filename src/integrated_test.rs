@@ -5,7 +5,7 @@ use std::time::Duration;
 use data::directories::DirManager;
 
 use data::{config::Config, node::AppGraph, update::Update, AppState};
-use hardware::{hardware_test, HardwareBridge};
+use hardware::{fake_hardware, HardwareBridge};
 
 #[test]
 fn test_config() {
@@ -14,7 +14,7 @@ fn test_config() {
     let dir_manager = DirManager::new(Some(PathBuf::from("./.config")));
     let settings = dir_manager.init_settings();
 
-    let hardware = hardware_test::TestBridge::generate_hardware();
+    let hardware = fake_hardware::FakeHardwareBridge::generate_hardware();
     DirManager::serialize(&dir_manager.hardware_file_path(), &hardware).unwrap();
 
     let config = DirManager::deserialize::<Config>(

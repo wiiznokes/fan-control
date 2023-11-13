@@ -14,7 +14,7 @@ pub mod linux;
 pub mod windows;
 
 #[cfg(feature = "fake_hardware")]
-pub mod hardware_test;
+pub mod fake_hardware;
 
 #[derive(Debug, Clone)]
 pub enum HardwareError {
