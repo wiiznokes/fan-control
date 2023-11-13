@@ -2,13 +2,6 @@
 
 namespace LibreHardwareMonitorWrapper;
 
-public enum HardwareType
-{
-    Control,
-    Fan,
-    Temp
-}
-
 public static class State
 {
     public static readonly List<Control> Controls = new();

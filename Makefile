@@ -35,6 +35,9 @@ clean-libsensors:
 lhm:
 	dotnet build ./hardware/LibreHardwareMonitorWrapper/ -c release
 
+run-lhm:
+	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c release
+
 test:
 	cargo test --all --all-features
 

@@ -7,7 +7,8 @@ public class Control : BaseHardware
     private readonly ISensor _mSensor;
     private bool _isSetSpeed;
 
-    public Control(string id, string name, ISensor sensor, int index) : base(id, name, index, HardwareType.Control)
+    public Control(string id, string name, string info, ISensor sensor, int index) : base(id, name, info, index,
+        HardwareType.Control)
     {
         _mSensor = sensor;
     }

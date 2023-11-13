@@ -17,10 +17,10 @@ var serializerOptions = new JsonSerializerOptions
 
 var jsonText = JsonSerializer.Serialize(hardwareList, serializerOptions);
 
-
 var server = new Server();
 
 server.SendHardware(jsonText);
 
+server.WaitForCommand();
 
 server.Shutdown();

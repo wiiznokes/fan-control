@@ -9,27 +9,6 @@ pub struct WindowsBridge {}
 const IP: &str = "127.0.0.1";
 const DEFAULT_PORT: u16 = 55555;
 
-#[derive(Deserialize, Debug, Clone)]
-enum HardwareType {
-    Control,
-    Fan,
-    Temp,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-struct BaseHardware {
-    #[serde(rename = "Id")]
-    id: String,
-    #[serde(rename = "Name")]
-    name: String,
-    #[serde(rename = "Index")]
-    index: usize,
-    #[serde(rename = "Index2")]
-    index2: usize,
-    #[serde(rename = "Type")]
-    hardware_type: HardwareType,
-}
-
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> Hardware {
         let mut hardware = Hardware::default();
@@ -48,8 +27,7 @@ impl HardwareBridge for WindowsBridge {
                     hardware_id: base_hardware.id,
                     info: String::new(),
                     bridge: Box::new(InternalControl {
-                        io: base_hardware.index,
-                        enable: base_hardware.index2,
+                        index: base_hardware.index,
                     }),
                 })),
                 HardwareType::Fan => hardware.controls.push(Rc::new(ControlH {
@@ -86,6 +64,26 @@ fn try_connect() -> TcpStream {
 }
 
 
+#[derive(Deserialize, Debug, Clone)]
+enum HardwareType {
+    Control = 1,
+    Fan = 2,
+    Temp = 3,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct BaseHardware {
+    #[serde(rename = "Id")]
+    id: String,
+    #[serde(rename = "Name")]
+    name: String,
+    #[serde(rename = "Index")]
+    index: usize,
+    #[serde(rename = "Type")]
+    hardware_type: HardwareType,
+}
+
+
 #[derive(Debug)]
 struct InternalSensor {
     index: usize,
@@ -93,8 +91,7 @@ struct InternalSensor {
 
 #[derive(Debug)]
 struct InternalControl {
-    io: usize,
-    enable: usize,
+    index: usize,
 }
 
 impl Drop for InternalControl {
@@ -134,3 +131,6 @@ impl HardwareItem for InternalControl {
         Ok(())
     }
 }
+
+
+

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using LibreHardwareMonitorWrapper.Hardware;
 
 namespace LibreHardwareMonitorWrapper;
 
@@ -10,6 +11,7 @@ public class Server
     private readonly Socket _client;
     private readonly Socket _listener;
     private int _port = 55555;
+    private readonly byte[] _buffer = new byte[1024];
 
     public Server()
     {
@@ -25,31 +27,87 @@ public class Server
     {
         var stream = new NetworkStream(_client);
         var bytes = Encoding.UTF8.GetBytes(jsonText);
+        Console.WriteLine("Sending hardware" + jsonText);
         stream.Write(bytes);
+        Console.WriteLine("Hardware send");
     }
 
     public void WaitForCommand()
     {
-        var buffer = new byte[1024];
-        var bytesRead = _client.Receive(buffer);
+        while (true)
+        {
+            Console.WriteLine("waiting for commands");
+            if (!block_read()) return;
+            var command = (Command)BitConverter.ToInt32(_buffer, 0);
+            Console.WriteLine("Receive command: " + command);
+            
+            int value;
+            int index;
+            switch (command)
+            {
+                case Command.SetAuto:
+                    if (!block_read()) return;
+                    index = BitConverter.ToInt32(_buffer, 0);
+                    State.Controls[index].SetAuto();
+                    break;
+                case Command.SetValue:
+                    if (!block_read()) return;
+                    index = BitConverter.ToInt32(_buffer, 0);
+                    if (!block_read()) return;
+                    value = BitConverter.ToInt32(_buffer, 0);
+                    State.Controls[index].SetSpeed(value);
+                    break;
+                case Command.GetValue:
+                    if (!block_read()) return;
+                    index = BitConverter.ToInt32(_buffer, 0);
+                    if (!block_read()) return;
+                    var type = (HardwareType)BitConverter.ToInt32(_buffer, 0);
 
-        var message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-        Console.WriteLine("Received: " + message);
+                    value = type switch
+                    {
+                        HardwareType.Fan => State.Fans[index].Value(),
+                        HardwareType.Temp => State.Temps[index].Value(),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
 
-        // var responseBuffer = Encoding.ASCII.GetBytes("Hello from C#");
-        var responseBuffer = "Hello from C#"u8.ToArray();
-        _client.Send(responseBuffer);
+                    var bytes = BitConverter.GetBytes(value);
+                    if (!block_send(bytes)) return;
+                    break;
+                case Command.Shutdown:
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 
-    public void JustWait()
+    private bool block_send(byte[] bytes)
     {
-        var buffer = new byte[1024];
-        var bytesRead = _client.Receive(buffer);
-
-        var message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-        Console.WriteLine("Received: " + message);
+        try
+        {
+            var bytesSend = _client.Send(bytes);
+            return bytesSend != 0;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 
+    private bool block_read()
+    {
+        try
+        {
+            var bytesRead = _client.Receive(_buffer);
+            return bytesRead != 0;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
+    }
 
     private void BindPort()
     {

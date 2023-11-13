@@ -82,6 +82,9 @@ public class Lhm : IVisitor
             }
         }
 
+        Console.WriteLine("nbControl: " + nbControl);
+        Console.WriteLine("nbFan: " + nbFan);
+        Console.WriteLine("nbTemp: " + nbTemp);
         return;
 
         void AddHardware(ISensor sensor)
@@ -96,17 +99,17 @@ public class Lhm : IVisitor
             {
                 case SensorType.Control:
                     id ??= SensorType.Control.ToString() + nbControl;
-                    State.Controls.Add(new Control(id, name, sensor, nbControl));
+                    State.Controls.Add(new Control(id, name, name, sensor, nbControl));
                     nbControl += 1;
                     break;
                 case SensorType.Fan:
-                    id ??= SensorType.Control.ToString() + nbFan;
-                    State.Fans.Add(new Sensor(id, name, sensor, nbFan, HardwareType.Fan));
+                    id ??= SensorType.Fan.ToString() + nbFan;
+                    State.Fans.Add(new Sensor(id, name, name, sensor, nbFan, HardwareType.Fan));
                     nbFan += 1;
                     break;
                 case SensorType.Temperature:
-                    id ??= SensorType.Control.ToString() + nbTemp;
-                    State.Temps.Add(new Sensor(id, name, sensor, nbTemp, HardwareType.Temp));
+                    id ??= SensorType.Temperature.ToString() + nbTemp;
+                    State.Temps.Add(new Sensor(id, name, name, sensor, nbTemp, HardwareType.Temp));
                     nbTemp += 1;
                     break;
 
