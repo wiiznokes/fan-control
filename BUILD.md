@@ -6,12 +6,12 @@ This will depend on the host platform
 ```
 sudo apt install make bison flex clang -y
 make libsensors
-make release
+cargo run --release
 ```
 ### Build Windows on Windows
 1. install [dotnet 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 2. run these commands
     ```
     make lhm
-    make release
+    cargo run --release
     ```
