@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{Hardware, TempH, Value};
+use hardware::{Hardware, HardwareBridgeT, TempH, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -20,9 +20,11 @@ pub struct Temp {
 }
 
 impl Temp {
-    pub fn get_value(&self) -> Result<Value, UpdateError> {
+    pub fn get_value(&self, bridge: &mut HardwareBridgeT) -> Result<Value, UpdateError> {
         match &self.temp_h {
-            Some(temp_h) => temp_h.bridge.get_value().map_err(UpdateError::Hardware),
+            Some(temp_h) => bridge
+                .get_value(&temp_h.internal_index)
+                .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }

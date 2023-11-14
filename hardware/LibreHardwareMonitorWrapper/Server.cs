@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using LibreHardwareMonitorWrapper.Hardware;
 
 namespace LibreHardwareMonitorWrapper;
 
@@ -32,7 +31,7 @@ public class Server
 
         var stream = new NetworkStream(_client);
         var bytes = Encoding.UTF8.GetBytes(jsonTextWithLineDelimiter);
-        Console.WriteLine("Sending hardware" + jsonTextWithLineDelimiter);
+        Console.WriteLine("Sending hardware");
         stream.Write(bytes);
         stream.Close();
         Console.WriteLine("Hardware send");
@@ -43,8 +42,10 @@ public class Server
         while (true)
         {
             Console.WriteLine("waiting for commands");
-            if (!block_read()) return;
-            var command = (Command)BitConverter.ToInt32(_buffer, 0);
+            var res = block_read();
+            if (res < 0) return;
+
+            var command = (Command)res;
             Console.WriteLine("Receive command: " + command);
 
             int value;
@@ -52,30 +53,21 @@ public class Server
             switch (command)
             {
                 case Command.SetAuto:
-                    if (!block_read()) return;
-                    index = BitConverter.ToInt32(_buffer, 0);
-                    State.Controls[index].SetAuto();
+                    index = block_read();
+                    if (index < 0) return;
+                    HardwareManager.SetAuto(index);
                     break;
                 case Command.SetValue:
-                    if (!block_read()) return;
-                    index = BitConverter.ToInt32(_buffer, 0);
-                    if (!block_read()) return;
-                    value = BitConverter.ToInt32(_buffer, 0);
-                    State.Controls[index].SetSpeed(value);
+                    index = block_read();
+                    if (index < 0) return;
+                    value = block_read();
+                    if (value < 0) return;
+                    HardwareManager.SetValue(index, value);
                     break;
                 case Command.GetValue:
-                    if (!block_read()) return;
-                    index = BitConverter.ToInt32(_buffer, 0);
-                    if (!block_read()) return;
-                    var type = (HardwareType)BitConverter.ToInt32(_buffer, 0);
-
-                    value = type switch
-                    {
-                        HardwareType.Fan => State.Fans[index].Value(),
-                        HardwareType.Temp => State.Temps[index].Value(),
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-
+                    index = block_read();
+                    if (index < 0) return;
+                    value = HardwareManager.GetValue(index);
                     var bytes = BitConverter.GetBytes(value);
                     if (!block_send(bytes)) return;
                     break;
@@ -101,19 +93,20 @@ public class Server
         }
     }
 
-    private bool block_read()
+    // return -1 if error
+    private int block_read()
     {
         try
         {
             var bytesRead = _client.Receive(_buffer);
-            if (bytesRead != 0) return true;
+            if (bytesRead != 0) return BitConverter.ToInt32(_buffer, 0);
             Console.WriteLine("byte read == 0");
-            return false;
+            return -1;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return false;
+            return -1;
         }
     }
 

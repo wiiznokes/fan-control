@@ -1,6 +1,6 @@
 using LibreHardwareMonitor.Hardware;
 
-namespace LibreHardwareMonitorWrapper.Hardware;
+namespace LibreHardwareMonitorWrapper.Lhm;
 
 public class Sensor : BaseHardware
 {

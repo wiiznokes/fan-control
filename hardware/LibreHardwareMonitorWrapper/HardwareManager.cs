@@ -1,48 +1,52 @@
 ﻿using LibreHardwareMonitorWrapper.Hardware;
+using LibreHardwareMonitorWrapper.Lhm;
 
 namespace LibreHardwareMonitorWrapper;
 
 public static class HardwareManager
 {
-    private static readonly Lhm Lhm = new();
+    private static readonly HardwareResearcher HardwareResearcher = new();
 
 
     public static void Start()
     {
-        Lhm.Start();
-        Lhm.CreateHardware();
+        HardwareResearcher.Start();
+        HardwareResearcher.CreateHardware();
     }
 
-    public static int GetValue(HardwareType type, int index)
+    public static int GetValue(int index)
     {
-        Lhm.Update();
-        return type switch
+        HardwareResearcher.Update();
+        var hardware = State.Hardwares[index];
+        return hardware.Type switch
         {
-            HardwareType.Control => State.Controls[index].Value(),
-            HardwareType.Fan => State.Fans[index].Value(),
-            HardwareType.Temp => State.Temps[index].Value(),
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            HardwareType.Control => (hardware as Control)!.Value(),
+            HardwareType.Fan => (hardware as Sensor)!.Value(),
+            HardwareType.Temp => (hardware as Sensor)!.Value(),
+            _ => throw new ArgumentOutOfRangeException()
         };
     }
 
     public static void SetValue(int index, int value)
     {
-        State.Controls[index].SetSpeed(value);
+        var control = State.Hardwares[index] as Control;
+        control!.SetSpeed(value);
     }
 
     public static void SetAuto(int index)
     {
-        State.Controls[index].SetAuto();
+        var control = State.Hardwares[index] as Control;
+        control!.SetAuto();
     }
 
     public static void Stop()
     {
-        Lhm.Stop();
+        HardwareResearcher.Stop();
     }
 
 
     public static void Update()
     {
-        Lhm.Update();
+        HardwareResearcher.Update();
     }
 }

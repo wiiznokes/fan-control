@@ -23,9 +23,15 @@ pub enum HardwareError {
 }
 
 pub type Value = i32;
-
+pub type HardwareBridgeT = Box<dyn HardwareBridge>;
 pub trait HardwareBridge {
-    fn generate_hardware() -> Hardware;
+    fn generate_hardware() -> (Hardware, HardwareBridgeT)
+    where
+        Self: Sized;
+
+    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError>;
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,14 +39,6 @@ pub enum HardwareType {
     Control,
     Fan,
     Temp,
-}
-
-pub trait HardwareItem: Debug {
-    fn get_value(&self) -> Result<Value, HardwareError>;
-
-    fn set_value(&self, value: Value) -> Result<(), HardwareError>;
-
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError>;
 }
 
 #[derive(Debug, Clone)]
@@ -59,7 +57,7 @@ pub struct ControlH {
     pub info: String,
 
     #[serde(skip)]
-    pub bridge: Box<dyn HardwareItem>,
+    pub internal_index: InternalControlIndex,
 }
 
 #[derive(Serialize, Debug)]
@@ -72,7 +70,7 @@ pub struct FanH {
     pub info: String,
 
     #[serde(skip)]
-    pub bridge: Box<dyn HardwareItem>,
+    pub internal_index: usize,
 }
 
 #[derive(Serialize, Debug)]
@@ -84,7 +82,7 @@ pub struct TempH {
     pub info: String,
 
     #[serde(skip)]
-    pub bridge: Box<dyn HardwareItem>,
+    pub internal_index: usize,
 }
 
 #[derive(Serialize, Debug, Clone, Default)]

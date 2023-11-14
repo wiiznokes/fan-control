@@ -70,6 +70,7 @@ impl Application for Ui {
                 match self.app_state.update.graph(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
+                    &mut self.app_state.bridge,
                 ) {
                     Ok(_) => {}
                     Err(e) => {

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{ControlH, Hardware, Value};
+use hardware::{ControlH, Hardware, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -42,26 +42,32 @@ impl Control {
         }
     }
 
-    pub fn set_value(&mut self, value: Value) -> Result<Value, UpdateError> {
+    pub fn set_value(
+        &mut self,
+        value: Value,
+        bridge: &mut HardwareBridgeT,
+    ) -> Result<Value, UpdateError> {
         if !self.manual_has_been_set {
-            self.set_mode(false)?;
+            self.set_mode(false, bridge)?;
         }
 
         match &self.control_h {
-            Some(control_h) => control_h
-                .bridge
-                .set_value(value)
+            Some(control_h) => bridge
+                .set_value(&control_h.internal_index.io, value)
                 .map(|_| value)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }
 
-    pub fn set_mode(&mut self, auto: bool) -> Result<(), UpdateError> {
+    pub fn set_mode(
+        &mut self,
+        auto: bool,
+        bridge: &mut HardwareBridgeT,
+    ) -> Result<(), UpdateError> {
         let res = match &self.control_h {
-            Some(control_h) => control_h
-                .bridge
-                .set_mode(!auto as i32)
+            Some(control_h) => bridge
+                .set_mode(&control_h.internal_index.enable, !auto as i32)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         };

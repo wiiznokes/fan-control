@@ -10,6 +10,7 @@ fake_hardware = ["rand"]
 [dependencies]
 log.workspace = true
 rand = {version = "0.8", optional = true}
+ouroboros = "0.18"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }

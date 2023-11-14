@@ -1,27 +1,32 @@
 use std::{
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read, Write},
     net::TcpStream,
     rc::Rc,
 };
 
 use serde::Deserialize;
 
-use crate::{ControlH, Hardware, HardwareBridge, HardwareError, HardwareItem, Value};
+use crate::{
+    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, InternalControlIndex,
+    TempH, Value,
+};
 
-pub struct WindowsBridge {}
+pub struct WindowsBridge {
+    pub stream: TcpStream,
+}
 
 const IP: &str = "127.0.0.1";
 const DEFAULT_PORT: u16 = 55555;
 
 impl HardwareBridge for WindowsBridge {
-    fn generate_hardware() -> Hardware {
+    fn generate_hardware() -> (Hardware, HardwareBridgeT) {
         let mut hardware = Hardware::default();
 
         let stream = try_connect();
 
         let mut data = String::new();
-        let mut buff_reader = BufReader::new(&stream);
-        buff_reader.read_line(&mut data).unwrap();
+        let mut buf_reader = BufReader::new(&stream);
+        buf_reader.read_line(&mut data).unwrap();
         let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data).unwrap();
 
         for base_hardware in base_hardware_list {
@@ -30,30 +35,48 @@ impl HardwareBridge for WindowsBridge {
                     name: base_hardware.name,
                     hardware_id: base_hardware.id,
                     info: String::new(),
-                    bridge: Box::new(InternalControl {
-                        index: base_hardware.index,
-                    }),
+                    internal_index: InternalControlIndex {
+                        io: base_hardware.index,
+                        enable: base_hardware.index,
+                    },
                 })),
-                HardwareType::Fan => hardware.controls.push(Rc::new(ControlH {
+                HardwareType::Fan => hardware.fans.push(Rc::new(FanH {
                     name: base_hardware.name,
                     hardware_id: base_hardware.id,
                     info: String::new(),
-                    bridge: Box::new(InternalSensor {
-                        index: base_hardware.index,
-                    }),
+                    internal_index: base_hardware.index,
                 })),
-                HardwareType::Temp => hardware.controls.push(Rc::new(ControlH {
+                HardwareType::Temp => hardware.temps.push(Rc::new(TempH {
                     name: base_hardware.name,
                     hardware_id: base_hardware.id,
                     info: String::new(),
-                    bridge: Box::new(InternalSensor {
-                        index: base_hardware.index,
-                    }),
+                    internal_index: base_hardware.index,
                 })),
             }
         }
 
-        hardware
+        let windows_bridge = WindowsBridge { stream };
+
+        (hardware, Box::new(windows_bridge))
+    }
+
+    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
+        let command: &[u8; 4] = &From::from(Command::GetValue);
+        self.stream.write_all(command).unwrap();
+
+        let mut buf = [0u8; 4];
+        self.stream.read_exact(&mut buf).unwrap();
+
+        let i32 = I32::from(buf);
+        Ok(i32.0)
+    }
+
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        todo!()
+    }
+
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        todo!()
     }
 }
 
@@ -78,6 +101,7 @@ enum HardwareType {
 }
 
 #[derive(Debug, Clone)]
+#[repr(i32)]
 enum Command {
     SetAuto = 1,
     SetValue = 2,
@@ -85,6 +109,31 @@ enum Command {
     // command -> type -> index -> value
     GetValue = 3,
     Shutdown = 4,
+}
+
+impl From<Command> for [u8; 4] {
+    #[inline]
+    fn from(command: Command) -> Self {
+        let command_value = command as u32;
+        if is_little_endian() {
+            command_value.to_le_bytes()
+        } else {
+            command_value.to_be_bytes()
+        }
+    }
+}
+
+struct I32(i32);
+
+impl From<[u8; 4]> for I32 {
+    #[inline]
+    fn from(bytes: [u8; 4]) -> Self {
+        if is_little_endian() {
+            I32(i32::from_le_bytes(bytes))
+        } else {
+            I32(i32::from_be_bytes(bytes))
+        }
+    }
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -116,32 +165,14 @@ impl Drop for InternalControl {
     }
 }
 
-impl HardwareItem for InternalSensor {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {
-        Ok(4)
-    }
+#[inline]
+fn is_little_endian() -> bool {
+    let test_value: u16 = 1;
+    let test_ptr: *const u16 = &test_value;
 
-    fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        panic!("can't set the value of a sensor");
-    }
+    // Read the first byte of the u16 through the pointer
+    let byte = unsafe { *test_ptr as u8 };
 
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        panic!("can't set the mode of a sensor");
-    }
-}
-
-impl HardwareItem for InternalControl {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {
-        panic!("can't get the value of a control");
-    }
-
-    fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        debug!("set value {} to a control", value);
-        Ok(())
-    }
-
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        debug!("set mode {} to a control", value);
-        Ok(())
-    }
+    // If the byte is 1, the system is little-endian; otherwise, it's big-endian
+    byte == 1
 }
