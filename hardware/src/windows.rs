@@ -61,11 +61,20 @@ impl HardwareBridge for WindowsBridge {
     }
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
+        
+        info!("send command: {:?}", Command::GetValue);
+
         let command: &[u8; 4] = &From::from(Command::GetValue);
         self.stream.write_all(command).unwrap();
 
+        info!("send index: {}", internal_index);
+        let index: &[u8; 4] = &From::from(I32(*internal_index));
+        self.stream.write_all(index).unwrap();
+
+        info!("read value ...");
         let mut buf = [0u8; 4];
         self.stream.read_exact(&mut buf).unwrap();
+        info!("read value!");
 
         let i32 = I32::from(buf);
         Ok(i32.0)
@@ -123,15 +132,27 @@ impl From<Command> for [u8; 4] {
     }
 }
 
-struct I32(i32);
+struct I32<T>(T);
 
-impl From<[u8; 4]> for I32 {
+impl From<[u8; 4]> for I32<i32> {
     #[inline]
     fn from(bytes: [u8; 4]) -> Self {
         if is_little_endian() {
             I32(i32::from_le_bytes(bytes))
         } else {
             I32(i32::from_be_bytes(bytes))
+        }
+    }
+}
+
+impl From<I32<usize>> for [u8; 4] {
+    #[inline]
+    fn from(number: I32<usize>) -> Self {
+        let index = number.0 as i32;
+        if is_little_endian() {
+            index.to_le_bytes()
+        } else {
+            index.to_be_bytes()
         }
     }
 }

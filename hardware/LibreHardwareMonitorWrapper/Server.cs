@@ -7,7 +7,7 @@ namespace LibreHardwareMonitorWrapper;
 public class Server
 {
     private const string Address = "127.0.0.1";
-    private readonly byte[] _buffer = new byte[1024];
+    private readonly byte[] _buffer = new byte[4];
     private readonly Socket _client;
     private readonly Socket _listener;
     private int _port = 55555;
@@ -67,9 +67,12 @@ public class Server
                 case Command.GetValue:
                     index = block_read();
                     if (index < 0) return;
+                    Console.WriteLine("Receive index: " + index);
                     value = HardwareManager.GetValue(index);
                     var bytes = BitConverter.GetBytes(value);
+                    Console.WriteLine("sending value: " + value);
                     if (!block_send(bytes)) return;
+                    Console.WriteLine("value send");
                     break;
                 case Command.Shutdown:
                     return;
@@ -99,8 +102,8 @@ public class Server
         try
         {
             var bytesRead = _client.Receive(_buffer);
-            if (bytesRead != 0) return BitConverter.ToInt32(_buffer, 0);
-            Console.WriteLine("byte read == 0");
+            if (bytesRead == 4) return BitConverter.ToInt32(_buffer, 0);
+            Console.WriteLine("byte read = " + bytesRead);
             return -1;
         }
         catch (Exception e)
