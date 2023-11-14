@@ -1,0 +1,32 @@
+[[Control]]
+name = "control1"
+input = "linear1"
+auto = false
+
+[[Linear]]
+name = "linear1"
+minTemp = 10
+minSpeed = 10
+maxTemp = 70
+maxSpeed = 100
+input = "custom_temp"
+
+[[CustomTemp]]
+name = "custom_temp"
+kind = "Average"
+input = [
+    "temp1",
+    "temp2",
+]
+
+
+
+
+
+[[Temp]]
+name = "temp1"
+id = "/intelcpu/0/temperature/1"
+
+[[Temp]]
+name = "temp2"
+id = "/intelcpu/0/temperature/2"

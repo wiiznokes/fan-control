@@ -13,7 +13,7 @@ pub mod node;
 pub mod settings;
 pub mod update;
 
-use hardware::{Hardware, HardwareBridge};
+use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
 use node::AppGraph;
 use update::Update;
 
@@ -25,6 +25,7 @@ pub struct AppState {
     pub dir_manager: DirManager,
     pub settings: Settings,
     pub hardware: Hardware,
+    pub bridge: HardwareBridgeT,
     pub app_graph: AppGraph,
     pub update: Update,
 }

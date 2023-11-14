@@ -1,8 +1,9 @@
 ﻿using LibreHardwareMonitor.Hardware;
+using LibreHardwareMonitorWrapper.Hardware;
 
-namespace LibreHardwareMonitorWrapper.Hardware;
+namespace LibreHardwareMonitorWrapper.Lhm;
 
-public class Lhm : IVisitor
+public class HardwareResearcher : IVisitor
 {
     private readonly Computer _mComputer = new()
     {
@@ -66,6 +67,7 @@ public class Lhm : IVisitor
         var nbControl = 0;
         var nbFan = 0;
         var nbTemp = 0;
+        var nbTot = 0;
 
 
         var hardwareArray = _mComputer.Hardware;
@@ -82,6 +84,9 @@ public class Lhm : IVisitor
             }
         }
 
+        Console.WriteLine("nbControl: " + nbControl);
+        Console.WriteLine("nbFan: " + nbFan);
+        Console.WriteLine("nbTemp: " + nbTemp);
         return;
 
         void AddHardware(ISensor sensor)
@@ -96,22 +101,24 @@ public class Lhm : IVisitor
             {
                 case SensorType.Control:
                     id ??= SensorType.Control.ToString() + nbControl;
-                    State.Controls.Add(new Control(id, name, sensor, nbControl));
+                    State.Hardwares.Add(new Control(id, name, name, sensor, nbTot));
                     nbControl += 1;
                     break;
                 case SensorType.Fan:
-                    id ??= SensorType.Control.ToString() + nbFan;
-                    State.Fans.Add(new Sensor(id, name, sensor, nbFan, HardwareType.Fan));
+                    id ??= SensorType.Fan.ToString() + nbFan;
+                    State.Hardwares.Add(new Sensor(id, name, name, sensor, nbTot, HardwareType.Fan));
                     nbFan += 1;
                     break;
                 case SensorType.Temperature:
-                    id ??= SensorType.Control.ToString() + nbTemp;
-                    State.Temps.Add(new Sensor(id, name, sensor, nbTemp, HardwareType.Temp));
+                    id ??= SensorType.Temperature.ToString() + nbTemp;
+                    State.Hardwares.Add(new Sensor(id, name, name, sensor, nbTot, HardwareType.Temp));
                     nbTemp += 1;
                     break;
 
                 default: throw new Exception("wrong sensor type");
             }
+
+            nbTot += 1;
         }
     }
 

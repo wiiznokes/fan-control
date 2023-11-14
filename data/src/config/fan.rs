@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{FanH, Hardware, Value};
+use hardware::{FanH, Hardware, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -20,9 +20,11 @@ pub struct Fan {
 }
 
 impl Fan {
-    pub fn get_value(&self) -> Result<Value, UpdateError> {
+    pub fn get_value(&self, bridge: &mut HardwareBridgeT) -> Result<Value, UpdateError> {
         match &self.fan_h {
-            Some(fan_h) => fan_h.bridge.get_value().map_err(UpdateError::Hardware),
+            Some(fan_h) => bridge
+                .get_value(&fan_h.internal_index)
+                .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         }
     }

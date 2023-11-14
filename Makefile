@@ -18,7 +18,7 @@ fix:
 	cargo clippy --all --fix --allow-dirty --allow-staged
 	cargo fmt --all
 
-clean-git:
+git-cache:
 	git rm -rf --cached .
 	git add .
 
@@ -34,6 +34,9 @@ clean-libsensors:
 
 lhm:
 	dotnet build ./hardware/LibreHardwareMonitorWrapper/ -c release
+
+run-lhm:
+	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c release
 
 test:
 	cargo test --all --all-features

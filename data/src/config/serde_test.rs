@@ -1,5 +1,5 @@
 use const_format::formatcp;
-use hardware::{ControlH, FanH, Hardware, HardwareItem, TempH};
+use hardware::{ControlH, FanH, Hardware, TempH};
 use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
@@ -95,44 +95,27 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
-#[derive(Debug)]
-struct T {}
-
-impl HardwareItem for T {
-    fn get_value(&self) -> Result<hardware::Value, hardware::HardwareError> {
-        todo!()
-    }
-
-    fn set_value(&self, _value: hardware::Value) -> Result<(), hardware::HardwareError> {
-        todo!()
-    }
-
-    fn set_mode(&self, _value: hardware::Value) -> Result<(), hardware::HardwareError> {
-        todo!()
-    }
-}
-
 fn hardware1() -> Hardware {
     Hardware {
         controls: vec![ControlH {
             name: "ControlH".into(),
             hardware_id: "ControlH".into(),
             info: "ControlH".into(),
-            bridge: Box::new(T {}),
+            internal_index: 0,
         }
         .into()],
         temps: vec![TempH {
             name: "TempH".into(),
             hardware_id: "TempH".into(),
             info: "TempH".into(),
-            bridge: Box::new(T {}),
+            internal_index: 0,
         }
         .into()],
         fans: vec![FanH {
             name: "FanH".into(),
             hardware_id: "FanH".into(),
             info: "FanH".into(),
-            bridge: Box::new(T {}),
+            internal_index: 0,
         }
         .into()],
     }

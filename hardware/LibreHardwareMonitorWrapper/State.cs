@@ -1,28 +1,39 @@
-﻿using LibreHardwareMonitorWrapper.Hardware;
-
-namespace LibreHardwareMonitorWrapper;
-
-public enum HardwareType
-{
-    Control,
-    Fan,
-    Temp
-}
+﻿namespace LibreHardwareMonitorWrapper;
 
 public static class State
 {
-    public static readonly List<Control> Controls = new();
-    public static readonly List<Sensor> Fans = new();
-    public static readonly List<Sensor> Temps = new();
+    public static readonly List<BaseHardware> Hardwares = new();
+}
 
-    public static List<BaseHardware> GetHardwareData()
+public enum HardwareType
+{
+    Control = 1,
+    Fan = 2,
+    Temp = 3
+}
+
+public enum Command
+{
+    SetAuto = 1,
+    SetValue = 2,
+    GetValue = 3,
+    Shutdown = 4
+}
+
+public abstract class BaseHardware
+{
+    protected BaseHardware(string id, string name, string info, int index, HardwareType type)
     {
-        var list = new List<BaseHardware>();
-
-        list.AddRange(Controls);
-        list.AddRange(Fans);
-        list.AddRange(Temps);
-
-        return list;
+        Id = id;
+        Name = name;
+        Index = index;
+        Type = type;
+        Info = info;
     }
+
+    public string Id { get; }
+    public string Name { get; }
+    public string Info { get; }
+    public int Index { get; }
+    public HardwareType Type { get; }
 }

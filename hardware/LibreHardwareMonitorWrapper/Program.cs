@@ -4,7 +4,6 @@ using LibreHardwareMonitorWrapper;
 
 HardwareManager.Start();
 
-var hardwareList = State.GetHardwareData();
 
 var serializerOptions = new JsonSerializerOptions
 {
@@ -15,12 +14,13 @@ var serializerOptions = new JsonSerializerOptions
 };
 
 
-var jsonText = JsonSerializer.Serialize(hardwareList, serializerOptions);
-
+var jsonText = JsonSerializer.Serialize(State.Hardwares, serializerOptions);
 
 var server = new Server();
 
 server.SendHardware(jsonText);
 
+server.WaitForCommand();
 
 server.Shutdown();
+HardwareManager.Stop();

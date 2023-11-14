@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use hardware::{HardwareError, Value};
+use hardware::{HardwareBridgeT, HardwareError, Value};
 
 use crate::{
     id::Id,
@@ -30,11 +30,16 @@ impl Update {
         Self {}
     }
 
-    pub fn graph(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes) -> Result<(), UpdateError> {
+    pub fn graph(
+        &mut self,
+        nodes: &mut Nodes,
+        root_nodes: &RootNodes,
+        bridge: &mut HardwareBridgeT,
+    ) -> Result<(), UpdateError> {
         let mut updated: HashSet<Id> = HashSet::new();
 
         for node_id in root_nodes {
-            Self::update_rec(nodes, node_id, &mut updated)?;
+            Self::update_rec(nodes, node_id, &mut updated, bridge)?;
         }
         Ok(())
     }
@@ -45,6 +50,7 @@ impl Update {
         nodes: &mut Nodes,
         node_id: &Id,
         updated: &mut HashSet<Id>,
+        bridge: &mut HardwareBridgeT,
     ) -> Result<Option<Value>, UpdateError> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
@@ -67,7 +73,7 @@ impl Update {
         }
 
         for id in &input_ids {
-            match Self::update_rec(nodes, id, updated)? {
+            match Self::update_rec(nodes, id, updated, bridge)? {
                 Some(value) => input_values.push(value),
                 None => return Ok(None),
             }
@@ -77,7 +83,7 @@ impl Update {
             return Err(UpdateError::NodeNotFound);
         };
 
-        node.update(&input_values)?;
+        node.update(&input_values, bridge)?;
         updated.insert(node.id);
 
         Ok(node.value)
@@ -85,12 +91,17 @@ impl Update {
 }
 
 impl Node {
-    pub fn update(&mut self, input_values: &Vec<Value>) -> Result<(), UpdateError> {
+    pub fn update(
+        &mut self,
+        input_values: &Vec<Value>,
+        bridge: &mut HardwareBridgeT,
+    ) -> Result<(), UpdateError> {
         let value = match &mut self.node_type {
-            crate::node::NodeType::Control(control) => control.set_value(input_values[0])?,
-
-            crate::node::NodeType::Fan(fan) => fan.get_value()?,
-            crate::node::NodeType::Temp(temp) => temp.get_value()?,
+            crate::node::NodeType::Control(control) => {
+                control.set_value(input_values[0], bridge)?
+            }
+            crate::node::NodeType::Fan(fan) => fan.get_value(bridge)?,
+            crate::node::NodeType::Temp(temp) => temp.get_value(bridge)?,
             crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values)?,
             crate::node::NodeType::Graph(_) => todo!(),
             crate::node::NodeType::Flat(flat) => flat.value.into(),
