@@ -12,3 +12,4 @@ target/
 !.vscode/launch.json
 bin/
 obj/
+.config/hardware.toml
