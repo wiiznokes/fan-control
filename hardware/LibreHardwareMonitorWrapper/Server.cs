@@ -127,7 +127,7 @@ public class Server
             {
                 _listener.Bind(new IPEndPoint(IPAddress.Parse(Address), p));
                 _listener.Listen(1);
-                
+
             }
             catch (SocketException e)
             {
@@ -145,10 +145,10 @@ public class Server
         }
 
         throw new ArgumentException("No valid port can be found for " + Address);
-        
+
     }
 
-    
+
     // return client
     private Socket AcceptClient()
     {
@@ -164,7 +164,7 @@ public class Server
         }
 
         client.Send(Encoding.UTF8.GetBytes(CheckResponse));
-        
+
         Console.WriteLine("Client accepted!");
         return client;
     }
