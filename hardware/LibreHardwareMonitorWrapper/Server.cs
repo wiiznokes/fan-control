@@ -4,40 +4,44 @@ using System.Text;
 
 namespace LibreHardwareMonitorWrapper;
 
+public enum Command
+{
+    SetAuto = 1,
+    SetValue = 2,
+    GetValue = 3,
+    Shutdown = 4
+}
+
 public class Server
 {
     private const string Address = "127.0.0.1";
-    private readonly byte[] _buffer = new byte[4];
+    private const int DefaultPort = 55555;
+    private const string Check = "fan-control-check";
+    private const string CheckResponse = "fan-control-ok";
     private readonly Socket _client;
     private readonly Socket _listener;
-    private int _port = 55555;
+    private readonly int _port;
+    private readonly byte[] _buffer = new byte[4];
 
     public Server()
     {
         _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        BindPort();
-        _listener.Listen(1);
-        Console.WriteLine("Server Started");
-        _client = _listener.Accept();
-        Console.WriteLine("Client Connected");
+        _port = StartServer();
+        _client = AcceptClient();
     }
 
     public void SendHardware(string jsonText)
     {
-        var stringBuilder = new StringBuilder(jsonText);
-        stringBuilder.Append('\n');
-
-        var jsonTextWithLineDelimiter = stringBuilder.ToString();
 
         var stream = new NetworkStream(_client);
-        var bytes = Encoding.UTF8.GetBytes(jsonTextWithLineDelimiter);
+        var bytes = Encoding.UTF8.GetBytes(jsonText);
         Console.WriteLine("Sending hardware");
         stream.Write(bytes);
         stream.Close();
         Console.WriteLine("Hardware send");
     }
 
-    public void WaitForCommand()
+    public void WaitForCommand(HardwareManager hardwareManager)
     {
         while (true)
         {
@@ -55,20 +59,20 @@ public class Server
                 case Command.SetAuto:
                     index = block_read();
                     if (index < 0) return;
-                    HardwareManager.SetAuto(index);
+                    hardwareManager.SetAuto(index);
                     break;
                 case Command.SetValue:
                     index = block_read();
                     if (index < 0) return;
                     value = block_read();
                     if (value < 0) return;
-                    HardwareManager.SetValue(index, value);
+                    hardwareManager.SetValue(index, value);
                     break;
                 case Command.GetValue:
                     index = block_read();
                     if (index < 0) return;
                     Console.WriteLine("Receive index: " + index);
-                    value = HardwareManager.GetValue(index);
+                    value = hardwareManager.GetValue(index);
                     var bytes = BitConverter.GetBytes(value);
                     Console.WriteLine("sending value: " + value);
                     if (!block_send(bytes)) return;
@@ -113,14 +117,17 @@ public class Server
         }
     }
 
-    private void BindPort()
+    // return port
+    private int StartServer()
     {
-        var p = _port;
+        var p = DefaultPort;
         for (; p <= 65535; p++)
         {
             try
             {
                 _listener.Bind(new IPEndPoint(IPAddress.Parse(Address), p));
+                _listener.Listen(1);
+                
             }
             catch (SocketException e)
             {
@@ -133,15 +140,34 @@ public class Server
                 break;
             }
 
-            Console.WriteLine("SelectPort: valid port " + p);
-            break;
+            Console.WriteLine("Server Started on " + Address + ":" + p);
+            return p;
         }
 
-        if (p > 65535)
-            throw new ArgumentException("No valid port can be found for " + Address);
-        _port = p;
+        throw new ArgumentException("No valid port can be found for " + Address);
+        
     }
 
+    
+    // return client
+    private Socket AcceptClient()
+    {
+        var client = _listener.Accept();
+        var checkBytes = Encoding.UTF8.GetBytes(Check);
+        var readBuf = new byte[checkBytes.Length];
+        var res = client.Receive(readBuf);
+
+        var str = Encoding.UTF8.GetString(readBuf);
+        if (str != Check)
+        {
+            throw new Exception("invalid client. Check : " + str + "byte received: " + res);
+        }
+
+        client.Send(Encoding.UTF8.GetBytes(CheckResponse));
+        
+        Console.WriteLine("Client accepted!");
+        return client;
+    }
 
     public void Shutdown()
     {
