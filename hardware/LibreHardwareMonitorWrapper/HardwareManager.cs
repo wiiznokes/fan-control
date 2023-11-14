@@ -1,23 +1,28 @@
-﻿using LibreHardwareMonitorWrapper.Hardware;
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using LibreHardwareMonitorWrapper.Hardware;
 using LibreHardwareMonitorWrapper.Lhm;
 
 namespace LibreHardwareMonitorWrapper;
 
-public static class HardwareManager
+public class HardwareManager
 {
-    private static readonly HardwareResearcher HardwareResearcher = new();
+    private readonly List<BaseHardware> _hardwareList;
+
+    private readonly HardwareResearcher _hardwareResearcher = new();
 
 
-    public static void Start()
+    public HardwareManager()
     {
-        HardwareResearcher.Start();
-        HardwareResearcher.CreateHardware();
+        _hardwareResearcher.Start();
+        _hardwareList = _hardwareResearcher.GetHardwareList();
     }
 
-    public static int GetValue(int index)
+    public int GetValue(int index)
     {
-        HardwareResearcher.Update();
-        var hardware = State.Hardwares[index];
+        _hardwareResearcher.Update();
+        var hardware = _hardwareList[index];
         return hardware.Type switch
         {
             HardwareType.Control => (hardware as Control)!.Value(),
@@ -27,26 +32,42 @@ public static class HardwareManager
         };
     }
 
-    public static void SetValue(int index, int value)
+    public void SetValue(int index, int value)
     {
-        var control = State.Hardwares[index] as Control;
+        var control = _hardwareList[index] as Control;
         control!.SetSpeed(value);
     }
 
-    public static void SetAuto(int index)
+    public void SetAuto(int index)
     {
-        var control = State.Hardwares[index] as Control;
+        var control = _hardwareList[index] as Control;
         control!.SetAuto();
     }
 
-    public static void Stop()
+    public void Stop()
     {
-        HardwareResearcher.Stop();
+        _hardwareResearcher.Stop();
     }
 
 
-    public static void Update()
+    public void Update()
     {
-        HardwareResearcher.Update();
+        _hardwareResearcher.Update();
+    }
+
+    public string ToJson()
+    {
+        var serializerOptions = new JsonSerializerOptions
+        {
+            Converters =
+            {
+                new JsonStringEnumConverter()
+            }
+        };
+        var jsonText = JsonSerializer.Serialize(_hardwareList, serializerOptions);
+
+        var stringBuilder = new StringBuilder(jsonText);
+        stringBuilder.Append('\n');
+        return stringBuilder.ToString();
     }
 }

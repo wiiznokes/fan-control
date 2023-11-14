@@ -1,14 +1,16 @@
 use std::{
     io::{BufRead, BufReader, Read, Write},
     net::TcpStream,
+    process,
     rc::Rc,
+    thread,
+    time::Duration,
 };
 
 use serde::Deserialize;
 
 use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, InternalControlIndex,
-    TempH, Value,
+    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
 };
 
 pub struct WindowsBridge {
@@ -17,9 +19,20 @@ pub struct WindowsBridge {
 
 const IP: &str = "127.0.0.1";
 const DEFAULT_PORT: u16 = 55555;
+// need to have different values because
+// i think we can write the TcpSteam and
+// then read what we write
+const CHECK: &str = "fan-control-check";
+const CHECK_RESPONSE: &str = "fan-control-ok";
 
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> (Hardware, HardwareBridgeT) {
+        let handle = process::Command::new(
+            "./hardware/LibreHardwareMonitorWrapper/bin/Release/net7.0/LibreHardwareMonitorWrapper",
+        )
+        .spawn()
+        .unwrap();
+
         let mut hardware = Hardware::default();
 
         let stream = try_connect();
@@ -77,24 +90,61 @@ impl HardwareBridge for WindowsBridge {
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        todo!()
+        debug!("set value {} to {}", value, internal_index);
+        Ok(())
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        todo!()
+        debug!("set mode {} to {}", value, internal_index);
+        Ok(())
     }
 }
 
 fn try_connect() -> TcpStream {
-    for port in DEFAULT_PORT..65535 {
-        match TcpStream::connect((IP, port)) {
-            Ok(stream) => {
-                info!("connected to {}:{}", IP, port);
-                return stream;
+    for i in 0..10 {
+        for port in DEFAULT_PORT..65535 {
+            match TcpStream::connect((IP, port)) {
+                Ok(mut stream) => {
+                    let mut write_buf = CHECK.as_bytes();
+
+                    if let Err(e) = stream.write_all(&mut write_buf) {
+                        continue;
+                    }
+
+                    let Ok(prev_timeout) = stream.read_timeout() else {
+                        continue;
+                    };
+                    if let Err(e) = stream.set_read_timeout(Some(Duration::from_millis(10))) {
+                        continue;
+                    }
+
+                    let mut read_buf = [0u8; CHECK_RESPONSE.len()];
+
+                    if let Err(e) = stream.read_exact(&mut read_buf) {
+                        continue;
+                    }
+
+                    let Ok(str) = std::str::from_utf8(&read_buf) else {
+                        continue;
+                    };
+
+                    if str != CHECK_RESPONSE {
+                        continue;
+                    }
+
+                    if let Err(e) = stream.set_read_timeout(prev_timeout) {
+                        panic!("can't reset read timeout")
+                    }
+
+                    info!("check passed for {}:{}!", IP, port);
+                    return stream;
+                }
+                Err(_) => continue,
             }
-            Err(_) => continue,
         }
+        thread::sleep(Duration::from_millis(50 * i))
     }
+
     panic!("can't find connection")
 }
 

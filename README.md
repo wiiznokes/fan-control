@@ -1,7 +1,7 @@
 # fan-control
 
 # Steps
-- [ ] finish hardware crate (windows, upgrade abstraction)
+- [x] finish hardware crate (windows, upgrade abstraction)
 - [ ] Upgrade Value struct (allow different type: °C, %, ...)
 - [ ] package Msi, Deb, Rpm, Snap, Flatpak [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
 - [ ] CI for packaging

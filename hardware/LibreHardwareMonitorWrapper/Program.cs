@@ -1,26 +1,14 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using LibreHardwareMonitorWrapper;
+﻿using LibreHardwareMonitorWrapper;
 
-HardwareManager.Start();
+var connectTask = Task.Run(() => new Server());
 
+var hardwareManager = new HardwareManager();
+var jsonText = hardwareManager.ToJson();
 
-var serializerOptions = new JsonSerializerOptions
-{
-    Converters =
-    {
-        new JsonStringEnumConverter()
-    }
-};
-
-
-var jsonText = JsonSerializer.Serialize(State.Hardwares, serializerOptions);
-
-var server = new Server();
+var server = await connectTask;
 
 server.SendHardware(jsonText);
 
-server.WaitForCommand();
-
+server.WaitForCommand(hardwareManager);
 server.Shutdown();
-HardwareManager.Stop();
+hardwareManager.Stop();

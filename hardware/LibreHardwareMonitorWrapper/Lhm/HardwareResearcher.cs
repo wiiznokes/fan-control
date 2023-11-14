@@ -59,16 +59,17 @@ public class HardwareResearcher : IVisitor
     }
 
 
-    public void CreateHardware()
+    public List<BaseHardware> GetHardwareList()
     {
         if (!_isStarted)
-            return;
+            throw new Exception();
 
         var nbControl = 0;
         var nbFan = 0;
         var nbTemp = 0;
         var nbTot = 0;
 
+        var hardwareList = new List<BaseHardware>();
 
         var hardwareArray = _mComputer.Hardware;
         foreach (var hardware in hardwareArray)
@@ -87,7 +88,7 @@ public class HardwareResearcher : IVisitor
         Console.WriteLine("nbControl: " + nbControl);
         Console.WriteLine("nbFan: " + nbFan);
         Console.WriteLine("nbTemp: " + nbTemp);
-        return;
+        return hardwareList;
 
         void AddHardware(ISensor sensor)
         {
@@ -101,17 +102,17 @@ public class HardwareResearcher : IVisitor
             {
                 case SensorType.Control:
                     id ??= SensorType.Control.ToString() + nbControl;
-                    State.Hardwares.Add(new Control(id, name, name, sensor, nbTot));
+                    hardwareList.Add(new Control(id, name, name, sensor, nbTot));
                     nbControl += 1;
                     break;
                 case SensorType.Fan:
                     id ??= SensorType.Fan.ToString() + nbFan;
-                    State.Hardwares.Add(new Sensor(id, name, name, sensor, nbTot, HardwareType.Fan));
+                    hardwareList.Add(new Sensor(id, name, name, sensor, nbTot, HardwareType.Fan));
                     nbFan += 1;
                     break;
                 case SensorType.Temperature:
                     id ??= SensorType.Temperature.ToString() + nbTemp;
-                    State.Hardwares.Add(new Sensor(id, name, name, sensor, nbTot, HardwareType.Temp));
+                    hardwareList.Add(new Sensor(id, name, name, sensor, nbTot, HardwareType.Temp));
                     nbTemp += 1;
                     break;
 
