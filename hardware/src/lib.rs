@@ -7,10 +7,10 @@ use std::{fmt::Debug, rc::Rc};
 #[macro_use]
 extern crate log;
 
-#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+#[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
 pub mod linux;
 
-#[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
 pub mod windows;
 
 #[cfg(feature = "fake_hardware")]
@@ -41,12 +41,6 @@ pub enum HardwareType {
     Temp,
 }
 
-#[derive(Debug, Clone)]
-pub struct InternalControlIndex {
-    pub io: usize,
-    pub enable: usize,
-}
-
 #[derive(Serialize, Debug)]
 pub struct ControlH {
     pub name: String,
@@ -57,7 +51,7 @@ pub struct ControlH {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: InternalControlIndex,
+    pub internal_index: usize,
 }
 
 #[derive(Serialize, Debug)]

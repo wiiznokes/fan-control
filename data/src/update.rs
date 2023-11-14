@@ -100,7 +100,6 @@ impl Node {
             crate::node::NodeType::Control(control) => {
                 control.set_value(input_values[0], bridge)?
             }
-
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge)?,
             crate::node::NodeType::Temp(temp) => temp.get_value(bridge)?,
             crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values)?,

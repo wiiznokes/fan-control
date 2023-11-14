@@ -1,5 +1,5 @@
 use const_format::formatcp;
-use hardware::{ControlH, FanH, Hardware, InternalControlIndex, TempH};
+use hardware::{ControlH, FanH, Hardware, TempH};
 use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
@@ -101,7 +101,7 @@ fn hardware1() -> Hardware {
             name: "ControlH".into(),
             hardware_id: "ControlH".into(),
             info: "ControlH".into(),
-            internal_index: InternalControlIndex { io: 0, enable: 0 },
+            internal_index: 0,
         }
         .into()],
         temps: vec![TempH {

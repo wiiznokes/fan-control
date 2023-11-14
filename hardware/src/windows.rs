@@ -35,10 +35,7 @@ impl HardwareBridge for WindowsBridge {
                     name: base_hardware.name,
                     hardware_id: base_hardware.id,
                     info: String::new(),
-                    internal_index: InternalControlIndex {
-                        io: base_hardware.index,
-                        enable: base_hardware.index,
-                    },
+                    internal_index: base_hardware.index,
                 })),
                 HardwareType::Fan => hardware.fans.push(Rc::new(FanH {
                     name: base_hardware.name,
@@ -61,7 +58,6 @@ impl HardwareBridge for WindowsBridge {
     }
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
-        
         info!("send command: {:?}", Command::GetValue);
 
         let command: &[u8; 4] = &From::from(Command::GetValue);
@@ -114,8 +110,6 @@ enum HardwareType {
 enum Command {
     SetAuto = 1,
     SetValue = 2,
-
-    // command -> type -> index -> value
     GetValue = 3,
     Shutdown = 4,
 }

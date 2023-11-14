@@ -2,25 +2,58 @@ use std::fmt::Debug;
 
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, HardwareItem, TempH, Value};
+use crate::{
+    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
+};
+use ouroboros::self_referencing;
 
-pub struct LinuxBridge {}
+#[self_referencing]
+pub struct LinuxBridge {
+    lib: LMSensors,
+    #[borrows(lib)]
+    #[not_covariant]
+    sensors: Vec<InternalSubFeatureRef<'this>>,
+}
 
 impl HardwareBridge for LinuxBridge {
-    fn generate_hardware() -> Hardware {
+    fn generate_hardware() -> (Hardware, HardwareBridgeT) {
         let mut hardware = Hardware::default();
 
-        let lib = lm_sensors::Initializer::default().initialize().unwrap();
-        let boxed = Box::new(lib);
-        // yes we leak like never here but it's not that bad in fact
-        // is even safe Rust. The kernel will be in charge to release
-        // memory when the process terminate.
-        let leaked: &'static mut LMSensors = Box::leak(boxed);
-        info!("lmsensors just leaked");
+        let bridge = LinuxBridgeBuilder {
+            lib: lm_sensors::Initializer::default().initialize().unwrap(),
+            sensors_builder: |lib: &LMSensors| generate_hardware(lib, &mut hardware),
+        }
+        .build();
 
-        generate_hardware(leaked, &mut hardware);
+        (hardware, Box::new(bridge))
+    }
 
-        hardware
+    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(_) => {
+                    panic!("can't get the value of a control");
+                }
+                InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
+                    Ok(value) => Ok(value as i32),
+                    Err(e) => {
+                        error!("{}", e);
+                        Err(HardwareError::LmSensors)
+                    }
+                },
+            },
+            None => Err(HardwareError::IdNotFound),
+        })
+    }
+
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        debug!("set value {} to {}", value, internal_index);
+        Ok(())
+    }
+
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        debug!("set mode {} to {}", value, internal_index);
+        Ok(())
     }
 }
 
@@ -61,7 +94,40 @@ fn generate_id_name_info(
     Some((id, name, info))
 }
 
-fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum SubFeatureType {
+    PwmIo,
+    PwmEnable,
+    Fan,
+    Temp,
+}
+
+enum InternalSubFeatureRef<'a> {
+    Pwm(PwmRefs<'a>),
+    Sensor(SensorRefs<'a>),
+}
+
+struct PwmRefs<'a> {
+    io: SubFeatureRef<'a>,
+    enable: SubFeatureRef<'a>,
+}
+struct SensorRefs<'a> {
+    io: SubFeatureRef<'a>,
+}
+
+impl Drop for PwmRefs<'_> {
+    fn drop(&mut self) {
+        info!("pwm sould be set to auto");
+        // TODO: set to auto
+    }
+}
+
+fn generate_hardware<'a>(
+    lib: &'a LMSensors,
+    hardware: &mut Hardware,
+) -> Vec<InternalSubFeatureRef<'a>> {
+    let mut sensors = Vec::new();
+
     for chip_ref in lib.chip_iter(None) {
         for feature_ref in chip_ref.feature_iter() {
             match feature_ref.kind() {
@@ -76,16 +142,16 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
                         if let Some((id, name, info)) =
                             generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref)
                         {
-                            let sensor = InternalSubFeatureRef {
-                                sub_feature_type: SubFeatureType::Fan,
-                                sub_feature_ref,
-                            };
+                            let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
+                                io: sub_feature_ref,
+                            });
+                            sensors.push(sensor);
 
                             let fan_h = FanH {
                                 name,
                                 hardware_id: id,
                                 info,
-                                bridge: Box::new(InternalSensor { sensor }),
+                                internal_index: sensors.len() - 1,
                             };
                             hardware.fans.push(fan_h.into());
                         }
@@ -100,16 +166,16 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
                         if let Some((id, name, info)) =
                             generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref)
                         {
-                            let sensor = InternalSubFeatureRef {
-                                sub_feature_type: SubFeatureType::Temp,
-                                sub_feature_ref,
-                            };
+                            let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
+                                io: sub_feature_ref,
+                            });
+                            sensors.push(sensor);
 
                             let temp_h = TempH {
                                 name,
                                 hardware_id: id,
                                 info,
-                                bridge: Box::new(InternalSensor { sensor }),
+                                internal_index: sensors.len() - 1,
                             };
                             hardware.temps.push(temp_h.into());
                         }
@@ -129,23 +195,18 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
                         if let Some((id, name, info)) =
                             generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref_io)
                         {
-                            let io = InternalSubFeatureRef {
-                                sub_feature_type: SubFeatureType::PwmIo,
-                                sub_feature_ref: sub_feature_ref_io,
-                            };
+                            let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
+                                io: sub_feature_ref_io,
+                                enable: sub_feature_ref_enable,
+                            });
 
-                            let enable = InternalSubFeatureRef {
-                                sub_feature_type: SubFeatureType::PwmEnable,
-                                sub_feature_ref: sub_feature_ref_enable,
-                            };
-
-                            let control = InternalControl { io, enable };
+                            sensors.push(sensor);
 
                             let control_h = ControlH {
                                 name,
                                 hardware_id: id,
                                 info,
-                                bridge: Box::new(control),
+                                internal_index: sensors.len() - 1,
                             };
                             hardware.controls.push(control_h.into());
                         }
@@ -156,78 +217,5 @@ fn generate_hardware(lib: &'static LMSensors, hardware: &mut Hardware) {
             };
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum SubFeatureType {
-    PwmIo,
-    PwmEnable,
-    Fan,
-    Temp,
-}
-
-struct InternalSubFeatureRef {
-    sub_feature_type: SubFeatureType,
-    sub_feature_ref: SubFeatureRef<'static>,
-}
-
-impl Debug for InternalSubFeatureRef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("InternalSubFeatureRef")
-            .field("sub_feature_type", &self.sub_feature_type)
-            .finish()
-    }
-}
-#[derive(Debug)]
-struct InternalSensor {
-    sensor: InternalSubFeatureRef,
-}
-
-#[derive(Debug)]
-struct InternalControl {
-    io: InternalSubFeatureRef,
-    enable: InternalSubFeatureRef,
-}
-
-impl Drop for InternalControl {
-    fn drop(&mut self) {
-        info!("pwm sould be set to auto");
-        // TODO: set to auto
-    }
-}
-
-impl HardwareItem for InternalSensor {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {
-        match self.sensor.sub_feature_ref.raw_value() {
-            Ok(value) => Ok(value as i32),
-            Err(e) => {
-                error!("{}", e);
-                Err(HardwareError::LmSensors)
-            }
-        }
-    }
-
-    fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        panic!("can't set the value of a sensor");
-    }
-
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        panic!("can't set the mode of a sensor");
-    }
-}
-
-impl HardwareItem for InternalControl {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {
-        panic!("can't get the value of a control");
-    }
-
-    fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        debug!("set value {} to a control", value);
-        Ok(())
-    }
-
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        debug!("set mode {} to a control", value);
-        Ok(())
-    }
+    sensors
 }

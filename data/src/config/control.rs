@@ -53,7 +53,7 @@ impl Control {
 
         match &self.control_h {
             Some(control_h) => bridge
-                .set_value(&control_h.internal_index.io, value)
+                .set_value(&control_h.internal_index, value)
                 .map(|_| value)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
@@ -67,7 +67,7 @@ impl Control {
     ) -> Result<(), UpdateError> {
         let res = match &self.control_h {
             Some(control_h) => bridge
-                .set_mode(&control_h.internal_index.enable, !auto as i32)
+                .set_mode(&control_h.internal_index, !auto as i32)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         };
