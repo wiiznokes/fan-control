@@ -1,2 +1,0 @@
-fan = Fan
-none = Aucun

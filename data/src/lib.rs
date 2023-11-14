@@ -9,7 +9,6 @@ pub mod cli;
 pub mod config;
 pub mod directories;
 pub mod id;
-pub mod localize;
 pub mod node;
 pub mod settings;
 pub mod update;

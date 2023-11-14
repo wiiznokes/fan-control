@@ -19,13 +19,12 @@
     - [ ] theme
     - [ ] impl UI for managing configs
     - [ ] impl UI for removing/adding nodes
+    - [ ] impl UI settings page
 - [ ] impl UI graph behavior
-- [ ] impl UI settings page
 - [ ] icons
 - [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))
 - [ ] i18n support ([example](https://github.com/pop-os/cosmic-edit/blob/master_jammy/Cargo.toml))
     - [x] init file structure
-    - [ ] impl from<&String> for clap::Id
     - [ ] add all string to ftl files
 
 ## Repo structure
