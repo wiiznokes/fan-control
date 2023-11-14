@@ -4,7 +4,7 @@ use data::{
 };
 use hardware::{self, HardwareBridge};
 
-use ui::{run_ui, localize};
+use ui::run_ui;
 
 #[macro_use]
 extern crate log;
@@ -14,7 +14,8 @@ mod integrated_test;
 
 fn main() {
     env_logger::init();
-    localize::localize();
+    data::localize::localize();
+    ui::localize::localize();
     
     let args = Args::parse();
 

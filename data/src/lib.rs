@@ -12,6 +12,7 @@ pub mod id;
 pub mod node;
 pub mod settings;
 pub mod update;
+pub mod localize;
 
 use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
 use node::AppGraph;

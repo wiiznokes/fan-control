@@ -15,6 +15,10 @@ directories = "5.0"
 clap.workspace = true
 light_enum = "0.2"
 log.workspace = true
+i18n-embed.workspace = true
+i18n-embed-fl.workspace = true
+rust-embed.workspace = true
+lazy_static.workspace = true
 
 
 [dev-dependencies]

@@ -1,0 +1,2 @@
+fan = Fan
+none = Aucun
