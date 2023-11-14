@@ -16,7 +16,7 @@ fn main() {
     env_logger::init();
     data::localize::localize();
     ui::localize::localize();
-    
+
     let args = Args::parse();
 
     let dir_manager = DirManager::new(args.config_dir_path);

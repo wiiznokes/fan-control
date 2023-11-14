@@ -7,7 +7,7 @@ use data::{
 use hardware::{ControlH, FanH, TempH};
 use iced::{widget::PickList, Element, Length};
 
-use crate::{AppMsg, fl};
+use crate::{fl, AppMsg};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IdName<I> {

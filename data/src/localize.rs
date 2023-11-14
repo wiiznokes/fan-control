@@ -20,7 +20,6 @@ lazy_static::lazy_static! {
     };
 }
 
-
 #[macro_export]
 macro_rules! fl {
     ($message_id:literal) => {{

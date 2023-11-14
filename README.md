@@ -1,18 +1,32 @@
 # fan-control
 
 # Steps
-- [x] finish hardware crate (windows, upgrade abstraction)
-- [ ] package Msi, Deb, Rpm, Snap, Flatpak (will require works on [cargo-bundle](https://github.com/burtonageo/cargo-bundle))
-- [ ] CI for packaging
-- [ ] change iced to libcosmic (this will enable new widgets, like dropdown)
-- [ ] impl UI for managing configs
-- [ ] impl UI for removing/adding nodes
+
+- [ ] finish hardware crate
+    - [x] impl windows code
+    - [x] impl linux code
+    - [ ] test on real hardware
+- [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
+    - [ ] Msi
+    - [x] Deb
+    - [ ] ARM support
+    - [ ] RPM (not yet available)
+    - [ ] EXE (not yet available)
+    - [ ] Flatpak (not yet available)
+    - [ ] Snap (not yet available)
+    - [ ] CI for packaging
+- [ ] change iced to libcosmic (this will enable new widgets, like dropdown) (libcosmic must be ported to Windows before)
+    - [ ] theme
+    - [ ] impl UI for managing configs
+    - [ ] impl UI for removing/adding nodes
 - [ ] impl UI graph behavior
 - [ ] impl UI settings page
 - [ ] icons
 - [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))
-- [ ] theme
-- [x] i18n support ([example](https://github.com/pop-os/cosmic-edit/blob/master_jammy/Cargo.toml))
+- [ ] i18n support ([example](https://github.com/pop-os/cosmic-edit/blob/master_jammy/Cargo.toml))
+    - [x] init file structure
+    - [ ] impl from<&String> for clap::Id
+    - [ ] add all string to ftl files
 
 ## Repo structure
 - [hardware](./hardware/README.md): define an abstraction around the hardware.
