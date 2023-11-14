@@ -2,8 +2,7 @@
 
 # Steps
 - [x] finish hardware crate (windows, upgrade abstraction)
-- [ ] Upgrade Value struct (allow different type: °C, %, ...)
-- [ ] package Msi, Deb, Rpm, Snap, Flatpak [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
+- [ ] package Msi, Deb, Rpm, Snap, Flatpak (will require works on [cargo-bundle](https://github.com/burtonageo/cargo-bundle))
 - [ ] CI for packaging
 - [ ] change iced to libcosmic (this will enable new widgets, like dropdown)
 - [ ] impl UI for managing configs
@@ -11,9 +10,9 @@
 - [ ] impl UI graph behavior
 - [ ] impl UI settings page
 - [ ] icons
-- [ ] tray icon support
+- [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))
 - [ ] theme
-- [ ] i18n
+- [x] i18n support ([example](https://github.com/pop-os/cosmic-edit/blob/master_jammy/Cargo.toml))
 
 ## Repo structure
 - [hardware](./hardware/README.md): define an abstraction around the hardware.

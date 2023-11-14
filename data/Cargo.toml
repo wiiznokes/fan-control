@@ -16,6 +16,7 @@ clap.workspace = true
 light_enum = "0.2"
 log.workspace = true
 
+
 [dev-dependencies]
 serial_test = "2.0"
 const_format = "0.2"

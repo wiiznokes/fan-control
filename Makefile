@@ -42,4 +42,8 @@ test:
 	cargo test --all --all-features
 
 
+package-linux:
+	cargo bundle --release
+
+
 .PHONY: clean-libsensors libsensors

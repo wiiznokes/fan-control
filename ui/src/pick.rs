@@ -7,7 +7,7 @@ use data::{
 use hardware::{ControlH, FanH, TempH};
 use iced::{widget::PickList, Element, Length};
 
-use crate::AppMsg;
+use crate::{AppMsg, fl};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IdName<I> {
@@ -78,7 +78,7 @@ impl<I> ToString for Pick<I> {
     fn to_string(&self) -> String {
         match &self {
             Pick::Some(IdName { name, .. }) => name.clone(),
-            Pick::None => "None".into(),
+            Pick::None => fl!("none"),
         }
     }
 }

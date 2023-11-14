@@ -24,6 +24,8 @@ mod pick;
 mod theme;
 mod utils;
 mod widgets;
+pub mod localize;
+
 
 pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
     let settings = iced::Settings::with_flags(app_state);

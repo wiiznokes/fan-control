@@ -1,0 +1,2 @@
+fan = Ventilateur
+none = Aucun
