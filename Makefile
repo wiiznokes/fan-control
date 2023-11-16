@@ -74,3 +74,15 @@ conf:
 
 release:
 	clear && cargo run --release
+
+
+deb: package-deb
+	sudo apt remove fan-control -y
+	sudo apt install ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
+	dpkg-deb -c ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
+
+deb-i:
+	dpkg-query -s fan-control
+
+deb-l:
+	dpkg-query -L fan-control

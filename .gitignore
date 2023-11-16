@@ -10,6 +10,7 @@ target/
 .idea/
 .vscode/*
 !.vscode/launch.json
+!.vscode/settings.json
 bin/
 obj/
 .config/hardware.toml

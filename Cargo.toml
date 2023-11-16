@@ -1,9 +1,11 @@
 [package]
 name = "fan-control"
+authors = ["Wiiz Nokes <wiiznokes2@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "Control your fans with different behaviors"
+repository = "https://github.com/wiiznokes/fan-control/"
 exclude = ["/.*", "/Makefile", "LICENCE"]
 
 [package.metadata.bundle]

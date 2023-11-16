@@ -2,7 +2,9 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{ControlH, Hardware, HardwareBridge, HardwareError, HardwareItem, TempH, Value};
+use crate::{
+    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
+};
 
 pub struct FakeHardwareBridge {}
 
@@ -13,14 +15,14 @@ struct InternalSensor {}
 struct InternalControl {}
 
 impl HardwareBridge for FakeHardwareBridge {
-    fn generate_hardware() -> Hardware {
+    fn generate_hardware() -> (Hardware, HardwareBridgeT) {
         let mut hardware = Hardware::default();
 
         let temp1 = TempH {
             name: "temp1".into(),
             hardware_id: "temp1".into(),
             info: String::new(),
-            bridge: Box::new(InternalSensor {}),
+            internal_index: 0,
         };
         hardware.temps.push(temp1.into());
 
@@ -28,15 +30,23 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "temp2".into(),
             hardware_id: "temp2".into(),
             info: String::new(),
-            bridge: Box::new(InternalSensor {}),
+            internal_index: 0,
         };
         hardware.temps.push(temp2.into());
+
+        let fan1 = FanH {
+            name: "fan1".into(),
+            hardware_id: "fan1".into(),
+            info: String::new(),
+            internal_index: 1,
+        };
+        hardware.fans.push(fan1.into());
 
         let control1 = ControlH {
             name: "control1".into(),
             hardware_id: "control1".into(),
             info: String::new(),
-            bridge: Box::new(InternalControl {}),
+            internal_index: 2,
         };
         hardware.controls.push(control1.into());
 
@@ -44,41 +54,34 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "control2".into(),
             hardware_id: "control2".into(),
             info: String::new(),
-            bridge: Box::new(InternalControl {}),
+            internal_index: 2,
         };
         hardware.controls.push(control2.into());
 
-        hardware
+        (hardware, Box::new(Self {}))
     }
-}
 
-impl HardwareItem for InternalSensor {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {
+    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
+        if internal_index == &2 {
+            panic!("get value to hardware == Control")
+        }
         let nb = rand::thread_rng().gen_range(30..80);
         Ok(nb)
     }
 
-    fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        panic!("can't set the value of a sensor");
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        if internal_index != &2 {
+            panic!("set value to hardware != Control")
+        }
+        debug!("set value {}", value);
+        return Ok(());
     }
 
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        panic!("can't set the mode of a sensor");
-    }
-}
-
-impl HardwareItem for InternalControl {
-    fn get_value(&self) -> Result<Value, crate::HardwareError> {
-        panic!("can't get the value of a control");
-    }
-
-    fn set_value(&self, value: Value) -> Result<(), crate::HardwareError> {
-        debug!("set value {} to a control", value);
-        Ok(())
-    }
-
-    fn set_mode(&self, value: Value) -> Result<(), HardwareError> {
-        debug!("set mode {} to a control", value);
-        Ok(())
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        if internal_index != &2 {
+            panic!("set mode to hardware != Control")
+        }
+        debug!("set mode {}", value);
+        return Ok(());
     }
 }
