@@ -64,6 +64,7 @@ impl Update {
             let Some(node) = nodes.get_mut(node_id) else {
                 return Err(UpdateError::NodeNotFound);
             };
+            updated.insert(node.id);
 
             if !node.node_type.is_valid() {
                 node.value = None;
@@ -93,7 +94,6 @@ impl Update {
         };
 
         node.update(&input_values, bridge)?;
-        updated.insert(node.id);
 
         Ok(node.value)
     }

@@ -1,5 +1,4 @@
 ﻿using LibreHardwareMonitor.Hardware;
-using LibreHardwareMonitorWrapper.Hardware;
 
 namespace LibreHardwareMonitorWrapper.Lhm;
 
