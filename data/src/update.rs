@@ -4,7 +4,7 @@ use hardware::{HardwareBridgeT, HardwareError, Value};
 
 use crate::{
     id::Id,
-    node::{IsValid, Node, Nodes, RootNodes},
+    node::{Node, Nodes, RootNodes},
 };
 
 #[derive(Debug, Clone)]
@@ -60,22 +60,31 @@ impl Update {
         }
 
         let input_ids: Vec<Id>;
-        let mut input_values = Vec::new();
         {
-            let Some(node) = nodes.get(node_id) else {
+            let Some(node) = nodes.get_mut(node_id) else {
                 return Err(UpdateError::NodeNotFound);
             };
 
-            if !node.is_valid() {
+            if !node.node_type.is_valid() {
+                node.value = None;
                 return Ok(None);
             }
             input_ids = node.inputs.iter().map(|i| i.0).collect();
         }
 
+        let mut input_values = Vec::new();
         for id in &input_ids {
             match Self::update_rec(nodes, id, updated, bridge)? {
                 Some(value) => input_values.push(value),
-                None => return Ok(None),
+                None => {
+                    return match nodes.get_mut(node_id) {
+                        Some(node) => {
+                            node.value = None;
+                            Ok(None)
+                        }
+                        None => Err(UpdateError::NodeNotFound),
+                    }
+                }
             }
         }
 
@@ -111,26 +120,5 @@ impl Node {
         debug!("{} set to {}", self.name(), value);
         self.value = Some(value);
         Ok(())
-    }
-
-    pub fn validate(&self, nodes: &Nodes, trace: &mut Vec<Id>) -> Result<bool, UpdateError> {
-        if !self.is_valid() {
-            return Ok(false);
-        }
-
-        trace.push(self.id);
-
-        for (id, _) in &self.inputs {
-            match nodes.get(id) {
-                Some(node) => {
-                    if !node.validate(nodes, trace)? {
-                        return Ok(false);
-                    }
-                }
-                None => return Err(UpdateError::NodeNotFound),
-            }
-        }
-
-        Ok(true)
     }
 }

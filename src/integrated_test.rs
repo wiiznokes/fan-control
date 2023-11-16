@@ -14,7 +14,7 @@ fn test_config() {
     let dir_manager = DirManager::new(Some(PathBuf::from("./.config")));
     let settings = dir_manager.init_settings();
 
-    let hardware = fake_hardware::FakeHardwareBridge::generate_hardware();
+    let (hardware, bridge) = fake_hardware::FakeHardwareBridge::generate_hardware();
     DirManager::serialize(&dir_manager.hardware_file_path(), &hardware).unwrap();
 
     let config = DirManager::deserialize::<Config>(
@@ -31,12 +31,14 @@ fn test_config() {
         hardware,
         app_graph,
         update: Update::new(),
+        bridge,
     };
 
     for _ in 0..20 {
         if let Err(e) = app_state.update.graph(
             &mut app_state.app_graph.nodes,
             &app_state.app_graph.root_nodes,
+            &mut app_state.bridge,
         ) {
             error!("{:?}", e);
         }

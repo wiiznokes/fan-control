@@ -307,21 +307,6 @@ impl Node {
     }
 }
 
-impl IsValid for Node {
-    fn is_valid(&self) -> bool {
-        match &self.node_type {
-            NodeType::Control(control) => control.is_valid(),
-            NodeType::Fan(fan) => fan.is_valid(),
-            NodeType::Temp(temp) => temp.is_valid(),
-            NodeType::CustomTemp(custom_temp) => custom_temp.is_valid(),
-            NodeType::Graph(graph) => graph.is_valid(),
-            NodeType::Flat(flat) => flat.is_valid(),
-            NodeType::Linear(linear, ..) => linear.is_valid(),
-            NodeType::Target(target, ..) => target.is_valid(),
-        }
-    }
-}
-
 impl NodeType {
     pub fn name(&self) -> &String {
         match self {
@@ -346,6 +331,19 @@ impl NodeType {
             NodeType::Flat(i) => i.name = name_cloned,
             NodeType::Linear(i, ..) => i.name = name_cloned,
             NodeType::Target(i, ..) => i.name = name_cloned,
+        }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        match self {
+            NodeType::Control(control) => control.is_valid(),
+            NodeType::Fan(fan) => fan.is_valid(),
+            NodeType::Temp(temp) => temp.is_valid(),
+            NodeType::CustomTemp(custom_temp) => custom_temp.is_valid(),
+            NodeType::Graph(graph) => graph.is_valid(),
+            NodeType::Flat(flat) => flat.is_valid(),
+            NodeType::Linear(linear, ..) => linear.is_valid(),
+            NodeType::Target(target, ..) => target.is_valid(),
         }
     }
 
