@@ -1,13 +1,12 @@
 use std::rc::Rc;
 
+use crate::{fl, AppMsg};
+use cosmic::{iced_core::Length, iced_widget::PickList, Element};
 use data::{
     id::Id,
     node::{Node, Nodes},
 };
 use hardware::{ControlH, FanH, TempH};
-use iced::{widget::PickList, Element, Length};
-
-use crate::{fl, AppMsg};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IdName<I> {

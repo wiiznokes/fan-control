@@ -9,10 +9,15 @@ use data::{
     AppState,
 };
 
-use iced::{self, executor, time, Application, Command, Element};
+use cosmic::{
+    app::{Command, Core},
+    executor,
+    iced::{self, time},
+    Element,
+};
+
 use item::{items_view, LinearMsg, TargetMsg};
 use pick::Pick;
-
 use utils::RemoveElem;
 
 #[macro_use]
@@ -22,16 +27,17 @@ mod input_line;
 mod item;
 pub mod localize;
 mod pick;
-mod theme;
+//mod theme;
 mod utils;
-mod widgets;
+//mod widgets;
 
-pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
-    let settings = iced::Settings::with_flags(app_state);
-
-    Ui::run(settings)
+pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
+    let settings = cosmic::app::Settings::default();
+    cosmic::app::run::<Ui>(settings, app_state)?;
+    Ok(())
 }
 pub struct Ui {
+    core: Core,
     app_state: AppState,
 }
 
@@ -50,22 +56,30 @@ pub enum AppMsg {
     Tick,
 }
 
-impl Application for Ui {
+impl cosmic::Application for Ui {
     type Executor = executor::Default;
     type Message = AppMsg;
-    type Theme = iced::Theme;
     type Flags = AppState;
 
-    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        let ui_state = Ui { app_state: flags };
+    const APP_ID: &'static str = "com.wiiznokes.fan-control";
+
+    fn core(&self) -> &Core {
+        &self.core
+    }
+
+    fn core_mut(&mut self) -> &mut Core {
+        &mut self.core
+    }
+
+    fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let ui_state = Ui {
+            app_state: flags,
+            core,
+        };
         (ui_state, Command::none())
     }
 
-    fn title(&self) -> String {
-        String::from("fan-control")
-    }
-
-    fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             AppMsg::Tick => {
                 match self.app_state.update.graph(

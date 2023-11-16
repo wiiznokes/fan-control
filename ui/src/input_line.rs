@@ -1,11 +1,11 @@
 use std::ops::{Add, RangeInclusive, Sub};
 
-use iced::{
+use cosmic::{
     widget::{Button, Column, Row, Text, TextInput},
     Element,
 };
 
-use crate::{theme::CustomTextInputStyle, AppMsg};
+use crate::AppMsg;
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;
@@ -77,9 +77,7 @@ where
     };
 
     if is_error {
-        input = input.style(iced::theme::TextInput::Custom(Box::new(
-            CustomTextInputStyle::Error,
-        )));
+        input = input.error("this value is invalid");
     }
 
     Row::new()

@@ -1,20 +1,19 @@
+use cosmic::{
+    iced_core::{Alignment, Length, Padding},
+    iced_widget::{PickList, Toggler},
+    style,
+    widget::{Button, Column, Container, Row, Slider, Text, TextInput},
+    Element,
+};
 use data::{
     config::custom_temp::CustomTempKind,
     node::{Node, NodeType, NodeTypeLight, Nodes},
 };
 use hardware::Hardware;
-use iced::{
-    widget::{
-        scrollable::{Direction, Properties},
-        Button, Column, Container, PickList, Row, Scrollable, Slider, Text, TextInput, Toggler,
-    },
-    Alignment, Element, Length, Padding,
-};
 
 use crate::{
     input_line::input_line,
     pick::{pick_hardware, pick_input, Pick},
-    theme::{CustomContainerStyle, CustomScrollableStyle, CustomTextInputStyle},
     AppMsg,
 };
 
@@ -47,23 +46,23 @@ pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, A
     let content = Row::with_children(list_views).spacing(20).padding(25);
 
     let container = Container::new(content)
-        .style(iced::theme::Container::Custom(Box::new(
-            CustomContainerStyle::Background,
-        )))
+        // make the ui crash, when we embed the container in the Scrollable
+        // and the rendering use tiny_skia
+        .style(style::Container::Background)
         .width(Length::Fill)
         .height(Length::Fill);
 
-    Scrollable::new(container)
-        .direction(Direction::Both {
-            vertical: Properties::default(),
-            horizontal: Properties::default(),
-        })
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .style(iced::theme::Scrollable::Custom(Box::new(
-            CustomScrollableStyle::Background,
-        )))
-        .into()
+    container.into()
+
+    // not well integrated for now
+    // Scrollable::new(container)
+    //     .direction(Direction::Both {
+    //         vertical: Properties::default(),
+    //         horizontal: Properties::default(),
+    //     })
+    //     .width(Length::Fill)
+    //     .height(Length::Fill)
+    //     .into()
 }
 
 fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
@@ -78,9 +77,7 @@ fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Eleme
         TextInput::new("name", &node.name_cached).on_input(|str| AppMsg::Rename(node.id, str));
 
     if node.is_error_name {
-        name = name.style(iced::theme::TextInput::Custom(Box::new(
-            CustomTextInputStyle::Error,
-        )));
+        name = name.error("this name is already beeing use");
     }
 
     content.insert(0, name.into());
@@ -90,9 +87,7 @@ fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Eleme
     Container::new(column)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
-        .style(iced::theme::Container::Custom(Box::new(
-            CustomContainerStyle::Item,
-        )))
+        .style(style::Container::Card)
         .into()
 }
 

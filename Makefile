@@ -19,12 +19,13 @@ lhm:
 package-deb:
 	cargo bundle --release --format deb 
 
-
 ## Test
 
 fix:
 	cargo clippy --all --fix --allow-dirty --allow-staged
 	cargo fmt --all
+
+fix-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
 
 test:

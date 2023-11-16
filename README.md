@@ -15,8 +15,8 @@
     - [ ] Flatpak (not yet available)
     - [ ] Snap (not yet available)
     - [ ] CI for packaging
-- [ ] change iced to libcosmic (this will enable new widgets, like dropdown) (libcosmic must be ported to Windows before)
-    - [ ] theme
+- [x] change iced to libcosmic (this will enable new widgets, like dropdown) (libcosmic must be ported to Windows before)
+    - [x] theme (from Cosmic)
     - [ ] impl UI for managing configs
     - [ ] impl UI for removing/adding nodes
     - [ ] impl UI settings page
