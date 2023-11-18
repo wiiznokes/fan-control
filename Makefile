@@ -56,7 +56,6 @@ clean-all: clean clean-lhm clean-libsensors
 # Temp
 
 
-
 run-lhm:
 	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release
 
@@ -71,7 +70,8 @@ expand:
 
 
 conf:
-	clear && cargo run -- -p ./.config
+	clear
+	cargo run -- -p ./.config
 
 release:
 	clear && cargo run --release

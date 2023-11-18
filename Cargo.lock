@@ -369,7 +369,7 @@ dependencies = [
  "futures-lite 2.0.1",
  "parking",
  "polling 3.3.0",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "slab",
  "tracing",
  "waker-fn",
@@ -420,7 +420,7 @@ dependencies = [
  "cfg-if",
  "event-listener 3.1.0",
  "futures-lite 1.13.0",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "windows-sys 0.48.0",
 ]
 
@@ -447,7 +447,7 @@ dependencies = [
  "cfg-if",
  "futures-core",
  "futures-io",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "signal-hook-registry",
  "slab",
  "windows-sys 0.48.0",
@@ -481,7 +481,7 @@ name = "atomicwrites"
 version = "0.4.2"
 source = "git+https://github.com/jackpot51/rust-atomicwrites#043ab4859d53ffd3d55334685303d8df39c9f768"
 dependencies = [
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "tempfile",
  "windows-sys 0.48.0",
 ]
@@ -697,10 +697,11 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.84"
+version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f8e7c90afad890484a21653d08b6e209ae34770fb5ee298f9c699fcc1e5c856"
+checksum = "f1174fb0b6ec23863f8b971027804a42614e347eafb0a95bf0b12cdae21fc4d0"
 dependencies = [
+ "jobserver",
  "libc",
 ]
 
@@ -960,7 +961,7 @@ dependencies = [
 [[package]]
 name = "cosmic-config"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "atomicwrites",
  "cosmic-config-derive",
@@ -974,7 +975,7 @@ dependencies = [
 [[package]]
 name = "cosmic-config-derive"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -1003,7 +1004,7 @@ dependencies = [
 [[package]]
 name = "cosmic-theme"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "almost",
  "cosmic-config",
@@ -1413,9 +1414,9 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "errno"
-version = "0.3.6"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c18ee0ed65a5f1f81cac6b1d213b69c35fa47d4252ad41f1486dbd8226fe36e"
+checksum = "f258a7194e7f7c2a7837a8913aeab7fd8c383457034fa20ce4dd3dcb813e8eb8"
 dependencies = [
  "libc",
  "windows-sys 0.48.0",
@@ -1433,9 +1434,9 @@ dependencies = [
 
 [[package]]
 name = "etagere"
-version = "0.2.8"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcf22f748754352918e082e0039335ee92454a5d62bcaf69b5e8daf5907d9644"
+checksum = "306960881d6c46bd0dd6b7f07442a441418c08d0d3e63d8d080b0f64c6343e4e"
 dependencies = [
  "euclid",
  "svg_fmt",
@@ -2193,7 +2194,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.10.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "iced_accessibility",
  "iced_core",
@@ -2208,7 +2209,7 @@ dependencies = [
 [[package]]
 name = "iced_accessibility"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "accesskit",
  "accesskit_winit",
@@ -2217,7 +2218,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.10.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "bitflags 1.3.2",
  "instant",
@@ -2231,7 +2232,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.7.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "futures",
  "iced_core",
@@ -2244,7 +2245,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.9.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -2262,7 +2263,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -2275,7 +2276,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.1.1"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2285,7 +2286,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.9.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "iced_core",
  "once_cell",
@@ -2295,7 +2296,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2313,7 +2314,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.11.1"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -2335,7 +2336,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.1.3"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "iced_renderer",
  "iced_runtime",
@@ -2349,7 +2350,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.10.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -2493,7 +2494,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb0889898416213fab133e1d33a0e5858a48177452750691bde3666d0fdbaf8b"
 dependencies = [
  "hermit-abi",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "windows-sys 0.48.0",
 ]
 
@@ -2517,6 +2518,15 @@ name = "jni-sys"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
+
+[[package]]
+name = "jobserver"
+version = "0.1.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c37f63953c4c63420ed5fd3d6d398c719489b9f872b9fa683262f8edd363c7d"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "jpeg-decoder"
@@ -2612,7 +2622,7 @@ checksum = "89d92a4743f9a61002fae18374ed11e7973f530cb3a3255fb354818118b2203c"
 [[package]]
 name = "libcosmic"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#86ede0f8497f8329c25dc3189af82d5e44971b36"
+source = "git+https://github.com/wiiznokes/libcosmic?branch=flags-not-clone#66dec3d67350da46c201b07284976c4415f2c93e"
 dependencies = [
  "apply",
  "cosmic-config",
@@ -2639,6 +2649,7 @@ dependencies = [
  "tracing",
  "unicode-segmentation",
  "url",
+ "zbus",
 ]
 
 [[package]]
@@ -2691,9 +2702,9 @@ dependencies = [
 
 [[package]]
 name = "light_enum"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f371173b8f5b2119730f60e530baa5374bf32bb80f4818c9293858f83c609be"
+checksum = "bcb64f856d7b5144b0c102ec029f4d8a474c91c86336a2f5e96494e3d2f72db3"
 dependencies = [
  "quote",
  "syn 2.0.39",
@@ -3632,7 +3643,7 @@ dependencies = [
  "cfg-if",
  "concurrent-queue",
  "pin-project-lite",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "tracing",
  "windows-sys 0.48.0",
 ]
@@ -4004,9 +4015,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.22"
+version = "0.38.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80109a168d9bc0c7f483083244543a6eb0dba02295d33ca268145e6190d6df0c"
+checksum = "9ad981d6c340a49cdc40a1028d9c6084ec7e9fa33fcb839cab656a267071e234"
 dependencies = [
  "bitflags 2.4.1",
  "errno",
@@ -4364,7 +4375,7 @@ dependencies = [
  "objc",
  "raw-window-handle",
  "redox_syscall 0.4.1",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "tiny-xlib",
  "wasm-bindgen",
  "wayland-backend",
@@ -4498,7 +4509,7 @@ dependencies = [
  "cfg-if",
  "fastrand 2.0.1",
  "redox_syscall 0.4.1",
- "rustix 0.38.22",
+ "rustix 0.38.24",
  "windows-sys 0.48.0",
 ]
 
@@ -4607,9 +4618,9 @@ dependencies = [
 
 [[package]]
 name = "tinystr"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5d0e245e80bdc9b4e5356fc45a72184abbc3861992603f515270e9340f5a219"
+checksum = "83c02bf3c538ab32ba913408224323915f4ef9a6d61c0e85d493f355921c0ece"
 dependencies = [
  "displaydoc",
 ]
@@ -5341,7 +5352,7 @@ dependencies = [
  "either",
  "home",
  "once_cell",
- "rustix 0.38.22",
+ "rustix 0.38.24",
 ]
 
 [[package]]
@@ -5784,18 +5795,18 @@ checksum = "dd15f8e0dbb966fd9245e7498c7e9e5055d9e5c8b676b95bd67091cd11a1e697"
 
 [[package]]
 name = "zerocopy"
-version = "0.7.25"
+version = "0.7.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cd369a67c0edfef15010f980c3cbe45d7f651deac2cd67ce097cd801de16557"
+checksum = "e97e415490559a91254a2979b4829267a57d2fcd741a98eee8b722fb57289aa0"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.7.25"
+version = "0.7.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2f140bda219a26ccc0cdb03dba58af72590c53b22642577d88a927bc5c87d6b"
+checksum = "dd7e48ccf166952882ca8bd778a43502c64f33bf94c12ebe2a7f08e5a0f6689f"
 dependencies = [
  "proc-macro2",
  "quote",

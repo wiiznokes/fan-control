@@ -1,6 +1,9 @@
 use cosmic::{
     iced_core::{Alignment, Length, Padding},
-    iced_widget::{PickList, Toggler},
+    iced_widget::{
+        scrollable::{Direction, Properties},
+        PickList, Scrollable, Toggler,
+    },
     style,
     widget::{Button, Column, Container, Row, Slider, Text, TextInput},
     Element,
@@ -48,21 +51,19 @@ pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, A
     let container = Container::new(content)
         // make the ui crash, when we embed the container in the Scrollable
         // and the rendering use tiny_skia
-        .style(style::Container::Background)
+        //.style(style::Container::Background)
         .width(Length::Fill)
         .height(Length::Fill);
 
-    container.into()
-
     // not well integrated for now
-    // Scrollable::new(container)
-    //     .direction(Direction::Both {
-    //         vertical: Properties::default(),
-    //         horizontal: Properties::default(),
-    //     })
-    //     .width(Length::Fill)
-    //     .height(Length::Fill)
-    //     .into()
+    Scrollable::new(container)
+        .direction(Direction::Both {
+            vertical: Properties::default(),
+            horizontal: Properties::default(),
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
 
 fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {

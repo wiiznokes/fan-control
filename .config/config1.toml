@@ -1,19 +1,36 @@
 [[Control]]
-name = "control1"
-id = "nct6798-isa-0290-pwm1"
-auto = false
-
-[[Control]]
-name = "control2"
-id = "nct6798-isa-0290-pwm2"
+name = "CPU"
+id = "/lpc/nct6798d/control/1"
 input = "linear1"
 auto = false
 
 [[Control]]
-name = "control2"
-id = "nct6798-isa-0290-pwm4"
+name = "Fan #3"
+id = "/lpc/nct6798d/control/2"
+input = "flat1"
+auto = false
+
+[[Control]]
+name = "Fan #4"
+id = "/lpc/nct6798d/control/3"
+input = "flat1"
+auto = false
+
+
+[[Control]]
+name = "GPU Fan 1"
+id = "/gpu-nvidia/0/control/1"
 input = "target1"
 auto = false
+
+
+[[Control]]
+name = "GPU Fan 2"
+id = "/gpu-nvidia/0/control/2"
+input = "target1"
+auto = false
+
+
 
 [[Flat]]
 name = "flat1"
@@ -21,16 +38,17 @@ value = 50
 
 [[Linear]]
 name = "linear1"
+input = "CPU"
 minTemp = 10
 minSpeed = 10
 maxTemp = 70
 maxSpeed = 100
-input = "custom_temp"
 
 
 
 [[Target]]
 name = "target1"
+input = "GPU"
 idleTemp = 40
 idleSpeed = 10
 loadTemp = 70
@@ -40,25 +58,35 @@ loadSpeed = 100
 
 
 [[CustomTemp]]
-name = "custom_temp"
+name = "CPU"
 kind = "Average"
 input = [
-    "temp1",
-    "temp2",
+    "Core (Tctl/Tdie)",
+    "CCD1 (Tdie)",
+]
+
+[[CustomTemp]]
+name = "GPU"
+kind = "Average"
+input = [
+    "GPU Core",
+    "GPU Hot Spot"
 ]
 
 
 
-
+[[Temp]]
+name = "Core (Tctl/Tdie)"
+id = "/amdcpu/0/temperature/2"
 
 [[Temp]]
-name = "temp1"
-id = "nct6798-isa-0290-temp3_input"
+name = "CCD1 (Tdie)"
+id = "/amdcpu/0/temperature/4"
 
 [[Temp]]
-name = "temp2"
-id = "nct6798-isa-0290-temp4_input"
+name = "GPU Core"
+id = "/gpu-nvidia/0/temperature/0"
 
 [[Temp]]
-name = "temp3"
-id = "nct6798-isa-0290-temp4_input"
+name = "GPU Hot Spot"
+id = "/gpu-nvidia/0/temperature/2"
