@@ -35,22 +35,20 @@ public class Server
 
         var stream = new NetworkStream(_client);
         var bytes = Encoding.UTF8.GetBytes(jsonText);
-        Console.WriteLine("Sending hardware");
+        Log.LogD("Sending hardware");
         stream.Write(bytes);
         stream.Close();
-        Console.WriteLine("Hardware send");
+        Log.LogD("Hardware send");
     }
 
     public void WaitForCommand(HardwareManager hardwareManager)
     {
         while (true)
         {
-            Console.WriteLine("waiting for commands");
             var res = block_read();
             if (res < 0) return;
 
             var command = (Command)res;
-            Console.WriteLine("Receive command: " + command);
 
             int value;
             int index;
@@ -71,12 +69,9 @@ public class Server
                 case Command.GetValue:
                     index = block_read();
                     if (index < 0) return;
-                    Console.WriteLine("Receive index: " + index);
                     value = hardwareManager.GetValue(index);
                     var bytes = BitConverter.GetBytes(value);
-                    Console.WriteLine("sending value: " + value);
                     if (!block_send(bytes)) return;
-                    Console.WriteLine("value send");
                     break;
                 case Command.Shutdown:
                     return;
@@ -107,7 +102,7 @@ public class Server
         {
             var bytesRead = _client.Receive(_buffer);
             if (bytesRead == 4) return BitConverter.ToInt32(_buffer, 0);
-            Console.WriteLine("byte read = " + bytesRead);
+            Log.LogE("byte read = " + bytesRead);
             return -1;
         }
         catch (Exception e)
@@ -131,16 +126,16 @@ public class Server
             }
             catch (SocketException e)
             {
-                Console.WriteLine("SelectPort: port " + p + " invalid, " + e.Message);
+                Log.LogE("SelectPort: port " + p + " invalid, " + e.Message);
                 continue;
             }
             catch (ObjectDisposedException e)
             {
-                Console.WriteLine("SelectPort: listener has been disposed " + e.Message);
+                Log.LogE("SelectPort: listener has been disposed " + e.Message);
                 break;
             }
 
-            Console.WriteLine("Server Started on " + Address + ":" + p);
+            Log.LogD("Server Started on " + Address + ":" + p);
             return p;
         }
 
@@ -165,7 +160,7 @@ public class Server
 
         client.Send(Encoding.UTF8.GetBytes(CheckResponse));
 
-        Console.WriteLine("Client accepted!");
+        Log.LogD("Client accepted!");
         return client;
     }
 
@@ -175,6 +170,6 @@ public class Server
         _client.Close();
         _listener.Dispose();
         _listener.Close();
-        Console.WriteLine("Shutdown server");
+        Log.LogD("Shutdown server");
     }
 }

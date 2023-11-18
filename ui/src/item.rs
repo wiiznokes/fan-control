@@ -17,7 +17,7 @@ use hardware::Hardware;
 use crate::{
     input_line::input_line,
     pick::{pick_hardware, pick_input, Pick},
-    AppMsg,
+    AppMsg, ChangeConfigMsg,
 };
 
 pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, AppMsg> {
@@ -73,9 +73,11 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
         .into()
 }
 
-fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
-    let mut name =
-        TextInput::new("name", &node.name_cached).on_input(|str| AppMsg::Rename(node.id, str));
+fn item_view<'a>(
+    node: &'a Node,
+    mut content: Vec<Element<'a, ChangeConfigMsg>>,
+) -> Element<'a, AppMsg> {
+    let mut name = TextInput::new("name", &node.name_cached).on_input(ChangeConfigMsg::Rename);
 
     if node.is_error_name {
         name = name.error("this name is already beeing use");
@@ -85,11 +87,18 @@ fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Eleme
 
     let column = Column::with_children(content).spacing(5);
 
-    Container::new(column)
+    let item: Element<ChangeConfigMsg> = Container::new(column)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
         .style(style::Container::Card)
-        .into()
+        .into();
+
+    item.map(|msg| AppMsg::ChangeConfig(node.id, msg))
+}
+
+#[derive(Debug, Clone)]
+pub enum ControlMsg {
+    Auto(bool),
 }
 
 fn control_view<'a>(
@@ -108,12 +117,12 @@ fn control_view<'a>(
             nodes,
             &control.input,
             true,
-            Box::new(AppMsg::ReplaceInput),
+            Box::new(ChangeConfigMsg::ReplaceInput),
         ),
         Row::new()
             .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
             .push(Toggler::new(None, !control.auto, |is_active| {
-                AppMsg::ChangeControlAuto(node.id, !is_active)
+                ChangeConfigMsg::Control(ControlMsg::Auto(!is_active))
             }))
             // todo: need space_between here
             .align_items(Alignment::End)
@@ -142,6 +151,11 @@ fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     item_view(node, content)
 }
 
+#[derive(Debug, Clone)]
+pub enum CustomTempMsg {
+    Kind(CustomTempKind),
+}
+
 fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
     let NodeType::CustomTemp(custom_temp) = &node.node_type else {
         panic!()
@@ -156,7 +170,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
                 // todo: icon
                 .push(
                     Button::new(Text::new("x"))
-                        .on_press(AppMsg::RemoveInput(node.id, Pick::new(&i.1, &i.0))),
+                        .on_press(ChangeConfigMsg::RemoveInput(Pick::new(&i.1, &i.0))),
                 )
                 .into()
         })
@@ -169,7 +183,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         .collect::<Vec<_>>();
 
     let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
-        AppMsg::ChangeCustomTempKind(node.id, k)
+        ChangeConfigMsg::CustomTemp(CustomTempMsg::Kind(k))
     })
     .into();
     let content = vec![
@@ -179,13 +193,18 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
             nodes,
             &Some("Choose Temp".into()),
             false,
-            Box::new(AppMsg::AddInput),
+            Box::new(ChangeConfigMsg::AddInput),
         ),
         Column::with_children(inputs).into(),
         Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
     ];
 
     item_view(node, content)
+}
+
+#[derive(Debug, Clone)]
+pub enum FlatMsg {
+    Value(u16),
 }
 
 fn flat_view(node: &Node) -> Element<AppMsg> {
@@ -195,12 +214,12 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
 
     let mut sub_button = Button::new("-");
     if flat.value > 0 {
-        sub_button = sub_button.on_press(AppMsg::ChangeFlatValue(node.id, flat.value - 1));
+        sub_button = sub_button.on_press(ChangeConfigMsg::Flat(FlatMsg::Value(flat.value - 1)));
     }
 
     let mut add_button = Button::new("+");
     if flat.value < 100 {
-        add_button = add_button.on_press(AppMsg::ChangeFlatValue(node.id, flat.value + 1));
+        add_button = add_button.on_press(ChangeConfigMsg::Flat(FlatMsg::Value(flat.value + 1)));
     }
 
     let buttons = Row::new()
@@ -210,7 +229,7 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
 
     let slider = Row::new()
         .push(Slider::new(0..=100, flat.value, |v| {
-            AppMsg::ChangeFlatValue(node.id, v)
+            ChangeConfigMsg::Flat(FlatMsg::Value(v))
         }))
         .push(Text::new(format!("{} %", flat.value)))
         .into();
@@ -239,7 +258,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             nodes,
             &linear.input,
             true,
-            Box::new(AppMsg::ReplaceInput),
+            Box::new(ChangeConfigMsg::ReplaceInput),
         ),
         Text::new(format!("{} %", node.value.unwrap_or(0))).into(),
         input_line(
@@ -248,7 +267,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &linear_cache.min_temp,
             "°C",
             &(0..=255),
-            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MinTemp(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Linear(LinearMsg::MinTemp(val, cached_val)),
         ),
         input_line(
             "min speed",
@@ -256,7 +275,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &linear_cache.min_speed,
             "%",
             &(0..=100),
-            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MinSpeed(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Linear(LinearMsg::MinSpeed(val, cached_val)),
         ),
         input_line(
             "max temp",
@@ -264,7 +283,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &linear_cache.max_temp,
             "°C",
             &(0..=255),
-            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MaxTemp(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Linear(LinearMsg::MaxTemp(val, cached_val)),
         ),
         input_line(
             "max speed",
@@ -272,7 +291,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &linear_cache.max_speed,
             "%",
             &(0..=100),
-            |val, cached_val| AppMsg::ChangeLinear(node.id, LinearMsg::MaxSpeed(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Linear(LinearMsg::MaxSpeed(val, cached_val)),
         ),
     ];
 
@@ -298,7 +317,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             nodes,
             &target.input,
             true,
-            Box::new(AppMsg::ReplaceInput),
+            Box::new(ChangeConfigMsg::ReplaceInput),
         ),
         Text::new(format!("{} %", node.value.unwrap_or(0))).into(),
         input_line(
@@ -307,7 +326,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &target_cache.idle_temp,
             "°C",
             &(0..=255),
-            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::IdleTemp(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Target(TargetMsg::IdleTemp(val, cached_val)),
         ),
         input_line(
             "idle speed",
@@ -315,7 +334,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &target_cache.idle_speed,
             "%",
             &(0..=100),
-            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::IdleSpeed(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Target(TargetMsg::IdleSpeed(val, cached_val)),
         ),
         input_line(
             "load temp",
@@ -323,7 +342,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &target_cache.load_temp,
             "°C",
             &(0..=255),
-            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::LoadTemp(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Target(TargetMsg::LoadTemp(val, cached_val)),
         ),
         input_line(
             "load speed",
@@ -331,7 +350,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             &target_cache.load_speed,
             "%",
             &(0..=100),
-            |val, cached_val| AppMsg::ChangeTarget(node.id, TargetMsg::LoadSpeed(val, cached_val)),
+            |val, cached_val| ChangeConfigMsg::Target(TargetMsg::LoadSpeed(val, cached_val)),
         ),
     ];
 

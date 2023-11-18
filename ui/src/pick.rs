@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{fl, AppMsg};
+use crate::{fl, ChangeConfigMsg};
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
 use data::{
     id::Id,
@@ -82,14 +82,14 @@ impl<I> ToString for Pick<I> {
     }
 }
 
-pub fn pick_input<'a>(
+pub fn pick_input<'a, M: 'a>(
     node: &'a Node,
     nodes: &'a Nodes,
     current_input: &Option<String>,
     add_none: bool,
     // todo: try to remove this box with sized
-    map_pick: Box<dyn Fn(Id, Pick<Id>) -> AppMsg>,
-) -> Element<'a, AppMsg> {
+    map_pick: Box<dyn Fn(Pick<Id>) -> M>,
+) -> Element<'a, M> {
     let mut input_options = nodes
         .values()
         .filter(|n| {
@@ -111,20 +111,16 @@ pub fn pick_input<'a>(
         input_options.insert(0, Pick::None);
     }
 
-    PickList::new(
-        input_options,
-        Pick::display_only(current_input),
-        move |pick| map_pick(node.id, pick),
-    )
-    .width(Length::Fill)
-    .into()
+    PickList::new(input_options, Pick::display_only(current_input), map_pick)
+        .width(Length::Fill)
+        .into()
 }
 
 pub fn pick_hardware<'a, P: 'a>(
     node: &'a Node,
     hardwares: &'a [Rc<P>],
     one_ref: bool,
-) -> Element<'a, AppMsg>
+) -> Element<'a, ChangeConfigMsg>
 where
     Pick<String>: From<&'a Rc<P>>,
 {
@@ -163,7 +159,7 @@ where
     }
 
     PickList::new(hardware_options, Pick::display_only(hardware_id), |pick| {
-        AppMsg::ChangeHardware(node.id, pick)
+        ChangeConfigMsg::ChangeHardware(pick)
     })
     .width(Length::Fill)
     .into()

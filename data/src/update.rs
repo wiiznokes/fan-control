@@ -4,7 +4,7 @@ use hardware::{HardwareBridgeT, HardwareError, Value};
 
 use crate::{
     id::Id,
-    node::{Node, Nodes, RootNodes},
+    node::{Node, NodeType, Nodes, RootNodes},
 };
 
 #[derive(Debug, Clone)]
@@ -17,7 +17,9 @@ pub enum UpdateError {
     CantSetMode,
 }
 
-pub struct Update {}
+pub struct Update {
+    config_changed: bool,
+}
 
 impl Default for Update {
     fn default() -> Self {
@@ -27,7 +29,13 @@ impl Default for Update {
 
 impl Update {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            config_changed: false,
+        }
+    }
+
+    pub fn config_changed(&mut self) {
+        self.config_changed = true;
     }
 
     pub fn graph(
@@ -38,9 +46,29 @@ impl Update {
     ) -> Result<(), UpdateError> {
         let mut updated: HashSet<Id> = HashSet::new();
 
-        for node_id in root_nodes {
-            Self::update_rec(nodes, node_id, &mut updated, bridge)?;
+        if self.config_changed {
+            for node_id in root_nodes {
+                let value = Self::update_rec(nodes, node_id, &mut updated, bridge)?;
+
+                match value {
+                    Some(_) => {}
+                    None => {
+                        let Some(node) = nodes.get_mut(node_id) else {
+                            return Err(UpdateError::NodeNotFound);
+                        };
+                        if let NodeType::Control(control) = &mut node.node_type {
+                            control.set_mode(true, bridge)?;
+                        }
+                    }
+                }
+            }
+            self.config_changed = false;
+        } else {
+            for node_id in root_nodes {
+                Self::update_rec(nodes, node_id, &mut updated, bridge)?;
+            }
         }
+
         Ok(())
     }
 

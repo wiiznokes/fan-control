@@ -6,7 +6,7 @@ pub struct Settings {
     pub unit: Unit,
 
     #[serde(default = "one")]
-    pub update_delay: u8,
+    pub update_delay: u32,
 
     #[serde(default = "two")]
     pub disable_pwm_value: u8,
@@ -22,7 +22,7 @@ pub enum Unit {
     Celsius,
 }
 
-fn one() -> u8 {
+fn one() -> u32 {
     1
 }
 

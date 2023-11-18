@@ -42,8 +42,6 @@ clean-libsensors:
 clean-lhm:
 	dotnet clean ./hardware/LibreHardwareMonitorWrapper/
 
-clean-all: clean clean-lhm clean-libsensors
-
 
 
 

@@ -55,8 +55,8 @@ public class HardwareResearcher : IVisitor
 
         _mComputer.Close();
         _isStarted = false;
-        
-        Console.WriteLine("Shutdown Lhm");
+
+        Log.LogD("Shutdown Lhm");
     }
 
 
@@ -86,9 +86,9 @@ public class HardwareResearcher : IVisitor
             }
         }
 
-        Console.WriteLine("nbControl: " + nbControl);
-        Console.WriteLine("nbFan: " + nbFan);
-        Console.WriteLine("nbTemp: " + nbTemp);
+        Log.LogD("nbControl: " + nbControl);
+        Log.LogD("nbFan: " + nbFan);
+        Log.LogD("nbTemp: " + nbTemp);
         return hardwareList;
 
         void AddHardware(ISensor sensor)

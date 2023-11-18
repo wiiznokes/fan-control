@@ -1,5 +1,20 @@
 ﻿namespace LibreHardwareMonitorWrapper;
 
+public static class Log
+{
+    private const string Tag = "[LHM] ";
+
+    public static void LogD(string str)
+    {
+        Console.WriteLine(Tag + str);
+    }
+
+    public static void LogE(string str)
+    {
+        Console.WriteLine(Tag + "error: " + str);
+    }
+}
+
 public enum HardwareType
 {
     Control = 1,
