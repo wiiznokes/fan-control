@@ -55,6 +55,8 @@ public class HardwareResearcher : IVisitor
 
         _mComputer.Close();
         _isStarted = false;
+        
+        Console.WriteLine("Shutdown Lhm");
     }
 
 

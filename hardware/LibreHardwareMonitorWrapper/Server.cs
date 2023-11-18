@@ -175,6 +175,6 @@ public class Server
         _client.Close();
         _listener.Dispose();
         _listener.Close();
-        Console.WriteLine("Shutdown");
+        Console.WriteLine("Shutdown server");
     }
 }

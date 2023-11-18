@@ -298,7 +298,7 @@ impl cosmic::Application for Ui {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
+        time::every(Duration::from_millis(6000)).map(|_| AppMsg::Tick)
         //Subscription::none()
     }
 }
