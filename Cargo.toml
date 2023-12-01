@@ -42,7 +42,7 @@ hardware.workspace = true
 hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
-clap = { version = "4.3", features = ["derive"] }
+clap = { version = "4.4", features = ["derive"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 toml = "0.7"
