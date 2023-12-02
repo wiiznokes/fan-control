@@ -2,33 +2,33 @@
 name = "CPU"
 id = "/lpc/nct6798d/control/1"
 input = "linear1"
-active = false
+active = true
 
 [[Control]]
 name = "Fan #3"
 id = "/lpc/nct6798d/control/2"
 input = "flat1"
-active = false
+active = true
 
 [[Control]]
 name = "Fan #4"
 id = "/lpc/nct6798d/control/3"
 input = "flat1"
-active = false
+active = true
 
 
 [[Control]]
 name = "GPU Fan 1"
 id = "/gpu-nvidia/0/control/1"
 input = "target1"
-active = false
+active = true
 
 
 [[Control]]
 name = "GPU Fan 2"
 id = "/gpu-nvidia/0/control/2"
 input = "target1"
-active = false
+active = true
 
 
 
