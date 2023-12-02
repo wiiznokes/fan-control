@@ -10,7 +10,7 @@ use cosmic::{
 };
 use data::{
     config::custom_temp::CustomTempKind,
-    node::{Node, NodeType, NodeTypeLight, Nodes},
+    node::{Node, NodeType, NodeTypeLight, Nodes, ValueKind},
 };
 use hardware::Hardware;
 
@@ -120,7 +120,7 @@ fn control_view<'a>(
             Box::new(ChangeConfigMsg::ReplaceInput),
         ),
         Row::new()
-            .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
+            .push(Text::new(node.value_text(&ValueKind::Porcentage)))
             .push(Toggler::new(None, control.active, |is_active| {
                 ChangeConfigMsg::Control(ControlMsg::Active(is_active))
             }))
@@ -136,7 +136,7 @@ fn control_view<'a>(
 fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.temps, false),
-        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
+        Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
     item_view(node, content)
@@ -145,7 +145,7 @@ fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> 
 fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.fans, false),
-        Text::new(format!("{} RPM", node.value.unwrap_or(0))).into(),
+        Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
     item_view(node, content)
@@ -196,7 +196,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
             Box::new(ChangeConfigMsg::AddInput),
         ),
         Column::with_children(inputs).into(),
-        Text::new(format!("{} °C", node.value.unwrap_or(0))).into(),
+        Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
     item_view(node, content)
@@ -231,7 +231,7 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
         .push(Slider::new(0..=100, flat.value, |v| {
             ChangeConfigMsg::Flat(FlatMsg::Value(v))
         }))
-        .push(Text::new(format!("{} %", flat.value)))
+        .push(Text::new(node.value_text(&ValueKind::Porcentage)))
         .into();
 
     let content = vec![buttons, slider];
@@ -260,7 +260,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             true,
             Box::new(ChangeConfigMsg::ReplaceInput),
         ),
-        Text::new(format!("{} %", node.value.unwrap_or(0))).into(),
+        Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
             "min temp",
             &linear.min_temp,
@@ -319,7 +319,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             true,
             Box::new(ChangeConfigMsg::ReplaceInput),
         ),
-        Text::new(format!("{} %", node.value.unwrap_or(0))).into(),
+        Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
             "idle temp",
             &target.idle_temp,
