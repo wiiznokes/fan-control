@@ -1,7 +1,7 @@
 [[Control]]
 name = "control1"
 input = "linear1"
-auto = false
+active = false
 
 [[Linear]]
 name = "linear1"

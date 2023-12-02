@@ -122,7 +122,7 @@ fn control_view<'a>(
         Row::new()
             .push(Text::new(format!("{} %", node.value.unwrap_or(0))))
             .push(Toggler::new(None, control.active, |is_active| {
-                ChangeConfigMsg::Control(ControlMsg::Active(!is_active))
+                ChangeConfigMsg::Control(ControlMsg::Active(is_active))
             }))
             // todo: need space_between here
             .align_items(Alignment::End)

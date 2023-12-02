@@ -2,7 +2,7 @@
 name = "control1"
 input = "linear1"
 id = "control1"
-auto = false
+active = true
 
 [[Linear]]
 name = "linear1"
