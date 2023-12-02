@@ -321,6 +321,7 @@ impl cosmic::Application for Ui {
             self.app_state.settings.update_delay as u64,
         ))
         .map(|_| AppMsg::Tick)
-        //Subscription::none()
+        
+        //cosmic::iced_futures::Subscription::none()
     }
 }
