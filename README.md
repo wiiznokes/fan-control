@@ -33,6 +33,9 @@
 - [ui](./ui/README.md): implement the UI. Depend on [data](./data/README.md) and [hardware](./hardware/README.md)
 - the app: integrate all this crates in one executable
 
+# Config files
+- Windows: `C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control`
+- Linux: `/home/wiiz/.config/fan-control`
 
 # Build
 See instructions [here](./BUILD.md).

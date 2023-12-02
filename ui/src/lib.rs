@@ -317,8 +317,9 @@ impl cosmic::Application for Ui {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
+        
         time::every(Duration::from_millis(
-            self.app_state.settings.update_delay as u64,
+            self.app_state.settings.update_delay,
         ))
         .map(|_| AppMsg::Tick)
         

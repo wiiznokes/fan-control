@@ -28,6 +28,7 @@ pub struct DirManager {
 
 impl DirManager {
     pub fn new(config_dir_path_opt: Option<PathBuf>) -> DirManager {
+
         let config_dir_path = if let Some(config_dir_path) = config_dir_path_opt {
             match Args::validate_config_dir_path(&config_dir_path) {
                 Ok(_) => config_dir_path,
