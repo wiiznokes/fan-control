@@ -1,6 +1,6 @@
 # fan-control
 
-# Steps
+## Steps
 
 - [ ] finish hardware crate
     - [x] impl windows code
@@ -27,18 +27,28 @@
     - [x] init file structure
     - [ ] add all string to ftl files
 
+
+## Installation
+#### Linux
+To have the maximum number of sensors detected by the application, you must install lm-sensor and run the hardware detection script:
+```
+sudo apt install lm-sensors
+sudo sensors-detect
+```
+
+
 ## Repo structure
 - [hardware](./hardware/README.md): define an abstraction around the hardware.
 - [data](./data/README.md): define structures used in the app (Node, Config), and there logic. Depend on [hardware](./hardware/README.md)
 - [ui](./ui/README.md): implement the UI. Depend on [data](./data/README.md) and [hardware](./hardware/README.md)
 - the app: integrate all this crates in one executable
 
-# Config files
+## Config files
 - Windows: `C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control`
 - Linux: `/home/wiiz/.config/fan-control`
 
-# Build
+## Build
 See instructions [here](./BUILD.md).
 
-# Contributing
+## Contributing
 Contributions are welcome, do not hesitate to open an issue, a pull request, etc...
