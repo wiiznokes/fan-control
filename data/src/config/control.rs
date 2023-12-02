@@ -15,13 +15,13 @@ pub struct Control {
     #[serde(rename = "id")]
     pub hardware_id: Option<String>,
     pub input: Option<String>,
-    pub auto: bool,
+    pub active: bool,
 
     #[serde(skip)]
     pub control_h: Option<Rc<ControlH>>,
 
     #[serde(skip)]
-    pub manual_has_been_set: bool,
+    pub is_active_set: bool,
 }
 
 impl Control {
@@ -29,16 +29,16 @@ impl Control {
         name: String,
         hardware_id: Option<String>,
         input: Option<String>,
-        auto: bool,
+        active: bool,
         control_h: Option<Rc<ControlH>>,
     ) -> Self {
         Self {
             name: name.clone(),
             hardware_id,
             input,
-            auto,
+            active,
             control_h,
-            manual_has_been_set: false,
+            is_active_set: false,
         }
     }
 
@@ -47,8 +47,8 @@ impl Control {
         value: Value,
         bridge: &mut HardwareBridgeT,
     ) -> Result<Value, UpdateError> {
-        if !self.manual_has_been_set {
-            self.set_mode(false, bridge)?;
+        if !self.is_active_set {
+            self.set_mode(true, bridge)?;
         }
 
         match &self.control_h {
@@ -62,22 +62,29 @@ impl Control {
 
     pub fn set_mode(
         &mut self,
-        auto: bool,
+        active: bool,
         bridge: &mut HardwareBridgeT,
     ) -> Result<(), UpdateError> {
+
+        if self.is_active_set == active {
+            debug!("mode already set: is_active_set = {}", self.is_active_set);
+            return Ok(());
+        }
+
         let res = match &self.control_h {
             Some(control_h) => bridge
-                .set_mode(&control_h.internal_index, !auto as i32)
+                .set_mode(&control_h.internal_index, active as i32)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid),
         };
 
-        match res {
+        match &res {
             Ok(_) => {
-                self.manual_has_been_set = !auto;
+                self.active = active;
+                self.is_active_set = active
             }
-            Err(_) => {
-                self.manual_has_been_set = false;
+            Err(e) => {
+                error!("can't set mode {} of a control: {:?}", active, e);
             }
         }
         res
@@ -86,7 +93,7 @@ impl Control {
 
 impl IsValid for Control {
     fn is_valid(&self) -> bool {
-        !self.auto && self.hardware_id.is_some() && self.control_h.is_some() && self.input.is_some()
+        self.active && self.hardware_id.is_some() && self.control_h.is_some() && self.input.is_some()
     }
 }
 

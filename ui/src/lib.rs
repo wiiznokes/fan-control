@@ -224,13 +224,13 @@ impl cosmic::Application for Ui {
                         }
                     }
                     ChangeConfigMsg::Control(control_msg) => match control_msg {
-                        ControlMsg::Auto(auto) => {
+                        ControlMsg::Active(is_active) => {
                             let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
                             let NodeType::Control(control) = &mut node.node_type else {
                                 panic!()
                             };
-                            control.auto = auto;
+                            let _ = control.set_mode(is_active, &mut self.app_state.bridge);
                         }
                     },
                     ChangeConfigMsg::CustomTemp(custom_temp_msg) => match custom_temp_msg {

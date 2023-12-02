@@ -57,7 +57,7 @@ impl Update {
                             return Err(UpdateError::NodeNotFound);
                         };
                         if let NodeType::Control(control) = &mut node.node_type {
-                            control.set_mode(true, bridge)?;
+                            control.set_mode(false, bridge)?;
                         }
                     }
                 }
