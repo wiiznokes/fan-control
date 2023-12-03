@@ -14,6 +14,11 @@ struct InternalSensor {}
 #[derive(Debug)]
 struct InternalControl {}
 
+
+static TEMP_INTERNAL_INDEX: usize = 0;
+static FAN_INTERNAL_INDEX: usize = 1;
+static CONTROL_INTERNAL_INDEX: usize = 2;
+
 impl HardwareBridge for FakeHardwareBridge {
     fn generate_hardware() -> (Hardware, HardwareBridgeT) {
         let mut hardware = Hardware::default();
@@ -22,7 +27,7 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "temp1".into(),
             hardware_id: "temp1".into(),
             info: String::new(),
-            internal_index: 0,
+            internal_index: TEMP_INTERNAL_INDEX,
         };
         hardware.temps.push(temp1.into());
 
@@ -30,7 +35,7 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "temp2".into(),
             hardware_id: "temp2".into(),
             info: String::new(),
-            internal_index: 0,
+            internal_index: TEMP_INTERNAL_INDEX,
         };
         hardware.temps.push(temp2.into());
 
@@ -38,7 +43,7 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "fan1".into(),
             hardware_id: "fan1".into(),
             info: String::new(),
-            internal_index: 1,
+            internal_index: FAN_INTERNAL_INDEX,
         };
         hardware.fans.push(fan1.into());
 
@@ -46,7 +51,7 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "control1".into(),
             hardware_id: "control1".into(),
             info: String::new(),
-            internal_index: 2,
+            internal_index: CONTROL_INTERNAL_INDEX,
         };
         hardware.controls.push(control1.into());
 
@@ -54,7 +59,7 @@ impl HardwareBridge for FakeHardwareBridge {
             name: "control2".into(),
             hardware_id: "control2".into(),
             info: String::new(),
-            internal_index: 2,
+            internal_index: CONTROL_INTERNAL_INDEX,
         };
         hardware.controls.push(control2.into());
 
@@ -62,15 +67,12 @@ impl HardwareBridge for FakeHardwareBridge {
     }
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
-        if internal_index == &2 {
-            panic!("get value to hardware == Control")
-        }
         let nb = rand::thread_rng().gen_range(30..80);
         Ok(nb)
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        if internal_index != &2 {
+        if internal_index != &CONTROL_INTERNAL_INDEX {
             panic!("set value to hardware != Control")
         }
         debug!("set value {}", value);
@@ -78,7 +80,7 @@ impl HardwareBridge for FakeHardwareBridge {
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        if internal_index != &2 {
+        if internal_index != &CONTROL_INTERNAL_INDEX {
             panic!("set mode to hardware != Control")
         }
         debug!("set mode {}", value);
