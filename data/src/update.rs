@@ -4,10 +4,10 @@ use hardware::{HardwareBridgeT, HardwareError, Value};
 
 use crate::{
     id::Id,
-    node::{Node, NodeType, Nodes, RootNodes},
+    node::{Node, NodeType, NodeTypeLight, Nodes, RootNodes},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UpdateError {
     NodeNotFound,
     ValueIsNone,
@@ -15,6 +15,7 @@ pub enum UpdateError {
     Hardware(HardwareError),
     NoInputData,
     CantSetMode,
+    InvalidControl,
 }
 
 pub struct Update {
@@ -55,11 +56,17 @@ impl Update {
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
     ) -> Result<(), UpdateError> {
-        let _v = vec![];
         for node in nodes.values_mut() {
-            if node.node_type.is_sensor() {
-                let _ = node.update(&_v, bridge, &false);
+            let value = match &mut node.node_type {
+                crate::node::NodeType::Control(control) => control.get_value(bridge),
+                crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
+                crate::node::NodeType::Temp(temp) => temp.get_value(bridge),
+                _ => continue,
             };
+
+            if let Ok(value) = value {
+                node.value = Some(value);
+            }
         }
 
         self.update_root_nodes(nodes, root_nodes, bridge, &true)
@@ -78,24 +85,27 @@ impl Update {
 
         if self.config_changed {
             for node_id in root_nodes {
-                let value = Self::update_rec(nodes, node_id, &mut updated, bridge, skip_sensors)?;
-
-                match value {
-                    Some(_) => {}
-                    None => {
-                        let Some(node) = nodes.get_mut(node_id) else {
-                            return Err(UpdateError::NodeNotFound);
-                        };
-                        if let NodeType::Control(control) = &mut node.node_type {
-                            control.set_mode(false, bridge)?;
-                        }
+                if Self::update_rec(nodes, node_id, &mut updated, bridge, skip_sensors).is_err() {
+                    let Some(node) = nodes.get_mut(node_id) else {
+                        return Err(UpdateError::NodeNotFound);
+                    };
+                    if let NodeType::Control(control) = &mut node.node_type {
+                        control.set_mode(false, bridge)?;
                     }
                 }
             }
             self.config_changed = false;
         } else {
             for node_id in root_nodes {
-                Self::update_rec(nodes, node_id, &mut updated, bridge, skip_sensors)?;
+                let res = Self::update_rec(nodes, node_id, &mut updated, bridge, skip_sensors);
+
+                if let Err(e) = res {
+                    if e == UpdateError::InvalidControl {
+                        continue;
+                    } else {
+                        return Err(e);
+                    }
+                }
             }
         }
 
@@ -124,6 +134,9 @@ impl Update {
             updated.insert(node.id);
 
             if !node.node_type.is_valid() {
+                if node.node_type.to_light() == NodeTypeLight::Control {
+                    return Err(UpdateError::InvalidControl);
+                }
                 node.value = None;
                 return Ok(None);
             }
@@ -137,6 +150,9 @@ impl Update {
                 None => {
                     return match nodes.get_mut(node_id) {
                         Some(node) => {
+                            if node.node_type.to_light() == NodeTypeLight::Control {
+                                return Err(UpdateError::InvalidControl);
+                            }
                             node.value = None;
                             Ok(None)
                         }
@@ -168,13 +184,7 @@ impl Node {
         }
 
         let value = match &mut self.node_type {
-            crate::node::NodeType::Control(control) => {
-                if let Err(e) = control.set_value(input_values[0], bridge) {
-                    Err(e)
-                } else {
-                    control.get_value(bridge)
-                }
-            },
+            crate::node::NodeType::Control(control) => control.set_value(input_values[0], bridge),
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
             crate::node::NodeType::Temp(temp) => temp.get_value(bridge),
             crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),

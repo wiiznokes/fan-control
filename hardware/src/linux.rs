@@ -7,6 +7,13 @@ use crate::{
 };
 use ouroboros::self_referencing;
 
+// https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
+// https://www.kernel.org/doc/html/next/hwmon/nct6775.html
+
+// todo: cache PWM_ENABLE value before setting manual mode
+// so we can use it instead of this hardcored value
+static DEFAULT_PWM_ENABLE: i32 = 5;
+
 #[self_referencing]
 pub struct LinuxBridge {
     lib: LMSensors,
@@ -32,9 +39,7 @@ impl HardwareBridge for LinuxBridge {
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
-                    Ok(value) => {
-                        Ok((value / 2.55) as i32)
-                    },
+                    Ok(value) => Ok((value / 2.55) as i32),
                     Err(e) => {
                         error!("{}", e);
                         Err(HardwareError::LmSensors)
@@ -65,13 +70,19 @@ impl HardwareBridge for LinuxBridge {
                 }
                 InternalSubFeatureRef::Sensor(_) => {
                     panic!("can't set the value of a sensor");
-                },
+                }
             },
             None => Err(HardwareError::IdNotFound),
         })
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+        let value = if value == 0 {
+            DEFAULT_PWM_ENABLE
+        } else {
+            value
+        };
+
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
@@ -83,7 +94,7 @@ impl HardwareBridge for LinuxBridge {
                 }
                 InternalSubFeatureRef::Sensor(_) => {
                     panic!("can't set mode of a sensor");
-                },
+                }
             },
             None => Err(HardwareError::IdNotFound),
         })
@@ -150,7 +161,7 @@ struct SensorRefs<'a> {
 
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
-        if let Err(e) = self.enable.set_value(&lm_sensors::Value::new(value::Kind::PwmEnable, 0.0).unwrap()) {
+        if let Err(e) = self.enable.set_raw_value(DEFAULT_PWM_ENABLE.into()) {
             debug!("error tring to set auto to a pwn while closing: {:?}", e)
         }
     }

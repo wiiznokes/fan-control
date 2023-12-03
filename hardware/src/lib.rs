@@ -16,7 +16,7 @@ pub mod windows;
 #[cfg(feature = "fake_hardware")]
 pub mod fake_hardware;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum HardwareError {
     IdNotFound,
     LmSensors,

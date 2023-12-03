@@ -1,23 +1,20 @@
 [[Control]]
-name = "pwm1 nct6798-isa-0290"
-id = "nct6798-isa-0290-pwm1"
-input = "linear1"
-active = true
-
-[[Control]]
 name = "pwm2 nct6798-isa-0290"
 id = "nct6798-isa-0290-pwm2"
-input = "flat1"
+input = "linear1"
 active = true
 
 [[Control]]
 name = "pwm3 nct6798-isa-0290"
 id = "nct6798-isa-0290-pwm3"
-input = "flat1"
+input = "target1"
 active = true
 
-
-
+[[Control]]
+name = "pwm4 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm4"
+input = "flat1"
+active = true
 
 
 [[Flat]]
@@ -49,29 +46,47 @@ loadSpeed = 100
 name = "CPU"
 kind = "Average"
 input = [
+    "TSI0_TEMP nct6798-isa-0290",
     "AUXTIN1 nct6798-isa-0290",
-    "CPUTIN nct6798-isa-0290",
 ]
 
 [[CustomTemp]]
 name = "GPU"
 kind = "Average"
 input = [
-    "GPU Core",
-    "GPU Hot Spot"
 ]
 
 
 
 [[Temp]]
+name = "TSI0_TEMP nct6798-isa-0290"
+id = "nct6798-isa-0290-temp11_input"
+
+[[Temp]]
 name = "AUXTIN1 nct6798-isa-0290"
 id = "nct6798-isa-0290-temp4_input"
-[[Temp]]
-name = "CPUTIN nct6798-isa-0290"
-id = "nct6798-isa-0290-temp2_input"
 
 [[Temp]]
-name = "GPU Core"
+name = "Tctl k10temp-pci-00c3"
+id = "k10temp-pci-00c3-temp1_input"
 
 [[Temp]]
-name = "GPU Hot Spot"
+name = "Tccd1 k10temp-pci-00c3"
+id = "k10temp-pci-00c3-temp3_input"
+
+[[Temp]]
+name = "Composite nvme-pci-0100"
+id = "nvme-pci-0100-temp1_input"
+
+
+[[Fan]]
+name = "fan2 nct6798-isa-0290"
+id = "nct6798-isa-0290-fan2_input"
+
+[[Fan]]
+name = "fan3 nct6798-isa-0290"
+id = "nct6798-isa-0290-fan3_input"
+
+[[Fan]]
+name = "fan4 nct6798-isa-0290"
+id = "nct6798-isa-0290-fan4_input"

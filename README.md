@@ -2,10 +2,10 @@
 
 ## Steps
 
-- [ ] finish hardware crate
+- [x] finish hardware crate
     - [x] impl windows code
     - [x] impl linux code
-    - [ ] test on real hardware
+    - [x] test on real hardware
 - [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
     - [ ] Msi
     - [x] Deb
@@ -35,7 +35,7 @@ To have the maximum number of sensors detected by the application, you must inst
 sudo apt install lm-sensors
 sudo sensors-detect
 ```
-
+Also, make sure to execute the program in sudo mode.
 
 ## Repo structure
 - [hardware](./hardware/README.md): define an abstraction around the hardware.
