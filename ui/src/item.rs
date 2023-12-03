@@ -183,11 +183,12 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         .map(|i| {
             Row::new()
                 .push(Text::new(i.1.clone()))
-                // todo: icon
+                .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
-                    Button::new(Text::new("x"))
+                    icon_button("select/close/close20")
                         .on_press(ModifNodeMsg::RemoveInput(Pick::new(&i.1, &i.0))),
                 )
+                .align_items(Alignment::Center)
                 .into()
         })
         .collect();
@@ -201,6 +202,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
     let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
         ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(k))
     })
+    .width(Length::Fill)
     .into();
     let content = vec![
         pick_kind,
