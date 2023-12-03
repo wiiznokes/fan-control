@@ -13,16 +13,17 @@ use cosmic::{
     app::{Command, Core},
     executor,
     iced::{self, time},
+    iced_core::Length,
+    iced_widget::PickList,
     theme,
-    widget::{self, Column},
+    widget::{self, Column, Text, TextInput},
     ApplicationExt, Element,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 use pick::Pick;
 use strum::IntoEnumIterator;
-use top_bar::top_bar_view;
-use utils::RemoveElem;
+use utils::{icon_button, my_icon, RemoveElem};
 
 #[macro_use]
 extern crate log;
@@ -34,7 +35,6 @@ mod pick;
 //mod theme;
 mod utils;
 //mod widgets;
-mod top_bar;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
     let settings = cosmic::app::Settings::default();
@@ -376,13 +376,66 @@ impl cosmic::Application for Ui {
         let app_graph = &app_state.app_graph;
 
         Column::new()
-            .push(top_bar_view(
-                &app_state.settings,
-                &app_state.dir_manager,
-                &self.cache.current_config,
-            ))
             .push(items_view(&app_graph.nodes, &app_state.hardware))
             .into()
+    }
+
+    fn header_start(&self) -> Vec<Element<Self::Message>> {
+        let mut elems = vec![];
+
+        let app_icon = my_icon("app/toys_fan48").into();
+        elems.push(app_icon);
+
+        let app_name = Text::new("fan-control").into();
+        elems.push(app_name);
+        elems
+    }
+
+    fn header_center(&self) -> Vec<Element<Self::Message>> {
+        let settings = &self.app_state.settings;
+        let dir_manager = &self.app_state.dir_manager;
+
+        let mut elems = vec![];
+
+        if settings.current_config.is_some() {
+            let save_button = icon_button("topBar/save40", AppMsg::SaveConfig);
+
+            elems.push(save_button);
+        }
+
+        if !dir_manager.config_names.is_empty() {
+            let choose_config = if self.app_state.settings.current_config.is_some() {
+                TextInput::new("name", &self.cache.current_config)
+                    .on_input(AppMsg::RenameConfig)
+                    .width(Length::Fixed(200.0))
+                    .into()
+            } else {
+                PickList::new(
+                    &dir_manager.config_names,
+                    Some(self.cache.current_config.to_owned()),
+                    |name| AppMsg::ChangeConfig(Some(name)),
+                )
+                .into()
+            };
+            elems.push(choose_config);
+        }
+
+        let new_button = icon_button(
+            "sign/plus/add40",
+            AppMsg::CreateConfig(CreateConfigMsg::Init),
+        );
+        elems.push(new_button);
+
+        elems
+    }
+
+    fn header_end(&self) -> Vec<Element<Self::Message>> {
+        let mut elems = vec![];
+
+        let settings_button = icon_button("topbar/settings40", AppMsg::Settings(SettingsMsg::Open));
+        elems.push(settings_button);
+
+        elems
     }
 
     fn context_drawer(&self) -> Option<Element<Self::Message>> {
