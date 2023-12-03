@@ -14,7 +14,6 @@ struct InternalSensor {}
 #[derive(Debug)]
 struct InternalControl {}
 
-
 static TEMP_INTERNAL_INDEX: usize = 0;
 static FAN_INTERNAL_INDEX: usize = 1;
 static CONTROL_INTERNAL_INDEX: usize = 2;

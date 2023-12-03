@@ -32,3 +32,12 @@ impl Default for Settings {
 fn default_update_delay() -> u64 {
     2500
 }
+
+impl Settings {
+    pub fn current_config_text(&self) -> &str {
+        match &self.current_config {
+            Some(current_config) => current_config,
+            None => "None",
+        }
+    }
+}

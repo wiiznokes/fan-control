@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use directories::ProjectDirs;
@@ -24,6 +24,7 @@ fn default_config_dir_path() -> PathBuf {
 
 pub struct DirManager {
     pub config_dir_path: PathBuf,
+    pub config_names: Vec<String>,
 }
 
 impl DirManager {
@@ -46,8 +47,15 @@ impl DirManager {
             }
         }
 
-        DirManager { config_dir_path }
+        DirManager {
+            config_names: Self::config_names(&config_dir_path),
+            config_dir_path,
+        }
     }
+
+    pub fn save(&mut self) {}
+
+    pub fn remove() {}
 
     pub fn settings_file_path(&self) -> PathBuf {
         self.config_dir_path.join(SETTINGS_FILENAME)
@@ -85,10 +93,10 @@ impl DirManager {
         }
     }
 
-    pub fn list_config_filenames(&self) -> Vec<String> {
+    fn config_names(config_dir_path: &Path) -> Vec<String> {
         let mut filenames = Vec::new();
 
-        let Ok(files) = self.config_dir_path.read_dir() else {
+        let Ok(files) = config_dir_path.read_dir() else {
             return filenames;
         };
 

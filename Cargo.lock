@@ -4814,6 +4814,7 @@ dependencies = [
  "lazy_static",
  "libcosmic",
  "log",
+ "once_cell",
  "rust-embed",
 ]
 

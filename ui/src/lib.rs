@@ -12,11 +12,13 @@ use cosmic::{
     app::{Command, Core},
     executor,
     iced::{self, time},
+    widget::Column,
     Element,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 use pick::Pick;
+use top_bar::top_bar_view;
 use utils::RemoveElem;
 
 #[macro_use]
@@ -29,6 +31,7 @@ mod pick;
 //mod theme;
 mod utils;
 //mod widgets;
+mod top_bar;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
     let settings = cosmic::app::Settings::default();
@@ -38,16 +41,31 @@ pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
 pub struct Ui {
     core: Core,
     app_state: AppState,
+    cached_current_config: String,
 }
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Tick,
-    ChangeConfig(Id, ChangeConfigMsg),
+    SaveConfig,
+    RenameConfig(String),
+    ChangeConfig(Option<String>),
+    RemoveConfig(String),
+    CreateConfig(CreateConfigMsg),
+    ModifNode(Id, ModifNodeMsg),
+
+    OpenSettings,
 }
 
 #[derive(Debug, Clone)]
-pub enum ChangeConfigMsg {
+pub enum CreateConfigMsg {
+    Init,
+    Cancel,
+    New(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum ModifNodeMsg {
     Rename(String),
     ChangeHardware(Pick<String>),
     ReplaceInput(Pick<Id>),
@@ -78,6 +96,7 @@ impl cosmic::Application for Ui {
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let ui_state = Ui {
+            cached_current_config: flags.settings.current_config_text().to_owned(),
             app_state: flags,
             core,
         };
@@ -100,9 +119,9 @@ impl cosmic::Application for Ui {
                 }
             }
 
-            AppMsg::ChangeConfig(id, change_config) => {
+            AppMsg::ModifNode(id, change_config) => {
                 match change_config {
-                    ChangeConfigMsg::Rename(name) => {
+                    ModifNodeMsg::Rename(name) => {
                         let name_is_valid =
                             validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
@@ -142,7 +161,7 @@ impl cosmic::Application for Ui {
                             node.is_error_name = true;
                         }
                     }
-                    ChangeConfigMsg::ChangeHardware(pick) => {
+                    ModifNodeMsg::ChangeHardware(pick) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         let hardware = &self.app_state.hardware;
 
@@ -186,7 +205,7 @@ impl cosmic::Application for Ui {
                             _ => panic!("node have no hardware id"),
                         }
                     }
-                    ChangeConfigMsg::ReplaceInput(pick) => {
+                    ModifNodeMsg::ReplaceInput(pick) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         node.inputs.clear();
 
@@ -202,7 +221,7 @@ impl cosmic::Application for Ui {
                             _ => panic!("node have not exactly one input"),
                         }
                     }
-                    ChangeConfigMsg::AddInput(pick) => {
+                    ModifNodeMsg::AddInput(pick) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         node.inputs.push(pick.to_couple().unwrap());
 
@@ -211,7 +230,7 @@ impl cosmic::Application for Ui {
                             _ => panic!("node have not multiple inputs"),
                         }
                     }
-                    ChangeConfigMsg::RemoveInput(pick) => {
+                    ModifNodeMsg::RemoveInput(pick) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
                         node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
@@ -223,7 +242,7 @@ impl cosmic::Application for Ui {
                             _ => panic!("node have not multiple inputs"),
                         }
                     }
-                    ChangeConfigMsg::Control(control_msg) => match control_msg {
+                    ModifNodeMsg::Control(control_msg) => match control_msg {
                         ControlMsg::Active(is_active) => {
                             let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
@@ -233,7 +252,7 @@ impl cosmic::Application for Ui {
                             let _ = control.set_mode(is_active, &mut self.app_state.bridge);
                         }
                     },
-                    ChangeConfigMsg::CustomTemp(custom_temp_msg) => match custom_temp_msg {
+                    ModifNodeMsg::CustomTemp(custom_temp_msg) => match custom_temp_msg {
                         CustomTempMsg::Kind(kind) => {
                             let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
@@ -243,7 +262,7 @@ impl cosmic::Application for Ui {
                             custom_temp.kind = kind;
                         }
                     },
-                    ChangeConfigMsg::Flat(flat_msg) => match flat_msg {
+                    ModifNodeMsg::Flat(flat_msg) => match flat_msg {
                         FlatMsg::Value(value) => {
                             let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
@@ -253,7 +272,7 @@ impl cosmic::Application for Ui {
                             flat.value = value;
                         }
                     },
-                    ChangeConfigMsg::Linear(linear_msg) => {
+                    ModifNodeMsg::Linear(linear_msg) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         let NodeType::Linear(linear, linear_cache) = &mut node.node_type else {
                             panic!()
@@ -278,7 +297,7 @@ impl cosmic::Application for Ui {
                             }
                         }
                     }
-                    ChangeConfigMsg::Target(target_msg) => {
+                    ModifNodeMsg::Target(target_msg) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         let NodeType::Target(target, target_cache) = &mut node.node_type else {
                             panic!()
@@ -307,13 +326,31 @@ impl cosmic::Application for Ui {
 
                 self.app_state.update.config_changed();
             }
+            AppMsg::SaveConfig => {}
+            AppMsg::ChangeConfig(_name) => {}
+            AppMsg::RemoveConfig(_) => {}
+            AppMsg::CreateConfig(_) => {}
+            AppMsg::OpenSettings => {}
+            AppMsg::RenameConfig(name) => {
+                self.cached_current_config = name;
+            }
         }
 
         Command::none()
     }
 
     fn view(&self) -> Element<Self::Message> {
-        items_view(&self.app_state.app_graph.nodes, &self.app_state.hardware)
+        let app_state = &self.app_state;
+        let app_graph = &app_state.app_graph;
+
+        Column::new()
+            .push(top_bar_view(
+                &app_state.settings,
+                &app_state.dir_manager,
+                &self.cached_current_config,
+            ))
+            .push(items_view(&app_graph.nodes, &app_state.hardware))
+            .into()
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
