@@ -6,6 +6,7 @@
     - [x] impl windows code
     - [x] impl linux code
     - [x] test on real hardware
+- [ ] Windows optimization
 - [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
     - [ ] Msi
     - [x] Deb
@@ -44,7 +45,7 @@ Also, make sure to execute the program in sudo mode.
 - the app: integrate all this crates in one executable
 
 ## Config files
-- Windows: `C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control`
+- Windows: `C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`
 - Linux: `/home/wiiz/.config/fan-control`
 
 ## Build
