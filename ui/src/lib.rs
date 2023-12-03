@@ -5,6 +5,7 @@ use std::time::Duration;
 use data::{
     id::Id,
     node::{validate_name, NodeType},
+    settings::AppTheme,
     AppState,
 };
 
@@ -12,12 +13,14 @@ use cosmic::{
     app::{Command, Core},
     executor,
     iced::{self, time},
-    widget::Column,
-    Element,
+    theme,
+    widget::{self, Column},
+    ApplicationExt, Element,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 use pick::Pick;
+use strum::IntoEnumIterator;
 use top_bar::top_bar_view;
 use utils::RemoveElem;
 
@@ -41,7 +44,12 @@ pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
 pub struct Ui {
     core: Core,
     app_state: AppState,
-    cached_current_config: String,
+    cache: AppCache,
+}
+
+pub struct AppCache {
+    current_config: String,
+    theme_list: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -54,7 +62,7 @@ pub enum AppMsg {
     CreateConfig(CreateConfigMsg),
     ModifNode(Id, ModifNodeMsg),
 
-    OpenSettings,
+    Settings(SettingsMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -62,6 +70,12 @@ pub enum CreateConfigMsg {
     Init,
     Cancel,
     New(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum SettingsMsg {
+    Open,
+    ChangeTheme(AppTheme),
 }
 
 #[derive(Debug, Clone)]
@@ -95,8 +109,13 @@ impl cosmic::Application for Ui {
     }
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let app_cache = AppCache {
+            current_config: flags.settings.current_config_text().to_owned(),
+            theme_list: AppTheme::iter().map(|e| e.to_string()).collect(),
+        };
+
         let ui_state = Ui {
-            cached_current_config: flags.settings.current_config_text().to_owned(),
+            cache: app_cache,
             app_state: flags,
             core,
         };
@@ -330,10 +349,23 @@ impl cosmic::Application for Ui {
             AppMsg::ChangeConfig(_name) => {}
             AppMsg::RemoveConfig(_) => {}
             AppMsg::CreateConfig(_) => {}
-            AppMsg::OpenSettings => {}
+
             AppMsg::RenameConfig(name) => {
-                self.cached_current_config = name;
+                self.cache.current_config = name;
             }
+            AppMsg::Settings(settings_msg) => match settings_msg {
+                SettingsMsg::Open => {
+                    self.core.window.show_context = !self.core.window.show_context;
+                    self.set_context_title("Settings".into());
+                }
+                SettingsMsg::ChangeTheme(theme) => {
+                    self.app_state.settings.theme = theme;
+                    return cosmic::app::command::set_theme(to_cosmic_theme(
+                        &self.app_state.settings.theme,
+                    ));
+                    // todo: save on fs
+                }
+            },
         }
 
         Command::none()
@@ -347,10 +379,36 @@ impl cosmic::Application for Ui {
             .push(top_bar_view(
                 &app_state.settings,
                 &app_state.dir_manager,
-                &self.cached_current_config,
+                &self.cache.current_config,
             ))
             .push(items_view(&app_graph.nodes, &app_state.hardware))
             .into()
+    }
+
+    fn context_drawer(&self) -> Option<Element<Self::Message>> {
+        if !self.core.window.show_context {
+            return None;
+        }
+        let app_theme_selected = AppTheme::iter()
+            .position(|e| e == self.app_state.settings.theme)
+            .unwrap();
+
+        let settings_context =
+            widget::settings::view_column(vec![widget::settings::view_section("")
+                .add(
+                    widget::settings::item::builder("Theme").control(widget::dropdown(
+                        &self.cache.theme_list,
+                        Some(app_theme_selected),
+                        move |index| {
+                            let theme = AppTheme::iter().nth(index).unwrap();
+                            AppMsg::Settings(SettingsMsg::ChangeTheme(theme))
+                        },
+                    )),
+                )
+                .into()])
+            .into();
+
+        Some(settings_context)
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
@@ -358,5 +416,13 @@ impl cosmic::Application for Ui {
             .map(|_| AppMsg::Tick)
 
         //cosmic::iced_futures::Subscription::none()
+    }
+}
+
+fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
+    match theme {
+        AppTheme::Dark => theme::Theme::dark(),
+        AppTheme::Light => theme::Theme::light(),
+        AppTheme::System => theme::system_preference(),
     }
 }

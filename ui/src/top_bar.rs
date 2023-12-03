@@ -1,4 +1,4 @@
-use crate::{utils::icon_button, AppMsg, CreateConfigMsg};
+use crate::{utils::icon_button, AppMsg, CreateConfigMsg, SettingsMsg};
 use cosmic::{
     iced_core::{Alignment, Length},
     iced_widget::{PickList, Rule},
@@ -46,7 +46,7 @@ pub fn top_bar_view<'a>(
     let separator = Rule::vertical(2).into();
     elems.push(separator);
 
-    let settings_button = icon_button("topbar/settings40", AppMsg::OpenSettings);
+    let settings_button = icon_button("topbar/settings40", AppMsg::Settings(SettingsMsg::Open));
     elems.push(settings_button);
 
     let content = Row::with_children(elems)

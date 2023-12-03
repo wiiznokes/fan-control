@@ -1,7 +1,13 @@
+use strum::Display;
+use strum::EnumIter;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
+    #[serde(default)]
+    pub theme: AppTheme,
+
     #[serde(default)]
     pub unit: Unit,
 
@@ -14,14 +20,23 @@ pub struct Settings {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub enum Unit {
-    Fahrenheit,
     #[default]
     Celsius,
+    Fahrenheit,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, Default, EnumIter, Display)]
+pub enum AppTheme {
+    #[default]
+    System,
+    Dark,
+    Light,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            theme: Default::default(),
             unit: Default::default(),
             update_delay: default_update_delay(),
             current_config: Default::default(),
