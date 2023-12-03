@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use data::{
     id::Id,
-    node::{validate_name, NodeType},
+    node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,
     AppState,
 };
@@ -61,7 +61,7 @@ pub enum AppMsg {
     RemoveConfig(String),
     CreateConfig(CreateConfigMsg),
     ModifNode(Id, ModifNodeMsg),
-
+    NewNode(NodeTypeLight),
     Settings(SettingsMsg),
 }
 
@@ -91,6 +91,8 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
+
+    Delete,
 }
 
 impl cosmic::Application for Ui {
@@ -341,6 +343,7 @@ impl cosmic::Application for Ui {
                             }
                         }
                     }
+                    ModifNodeMsg::Delete => {}
                 }
 
                 self.app_state.update.config_changed();
@@ -366,6 +369,7 @@ impl cosmic::Application for Ui {
                     // todo: save on fs
                 }
             },
+            AppMsg::NewNode(_) => {}
         }
 
         Command::none()

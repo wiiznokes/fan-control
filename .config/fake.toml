@@ -4,6 +4,11 @@ input = "linear1"
 id = "control1"
 active = true
 
+[[Control]]
+name = "control2"
+input = "target1"
+active = false
+
 [[Linear]]
 name = "linear1"
 minTemp = 10
@@ -45,3 +50,7 @@ id = "temp1"
 [[Temp]]
 name = "temp2"
 id = "temp2"
+
+[[Fan]]
+name = "fan1"
+id = "fan1"
