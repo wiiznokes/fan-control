@@ -31,9 +31,15 @@ impl HardwareBridge for LinuxBridge {
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(_) => {
-                    panic!("can't get the value of a control");
-                }
+                InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
+                    Ok(value) => {
+                        Ok((value / 2.55) as i32)
+                    },
+                    Err(e) => {
+                        error!("{}", e);
+                        Err(HardwareError::LmSensors)
+                    }
+                },
                 InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
                     Ok(value) => Ok(value as i32),
                     Err(e) => {
@@ -50,7 +56,8 @@ impl HardwareBridge for LinuxBridge {
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    if let Err(e) = pwm_refs.io.set_value(&lm_sensors::Value::new(value::Kind::PwmIo, value.into()).unwrap()) {
+                    let value = value as f64 * 2.55;
+                    if let Err(e) = pwm_refs.io.set_raw_value(value) {
                         debug!("error tring to set value {} to a pwm: {:?}", value, e);
                         return Err(HardwareError::LmSensors);
                     }
@@ -68,7 +75,7 @@ impl HardwareBridge for LinuxBridge {
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    if let Err(e) = pwm_refs.enable.set_value(&lm_sensors::Value::new(value::Kind::PwmEnable, value.into()).unwrap()) {
+                    if let Err(e) = pwm_refs.enable.set_raw_value(value.into()) {
                         debug!("error tring to set mode {} to a pwm: {:?}", value, e);
                         return Err(HardwareError::LmSensors);
                     }

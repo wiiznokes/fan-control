@@ -168,7 +168,13 @@ impl Node {
         }
 
         let value = match &mut self.node_type {
-            crate::node::NodeType::Control(control) => control.set_value(input_values[0], bridge),
+            crate::node::NodeType::Control(control) => {
+                if let Err(e) = control.set_value(input_values[0], bridge) {
+                    Err(e)
+                } else {
+                    control.get_value(bridge)
+                }
+            },
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
             crate::node::NodeType::Temp(temp) => temp.get_value(bridge),
             crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),

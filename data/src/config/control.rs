@@ -88,6 +88,15 @@ impl Control {
         }
         res
     }
+
+    pub fn get_value(&self, bridge: &mut HardwareBridgeT) -> Result<Value, UpdateError> {
+        match &self.control_h {
+            Some(control_h) => bridge
+                .get_value(&control_h.internal_index)
+                .map_err(UpdateError::Hardware),
+            None => Err(UpdateError::NodeIsInvalid),
+        }
+    }
 }
 
 impl IsValid for Control {
