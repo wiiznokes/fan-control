@@ -1,11 +1,11 @@
 use std::ops::{Add, RangeInclusive, Sub};
 
-use iced::{
+use cosmic::{
     widget::{Button, Column, Row, Text, TextInput},
     Element,
 };
 
-use crate::{theme::CustomTextInputStyle, AppMsg};
+use crate::ChangeConfigMsg;
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;
@@ -33,14 +33,14 @@ pub fn input_line<'a, V, F>(
     unit: &'a str,
     range: &'a RangeInclusive<V>,
     map_value: F,
-) -> Element<'a, AppMsg>
+) -> Element<'a, ChangeConfigMsg>
 where
     V: Add<V, Output = V>,
     V: Sub<V, Output = V>,
     V: MyFrom<i32>,
     V: PartialOrd + Clone + ToString + PartialEq,
     Option<V>: for<'b> MyFrom<&'b str>,
-    F: 'a + Fn(V, String) -> AppMsg + 'a,
+    F: 'a + Fn(V, String) -> ChangeConfigMsg,
 {
     // `map_value` is moved in `on_input` so we procuce buttons messages before
     let plus_message = if range.end() > value {
@@ -77,9 +77,7 @@ where
     };
 
     if is_error {
-        input = input.style(iced::theme::TextInput::Custom(Box::new(
-            CustomTextInputStyle::Error,
-        )));
+        input = input.error("this value is invalid");
     }
 
     Row::new()

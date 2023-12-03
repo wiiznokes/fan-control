@@ -1,4 +1,4 @@
 unit = "Celsius"
-update_delay = 0
+update_delay = 1000
 disable_pwm_value = 0
-current_config = "config4.toml"
+current_config = "win.toml"

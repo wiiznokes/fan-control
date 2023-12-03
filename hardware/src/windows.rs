@@ -27,11 +27,9 @@ const CHECK_RESPONSE: &str = "fan-control-ok";
 
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> (Hardware, HardwareBridgeT) {
-        let handle = process::Command::new(
-            "./hardware/LibreHardwareMonitorWrapper/bin/Release/net7.0/LibreHardwareMonitorWrapper",
-        )
-        .spawn()
-        .unwrap();
+        let handle = process::Command::new("./target/lhm/LibreHardwareMonitorWrapper")
+            .spawn()
+            .unwrap();
 
         let mut hardware = Hardware::default();
 
@@ -71,31 +69,46 @@ impl HardwareBridge for WindowsBridge {
     }
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
-        info!("send command: {:?}", Command::GetValue);
+        let command: Packet = Command::GetValue.into();
+        self.stream.write_all(&command).unwrap();
 
-        let command: &[u8; 4] = &From::from(Command::GetValue);
-        self.stream.write_all(command).unwrap();
+        let index: Packet = From::from(I32(*internal_index));
+        self.stream.write_all(&index).unwrap();
 
-        info!("send index: {}", internal_index);
-        let index: &[u8; 4] = &From::from(I32(*internal_index));
-        self.stream.write_all(index).unwrap();
-
-        info!("read value ...");
-        let mut buf = [0u8; 4];
+        let mut buf: Packet = [0u8; 4];
         self.stream.read_exact(&mut buf).unwrap();
-        info!("read value!");
 
         let i32 = I32::from(buf);
         Ok(i32.0)
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("set value {} to {}", value, internal_index);
+        debug!("send command: {:?} with value {}", Command::SetValue, value);
+        let command: Packet = Command::SetValue.into();
+        self.stream.write_all(&command).unwrap();
+
+        let index: Packet = From::from(I32(*internal_index));
+        self.stream.write_all(&index).unwrap();
+
+        let value: Packet = From::from(I32(value));
+        self.stream.write_all(&value).unwrap();
         Ok(())
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("set mode {} to {}", value, internal_index);
+        if value != 0 {
+            debug!("try to set {}, whitch is unecessary on Windows", value);
+            return Ok(());
+        }
+
+        debug!("send command: {:?}", Command::SetAuto);
+        let command: Packet = Command::SetAuto.into();
+        self.stream.write_all(&command).unwrap();
+
+        let index: Packet = From::from(I32(*internal_index));
+        self.stream.write_all(&index).unwrap();
+
+        // todo: take a result
         Ok(())
     }
 }
@@ -105,9 +118,9 @@ fn try_connect() -> TcpStream {
         for port in DEFAULT_PORT..65535 {
             match TcpStream::connect((IP, port)) {
                 Ok(mut stream) => {
-                    let mut write_buf = CHECK.as_bytes();
+                    let write_buf = CHECK.as_bytes();
 
-                    if let Err(e) = stream.write_all(&mut write_buf) {
+                    if let Err(e) = stream.write_all(write_buf) {
                         continue;
                     }
 
@@ -176,6 +189,8 @@ impl From<Command> for [u8; 4] {
     }
 }
 
+type Packet = [u8; 4];
+
 struct I32<T>(T);
 
 impl From<[u8; 4]> for I32<i32> {
@@ -201,6 +216,17 @@ impl From<I32<usize>> for [u8; 4] {
     }
 }
 
+impl From<I32<i32>> for [u8; 4] {
+    #[inline]
+    fn from(number: I32<i32>) -> Self {
+        if is_little_endian() {
+            number.0.to_le_bytes()
+        } else {
+            number.0.to_be_bytes()
+        }
+    }
+}
+
 #[derive(Deserialize, Debug, Clone)]
 struct BaseHardware {
     #[serde(rename = "Id")]
@@ -221,13 +247,6 @@ struct InternalSensor {
 #[derive(Debug)]
 struct InternalControl {
     index: usize,
-}
-
-impl Drop for InternalControl {
-    fn drop(&mut self) {
-        info!("pwm sould be set to auto");
-        // TODO: set to auto
-    }
 }
 
 #[inline]

@@ -1,7 +1,8 @@
 [[Control]]
 name = "control1"
 input = "linear1"
-auto = false
+id = "control1"
+active = true
 
 [[Linear]]
 name = "linear1"
@@ -11,6 +12,20 @@ maxTemp = 70
 maxSpeed = 100
 input = "custom_temp"
 
+[[Flat]]
+name = "flat1"
+value = 50
+
+[[Target]]
+name = "target1"
+idleTemp = 40
+idleSpeed = 10
+loadTemp = 70
+loadSpeed = 100
+
+
+
+
 [[CustomTemp]]
 name = "custom_temp"
 kind = "Average"
@@ -19,10 +34,14 @@ input = [
     "temp2",
 ]
 
+
+
+
+
 [[Temp]]
 name = "temp1"
-id = "coretemp-isa-0000-temp3_input"
+id = "temp1"
 
 [[Temp]]
 name = "temp2"
-id = "coretemp-isa-0000-temp2_input"
+id = "temp2"

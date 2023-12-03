@@ -1,15 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
     #[serde(default)]
     pub unit: Unit,
 
-    #[serde(default = "one")]
-    pub update_delay: u8,
-
-    #[serde(default = "two")]
-    pub disable_pwm_value: u8,
+    #[serde(default = "default_update_delay")]
+    pub update_delay: u64,
 
     #[serde(default)]
     pub current_config: Option<String>,
@@ -22,10 +19,16 @@ pub enum Unit {
     Celsius,
 }
 
-fn one() -> u8 {
-    1
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            unit: Default::default(),
+            update_delay: default_update_delay(),
+            current_config: Default::default(),
+        }
+    }
 }
 
-fn two() -> u8 {
-    2
+fn default_update_delay() -> u64 {
+    2500
 }

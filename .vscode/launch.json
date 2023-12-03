@@ -77,8 +77,8 @@
                 }
             },
             "args": [
-                "-p",
-                "./.config"
+                //"-p",
+                //"./.config"
             ],
             "cwd": "${workspaceFolder}"
         },

@@ -3,16 +3,20 @@
 use std::time::Duration;
 
 use data::{
-    config::custom_temp::CustomTempKind,
     id::Id,
     node::{validate_name, NodeType},
     AppState,
 };
 
-use iced::{self, executor, time, Application, Command, Element};
-use item::{items_view, LinearMsg, TargetMsg};
-use pick::Pick;
+use cosmic::{
+    app::{Command, Core},
+    executor,
+    iced::{self, time},
+    Element,
+};
 
+use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
+use pick::Pick;
 use utils::RemoveElem;
 
 #[macro_use]
@@ -22,53 +26,68 @@ mod input_line;
 mod item;
 pub mod localize;
 mod pick;
-mod theme;
+//mod theme;
 mod utils;
-mod widgets;
+//mod widgets;
 
-pub fn run_ui(app_state: AppState) -> Result<(), iced::Error> {
-    let settings = iced::Settings::with_flags(app_state);
-
-    Ui::run(settings)
+pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
+    let settings = cosmic::app::Settings::default();
+    cosmic::app::run::<Ui>(settings, app_state)?;
+    Ok(())
 }
 pub struct Ui {
+    core: Core,
     app_state: AppState,
 }
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
-    Rename(Id, String),
-    ChangeHardware(Id, Pick<String>),
-    ReplaceInput(Id, Pick<Id>),
-    AddInput(Id, Pick<Id>),
-    RemoveInput(Id, Pick<Id>),
-    ChangeControlAuto(Id, bool),
-    ChangeCustomTempKind(Id, CustomTempKind),
-    ChangeFlatValue(Id, u16),
-    ChangeLinear(Id, LinearMsg),
-    ChangeTarget(Id, TargetMsg),
     Tick,
+    ChangeConfig(Id, ChangeConfigMsg),
 }
 
-impl Application for Ui {
+#[derive(Debug, Clone)]
+pub enum ChangeConfigMsg {
+    Rename(String),
+    ChangeHardware(Pick<String>),
+    ReplaceInput(Pick<Id>),
+    AddInput(Pick<Id>),
+    RemoveInput(Pick<Id>),
+
+    Control(ControlMsg),
+    CustomTemp(CustomTempMsg),
+    Flat(FlatMsg),
+    Linear(LinearMsg),
+    Target(TargetMsg),
+}
+
+impl cosmic::Application for Ui {
     type Executor = executor::Default;
     type Message = AppMsg;
-    type Theme = iced::Theme;
     type Flags = AppState;
 
-    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        let ui_state = Ui { app_state: flags };
+    const APP_ID: &'static str = "com.wiiznokes.fan-control";
+
+    fn core(&self) -> &Core {
+        &self.core
+    }
+
+    fn core_mut(&mut self) -> &mut Core {
+        &mut self.core
+    }
+
+    fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let ui_state = Ui {
+            app_state: flags,
+            core,
+        };
         (ui_state, Command::none())
     }
 
-    fn title(&self) -> String {
-        String::from("fan-control")
-    }
-
-    fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             AppMsg::Tick => {
-                match self.app_state.update.graph(
+                match self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
@@ -80,199 +99,213 @@ impl Application for Ui {
                     }
                 }
             }
-            AppMsg::Rename(id, name) => {
-                let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+            AppMsg::ChangeConfig(id, change_config) => {
+                match change_config {
+                    ChangeConfigMsg::Rename(name) => {
+                        let name_is_valid =
+                            validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
-                node.name_cached = name.clone();
-                if name_is_valid {
-                    node.is_error_name = false;
-                    let previous_name = node.name().clone();
-                    node.node_type.set_name(&name);
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
 
-                    let node_id = node.id;
-                    // find nodes that depend on node.id
-                    // change the name in input and item.input
+                        node.name_cached = name.clone();
+                        if name_is_valid {
+                            node.is_error_name = false;
+                            let previous_name = node.name().clone();
+                            node.node_type.set_name(&name);
 
-                    for n in self.app_state.app_graph.nodes.values_mut() {
-                        if let Some(node_input) = n
-                            .inputs
-                            .iter_mut()
-                            .find(|node_input| node_input.0 == node_id)
-                        {
-                            node_input.1 = name.clone();
-                            let mut inputs = n.node_type.get_inputs();
+                            let node_id = node.id;
+                            // find nodes that depend on node.id
+                            // change the name in input and item.input
 
-                            match inputs.iter().position(|n| n == &previous_name) {
-                                Some(index) => {
-                                    inputs[index] = name.clone();
-                                    n.node_type.set_inputs(inputs)
+                            for n in self.app_state.app_graph.nodes.values_mut() {
+                                if let Some(node_input) = n
+                                    .inputs
+                                    .iter_mut()
+                                    .find(|node_input| node_input.0 == node_id)
+                                {
+                                    node_input.1 = name.clone();
+                                    let mut inputs = n.node_type.get_inputs();
+
+                                    match inputs.iter().position(|n| n == &previous_name) {
+                                        Some(index) => {
+                                            inputs[index] = name.clone();
+                                            n.node_type.set_inputs(inputs)
+                                        }
+                                        None => {
+                                            error!("input id found in node inputs but the corresponding name was not found in item input")
+                                        }
+                                    }
                                 }
-                                None => {
-                                    error!("input id found in node inputs but the corresponding name was not found in item input")
+                            }
+                        } else {
+                            node.is_error_name = true;
+                        }
+                    }
+                    ChangeConfigMsg::ChangeHardware(pick) => {
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let hardware = &self.app_state.hardware;
+
+                        match &mut node.node_type {
+                            NodeType::Control(i) => {
+                                i.hardware_id = pick.id();
+                                i.control_h = match &i.hardware_id {
+                                    Some(hardware_id) => hardware
+                                        .controls
+                                        .iter()
+                                        .find(|h| &h.hardware_id == hardware_id)
+                                        .cloned(),
+
+                                    None => None,
                                 }
+                            }
+                            NodeType::Fan(i) => {
+                                i.hardware_id = pick.id();
+                                i.fan_h = match &i.hardware_id {
+                                    Some(hardware_id) => hardware
+                                        .fans
+                                        .iter()
+                                        .find(|h| &h.hardware_id == hardware_id)
+                                        .cloned(),
+
+                                    None => None,
+                                }
+                            }
+                            NodeType::Temp(i) => {
+                                i.hardware_id = pick.id();
+                                i.temp_h = match &i.hardware_id {
+                                    Some(hardware_id) => hardware
+                                        .temps
+                                        .iter()
+                                        .find(|h| &h.hardware_id == hardware_id)
+                                        .cloned(),
+
+                                    None => None,
+                                }
+                            }
+                            _ => panic!("node have no hardware id"),
+                        }
+                    }
+                    ChangeConfigMsg::ReplaceInput(pick) => {
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        node.inputs.clear();
+
+                        if let Some(id_name) = pick.to_couple() {
+                            node.inputs.push(id_name)
+                        }
+
+                        match &mut node.node_type {
+                            NodeType::Control(i) => i.input = pick.name(),
+                            NodeType::Graph(i) => i.input = pick.name(),
+                            NodeType::Linear(i, ..) => i.input = pick.name(),
+                            NodeType::Target(i, ..) => i.input = pick.name(),
+                            _ => panic!("node have not exactly one input"),
+                        }
+                    }
+                    ChangeConfigMsg::AddInput(pick) => {
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        node.inputs.push(pick.to_couple().unwrap());
+
+                        match &mut node.node_type {
+                            NodeType::CustomTemp(i) => i.input.push(pick.name().unwrap()),
+                            _ => panic!("node have not multiple inputs"),
+                        }
+                    }
+                    ChangeConfigMsg::RemoveInput(pick) => {
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                        node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
+
+                        match &mut node.node_type {
+                            NodeType::CustomTemp(i) => {
+                                i.input.remove_elem(|n| n == &pick.name().unwrap());
+                            }
+                            _ => panic!("node have not multiple inputs"),
+                        }
+                    }
+                    ChangeConfigMsg::Control(control_msg) => match control_msg {
+                        ControlMsg::Active(is_active) => {
+                            let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                            let NodeType::Control(control) = &mut node.node_type else {
+                                panic!()
+                            };
+                            let _ = control.set_mode(is_active, &mut self.app_state.bridge);
+                        }
+                    },
+                    ChangeConfigMsg::CustomTemp(custom_temp_msg) => match custom_temp_msg {
+                        CustomTempMsg::Kind(kind) => {
+                            let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                            let NodeType::CustomTemp(custom_temp) = &mut node.node_type else {
+                                panic!()
+                            };
+                            custom_temp.kind = kind;
+                        }
+                    },
+                    ChangeConfigMsg::Flat(flat_msg) => match flat_msg {
+                        FlatMsg::Value(value) => {
+                            let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+
+                            let NodeType::Flat(flat) = &mut node.node_type else {
+                                panic!()
+                            };
+                            flat.value = value;
+                        }
+                    },
+                    ChangeConfigMsg::Linear(linear_msg) => {
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let NodeType::Linear(linear, linear_cache) = &mut node.node_type else {
+                            panic!()
+                        };
+
+                        match linear_msg {
+                            LinearMsg::MinTemp(min_temp, cached_value) => {
+                                linear.min_temp = min_temp;
+                                linear_cache.min_temp = cached_value;
+                            }
+                            LinearMsg::MinSpeed(min_speed, cached_value) => {
+                                linear.min_speed = min_speed;
+                                linear_cache.min_speed = cached_value;
+                            }
+                            LinearMsg::MaxTemp(max_temp, cached_value) => {
+                                linear.max_temp = max_temp;
+                                linear_cache.max_temp = cached_value;
+                            }
+                            LinearMsg::MaxSpeed(max_speed, cached_value) => {
+                                linear.max_speed = max_speed;
+                                linear_cache.max_speed = cached_value;
                             }
                         }
                     }
-                } else {
-                    node.is_error_name = true;
-                }
-            }
-            AppMsg::ChangeHardware(id, pick) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                let hardware = &self.app_state.hardware;
+                    ChangeConfigMsg::Target(target_msg) => {
+                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let NodeType::Target(target, target_cache) = &mut node.node_type else {
+                            panic!()
+                        };
 
-                match &mut node.node_type {
-                    NodeType::Control(i) => {
-                        i.hardware_id = pick.id();
-                        i.control_h = match &i.hardware_id {
-                            Some(hardware_id) => hardware
-                                .controls
-                                .iter()
-                                .find(|h| &h.hardware_id == hardware_id)
-                                .cloned(),
-
-                            None => None,
+                        match target_msg {
+                            TargetMsg::IdleTemp(idle_temp, cached_value) => {
+                                target.idle_temp = idle_temp;
+                                target_cache.idle_temp = cached_value;
+                            }
+                            TargetMsg::IdleSpeed(idle_speed, cached_value) => {
+                                target.idle_speed = idle_speed;
+                                target_cache.idle_speed = cached_value;
+                            }
+                            TargetMsg::LoadTemp(load_temp, cached_value) => {
+                                target.load_temp = load_temp;
+                                target_cache.load_temp = cached_value;
+                            }
+                            TargetMsg::LoadSpeed(load_speed, cached_value) => {
+                                target.load_speed = load_speed;
+                                target_cache.load_speed = cached_value;
+                            }
                         }
                     }
-                    NodeType::Fan(i) => {
-                        i.hardware_id = pick.id();
-                        i.fan_h = match &i.hardware_id {
-                            Some(hardware_id) => hardware
-                                .fans
-                                .iter()
-                                .find(|h| &h.hardware_id == hardware_id)
-                                .cloned(),
-
-                            None => None,
-                        }
-                    }
-                    NodeType::Temp(i) => {
-                        i.hardware_id = pick.id();
-                        i.temp_h = match &i.hardware_id {
-                            Some(hardware_id) => hardware
-                                .temps
-                                .iter()
-                                .find(|h| &h.hardware_id == hardware_id)
-                                .cloned(),
-
-                            None => None,
-                        }
-                    }
-                    _ => panic!("node have no hardware id"),
-                }
-            }
-            AppMsg::ReplaceInput(id, pick) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                node.inputs.clear();
-
-                if let Some(id_name) = pick.to_couple() {
-                    node.inputs.push(id_name)
                 }
 
-                match &mut node.node_type {
-                    NodeType::Control(i) => i.input = pick.name(),
-                    NodeType::Graph(i) => i.input = pick.name(),
-                    NodeType::Linear(i, ..) => i.input = pick.name(),
-                    NodeType::Target(i, ..) => i.input = pick.name(),
-                    _ => panic!("node have not exactly one input"),
-                }
-            }
-            AppMsg::ChangeControlAuto(id, auto) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-
-                let NodeType::Control(control) = &mut node.node_type else {
-                    panic!()
-                };
-                control.auto = auto;
-            }
-            AppMsg::AddInput(id, pick) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                node.inputs.push(pick.to_couple().unwrap());
-
-                match &mut node.node_type {
-                    NodeType::CustomTemp(i) => i.input.push(pick.name().unwrap()),
-                    _ => panic!("node have not multiple inputs"),
-                }
-            }
-            AppMsg::RemoveInput(id, pick) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-
-                node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
-
-                match &mut node.node_type {
-                    NodeType::CustomTemp(i) => {
-                        i.input.remove_elem(|n| n == &pick.name().unwrap());
-                    }
-                    _ => panic!("node have not multiple inputs"),
-                }
-            }
-            AppMsg::ChangeCustomTempKind(id, kind) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-
-                let NodeType::CustomTemp(custom_temp) = &mut node.node_type else {
-                    panic!()
-                };
-                custom_temp.kind = kind;
-            }
-            AppMsg::ChangeFlatValue(id, value) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-
-                let NodeType::Flat(flat) = &mut node.node_type else {
-                    panic!()
-                };
-                flat.value = value;
-            }
-            AppMsg::ChangeLinear(id, linear_msg) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                let NodeType::Linear(linear, linear_cache) = &mut node.node_type else {
-                    panic!()
-                };
-
-                match linear_msg {
-                    LinearMsg::MinTemp(min_temp, cached_value) => {
-                        linear.min_temp = min_temp;
-                        linear_cache.min_temp = cached_value;
-                    }
-                    LinearMsg::MinSpeed(min_speed, cached_value) => {
-                        linear.min_speed = min_speed;
-                        linear_cache.min_speed = cached_value;
-                    }
-                    LinearMsg::MaxTemp(max_temp, cached_value) => {
-                        linear.max_temp = max_temp;
-                        linear_cache.max_temp = cached_value;
-                    }
-                    LinearMsg::MaxSpeed(max_speed, cached_value) => {
-                        linear.max_speed = max_speed;
-                        linear_cache.max_speed = cached_value;
-                    }
-                }
-            }
-            AppMsg::ChangeTarget(id, target_msg) => {
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                let NodeType::Target(target, target_cache) = &mut node.node_type else {
-                    panic!()
-                };
-
-                match target_msg {
-                    TargetMsg::IdleTemp(idle_temp, cached_value) => {
-                        target.idle_temp = idle_temp;
-                        target_cache.idle_temp = cached_value;
-                    }
-                    TargetMsg::IdleSpeed(idle_speed, cached_value) => {
-                        target.idle_speed = idle_speed;
-                        target_cache.idle_speed = cached_value;
-                    }
-                    TargetMsg::LoadTemp(load_temp, cached_value) => {
-                        target.load_temp = load_temp;
-                        target_cache.load_temp = cached_value;
-                    }
-                    TargetMsg::LoadSpeed(load_speed, cached_value) => {
-                        target.load_speed = load_speed;
-                        target_cache.load_speed = cached_value;
-                    }
-                }
+                self.app_state.update.config_changed();
             }
         }
 
@@ -284,7 +317,9 @@ impl Application for Ui {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(1000)).map(|_| AppMsg::Tick)
-        //Subscription::none()
+        time::every(Duration::from_millis(self.app_state.settings.update_delay))
+            .map(|_| AppMsg::Tick)
+
+        //cosmic::iced_futures::Subscription::none()
     }
 }

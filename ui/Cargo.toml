@@ -13,10 +13,16 @@ i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 lazy_static.workspace = true
 
-[dependencies.iced]
-version = "0.10"
+[dependencies.libcosmic]
+git = "https://github.com/wiiznokes/libcosmic"
+branch = "flags-not-clone"
+default-features = false
 features = [
-    #"svg", 
-    "advanced",
-    "smol"
+    #"a11y",
+    #"debug",
+    #"serde-keycode",
+    "smol",
+    #"wayland",
+    "wgpu",
+    "winit"
 ]

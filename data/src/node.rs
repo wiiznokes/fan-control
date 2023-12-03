@@ -48,39 +48,6 @@ pub enum NodeType {
     Target(Target, TargetCache),
 }
 
-impl NodeTypeLight {
-    pub fn allowed_dep(&self) -> &'static [NodeTypeLight] {
-        match self {
-            NodeTypeLight::Control => &[
-                NodeTypeLight::Flat,
-                NodeTypeLight::Graph,
-                NodeTypeLight::Target,
-                NodeTypeLight::Linear,
-            ],
-            NodeTypeLight::Fan => &[],
-            NodeTypeLight::Temp => &[],
-            NodeTypeLight::CustomTemp => &[NodeTypeLight::Temp],
-            NodeTypeLight::Graph => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
-            NodeTypeLight::Flat => &[],
-            NodeTypeLight::Linear => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
-            NodeTypeLight::Target => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
-        }
-    }
-
-    pub fn max_input(&self) -> NbInput {
-        match self {
-            NodeTypeLight::Control => NbInput::One,
-            NodeTypeLight::Fan => NbInput::Zero,
-            NodeTypeLight::Temp => NbInput::Zero,
-            NodeTypeLight::CustomTemp => NbInput::Infinity,
-            NodeTypeLight::Graph => NbInput::One,
-            NodeTypeLight::Flat => NbInput::Zero,
-            NodeTypeLight::Linear => NbInput::One,
-            NodeTypeLight::Target => NbInput::One,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NbInput {
     Zero,
@@ -90,14 +57,13 @@ pub enum NbInput {
 
 pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
     node.inputs.clear();
-    let node_type = node.node_type.to_light();
-    match node_type.max_input() {
+    match node.node_type.max_input() {
         NbInput::Zero => {
             if !node.node_type.get_inputs().is_empty() {
                 eprintln!(
                     "{:?}: number of dep allowed == {:?}",
-                    node_type,
-                    node_type.max_input()
+                    node.node_type.to_light(),
+                    node.node_type.max_input()
                 );
                 node.node_type.clear_inputs();
             };
@@ -107,8 +73,8 @@ pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
             if node.node_type.get_inputs().len() > 1 {
                 eprintln!(
                     "{:?}: number of dep allowed == {:?}",
-                    node_type,
-                    node_type.max_input()
+                    node.node_type.to_light(),
+                    node.node_type.max_input()
                 );
                 node.node_type.clear_inputs();
                 return node;
@@ -119,7 +85,11 @@ pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
 
     for name in node.node_type.get_inputs() {
         if let Some(n) = nodes.values().find(|n| n.name() == &name) {
-            if !node_type.allowed_dep().contains(&n.node_type.to_light()) {
+            if !node
+                .node_type
+                .allowed_dep()
+                .contains(&n.node_type.to_light())
+            {
                 eprintln!(
                     "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
                     n.node_type.to_light(),
@@ -141,7 +111,7 @@ pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
         }
     }
 
-    if node_type.max_input() == NbInput::One && node.inputs.len() > 1 {
+    if node.node_type.max_input() == NbInput::One && node.inputs.len() > 1 {
         node.node_type.clear_inputs();
         node.inputs.clear();
         return node;
@@ -305,6 +275,25 @@ impl Node {
             _ => Err(()),
         }
     }
+
+    pub fn value_text(&self, kind: &ValueKind) -> String {
+        match &self.value {
+            Some(value) => match kind {
+                ValueKind::Fahrenheit => todo!(),
+                ValueKind::Celsius => format!("{} °C", value),
+                ValueKind::Porcentage => format!("{} %", value),
+                ValueKind::RPM => format!("{} RPM", value),
+            },
+            None => "None".into(),
+        }
+    }
+}
+
+pub enum ValueKind {
+    Fahrenheit,
+    Celsius,
+    Porcentage,
+    RPM,
 }
 
 impl NodeType {
@@ -424,5 +413,40 @@ impl NodeType {
             NodeType::Temp(_) => {}
             NodeType::Flat(_) => {}
         };
+    }
+
+    pub fn allowed_dep(&self) -> &'static [NodeTypeLight] {
+        match self {
+            NodeType::Control(..) => &[
+                NodeTypeLight::Flat,
+                NodeTypeLight::Graph,
+                NodeTypeLight::Target,
+                NodeTypeLight::Linear,
+            ],
+            NodeType::Fan(..) => &[],
+            NodeType::Temp(..) => &[],
+            NodeType::CustomTemp(..) => &[NodeTypeLight::Temp],
+            NodeType::Graph(..) => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeType::Flat(..) => &[],
+            NodeType::Linear(..) => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+            NodeType::Target(..) => &[NodeTypeLight::Temp, NodeTypeLight::CustomTemp],
+        }
+    }
+
+    pub fn max_input(&self) -> NbInput {
+        match self {
+            NodeType::Control(..) => NbInput::One,
+            NodeType::Fan(..) => NbInput::Zero,
+            NodeType::Temp(..) => NbInput::Zero,
+            NodeType::CustomTemp(..) => NbInput::Infinity,
+            NodeType::Graph(..) => NbInput::One,
+            NodeType::Flat(..) => NbInput::Zero,
+            NodeType::Linear(..) => NbInput::One,
+            NodeType::Target(..) => NbInput::One,
+        }
+    }
+
+    pub fn is_sensor(&self) -> bool {
+        matches!(self, NodeType::Fan(..) | NodeType::Temp(..))
     }
 }

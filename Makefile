@@ -19,12 +19,13 @@ lhm:
 package-deb:
 	cargo bundle --release --format deb 
 
-
 ## Test
 
 fix:
 	cargo clippy --all --fix --allow-dirty --allow-staged
 	cargo fmt --all
+
+fix-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
 
 test:
@@ -41,8 +42,6 @@ clean-libsensors:
 clean-lhm:
 	dotnet clean ./hardware/LibreHardwareMonitorWrapper/
 
-clean-all: clean clean-lhm clean-libsensors
-
 
 
 
@@ -53,7 +52,6 @@ clean-all: clean clean-lhm clean-libsensors
 
 
 # Temp
-
 
 
 run-lhm:
@@ -70,7 +68,8 @@ expand:
 
 
 conf:
-	clear && cargo run -- -p ./.config
+	clear
+	cargo run -- -p ./.config
 
 release:
 	clear && cargo run --release

@@ -45,7 +45,7 @@ public class Control : BaseHardware
             return false;
         }
 
-        Console.WriteLine("[LHM] set control: " + Name + " = " + value);
+        Log.LogD("set control: " + Name + " = " + value);
         return true;
     }
 
@@ -58,7 +58,7 @@ public class Control : BaseHardware
 
         _mSensor.Control.SetDefault();
         _isSetSpeed = false;
-        Console.WriteLine("[LHM] set control to auto: " + Name);
+        Log.LogD("set control to auto: " + Name);
         return true;
     }
 }

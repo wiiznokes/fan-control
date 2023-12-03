@@ -45,13 +45,8 @@ public class HardwareManager
 
     public void Stop()
     {
+        SetAllAuto();
         _hardwareResearcher.Stop();
-    }
-
-
-    public void Update()
-    {
-        _hardwareResearcher.Update();
     }
 
     public string ToJson()
@@ -68,5 +63,13 @@ public class HardwareManager
         var stringBuilder = new StringBuilder(jsonText);
         stringBuilder.Append('\n');
         return stringBuilder.ToString();
+    }
+
+    private void SetAllAuto()
+    {
+        foreach (var control in _hardwareList)
+        {
+            (control as Control)?.SetAuto();
+        }
     }
 }
