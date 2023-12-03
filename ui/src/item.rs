@@ -15,7 +15,7 @@ use data::{
 use hardware::Hardware;
 
 use crate::{
-    input_line::input_line,
+    input_line::{input_line, InputLineUnit},
     pick::{pick_hardware, pick_input, Pick},
     utils::{icon_button, my_icon},
     AppMsg, ModifNodeMsg,
@@ -90,7 +90,7 @@ fn item_view<'a>(
     }
 
     // todo: dropdown menu
-    let delete_button = icon_button("select/delete_forever24", ModifNodeMsg::Delete);
+    let delete_button = icon_button("select/delete_forever24").on_press(ModifNodeMsg::Delete);
 
     let top = Row::new()
         .push(item_icon)
@@ -281,7 +281,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "min temp",
             &linear.min_temp,
             &linear_cache.min_temp,
-            "°C",
+            InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinTemp(val, cached_val)),
         ),
@@ -289,7 +289,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "min speed",
             &linear.min_speed,
             &linear_cache.min_speed,
-            "%",
+            InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinSpeed(val, cached_val)),
         ),
@@ -297,7 +297,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "max temp",
             &linear.max_temp,
             &linear_cache.max_temp,
-            "°C",
+            InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxTemp(val, cached_val)),
         ),
@@ -305,7 +305,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "max speed",
             &linear.max_speed,
             &linear_cache.max_speed,
-            "%",
+            InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxSpeed(val, cached_val)),
         ),
@@ -340,7 +340,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "idle temp",
             &target.idle_temp,
             &target_cache.idle_temp,
-            "°C",
+            InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleTemp(val, cached_val)),
         ),
@@ -348,7 +348,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "idle speed",
             &target.idle_speed,
             &target_cache.idle_speed,
-            "%",
+            InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleSpeed(val, cached_val)),
         ),
@@ -356,7 +356,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "load temp",
             &target.load_temp,
             &target_cache.load_temp,
-            "°C",
+            InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadTemp(val, cached_val)),
         ),
@@ -364,7 +364,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             "load speed",
             &target.load_speed,
             &target_cache.load_speed,
-            "%",
+            InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadSpeed(val, cached_val)),
         ),

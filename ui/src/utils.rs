@@ -1,9 +1,6 @@
 use std::path::PathBuf;
 
-use cosmic::{
-    widget::{self, icon::Handle, Icon},
-    Element,
-};
+use cosmic::widget::{self, icon::Handle, Icon};
 use once_cell::sync::Lazy;
 
 pub trait RemoveElem<T> {
@@ -28,10 +25,8 @@ static EXTENSION: &str = ".svg";
 
 static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));
 
-pub fn icon_button<M: 'static + Clone>(name: &str, message: M) -> Element<M> {
+pub fn icon_button<M>(name: &str) -> widget::button::IconButton<M> {
     cosmic::widget::button::icon(get_handle_icon(name))
-        .on_press(message)
-        .into()
 }
 
 pub fn my_icon(name: &str) -> Icon {

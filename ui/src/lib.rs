@@ -402,7 +402,9 @@ impl cosmic::Application for Ui {
         let mut elems = vec![];
 
         if settings.current_config.is_some() {
-            let save_button = icon_button("topBar/save40", AppMsg::SaveConfig);
+            let save_button = icon_button("topBar/save40")
+                .on_press(AppMsg::SaveConfig)
+                .into();
 
             elems.push(save_button);
         }
@@ -424,10 +426,9 @@ impl cosmic::Application for Ui {
             elems.push(choose_config);
         }
 
-        let new_button = icon_button(
-            "sign/plus/add40",
-            AppMsg::CreateConfig(CreateConfigMsg::Init),
-        );
+        let new_button = icon_button("sign/plus/add40")
+            .on_press(AppMsg::CreateConfig(CreateConfigMsg::Init))
+            .into();
         elems.push(new_button);
 
         elems
@@ -436,7 +437,9 @@ impl cosmic::Application for Ui {
     fn header_end(&self) -> Vec<Element<Self::Message>> {
         let mut elems = vec![];
 
-        let settings_button = icon_button("topbar/settings40", AppMsg::Settings(SettingsMsg::Open));
+        let settings_button = icon_button("topbar/settings40")
+            .on_press(AppMsg::Settings(SettingsMsg::Open))
+            .into();
         elems.push(settings_button);
 
         elems
