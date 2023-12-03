@@ -2,10 +2,11 @@
 
 ## Steps
 
-- [ ] finish hardware crate
+- [x] finish hardware crate
     - [x] impl windows code
     - [x] impl linux code
-    - [ ] test on real hardware
+    - [x] test on real hardware
+- [ ] Windows optimization
 - [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
     - [ ] Msi
     - [x] Deb
@@ -35,7 +36,7 @@ To have the maximum number of sensors detected by the application, you must inst
 sudo apt install lm-sensors
 sudo sensors-detect
 ```
-
+Also, make sure to execute the program in sudo mode.
 
 ## Repo structure
 - [hardware](./hardware/README.md): define an abstraction around the hardware.
@@ -44,7 +45,7 @@ sudo sensors-detect
 - the app: integrate all this crates in one executable
 
 ## Config files
-- Windows: `C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control`
+- Windows: `C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`
 - Linux: `/home/wiiz/.config/fan-control`
 
 ## Build

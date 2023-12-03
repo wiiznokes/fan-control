@@ -7,6 +7,13 @@ use crate::{
 };
 use ouroboros::self_referencing;
 
+// https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
+// https://www.kernel.org/doc/html/next/hwmon/nct6775.html
+
+// todo: cache PWM_ENABLE value before setting manual mode
+// so we can use it instead of this hardcored value
+static DEFAULT_PWM_ENABLE: i32 = 5;
+
 #[self_referencing]
 pub struct LinuxBridge {
     lib: LMSensors,
@@ -31,9 +38,13 @@ impl HardwareBridge for LinuxBridge {
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(_) => {
-                    panic!("can't get the value of a control");
-                }
+                InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
+                    Ok(value) => Ok((value / 2.55) as i32),
+                    Err(e) => {
+                        error!("{}", e);
+                        Err(HardwareError::LmSensors)
+                    }
+                },
                 InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
                     Ok(value) => Ok(value as i32),
                     Err(e) => {
@@ -47,13 +58,46 @@ impl HardwareBridge for LinuxBridge {
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("set value {} to {}", value, internal_index);
-        Ok(())
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => {
+                    let value = value as f64 * 2.55;
+                    if let Err(e) = pwm_refs.io.set_raw_value(value) {
+                        debug!("error tring to set value {} to a pwm: {:?}", value, e);
+                        return Err(HardwareError::LmSensors);
+                    }
+                    Ok(())
+                }
+                InternalSubFeatureRef::Sensor(_) => {
+                    panic!("can't set the value of a sensor");
+                }
+            },
+            None => Err(HardwareError::IdNotFound),
+        })
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("set mode {} to {}", value, internal_index);
-        Ok(())
+        let value = if value == 0 {
+            DEFAULT_PWM_ENABLE
+        } else {
+            value
+        };
+
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => {
+                    if let Err(e) = pwm_refs.enable.set_raw_value(value.into()) {
+                        debug!("error tring to set mode {} to a pwm: {:?}", value, e);
+                        return Err(HardwareError::LmSensors);
+                    }
+                    Ok(())
+                }
+                InternalSubFeatureRef::Sensor(_) => {
+                    panic!("can't set mode of a sensor");
+                }
+            },
+            None => Err(HardwareError::IdNotFound),
+        })
     }
 }
 
@@ -117,8 +161,9 @@ struct SensorRefs<'a> {
 
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
-        info!("pwm sould be set to auto");
-        // TODO: set to auto
+        if let Err(e) = self.enable.set_raw_value(DEFAULT_PWM_ENABLE.into()) {
+            debug!("error tring to set auto to a pwn while closing: {:?}", e)
+        }
     }
 }
 
