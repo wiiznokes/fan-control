@@ -5,7 +5,7 @@ use cosmic::{
         PickList, Scrollable, Toggler,
     },
     style,
-    widget::{Button, Column, Container, Row, Slider, Text, TextInput},
+    widget::{Button, Column, Container, Row, Slider, Text, TextInput, Space},
     Element,
 };
 use data::{
@@ -121,11 +121,11 @@ fn control_view<'a>(
         ),
         Row::new()
             .push(Text::new(node.value_text(&ValueKind::Porcentage)))
+            .push(Space::new(Length::Fill, Length::Fixed(0.0)))
             .push(Toggler::new(None, control.active, |is_active| {
                 ModifNodeMsg::Control(ControlMsg::Active(is_active))
             }))
-            // todo: need space_between here
-            .align_items(Alignment::End)
+            .align_items(Alignment::Center)
             .width(Length::Fill)
             .into(),
     ];

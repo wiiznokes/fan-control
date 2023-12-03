@@ -284,7 +284,7 @@ impl Node {
                 ValueKind::Porcentage => format!("{} %", value),
                 ValueKind::RPM => format!("{} RPM", value),
             },
-            None => "None".into(),
+            None => "No value".into(),
         }
     }
 }
