@@ -1,9 +1,6 @@
 
-run:
-	clear && cargo run
-
 fake:
-	clear && cargo run --features fake_hardware -- -p ./.config
+	cargo run --features fake_hardware -- -p ./.config
 
 ## Build Libs
 	
@@ -64,16 +61,11 @@ git-cache:
 
 
 expand:
-	clear && cargo expand
+	cargo expand
 
 
 conf:
-	clear
 	cargo run -- -p ./.config
-
-release:
-	clear && cargo run --release
-
 
 deb: package-deb
 	sudo apt remove fan-control -y

@@ -1,11 +1,12 @@
 use std::ops::{Add, RangeInclusive, Sub};
 
 use cosmic::{
-    widget::{Button, Column, Row, Text, TextInput},
+    iced_core::{Alignment, Length},
+    widget::{Column, Row, Space, Text, TextInput},
     Element,
 };
 
-use crate::ChangeConfigMsg;
+use crate::{utils::icon_button, ModifNodeMsg};
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;
@@ -26,21 +27,27 @@ impl MyFrom<&str> for Option<u8> {
     }
 }
 
+#[derive(PartialEq, Eq)]
+pub enum InputLineUnit {
+    Celcius,
+    Porcentage,
+}
+
 pub fn input_line<'a, V, F>(
     info: &'a str,
     value: &'a V,
     cached_value: &str,
-    unit: &'a str,
+    unit: InputLineUnit,
     range: &'a RangeInclusive<V>,
     map_value: F,
-) -> Element<'a, ChangeConfigMsg>
+) -> Element<'a, ModifNodeMsg>
 where
     V: Add<V, Output = V>,
     V: Sub<V, Output = V>,
     V: MyFrom<i32>,
     V: PartialOrd + Clone + ToString + PartialEq,
     Option<V>: for<'b> MyFrom<&'b str>,
-    F: 'a + Fn(V, String) -> ChangeConfigMsg,
+    F: 'a + Fn(V, String) -> ModifNodeMsg,
 {
     // `map_value` is moved in `on_input` so we procuce buttons messages before
     let plus_message = if range.end() > value {
@@ -59,17 +66,19 @@ where
         None
     };
 
-    let mut input = TextInput::new("value", cached_value).on_input(move |s| {
-        let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
-            Some(value_not_tested) => match range.contains(&value_not_tested) {
-                true => value_not_tested,
-                false => value.clone(),
-            },
-            None => value.clone(),
-        };
+    let mut input = TextInput::new("value", cached_value)
+        .on_input(move |s| {
+            let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
+                Some(value_not_tested) => match range.contains(&value_not_tested) {
+                    true => value_not_tested,
+                    false => value.clone(),
+                },
+                None => value.clone(),
+            };
 
-        map_value(final_value, s)
-    });
+            map_value(final_value, s)
+        })
+        .width(Length::Fixed(45.0));
 
     let is_error = match <Option<V> as MyFrom<_>>::from(cached_value) {
         Some(value_from_string) => value != &value_from_string,
@@ -80,18 +89,26 @@ where
         input = input.error("this value is invalid");
     }
 
+    let unit_text = match unit {
+        InputLineUnit::Celcius => " °C",
+        InputLineUnit::Porcentage => " %",
+    };
+
     Row::new()
         .push(Text::new(info))
         .push(
             Row::new()
-                .push(Text::new(":"))
+                .push(Text::new(" : "))
                 .push(input)
-                .push(Text::new(unit))
+                .push(Text::new(unit_text))
+                .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
                     Column::new()
-                        .push(Button::new("+").on_press_maybe(plus_message))
-                        .push(Button::new("-").on_press_maybe(sub_message)),
-                ),
+                        .push(icon_button("sign/plus/add20").on_press_maybe(plus_message))
+                        .push(icon_button("sign/minus/remove20").on_press_maybe(sub_message)),
+                )
+                .align_items(Alignment::Center),
         )
+        .align_items(Alignment::Center)
         .into()
 }

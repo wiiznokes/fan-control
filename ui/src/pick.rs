@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{fl, ChangeConfigMsg};
+use crate::{fl, ModifNodeMsg};
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
 use data::{
     id::Id,
@@ -119,7 +119,7 @@ pub fn pick_hardware<'a, P: 'a>(
     node: &'a Node,
     hardwares: &'a [Rc<P>],
     one_ref: bool,
-) -> Element<'a, ChangeConfigMsg>
+) -> Element<'a, ModifNodeMsg>
 where
     Pick<String>: From<&'a Rc<P>>,
 {
@@ -158,7 +158,7 @@ where
     }
 
     PickList::new(hardware_options, Pick::display_only(hardware_id), |pick| {
-        ChangeConfigMsg::ChangeHardware(pick)
+        ModifNodeMsg::ChangeHardware(pick)
     })
     .width(Length::Fill)
     .into()
