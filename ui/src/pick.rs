@@ -94,7 +94,6 @@ pub fn pick_input<'a, M: 'a>(
         .values()
         .filter(|n| {
             node.node_type
-                .to_light()
                 .allowed_dep()
                 .contains(&n.node_type.to_light())
                 && !node

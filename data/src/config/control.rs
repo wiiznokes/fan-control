@@ -65,7 +65,6 @@ impl Control {
         active: bool,
         bridge: &mut HardwareBridgeT,
     ) -> Result<(), UpdateError> {
-
         if self.is_active_set == active {
             debug!("mode already set: is_active_set = {}", self.is_active_set);
             return Ok(());
@@ -93,7 +92,10 @@ impl Control {
 
 impl IsValid for Control {
     fn is_valid(&self) -> bool {
-        self.active && self.hardware_id.is_some() && self.control_h.is_some() && self.input.is_some()
+        self.active
+            && self.hardware_id.is_some()
+            && self.control_h.is_some()
+            && self.input.is_some()
     }
 }
 

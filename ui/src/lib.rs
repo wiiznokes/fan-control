@@ -87,7 +87,7 @@ impl cosmic::Application for Ui {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             AppMsg::Tick => {
-                match self.app_state.update.graph(
+                match self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
@@ -317,12 +317,9 @@ impl cosmic::Application for Ui {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        
-        time::every(Duration::from_millis(
-            self.app_state.settings.update_delay,
-        ))
-        .map(|_| AppMsg::Tick)
-        
+        time::every(Duration::from_millis(self.app_state.settings.update_delay))
+            .map(|_| AppMsg::Tick)
+
         //cosmic::iced_futures::Subscription::none()
     }
 }

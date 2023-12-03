@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
-
     #[serde(default)]
     pub unit: Unit,
 
