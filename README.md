@@ -7,6 +7,7 @@
     - [x] impl linux code
     - [x] test on real hardware
 - [ ] Windows optimization
+- [ ] End to End testing
 - [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
     - [ ] Msi
     - [x] Deb

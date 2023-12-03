@@ -35,7 +35,7 @@ fn test_config() {
     };
 
     for _ in 0..20 {
-        if let Err(e) = app_state.update.graph(
+        if let Err(e) = app_state.update.optimized(
             &mut app_state.app_graph.nodes,
             &app_state.app_graph.root_nodes,
             &mut app_state.bridge,
