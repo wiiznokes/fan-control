@@ -5,7 +5,7 @@ use cosmic::{
         PickList, Scrollable, Toggler,
     },
     style,
-    widget::{Button, Column, Container, Row, Slider, Space, Text, TextInput},
+    widget::{Column, Container, Row, Slider, Space, Text, TextInput},
     Element,
 };
 use data::{
@@ -230,27 +230,32 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
         panic!()
     };
 
-    let mut sub_button = Button::new("-");
+    let mut sub_button = icon_button("sign/minus/remove24");
     if flat.value > 0 {
         sub_button = sub_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value - 1)));
     }
 
-    let mut add_button = Button::new("+");
+    let mut add_button = icon_button("sign/plus/add24");
     if flat.value < 100 {
         add_button = add_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value + 1)));
     }
 
     let buttons = Row::new()
-        .push(Text::new("fan speed"))
-        .push(Row::new().push(sub_button).push(add_button))
+        .push(sub_button)
+        .push(add_button)
+        .align_items(Alignment::Center);
+
+    let buttons = Row::new()
+        .push(Text::new(node.value_text(&ValueKind::Porcentage)))
+        .push(Space::new(Length::Fill, Length::Fixed(0.0)))
+        .push(buttons)
+        .align_items(Alignment::Center)
         .into();
 
-    let slider = Row::new()
-        .push(Slider::new(0..=100, flat.value, |v| {
-            ModifNodeMsg::Flat(FlatMsg::Value(v))
-        }))
-        .push(Text::new(node.value_text(&ValueKind::Porcentage)))
-        .into();
+    let slider = Slider::new(0..=100, flat.value, |v| {
+        ModifNodeMsg::Flat(FlatMsg::Value(v))
+    })
+    .into();
 
     let content = vec![buttons, slider];
 

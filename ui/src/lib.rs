@@ -16,7 +16,7 @@ use cosmic::{
     iced_core::Length,
     iced_widget::PickList,
     theme,
-    widget::{self, Column, Text, TextInput},
+    widget::{self, Column, Space, Text, TextInput},
     ApplicationExt, Element,
 };
 
@@ -389,6 +389,8 @@ impl cosmic::Application for Ui {
 
         let app_icon = my_icon("app/toys_fan48").into();
         elems.push(app_icon);
+
+        elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
 
         let app_name = Text::new("fan-control").into();
         elems.push(app_name);
