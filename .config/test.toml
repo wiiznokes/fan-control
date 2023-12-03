@@ -1,0 +1,40 @@
+[[Control]]
+name = "pwm1 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm1"
+input = "flat1"
+active = false
+
+[[Control]]
+name = "pwm2 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm2"
+input = "flat1"
+active = false
+
+[[Control]]
+name = "pwm3 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm3"
+input = "flat1"
+active = false
+
+[[Control]]
+name = "pwm4 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm4"
+input = "flat1"
+active = false
+
+[[Control]]
+name = "pwm5 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm5"
+input = "flat1"
+active = false
+
+[[Control]]
+name = "pwm6 nct6798-isa-0290"
+id = "nct6798-isa-0290-pwm6"
+input = "flat1"
+active = false
+
+
+[[Flat]]
+name = "flat1"
+value = 100

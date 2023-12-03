@@ -1,4 +1,4 @@
 unit = "Celsius"
 update_delay = 1000
 disable_pwm_value = 0
-current_config = "lin.toml"
+current_config = "test.toml"

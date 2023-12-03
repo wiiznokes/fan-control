@@ -47,13 +47,39 @@ impl HardwareBridge for LinuxBridge {
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("set value {} to {}", value, internal_index);
-        Ok(())
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => {
+                    if let Err(e) = pwm_refs.io.set_value(&lm_sensors::Value::new(value::Kind::PwmIo, value.into()).unwrap()) {
+                        debug!("error tring to set value {} to a pwm: {:?}", value, e);
+                        return Err(HardwareError::LmSensors);
+                    }
+                    Ok(())
+                }
+                InternalSubFeatureRef::Sensor(_) => {
+                    panic!("can't set the value of a sensor");
+                },
+            },
+            None => Err(HardwareError::IdNotFound),
+        })
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("set mode {} to {}", value, internal_index);
-        Ok(())
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => {
+                    if let Err(e) = pwm_refs.enable.set_value(&lm_sensors::Value::new(value::Kind::PwmEnable, value.into()).unwrap()) {
+                        debug!("error tring to set mode {} to a pwm: {:?}", value, e);
+                        return Err(HardwareError::LmSensors);
+                    }
+                    Ok(())
+                }
+                InternalSubFeatureRef::Sensor(_) => {
+                    panic!("can't set mode of a sensor");
+                },
+            },
+            None => Err(HardwareError::IdNotFound),
+        })
     }
 }
 
@@ -117,8 +143,9 @@ struct SensorRefs<'a> {
 
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
-        info!("pwm sould be set to auto");
-        // TODO: set to auto
+        if let Err(e) = self.enable.set_value(&lm_sensors::Value::new(value::Kind::PwmEnable, 0.0).unwrap()) {
+            debug!("error tring to set auto to a pwn while closing: {:?}", e)
+        }
     }
 }
 
