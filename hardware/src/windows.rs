@@ -27,9 +27,12 @@ const CHECK_RESPONSE: &str = "fan-control-ok";
 
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> (Hardware, HardwareBridgeT) {
-        let handle = process::Command::new("./target/lhm/LibreHardwareMonitorWrapper")
-            .spawn()
-            .unwrap();
+        #[cfg(test)]
+        let path = "./../target/lhm/LibreHardwareMonitorWrapper";
+        #[cfg(not(test))]
+        let path = "./target/lhm/LibreHardwareMonitorWrapper";
+
+        let handle = process::Command::new(path).spawn().unwrap();
 
         let mut hardware = Hardware::default();
 
@@ -259,4 +262,55 @@ fn is_little_endian() -> bool {
 
     // If the byte is 1, the system is little-endian; otherwise, it's big-endian
     byte == 1
+}
+
+#[cfg(test)]
+mod test {
+    use super::WindowsBridge;
+    use crate::{HardwareBridge, HardwareBridgeT};
+    use std::time::Instant;
+
+    #[test]
+    fn test_time() {
+        let f = || {
+            let (hardware, mut bridge) = WindowsBridge::generate_hardware();
+
+            for h in &hardware.controls {
+                get_value(&mut bridge, &h.internal_index, &h.name);
+            }
+            for h in &hardware.temps {
+                get_value(&mut bridge, &h.internal_index, &h.name);
+            }
+            for h in &hardware.fans {
+                get_value(&mut bridge, &h.internal_index, &h.name);
+            }
+        };
+        bench(f, "all");
+    }
+
+    fn get_value(bridge: &mut HardwareBridgeT, index: &usize, name: &str) {
+        bench(
+            || {
+                match bridge.get_value(index) {
+                    Ok(value) => {
+                        println!("value of control {} = {}", name, value);
+                    }
+                    Err(e) => {
+                        println!("error of control {} = {:?}", name, e);
+                    }
+                };
+            },
+            "get_value",
+        );
+    }
+
+    fn bench(f: impl FnOnce(), info: &str) {
+        let now = Instant::now();
+        f();
+        println!(
+            "fun: {}, time taken: {} millis",
+            info,
+            now.elapsed().as_millis()
+        );
+    }
 }
