@@ -40,20 +40,14 @@ impl HardwareBridge for LinuxBridge {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
                     Ok(value) => Ok((value / 2.55) as i32),
-                    Err(e) => {
-                        error!("{}", e);
-                        Err(HardwareError::LmSensors)
-                    }
+                    Err(e) => Err(HardwareError::LmSensors(format!("{}", e))),
                 },
                 InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
                     Ok(value) => Ok(value as i32),
-                    Err(e) => {
-                        error!("{}", e);
-                        Err(HardwareError::LmSensors)
-                    }
+                    Err(e) => Err(HardwareError::LmSensors(format!("{}", e))),
                 },
             },
-            None => Err(HardwareError::IdNotFound),
+            None => Err(HardwareError::InternalIndexNotFound),
         })
     }
 
@@ -63,8 +57,10 @@ impl HardwareBridge for LinuxBridge {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
                     let value = value as f64 * 2.55;
                     if let Err(e) = pwm_refs.io.set_raw_value(value) {
-                        debug!("error tring to set value {} to a pwm: {:?}", value, e);
-                        return Err(HardwareError::LmSensors);
+                        return Err(HardwareError::LmSensors(format!(
+                            "can't set value {} to a pwm: {:?}",
+                            value, e
+                        )));
                     }
                     Ok(())
                 }
@@ -72,7 +68,7 @@ impl HardwareBridge for LinuxBridge {
                     panic!("can't set the value of a sensor");
                 }
             },
-            None => Err(HardwareError::IdNotFound),
+            None => Err(HardwareError::InternalIndexNotFound),
         })
     }
 
@@ -87,8 +83,10 @@ impl HardwareBridge for LinuxBridge {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
                     if let Err(e) = pwm_refs.enable.set_raw_value(value.into()) {
-                        debug!("error tring to set mode {} to a pwm: {:?}", value, e);
-                        return Err(HardwareError::LmSensors);
+                        return Err(HardwareError::LmSensors(format!(
+                            "can't set mode {} to a pwm: {:?}",
+                            value, e
+                        )));
                     }
                     Ok(())
                 }
@@ -96,7 +94,7 @@ impl HardwareBridge for LinuxBridge {
                     panic!("can't set mode of a sensor");
                 }
             },
-            None => Err(HardwareError::IdNotFound),
+            None => Err(HardwareError::InternalIndexNotFound),
         })
     }
 }
@@ -162,7 +160,7 @@ struct SensorRefs<'a> {
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
         if let Err(e) = self.enable.set_raw_value(DEFAULT_PWM_ENABLE.into()) {
-            debug!("error tring to set auto to a pwn while closing: {:?}", e)
+            error!("can't set auto to a pwn in drop function: {:?}", e)
         }
     }
 }

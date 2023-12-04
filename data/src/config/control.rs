@@ -70,23 +70,17 @@ impl Control {
             return Ok(());
         }
 
-        let res = match &self.control_h {
+        match &self.control_h {
             Some(control_h) => bridge
                 .set_mode(&control_h.internal_index, active as i32)
-                .map_err(UpdateError::Hardware),
-            None => Err(UpdateError::NodeIsInvalid),
+                .map_err(UpdateError::Hardware)?,
+            None => return Err(UpdateError::NodeIsInvalid),
         };
 
-        match &res {
-            Ok(_) => {
-                self.active = active;
-                self.is_active_set = active
-            }
-            Err(e) => {
-                error!("can't set mode {} of a control: {:?}", active, e);
-            }
-        }
-        res
+        self.active = active;
+        self.is_active_set = active;
+        debug!("mode succefuly set to {}", self.is_active_set);
+        Ok(())
     }
 
     pub fn get_value(&self, bridge: &mut HardwareBridgeT) -> Result<Value, UpdateError> {

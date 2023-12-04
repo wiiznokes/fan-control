@@ -18,8 +18,8 @@ pub mod fake_hardware;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HardwareError {
-    IdNotFound,
-    LmSensors,
+    InternalIndexNotFound,
+    LmSensors(String),
 }
 
 pub type Value = i32;

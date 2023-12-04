@@ -7,6 +7,50 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug 'fan-control'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=fan-control",
+                    "--package=fan-control"
+                    
+                ],
+                "filter": {
+                    "name": "fan-control",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-p",
+                "./.config"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug 'fan-control': fake hardware",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=fan-control",
+                    "--package=fan-control",
+                    "--features=fake_hardware"
+                ],
+                "filter": {
+                    "name": "fan-control",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-p",
+                "./.config"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'data'",
             "cargo": {
                 "args": [
@@ -59,27 +103,6 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'fan-control'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=fan-control",
-                    "--package=fan-control"
-                ],
-                "filter": {
-                    "name": "fan-control",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                //"-p",
-                //"./.config"
-            ],
             "cwd": "${workspaceFolder}"
         },
         {

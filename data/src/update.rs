@@ -45,39 +45,40 @@ impl Update {
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
-    ) -> Result<(), UpdateError> {
+    ) {
         if self.config_changed {
-            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge)?;
+            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge);
         }
 
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
-            Self::update_rec(nodes, node_id, &mut updated, bridge)?;
+            if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
+                error!("{:?}", e);
+            }
         }
-        Ok(())
     }
 
-    pub fn all(
-        &mut self,
-        nodes: &mut Nodes,
-        root_nodes: &RootNodes,
-        bridge: &mut HardwareBridgeT,
-    ) -> Result<(), UpdateError> {
+    pub fn all(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes, bridge: &mut HardwareBridgeT) {
         if self.config_changed {
-            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge)?;
+            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge);
         }
 
         for id in root_nodes {
             match nodes.get_mut(id) {
                 Some(node) => {
                     if let NodeType::Control(control) = &node.node_type {
-                        if let Ok(value) = control.get_value(bridge) {
-                            node.value = Some(value);
+                        match control.get_value(bridge) {
+                            Ok(value) => {
+                                node.value = Some(value);
+                            }
+                            Err(e) => {
+                                error!("{:?}", e);
+                            }
                         }
                     }
                 }
                 None => {
-                    return Err(UpdateError::NodeNotFound);
+                    error!("{:?}", UpdateError::NodeNotFound);
                 }
             }
         }
@@ -134,32 +135,32 @@ impl Update {
 
         let mut updated = HashSet::new();
         for id in ids {
-            Self::update_rec(nodes, &id, &mut updated, bridge)?;
+            if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge) {
+                error!("{:?}", e);
+            }
         }
-
-        Ok(())
     }
-
-    pub fn clear_cache(&mut self) {}
 
     fn set_invalid_controls_to_auto(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
-    ) -> Result<(), UpdateError> {
+    ) {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
                 let Some(node) = nodes.get_mut(node_id) else {
-                    return Err(UpdateError::NodeNotFound);
+                    warn!("node not found in set_invalid_controls_to_auto function");
+                    continue;
                 };
                 if let NodeType::Control(control) = &mut node.node_type {
-                    control.set_mode(false, bridge)?;
+                    if let Err(e) = control.set_mode(false, bridge) {
+                        error!("{:?}", e);
+                    }
                 }
             }
         }
         self.config_changed = false;
-        Ok(())
     }
 
     fn validate_rec(nodes: &Nodes, node_id: &Id) -> bool {

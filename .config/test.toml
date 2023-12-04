@@ -26,3 +26,7 @@ value = 100
 [[Flat]]
 name = "flat2"
 value = 0
+
+[[Flat]]
+name = "flat3"
+value = 0

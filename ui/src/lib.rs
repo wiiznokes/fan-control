@@ -127,17 +127,11 @@ impl cosmic::Application for Ui {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             AppMsg::Tick => {
-                match self.app_state.update.all(
+                self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
-                ) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        eprintln!("{:?}", e);
-                        self.app_state.update.clear_cache();
-                    }
-                }
+                );
             }
 
             AppMsg::ModifNode(id, change_config) => {
@@ -440,7 +434,7 @@ impl cosmic::Application for Ui {
     fn header_end(&self) -> Vec<Element<Self::Message>> {
         let mut elems = vec![];
 
-        let settings_button = icon_button("topbar/settings40")
+        let settings_button = icon_button("topBar/settings40")
             .on_press(AppMsg::Settings(SettingsMsg::Open))
             .into();
         elems.push(settings_button);
