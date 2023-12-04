@@ -9,7 +9,8 @@ public enum Command
     SetAuto = 1,
     SetValue = 2,
     GetValue = 3,
-    Shutdown = 4
+    Shutdown = 4,
+    Update = 5
 }
 
 public class Server
@@ -75,6 +76,9 @@ public class Server
                     break;
                 case Command.Shutdown:
                     return;
+                case Command.Update:
+                    hardwareManager.Update();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

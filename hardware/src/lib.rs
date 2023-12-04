@@ -32,6 +32,13 @@ pub trait HardwareBridge {
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError>;
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError>;
+
+    // use on Windows, because we update all sensors in one function, so
+    // we don't want to update at each call, instead, we call this function
+    // one time in each update iteration
+    fn update(&mut self) -> Result<(), HardwareError> {
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

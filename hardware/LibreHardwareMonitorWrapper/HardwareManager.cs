@@ -18,9 +18,13 @@ public class HardwareManager
         _hardwareList = _hardwareResearcher.GetHardwareList();
     }
 
-    public int GetValue(int index)
+    public void Update()
     {
         _hardwareResearcher.Update();
+    }
+
+    public int GetValue(int index)
+    {
         var hardware = _hardwareList[index];
         return hardware.Type switch
         {

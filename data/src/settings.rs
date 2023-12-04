@@ -45,7 +45,7 @@ impl Default for Settings {
 }
 
 fn default_update_delay() -> u64 {
-    2500
+    1500
 }
 
 impl Settings {

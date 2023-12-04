@@ -46,6 +46,10 @@ impl Update {
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
     ) {
+        if let Err(e) = bridge.update() {
+            error!("{:?}", e);
+            return;
+        }
         if self.config_changed {
             self.set_invalid_controls_to_auto(nodes, root_nodes, bridge);
         }
@@ -59,6 +63,10 @@ impl Update {
     }
 
     pub fn all(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes, bridge: &mut HardwareBridgeT) {
+        if let Err(e) = bridge.update() {
+            error!("{:?}", e);
+            return;
+        }
         if self.config_changed {
             self.set_invalid_controls_to_auto(nodes, root_nodes, bridge);
         }

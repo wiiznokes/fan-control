@@ -114,6 +114,12 @@ impl HardwareBridge for WindowsBridge {
         // todo: take a result
         Ok(())
     }
+
+    fn update(&mut self) -> Result<(), HardwareError> {
+        let command: Packet = Command::Update.into();
+        self.stream.write_all(&command).unwrap();
+        Ok(())
+    }
 }
 
 fn try_connect() -> TcpStream {
@@ -178,6 +184,7 @@ enum Command {
     SetValue = 2,
     GetValue = 3,
     Shutdown = 4,
+    Update = 5,
 }
 
 impl From<Command> for [u8; 4] {
@@ -267,49 +274,73 @@ fn is_little_endian() -> bool {
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
-    use crate::{HardwareBridge, HardwareBridgeT};
-    use std::time::Instant;
+    use crate::{Hardware, HardwareBridge, HardwareBridgeT};
+    use std::{
+        thread::sleep,
+        time::{Duration, Instant},
+    };
 
     #[test]
     fn test_time() {
-        let f = || {
-            let (hardware, mut bridge) = WindowsBridge::generate_hardware();
+        let now = Instant::now();
+        let (hardware, mut bridge) = WindowsBridge::generate_hardware();
+        println!("generation took {} millis", now.elapsed().as_millis());
 
-            for h in &hardware.controls {
-                get_value(&mut bridge, &h.internal_index, &h.name);
-            }
-            for h in &hardware.temps {
-                get_value(&mut bridge, &h.internal_index, &h.name);
-            }
-            for h in &hardware.fans {
-                get_value(&mut bridge, &h.internal_index, &h.name);
-            }
-        };
-        bench(f, "all");
+        for _ in 0..5 {
+            bench(
+                || {
+                    update(&mut bridge, &hardware);
+                    "all sensors".to_string()
+                },
+                "update",
+            );
+            sleep(Duration::from_millis(500))
+        }
+    }
+
+    fn update(bridge: &mut HardwareBridgeT, hardware: &Hardware) {
+        println!();
+
+        bench(
+            || {
+                bridge.update().unwrap();
+                "lhm".to_string()
+            },
+            "update",
+        );
+
+        for h in &hardware.controls {
+            get_value(bridge, &h.internal_index, &h.name);
+        }
+        for h in &hardware.temps {
+            get_value(bridge, &h.internal_index, &h.name);
+        }
+        for h in &hardware.fans {
+            get_value(bridge, &h.internal_index, &h.name);
+        }
     }
 
     fn get_value(bridge: &mut HardwareBridgeT, index: &usize, name: &str) {
         bench(
-            || {
-                match bridge.get_value(index) {
-                    Ok(value) => {
-                        println!("value of control {} = {}", name, value);
-                    }
-                    Err(e) => {
-                        println!("error of control {} = {:?}", name, e);
-                    }
-                };
+            || match bridge.get_value(index) {
+                Ok(value) => {
+                    format!("{} = {}", name, value)
+                }
+                Err(e) => {
+                    format!("error for {}: {:?}", name, e)
+                }
             },
             "get_value",
         );
     }
 
-    fn bench(f: impl FnOnce(), info: &str) {
+    fn bench(f: impl FnOnce() -> String, info: &str) {
         let now = Instant::now();
-        f();
+        let output = f();
         println!(
-            "fun: {}, time taken: {} millis",
+            "{}: {} in {} millis",
             info,
+            output,
             now.elapsed().as_millis()
         );
     }
