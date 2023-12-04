@@ -61,17 +61,10 @@ pub enum AppMsg {
     RenameConfig(String),
     ChangeConfig(Option<String>),
     RemoveConfig(String),
-    CreateConfig(CreateConfigMsg),
+    CreateConfig(String),
     ModifNode(Id, ModifNodeMsg),
     NewNode(NodeTypeLight),
     Settings(SettingsMsg),
-}
-
-#[derive(Debug, Clone)]
-pub enum CreateConfigMsg {
-    Init,
-    Cancel,
-    New(String),
 }
 
 #[derive(Debug, Clone)]
@@ -127,6 +120,8 @@ impl cosmic::Application for Ui {
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        let dir_manager = &mut self.app_state.dir_manager;
+
         match message {
             AppMsg::Tick => {
                 self.app_state.update.all(
@@ -348,15 +343,11 @@ impl cosmic::Application for Ui {
             AppMsg::SaveConfig => {
                 let config = Config::from_app_graph(&self.app_state.app_graph);
 
-                if let Err(e) = self
-                    .app_state
-                    .dir_manager
-                    .save_config(&self.cache.current_config, &config)
-                {
+                if let Err(e) = dir_manager.save_config(&self.cache.current_config, &config) {
                     error!("{:?}", e);
                 };
             }
-            AppMsg::ChangeConfig(name) => match self.app_state.dir_manager.change_config(&name) {
+            AppMsg::ChangeConfig(name) => match dir_manager.change_config(&name) {
                 Ok(config) => match config {
                     Some((config_name, config)) => {
                         self.cache.current_config = config_name;
@@ -371,7 +362,7 @@ impl cosmic::Application for Ui {
                     error!("{:?}", e);
                 }
             },
-            AppMsg::RemoveConfig(name) => match self.app_state.dir_manager.remove_config(&name) {
+            AppMsg::RemoveConfig(name) => match dir_manager.remove_config(&name) {
                 Ok(is_current_config) => {
                     if is_current_config {
                         self.cache.current_config.clear();
@@ -381,23 +372,18 @@ impl cosmic::Application for Ui {
                     error!("can't remove config: {:?}", e);
                 }
             },
-            AppMsg::CreateConfig(create_config_msg) => match create_config_msg {
-                CreateConfigMsg::Init => {}
-                CreateConfigMsg::Cancel => {}
-                CreateConfigMsg::New(new_name) => {
-                    let config = Config::from_app_graph(&self.app_state.app_graph);
+            AppMsg::CreateConfig(new_name) => {
+                let config = Config::from_app_graph(&self.app_state.app_graph);
 
-                    match self.app_state.dir_manager.create_config(&new_name, &config) {
-                        Ok(_) => {
-                            self.cache.current_config = new_name;
-                        }
-                        Err(e) => {
-                            error!("can't create config: {:?}", e);
-                        }
+                match dir_manager.create_config(&new_name, &config) {
+                    Ok(_) => {
+                        self.cache.current_config = new_name;
+                    }
+                    Err(e) => {
+                        error!("can't create config: {:?}", e);
                     }
                 }
-            },
-
+            }
             AppMsg::RenameConfig(name) => {
                 self.cache.current_config = name;
             }
@@ -407,9 +393,9 @@ impl cosmic::Application for Ui {
                     self.set_context_title("Settings".into());
                 }
                 SettingsMsg::ChangeTheme(theme) => {
-                    self.app_state.dir_manager.settings.theme = theme;
+                    dir_manager.settings.theme = theme;
                     return cosmic::app::command::set_theme(to_cosmic_theme(
-                        &self.app_state.dir_manager.settings.theme,
+                        &dir_manager.settings.theme,
                     ));
                     // todo: save on fs
                 }
@@ -464,19 +450,24 @@ impl cosmic::Application for Ui {
                     .into()
             } else {
                 PickList::new(
-                    &dir_manager.config_names,
+                    dir_manager.config_names.get(),
                     Some(self.cache.current_config.to_owned()),
-                    |name| AppMsg::ChangeConfig(Some(name)),
+                    |name| AppMsg::ChangeConfig(Some(name.to_owned())),
                 )
                 .into()
             };
             elems.push(choose_config);
         }
 
-        let new_button = icon_button("sign/plus/add40")
-            .on_press(AppMsg::CreateConfig(CreateConfigMsg::Init))
-            .into();
-        elems.push(new_button);
+        let mut new_button = icon_button("sign/plus/add40");
+
+        // todo
+        if true {
+            new_button =
+                new_button.on_press(AppMsg::CreateConfig(self.cache.current_config.to_owned()));
+        }
+
+        elems.push(new_button.into());
 
         elems
     }
