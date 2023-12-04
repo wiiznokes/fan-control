@@ -75,6 +75,9 @@ impl Update {
             match nodes.get_mut(id) {
                 Some(node) => {
                     if let NodeType::Control(control) = &node.node_type {
+                        if control.control_h.is_none() {
+                            continue;
+                        }
                         match control.get_value(bridge) {
                             Ok(value) => {
                                 node.value = Some(value);
