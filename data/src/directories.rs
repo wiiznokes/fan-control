@@ -1,11 +1,11 @@
 use std::{
-    fs::{self, File},
+    fs::{self},
     path::{Path, PathBuf},
 };
 
 use directories::ProjectDirs;
 
-use crate::{cli::Args, config::Config, serde_helper, settings::Settings};
+use crate::{cli::Args, config::Config, serde_helper, settings::Settings, utils::RemoveElem};
 
 static QUALIFIER: &str = "com";
 static ORG: &str = "wiiznokes";
@@ -70,13 +70,41 @@ impl DirManager {
         self.config_dir_path.join(HARDWARE_FILENAME)
     }
 
-    pub fn config_file_path(&self, name: &String) -> PathBuf {
+    pub fn config_file_path(&self, name: &str) -> PathBuf {
         self.config_dir_path.join(name)
     }
 }
 
 impl DirManager {
-    pub fn save(&mut self) {}
+    pub fn save_config(
+        &mut self,
+        previous_name: &str,
+        new_name: &str,
+        config: &Config,
+    ) -> Result<(), String> {
+        let previous_path = self.config_file_path(previous_name);
+        if let Err(e) = fs::remove_file(previous_path) {
+            return Err(format!("{:?}", e));
+        }
+
+        let new_path = self.config_file_path(new_name);
+
+        serde_helper::serialize(&new_path, config)?;
+
+        if self
+            .config_names
+            .remove_elem(|e| previous_name == e)
+            .is_none()
+        {
+            warn!("can't find {} in config_names to remove it", previous_name);
+        }
+
+        self.config_names.push(new_name.to_owned());
+
+        self.settings.current_config = Some(new_name.to_owned());
+
+        Ok(())
+    }
 
     pub fn remove() {}
 }
@@ -113,26 +141,19 @@ fn init_settings(config_dir_path: &Path) -> Settings {
     let settings_file_path = config_dir_path.join(SETTINGS_FILENAME);
 
     if !settings_file_path.exists() {
-        if let Err(e) = File::create(&settings_file_path) {
-            error!("can't create settings file: {e}");
-            return Default::default();
+        let default_settings = Settings::default();
+
+        if let Err(e) = serde_helper::serialize(&settings_file_path, &default_settings) {
+            error!("{e}");
         }
 
-        if let Err(e) = fs::write(
-            settings_file_path,
-            toml::to_string(&Settings::default()).unwrap(),
-        ) {
-            error!("can't write to settings file: {e}");
-            return Default::default();
-        }
-
-        Default::default()
+        default_settings
     } else {
         match serde_helper::deserialize(&settings_file_path) {
             Ok(t) => t,
             Err(e) => {
                 error!("{:?}", e);
-                Default::default()
+                Settings::default()
             }
         }
     }

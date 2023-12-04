@@ -3,9 +3,11 @@
 use std::time::Duration;
 
 use data::{
+    config::Config,
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,
+    utils::RemoveElem,
     AppState,
 };
 
@@ -23,7 +25,7 @@ use cosmic::{
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 use pick::Pick;
 use strum::IntoEnumIterator;
-use utils::{icon_button, my_icon, RemoveElem};
+use utils::{icon_button, my_icon};
 
 #[macro_use]
 extern crate log;
@@ -343,7 +345,24 @@ impl cosmic::Application for Ui {
 
                 self.app_state.update.config_changed();
             }
-            AppMsg::SaveConfig => {}
+            AppMsg::SaveConfig => {
+                let Some(previous_name) =
+                    self.app_state.dir_manager.settings.current_config.clone()
+                else {
+                    error!("try to save config but current config is none");
+                    return Command::none();
+                };
+
+                let config = Config::from_app_graph(&self.app_state.app_graph);
+
+                if let Err(e) = self.app_state.dir_manager.save_config(
+                    &previous_name,
+                    &self.cache.current_config,
+                    &config,
+                ) {
+                    error!("{:?}", e);
+                };
+            }
             AppMsg::ChangeConfig(_name) => {}
             AppMsg::RemoveConfig(_) => {}
             AppMsg::CreateConfig(_) => {}

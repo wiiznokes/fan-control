@@ -14,6 +14,7 @@ pub mod node;
 pub mod serde_helper;
 pub mod settings;
 pub mod update;
+pub mod utils;
 
 use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
 use node::AppGraph;
