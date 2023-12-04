@@ -449,4 +449,11 @@ impl NodeType {
     pub fn is_sensor(&self) -> bool {
         matches!(self, NodeType::Fan(..) | NodeType::Temp(..))
     }
+
+    pub fn is_behavior(&self) -> bool {
+        matches!(
+            self,
+            NodeType::Graph(..) | NodeType::Flat(..) | NodeType::Linear(..) | NodeType::Target(..)
+        )
+    }
 }

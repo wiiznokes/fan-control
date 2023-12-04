@@ -270,7 +270,7 @@ impl cosmic::Application for Ui {
                             let NodeType::Control(control) = &mut node.node_type else {
                                 panic!()
                             };
-                            let _ = control.set_mode(is_active, &mut self.app_state.bridge);
+                            control.active = is_active;
                         }
                     },
                     ModifNodeMsg::CustomTemp(custom_temp_msg) => match custom_temp_msg {
@@ -291,6 +291,7 @@ impl cosmic::Application for Ui {
                                 panic!()
                             };
                             flat.value = value;
+                            node.value = Some(value.into());
                         }
                     },
                     ModifNodeMsg::Linear(linear_msg) => {
