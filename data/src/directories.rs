@@ -14,6 +14,7 @@ static APP: &str = "fan-control";
 static SETTINGS_FILENAME: &str = "settings.toml";
 static HARDWARE_FILENAME: &str = "hardware.toml";
 
+#[derive(Debug)]
 pub struct DirManager {
     pub config_dir_path: PathBuf,
     pub config_names: Vec<String>,
@@ -33,8 +34,10 @@ impl DirManager {
             Some(config_dir_path) => {
                 if !config_dir_path.is_dir() {
                     error!("{} is not a directory", config_dir_path.display());
+                    default_config_dir_path()
+                } else {
+                    config_dir_path
                 }
-                default_config_dir_path()
             }
             None => default_config_dir_path(),
         };
@@ -188,9 +191,17 @@ fn config_names(config_dir_path: &Path) -> Vec<String> {
         if !metadata.is_file() {
             continue;
         }
+
+        let file_name = file.file_name();
+
+        if file_name == SETTINGS_FILENAME || file_name == HARDWARE_FILENAME {
+            continue;
+        }
+
         if serde_helper::deserialize::<Config>(&file.path()).is_err() {
             continue;
         }
+
         filenames.push(file.file_name().to_string_lossy().to_string())
     }
 
