@@ -21,9 +21,9 @@
     - [x] theme (from Cosmic)
     - [ ] impl UI for managing configs
     - [ ] impl UI for removing/adding nodes
-    - [ ] impl UI settings page
+    - [x] impl UI settings page
 - [ ] impl UI graph behavior
-- [ ] icons
+- [x] icons
 - [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))
 - [ ] i18n support ([example](https://github.com/pop-os/cosmic-edit/blob/master_jammy/Cargo.toml))
     - [x] init file structure
