@@ -1,6 +1,7 @@
 use clap::Parser;
 use data::{
-    cli::Args, config::Config, directories::DirManager, node::AppGraph, update::Update, AppState,
+    cli::Args, config::Config, directories::DirManager, node::AppGraph, serde_helper,
+    update::Update, AppState,
 };
 use hardware::{self, HardwareBridge};
 
@@ -18,8 +19,7 @@ fn main() {
 
     let args = Args::parse();
 
-    let dir_manager = DirManager::new(args.config_dir_path);
-    let settings = dir_manager.init_settings();
+    let dir_manager = DirManager::new(args);
 
     #[cfg(feature = "fake_hardware")]
     let (hardware, bridge) = hardware::fake_hardware::FakeHardwareBridge::generate_hardware();
@@ -32,13 +32,19 @@ fn main() {
 
     let hardware_file_path = dir_manager.hardware_file_path();
 
-    if let Err(e) = DirManager::serialize(&hardware_file_path, &hardware) {
+    if let Err(e) = serde_helper::serialize(&hardware_file_path, &hardware) {
         warn!("{}", e);
     }
 
-    let config = match &settings.current_config {
+    let config = match &dir_manager.settings.current_config {
         Some(config_name) => {
-            DirManager::deserialize::<Config>(&dir_manager.config_file_path(config_name), true)
+            match serde_helper::deserialize::<Config>(&dir_manager.config_file_path(config_name)) {
+                Ok(config) => Some(config),
+                Err(e) => {
+                    warn!("{:?}", e);
+                    None
+                }
+            }
         }
         None => None,
     };
@@ -50,7 +56,6 @@ fn main() {
 
     let app_state = AppState {
         dir_manager,
-        settings,
         hardware,
         bridge,
         app_graph,

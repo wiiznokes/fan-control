@@ -74,7 +74,7 @@ pub enum CreateConfigMsg {
 
 #[derive(Debug, Clone)]
 pub enum SettingsMsg {
-    Open,
+    Toggle,
     ChangeTheme(AppTheme),
 }
 
@@ -112,7 +112,7 @@ impl cosmic::Application for Ui {
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let app_cache = AppCache {
-            current_config: flags.settings.current_config_text().to_owned(),
+            current_config: flags.dir_manager.settings.current_config_text().to_owned(),
             theme_list: AppTheme::iter().map(|e| e.to_string()).collect(),
         };
 
@@ -352,14 +352,14 @@ impl cosmic::Application for Ui {
                 self.cache.current_config = name;
             }
             AppMsg::Settings(settings_msg) => match settings_msg {
-                SettingsMsg::Open => {
+                SettingsMsg::Toggle => {
                     self.core.window.show_context = !self.core.window.show_context;
                     self.set_context_title("Settings".into());
                 }
                 SettingsMsg::ChangeTheme(theme) => {
-                    self.app_state.settings.theme = theme;
+                    self.app_state.dir_manager.settings.theme = theme;
                     return cosmic::app::command::set_theme(to_cosmic_theme(
-                        &self.app_state.settings.theme,
+                        &self.app_state.dir_manager.settings.theme,
                     ));
                     // todo: save on fs
                 }
@@ -393,7 +393,7 @@ impl cosmic::Application for Ui {
     }
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
-        let settings = &self.app_state.settings;
+        let settings = &self.app_state.dir_manager.settings;
         let dir_manager = &self.app_state.dir_manager;
 
         let mut elems = vec![];
@@ -407,7 +407,7 @@ impl cosmic::Application for Ui {
         }
 
         if !dir_manager.config_names.is_empty() {
-            let choose_config = if self.app_state.settings.current_config.is_some() {
+            let choose_config = if settings.current_config.is_some() {
                 TextInput::new("name", &self.cache.current_config)
                     .on_input(AppMsg::RenameConfig)
                     .width(Length::Fixed(200.0))
@@ -435,7 +435,7 @@ impl cosmic::Application for Ui {
         let mut elems = vec![];
 
         let settings_button = icon_button("topBar/settings40")
-            .on_press(AppMsg::Settings(SettingsMsg::Open))
+            .on_press(AppMsg::Settings(SettingsMsg::Toggle))
             .into();
         elems.push(settings_button);
 
@@ -447,7 +447,7 @@ impl cosmic::Application for Ui {
             return None;
         }
         let app_theme_selected = AppTheme::iter()
-            .position(|e| e == self.app_state.settings.theme)
+            .position(|e| e == self.app_state.dir_manager.settings.theme)
             .unwrap();
 
         let settings_context =
@@ -469,8 +469,10 @@ impl cosmic::Application for Ui {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(self.app_state.settings.update_delay))
-            .map(|_| AppMsg::Tick)
+        time::every(Duration::from_millis(
+            self.app_state.dir_manager.settings.update_delay,
+        ))
+        .map(|_| AppMsg::Tick)
 
         //cosmic::iced_futures::Subscription::none()
     }

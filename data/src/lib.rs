@@ -11,6 +11,7 @@ pub mod config;
 pub mod directories;
 pub mod id;
 pub mod node;
+pub mod serde_helper;
 pub mod settings;
 pub mod update;
 
@@ -18,13 +19,12 @@ use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
 use node::AppGraph;
 use update::Update;
 
-use crate::{directories::DirManager, settings::Settings};
+use crate::directories::DirManager;
 
 pub type BoxedHardwareBridge = Box<dyn HardwareBridge>;
 
 pub struct AppState {
     pub dir_manager: DirManager,
-    pub settings: Settings,
     pub hardware: Hardware,
     pub bridge: HardwareBridgeT,
     pub app_graph: AppGraph,
