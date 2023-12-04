@@ -35,13 +35,11 @@ fn test_config() {
     };
 
     for _ in 0..20 {
-        if let Err(e) = app_state.update.optimized(
+        app_state.update.optimized(
             &mut app_state.app_graph.nodes,
             &app_state.app_graph.root_nodes,
             &mut app_state.bridge,
-        ) {
-            error!("{:?}", e);
-        }
+        );
         debug!("\n");
         thread::sleep(Duration::from_millis(50));
     }

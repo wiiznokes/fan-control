@@ -1,5 +1,8 @@
 # fan-control
 
+[![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
+![ci_status](https://github.com/wiiznokes/light_enum/actions/workflows/test.yml/badge.svg)
+
 ## Steps
 
 - [x] finish hardware crate
