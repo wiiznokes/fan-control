@@ -72,6 +72,7 @@ impl Update {
                                 node.value = Some(value);
                             }
                             Err(e) => {
+                                node.value.take();
                                 error!("{:?}", e);
                             }
                         }
@@ -201,7 +202,9 @@ impl Update {
             updated.insert(node.id);
 
             if !node.node_type.is_valid() {
-                node.value = None;
+                if !node.node_type.is_control() {
+                    node.value = None;
+                }
                 return Ok(None);
             }
             input_ids = node.inputs.iter().map(|i| i.0).collect();
@@ -214,7 +217,9 @@ impl Update {
                 None => {
                     return match nodes.get_mut(node_id) {
                         Some(node) => {
-                            node.value = None;
+                            if !node.node_type.is_control() {
+                                node.value = None;
+                            }
                             Ok(None)
                         }
                         None => Err(UpdateError::NodeNotFound),

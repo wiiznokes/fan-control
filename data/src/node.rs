@@ -456,4 +456,8 @@ impl NodeType {
             NodeType::Graph(..) | NodeType::Flat(..) | NodeType::Linear(..) | NodeType::Target(..)
         )
     }
+
+    pub fn is_control(&self) -> bool {
+        matches!(self, NodeType::Control(..))
+    }
 }
