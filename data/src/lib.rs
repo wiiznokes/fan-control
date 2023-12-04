@@ -1,6 +1,7 @@
 //#![feature(return_position_impl_trait_in_trait)]
 //#![feature(type_alias_impl_trait)]
 #![allow(dead_code)]
+//#![allow(clippy::match_like_matches_macro)]
 
 #[macro_use]
 extern crate log;

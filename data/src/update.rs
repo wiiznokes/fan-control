@@ -1,10 +1,10 @@
-use std::collections::HashSet;
+use std::{cmp::Ordering, collections::HashSet};
 
 use hardware::{HardwareBridgeT, HardwareError, Value};
 
 use crate::{
     id::Id,
-    node::{Node, NodeType, NodeTypeLight, Nodes, RootNodes},
+    node::{Node, NodeType, Nodes, RootNodes},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -15,7 +15,6 @@ pub enum UpdateError {
     Hardware(HardwareError),
     NoInputData,
     CantSetMode,
-    InvalidControl,
 }
 
 pub struct Update {
@@ -47,7 +46,15 @@ impl Update {
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
     ) -> Result<(), UpdateError> {
-        self.update_root_nodes(nodes, root_nodes, bridge, &false)
+        if self.config_changed {
+            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge)?;
+        }
+
+        let mut updated: HashSet<Id> = HashSet::new();
+        for node_id in root_nodes {
+            Self::update_rec(nodes, node_id, &mut updated, bridge)?;
+        }
+        Ok(())
     }
 
     pub fn all(
@@ -56,60 +63,120 @@ impl Update {
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
     ) -> Result<(), UpdateError> {
-        for node in nodes.values_mut() {
-            let value = match &mut node.node_type {
-                crate::node::NodeType::Control(control) => control.get_value(bridge),
-                crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
-                crate::node::NodeType::Temp(temp) => temp.get_value(bridge),
-                _ => continue,
-            };
+        if self.config_changed {
+            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge)?;
+        }
 
-            if let Ok(value) = value {
-                node.value = Some(value);
+        for id in root_nodes {
+            match nodes.get_mut(id) {
+                Some(node) => {
+                    if let NodeType::Control(control) = &node.node_type {
+                        if let Ok(value) = control.get_value(bridge) {
+                            node.value = Some(value);
+                        }
+                    }
+                }
+                None => {
+                    return Err(UpdateError::NodeNotFound);
+                }
             }
         }
 
-        self.update_root_nodes(nodes, root_nodes, bridge, &true)
+        let ids: Vec<Id>;
+        {
+            let mut key_values = nodes.iter().collect::<Vec<_>>();
+
+            key_values.sort_by(|(_, first), (_, other)| match first.node_type {
+                NodeType::Control(_) => match other.node_type {
+                    NodeType::Control(_) => Ordering::Equal,
+                    _ => Ordering::Greater,
+                },
+                NodeType::Fan(_) => {
+                    if other.node_type.is_sensor() {
+                        Ordering::Equal
+                    } else {
+                        Ordering::Less
+                    }
+                }
+                NodeType::Temp(_) => {
+                    if other.node_type.is_sensor() {
+                        Ordering::Equal
+                    } else {
+                        Ordering::Less
+                    }
+                }
+                NodeType::CustomTemp(_) => match other.node_type {
+                    NodeType::CustomTemp(_) => Ordering::Equal,
+                    NodeType::Fan(_) => Ordering::Greater,
+                    NodeType::Temp(_) => Ordering::Greater,
+                    _ => Ordering::Less,
+                },
+                NodeType::Graph(_) => todo!(),
+                NodeType::Flat(_) => Ordering::Equal,
+                NodeType::Linear(..) => match other.node_type {
+                    NodeType::Control(_) => Ordering::Less,
+                    NodeType::Fan(_) => Ordering::Greater,
+                    NodeType::Temp(_) => Ordering::Greater,
+                    NodeType::CustomTemp(_) => Ordering::Greater,
+                    _ => Ordering::Equal,
+                },
+                NodeType::Target(..) => match other.node_type {
+                    NodeType::Control(_) => Ordering::Less,
+                    NodeType::Fan(_) => Ordering::Greater,
+                    NodeType::Temp(_) => Ordering::Greater,
+                    NodeType::CustomTemp(_) => Ordering::Greater,
+                    _ => Ordering::Equal,
+                },
+            });
+
+            ids = key_values.iter().map(|e| *e.0).collect();
+        }
+
+        let mut updated = HashSet::new();
+        for id in ids {
+            Self::update_rec(nodes, &id, &mut updated, bridge)?;
+        }
+
+        Ok(())
     }
 
     pub fn clear_cache(&mut self) {}
 
-    fn update_root_nodes(
+    fn set_invalid_controls_to_auto(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
-        skip_sensors: &bool,
     ) -> Result<(), UpdateError> {
-        let mut updated: HashSet<Id> = HashSet::new();
-
-        if self.config_changed {
-            for node_id in root_nodes {
-                if Self::update_rec(nodes, node_id, &mut updated, bridge, skip_sensors).is_err() {
-                    let Some(node) = nodes.get_mut(node_id) else {
-                        return Err(UpdateError::NodeNotFound);
-                    };
-                    if let NodeType::Control(control) = &mut node.node_type {
-                        control.set_mode(false, bridge)?;
-                    }
-                }
-            }
-            self.config_changed = false;
-        } else {
-            for node_id in root_nodes {
-                let res = Self::update_rec(nodes, node_id, &mut updated, bridge, skip_sensors);
-
-                if let Err(e) = res {
-                    if e == UpdateError::InvalidControl {
-                        continue;
-                    } else {
-                        return Err(e);
-                    }
+        for node_id in root_nodes {
+            if !Self::validate_rec(nodes, node_id) {
+                let Some(node) = nodes.get_mut(node_id) else {
+                    return Err(UpdateError::NodeNotFound);
+                };
+                if let NodeType::Control(control) = &mut node.node_type {
+                    control.set_mode(false, bridge)?;
                 }
             }
         }
-
+        self.config_changed = false;
         Ok(())
+    }
+
+    fn validate_rec(nodes: &Nodes, node_id: &Id) -> bool {
+        let Some(node) = nodes.get(node_id) else {
+            return false;
+        };
+
+        if !node.node_type.is_valid() {
+            return false;
+        };
+
+        for (id, _) in &node.inputs {
+            if !Self::validate_rec(nodes, id) {
+                return false;
+            }
+        }
+        true
     }
 
     fn update_rec(
@@ -117,7 +184,6 @@ impl Update {
         node_id: &Id,
         updated: &mut HashSet<Id>,
         bridge: &mut HardwareBridgeT,
-        skip_sensors: &bool,
     ) -> Result<Option<Value>, UpdateError> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
@@ -134,9 +200,6 @@ impl Update {
             updated.insert(node.id);
 
             if !node.node_type.is_valid() {
-                if node.node_type.to_light() == NodeTypeLight::Control {
-                    return Err(UpdateError::InvalidControl);
-                }
                 node.value = None;
                 return Ok(None);
             }
@@ -145,14 +208,11 @@ impl Update {
 
         let mut input_values = Vec::new();
         for id in &input_ids {
-            match Self::update_rec(nodes, id, updated, bridge, skip_sensors)? {
+            match Self::update_rec(nodes, id, updated, bridge)? {
                 Some(value) => input_values.push(value),
                 None => {
                     return match nodes.get_mut(node_id) {
                         Some(node) => {
-                            if node.node_type.to_light() == NodeTypeLight::Control {
-                                return Err(UpdateError::InvalidControl);
-                            }
                             node.value = None;
                             Ok(None)
                         }
@@ -166,7 +226,7 @@ impl Update {
             return Err(UpdateError::NodeNotFound);
         };
 
-        node.update(&input_values, bridge, skip_sensors)?;
+        node.update(&input_values, bridge)?;
 
         Ok(node.value)
     }
@@ -177,12 +237,7 @@ impl Node {
         &mut self,
         input_values: &Vec<Value>,
         bridge: &mut HardwareBridgeT,
-        skip_sensors: &bool,
     ) -> Result<(), UpdateError> {
-        if *skip_sensors && self.node_type.is_sensor() {
-            return Ok(());
-        }
-
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => control.set_value(input_values[0], bridge),
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
