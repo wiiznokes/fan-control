@@ -76,15 +76,14 @@ impl DirManager {
 }
 
 impl DirManager {
-    pub fn save_config(
-        &mut self,
-        previous_name: &str,
-        new_name: &str,
-        config: &Config,
-    ) -> Result<(), String> {
+    pub fn save_config(&mut self, new_name: &str, config: &Config) -> Result<(), String> {
+        let Some(previous_name) = &self.settings.current_config else {
+            return Err("try to save config but current config is none".to_string());
+        };
+
         let previous_path = self.config_file_path(previous_name);
         if let Err(e) = fs::remove_file(previous_path) {
-            return Err(format!("{:?}", e));
+            warn!("{:?}", e);
         }
 
         let new_path = self.config_file_path(new_name);
@@ -106,7 +105,68 @@ impl DirManager {
         Ok(())
     }
 
-    pub fn remove() {}
+    pub fn change_config(
+        &mut self,
+        new_config_name: &Option<String>,
+    ) -> Result<Option<(String, Config)>, String> {
+        match new_config_name {
+            Some(new_config_name) => {
+                let new_config_path = self.config_file_path(new_config_name);
+                let config: Config = serde_helper::deserialize(&new_config_path)?;
+                self.settings.current_config = Some(new_config_name.to_owned());
+                Ok(Some((new_config_name.to_owned(), config)))
+            }
+            None => {
+                self.settings.current_config = None;
+                Ok(None)
+            }
+        }
+    }
+
+    /// return true if it's the current config whitch has been removed
+    pub fn remove_config(&mut self, config_name: &str) -> Result<bool, String> {
+        if self
+            .config_names
+            .remove_elem(|e| config_name == e)
+            .is_none()
+        {
+            warn!("can't find {} in config_names to remove it", config_name);
+        }
+
+        let config_path = self.config_file_path(config_name);
+        if let Err(e) = fs::remove_file(config_path) {
+            warn!("{:?}", e);
+        }
+
+        if let Some(current_config) = &self.settings.current_config {
+            if current_config == config_name {
+                self.settings.current_config.take();
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    pub fn create_config(
+        &mut self,
+        new_config_name: &str,
+        new_config: &Config,
+    ) -> Result<(), String> {
+        if self.config_names.contains(&new_config_name.to_owned()) {
+            return Err(format!(
+                "can't create config: the name {} is already taken",
+                new_config_name
+            ));
+        }
+
+        let new_path = self.config_file_path(new_config_name);
+        serde_helper::serialize(&new_path, new_config)?;
+
+        self.config_names.push(new_config_name.to_owned());
+        self.settings.current_config = Some(new_config_name.to_owned());
+
+        Ok(())
+    }
 }
 
 fn config_names(config_dir_path: &Path) -> Vec<String> {

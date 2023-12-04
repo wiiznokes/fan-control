@@ -5,7 +5,7 @@ use std::time::Duration;
 use data::{
     config::Config,
     id::Id,
-    node::{validate_name, NodeType, NodeTypeLight},
+    node::{validate_name, AppGraph, NodeType, NodeTypeLight},
     settings::AppTheme,
     utils::RemoveElem,
     AppState,
@@ -346,26 +346,57 @@ impl cosmic::Application for Ui {
                 self.app_state.update.config_changed();
             }
             AppMsg::SaveConfig => {
-                let Some(previous_name) =
-                    self.app_state.dir_manager.settings.current_config.clone()
-                else {
-                    error!("try to save config but current config is none");
-                    return Command::none();
-                };
-
                 let config = Config::from_app_graph(&self.app_state.app_graph);
 
-                if let Err(e) = self.app_state.dir_manager.save_config(
-                    &previous_name,
-                    &self.cache.current_config,
-                    &config,
-                ) {
+                if let Err(e) = self
+                    .app_state
+                    .dir_manager
+                    .save_config(&self.cache.current_config, &config)
+                {
                     error!("{:?}", e);
                 };
             }
-            AppMsg::ChangeConfig(_name) => {}
-            AppMsg::RemoveConfig(_) => {}
-            AppMsg::CreateConfig(_) => {}
+            AppMsg::ChangeConfig(name) => match self.app_state.dir_manager.change_config(&name) {
+                Ok(config) => match config {
+                    Some((config_name, config)) => {
+                        self.cache.current_config = config_name;
+                        self.app_state.app_graph =
+                            AppGraph::from_config(config, &self.app_state.hardware);
+                    }
+                    None => {
+                        self.cache.current_config.clear();
+                    }
+                },
+                Err(e) => {
+                    error!("{:?}", e);
+                }
+            },
+            AppMsg::RemoveConfig(name) => match self.app_state.dir_manager.remove_config(&name) {
+                Ok(is_current_config) => {
+                    if is_current_config {
+                        self.cache.current_config.clear();
+                    }
+                }
+                Err(e) => {
+                    error!("can't remove config: {:?}", e);
+                }
+            },
+            AppMsg::CreateConfig(create_config_msg) => match create_config_msg {
+                CreateConfigMsg::Init => {}
+                CreateConfigMsg::Cancel => {}
+                CreateConfigMsg::New(new_name) => {
+                    let config = Config::from_app_graph(&self.app_state.app_graph);
+
+                    match self.app_state.dir_manager.create_config(&new_name, &config) {
+                        Ok(_) => {
+                            self.cache.current_config = new_name;
+                        }
+                        Err(e) => {
+                            error!("can't create config: {:?}", e);
+                        }
+                    }
+                }
+            },
 
             AppMsg::RenameConfig(name) => {
                 self.cache.current_config = name;
