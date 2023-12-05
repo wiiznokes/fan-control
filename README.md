@@ -22,8 +22,9 @@
     - [ ] CI for packaging
 - [x] change iced to libcosmic (this will enable new widgets, like dropdown) (libcosmic must be ported to Windows before)
     - [x] theme (from Cosmic)
-    - [ ] impl UI for managing configs
-    - [ ] impl UI for removing/adding nodes
+    - [x] impl UI for managing configs
+    - [x] impl UI for removing nodes
+    - [ ] impl UI for adding nodes
     - [x] impl UI settings page
 - [ ] impl UI graph behavior
 - [x] icons
