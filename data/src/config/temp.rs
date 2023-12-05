@@ -4,12 +4,13 @@ use hardware::{Hardware, HardwareBridgeT, TempH, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Temp {
     pub name: String,
     #[serde(rename = "id")]

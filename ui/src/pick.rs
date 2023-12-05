@@ -2,10 +2,7 @@ use std::rc::Rc;
 
 use crate::{fl, ModifNodeMsg};
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
-use data::{
-    id::Id,
-    node::{Node, Nodes},
-};
+use data::{app_graph::Nodes, id::Id, node::Node};
 use hardware::{ControlH, FanH, TempH};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

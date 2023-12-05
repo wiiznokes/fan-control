@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use hardware::Hardware;
 
 use crate::{
+    app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
 };
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Flat {
     pub name: String,
@@ -25,5 +25,13 @@ impl ToNode for Flat {
             Node::new(id_generator, NodeType::Flat(self), Vec::new()),
             nodes,
         )
+    }
+}
+impl Default for Flat {
+    fn default() -> Self {
+        Self {
+            name: Default::default(),
+            value: 50u16,
+        }
     }
 }

@@ -3,8 +3,9 @@ use light_enum::Values;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 
@@ -26,7 +27,7 @@ impl ToString for CustomTempKind {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct CustomTemp {
     pub name: String,
     pub kind: CustomTempKind,

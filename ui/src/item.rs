@@ -9,8 +9,9 @@ use cosmic::{
     Element,
 };
 use data::{
+    app_graph::Nodes,
     config::custom_temp::CustomTempKind,
-    node::{Node, NodeType, NodeTypeLight, Nodes, ValueKind},
+    node::{Node, NodeType, NodeTypeLight, ValueKind},
 };
 use hardware::Hardware;
 
@@ -68,10 +69,7 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
         .into()
 }
 
-fn item_view<'a>(
-    node: &'a Node,
-    mut content: Vec<Element<'a, ModifNodeMsg>>,
-) -> Element<'a, AppMsg> {
+fn item_view<'a>(node: &'a Node, content: Vec<Element<'a, ModifNodeMsg>>) -> Element<'a, AppMsg> {
     let item_icon = match node.node_type {
         NodeType::Control(_) => my_icon("items/speed24"),
         NodeType::Fan(_) => my_icon("items/toys_fan24"),
@@ -83,33 +81,35 @@ fn item_view<'a>(
         NodeType::Target(_, _) => my_icon("items/my_location24"),
     };
 
-    let mut name = TextInput::new("name", &node.name_cached).on_input(ModifNodeMsg::Rename);
+    let mut name = TextInput::new("name", &node.name_cached)
+        .on_input(|s| AppMsg::ModifNode(node.id, ModifNodeMsg::Rename(s)));
 
     if node.is_error_name {
         name = name.error("this name is already beeing use");
     }
 
     // todo: dropdown menu
-    let delete_button = icon_button("select/delete_forever24").on_press(ModifNodeMsg::Delete);
+    let delete_button =
+        icon_button("select/delete_forever24").on_press(AppMsg::DeleteNode(node.id));
 
     let top = Row::new()
         .push(item_icon)
         .push(name)
         .push(delete_button)
-        .align_items(Alignment::Center)
+        .align_items(Alignment::Center);
+
+    let content: Element<ModifNodeMsg> = Column::with_children(content).spacing(5).into();
+
+    let column: Element<AppMsg> = Column::new()
+        .push(top)
+        .push(content.map(|m| AppMsg::ModifNode(node.id, m)))
         .into();
 
-    content.insert(0, top);
-
-    let column = Column::with_children(content).spacing(5);
-
-    let item: Element<ModifNodeMsg> = Container::new(column)
+    Container::new(column)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
         .style(style::Container::Card)
-        .into();
-
-    item.map(|msg| AppMsg::ModifNode(node.id, msg))
+        .into()
 }
 
 #[derive(Debug, Clone)]

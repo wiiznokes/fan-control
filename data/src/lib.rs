@@ -10,7 +10,9 @@ pub mod cli;
 pub mod config;
 pub mod directories;
 pub mod id;
+#[macro_use]
 pub mod localize;
+pub mod app_graph;
 mod name_sorter;
 pub mod node;
 pub mod serde_helper;
@@ -18,8 +20,8 @@ pub mod settings;
 pub mod update;
 pub mod utils;
 
+use crate::app_graph::AppGraph;
 use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
-use node::AppGraph;
 use update::Update;
 
 use crate::directories::DirManager;

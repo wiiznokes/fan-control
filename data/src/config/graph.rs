@@ -8,7 +8,7 @@ pub struct Coord {
     pub percent: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Graph {
     pub name: String,
     #[serde(rename = "coord")]

@@ -11,11 +11,12 @@ pub mod temp;
 mod serde_test;
 
 use crate::{
+    app_graph::AppGraph,
     config::{
         control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph,
         linear::Linear, target::Target, temp::Temp,
     },
-    node::{self, AppGraph},
+    node::{self},
 };
 
 use serde::{Deserialize, Serialize};

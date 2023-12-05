@@ -187,9 +187,7 @@ fn init_settings(config_dir_path: &Path) -> Settings {
 
 impl ConfigNames {
     fn new(config_dir_path: &Path) -> Self {
-        let mut config_names = ConfigNames {
-            data: Vec::new(),
-        };
+        let mut config_names = ConfigNames { data: Vec::new() };
 
         let Ok(files) = config_dir_path.read_dir() else {
             return config_names;

@@ -1,6 +1,7 @@
 use crate::{
+    app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 use hardware::{Hardware, Value};
@@ -73,6 +74,20 @@ impl ToNode for Target {
             Node::new(id_generator, NodeType::Target(self, cache), Vec::new()),
             nodes,
         )
+    }
+}
+
+impl Default for Target {
+    fn default() -> Self {
+        Self {
+            name: Default::default(),
+            idle_temp: 40,
+            idle_speed: 10,
+            load_temp: 70,
+            load_speed: 100,
+            input: Default::default(),
+            idle_has_been_reatch: false,
+        }
     }
 }
 

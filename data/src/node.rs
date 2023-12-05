@@ -1,28 +1,18 @@
-use std::collections::HashMap;
 use std::vec;
 
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
+use crate::app_graph::Nodes;
 use crate::config::linear::LinearCache;
 use crate::config::target::TargetCache;
-use crate::config::Config;
+
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
 
 use crate::id::{Id, IdGenerator};
-
-pub type Nodes = HashMap<Id, Node>;
-pub type RootNodes = Vec<Id>;
-
-#[derive(Debug)]
-pub struct AppGraph {
-    pub nodes: Nodes,
-    pub id_generator: IdGenerator,
-    pub root_nodes: RootNodes,
-}
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -120,17 +110,11 @@ pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
 }
 
 pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
-    if name.is_empty() {
+    if name.trim().is_empty() {
         return false;
     };
 
-    for node in nodes.values() {
-        if node.name() == name && &node.id != id {
-            return false;
-        }
-    }
-
-    true
+    !nodes.values().any(|n| n.name() == name && &n.id != id)
 }
 
 pub trait ToNode {
@@ -139,110 +123,6 @@ pub trait ToNode {
 
 pub trait IsValid {
     fn is_valid(&self) -> bool;
-}
-
-impl AppGraph {
-    fn new() -> Self {
-        Self {
-            nodes: HashMap::new(),
-            id_generator: IdGenerator::new(),
-            root_nodes: Vec::new(),
-        }
-    }
-
-    pub fn default(hardware: &Hardware) -> Self {
-        let mut app_graph = AppGraph::new();
-
-        for control_h in &hardware.controls {
-            let control = Control::new(
-                control_h.name.clone(),
-                Some(control_h.hardware_id.clone()),
-                None,
-                true,
-                Some(control_h.clone()),
-            );
-
-            let node = Node::new(
-                &mut app_graph.id_generator,
-                NodeType::Control(control),
-                Vec::new(),
-            );
-            app_graph.root_nodes.push(node.id);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for fan_h in &hardware.fans {
-            let fan = Fan {
-                name: fan_h.name.clone(),
-                hardware_id: Some(fan_h.hardware_id.clone()),
-                fan_h: Some(fan_h.clone()),
-            };
-
-            let node = Node::new(&mut app_graph.id_generator, NodeType::Fan(fan), Vec::new());
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for temp_h in &hardware.temps {
-            let temp = Temp {
-                name: temp_h.name.clone(),
-                hardware_id: Some(temp_h.hardware_id.clone()),
-                temp_h: Some(temp_h.clone()),
-            };
-
-            let node = Node::new(
-                &mut app_graph.id_generator,
-                NodeType::Temp(temp),
-                Vec::new(),
-            );
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        app_graph
-    }
-
-    pub fn from_config(config: Config, hardware: &Hardware) -> Self {
-        let mut app_graph = AppGraph::new();
-
-        // order: fan -> temp -> custom_temp -> behavior -> control
-
-        for fan in config.fans {
-            let node = fan.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for temp in config.temps {
-            let node = temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for custom_temp in config.custom_temps {
-            let node = custom_temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for flat in config.flats {
-            let node = flat.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for linear in config.linears {
-            let node = linear.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for target in config.targets {
-            let node = target.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        for control in config.controls {
-            let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.root_nodes.push(node.id);
-            app_graph.nodes.insert(node.id, node);
-        }
-
-        app_graph
-    }
 }
 
 impl Node {

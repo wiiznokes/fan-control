@@ -3,10 +3,11 @@
 use std::time::Duration;
 
 use data::{
+    app_graph::AppGraph,
     config::Config,
     directories::filter_none,
     id::Id,
-    node::{validate_name, AppGraph, NodeType, NodeTypeLight},
+    node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,
     utils::RemoveElem,
     AppState,
@@ -33,6 +34,7 @@ extern crate log;
 
 mod input_line;
 mod item;
+#[macro_use]
 pub mod localize;
 mod pick;
 //mod theme;
@@ -65,6 +67,7 @@ pub enum AppMsg {
     CreateConfig(String),
     ModifNode(Id, ModifNodeMsg),
     NewNode(NodeTypeLight),
+    DeleteNode(Id),
     Settings(SettingsMsg),
 }
 
@@ -87,8 +90,6 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
-
-    Delete,
 }
 
 impl cosmic::Application for Ui {
@@ -336,10 +337,13 @@ impl cosmic::Application for Ui {
                             }
                         }
                     }
-                    ModifNodeMsg::Delete => {}
                 }
 
-                self.app_state.update.config_changed();
+                self.app_state.update.set_invalid_controls_to_auto(
+                    &mut self.app_state.app_graph.nodes,
+                    &self.app_state.app_graph.root_nodes,
+                    &mut self.app_state.bridge,
+                );
             }
             AppMsg::SaveConfig => {
                 let config = Config::from_app_graph(&self.app_state.app_graph);
@@ -348,21 +352,29 @@ impl cosmic::Application for Ui {
                     error!("{:?}", e);
                 };
             }
-            AppMsg::ChangeConfig(selected) => match dir_manager.change_config(selected) {
-                Ok(config) => match config {
-                    Some((config_name, config)) => {
-                        self.cache.current_config = config_name;
-                        self.app_state.app_graph =
-                            AppGraph::from_config(config, &self.app_state.hardware);
+            AppMsg::ChangeConfig(selected) => {
+                self.app_state.update.set_all_control_to_auto(
+                    &mut self.app_state.app_graph.nodes,
+                    &self.app_state.app_graph.root_nodes,
+                    &mut self.app_state.bridge,
+                );
+
+                match dir_manager.change_config(selected) {
+                    Ok(config) => match config {
+                        Some((config_name, config)) => {
+                            self.cache.current_config = config_name;
+                            self.app_state.app_graph =
+                                AppGraph::from_config(config, &self.app_state.hardware);
+                        }
+                        None => {
+                            self.cache.current_config.clear();
+                        }
+                    },
+                    Err(e) => {
+                        error!("{:?}", e);
                     }
-                    None => {
-                        self.cache.current_config.clear();
-                    }
-                },
-                Err(e) => {
-                    error!("{:?}", e);
                 }
-            },
+            }
             AppMsg::RemoveConfig(index) => match dir_manager.remove_config(index) {
                 Ok(is_current_config) => {
                     if is_current_config {
@@ -401,7 +413,10 @@ impl cosmic::Application for Ui {
                     // todo: save on fs
                 }
             },
-            AppMsg::NewNode(_) => {}
+            AppMsg::NewNode(node_type_light) => {
+                self.app_state.app_graph.add_new_node(node_type_light);
+            }
+            AppMsg::DeleteNode(_id) => {}
         }
 
         Command::none()

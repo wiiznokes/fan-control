@@ -1,6 +1,7 @@
 use crate::{
+    app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
+    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 use hardware::{Hardware, Value};
@@ -84,6 +85,19 @@ impl ToNode for Linear {
             Node::new(id_generator, NodeType::Linear(self, cache), Vec::new()),
             nodes,
         )
+    }
+}
+
+impl Default for Linear {
+    fn default() -> Self {
+        Self {
+            name: Default::default(),
+            min_temp: 10,
+            min_speed: 10,
+            max_temp: 70,
+            max_speed: 100,
+            input: Default::default(),
+        }
     }
 }
 
