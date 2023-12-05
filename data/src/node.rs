@@ -45,6 +45,77 @@ pub enum NbInput {
     Infinity,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct Sanitize {
+    item: Vec<String>,
+    node: Vec<(Id, String)>,
+}
+
+impl Sanitize {
+    fn add(&mut self, id: Id, name: &String) {
+        self.item.push(name.clone());
+        self.node.push((id, name.clone()));
+    }
+}
+
+pub enum ToRemove {
+    All,
+    Specific(Vec<String>),
+}
+
+pub fn sanitize_inputs2(node: &Node, nodes: &Nodes) -> Sanitize {
+    let mut sanitize = Sanitize::default();
+
+    match node.node_type.max_input() {
+        NbInput::Zero => {
+            return sanitize;
+        }
+        NbInput::One => {
+            if node.inputs.len() > 1 || node.node_type.get_inputs().len() > 1 {
+                eprintln!(
+                    "{:?}: number of dep allowed == {:?}",
+                    node.node_type.to_light(),
+                    node.node_type.max_input()
+                );
+                return sanitize;
+            }
+        }
+        NbInput::Infinity => {}
+    };
+
+    for name in node.node_type.get_inputs() {
+        match nodes.values().find(|n| n.name() == &name) {
+            Some(n) => {
+                match node
+                    .node_type
+                    .allowed_dep()
+                    .contains(&n.node_type.to_light())
+                {
+                    true => {
+                        sanitize.add(n.id, &name);
+                    }
+                    false => {
+                        warn!(
+                            "incompatible node type: {:?} on {}",
+                            n.node_type.to_light(),
+                            name
+                        );
+                    }
+                }
+            }
+            None => {
+                warn!("can't find node {}", name);
+            }
+        }
+    }
+    sanitize
+}
+
+impl Node {
+    
+    fn set_inputs(mut)
+}
+
 pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
     node.inputs.clear();
     match node.node_type.max_input() {

@@ -173,4 +173,8 @@ impl AppGraph {
         let node = Node::new(&mut self.id_generator, node_type, Vec::new());
         self.nodes.insert(node.id, node);
     }
+
+    pub fn sanitize_inputs(&mut self) {
+        
+    }
 }
