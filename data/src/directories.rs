@@ -188,7 +188,7 @@ fn init_settings(config_dir_path: &Path) -> Settings {
 impl ConfigNames {
     fn new(config_dir_path: &Path) -> Self {
         let mut config_names = ConfigNames {
-            data: vec![fl!("none")],
+            data: Vec::new(),
         };
 
         let Ok(files) = config_dir_path.read_dir() else {
@@ -255,15 +255,20 @@ impl ConfigNames {
     }
 
     pub fn names(&self, without: &Option<String>) -> Vec<String> {
-        let mut names = self.data.clone();
-
-        let without_index = match without {
-            Some(name) => self.data.iter().position(|n| n == name).unwrap(),
-            None => 0,
+        let Some(without) = without else {
+            return self.data.clone();
         };
 
-        names.remove(without_index);
-        names
+        let names = self
+            .data
+            .iter()
+            .filter(|n| n != &without)
+            .cloned()
+            .collect::<Vec<_>>();
+
+        let mut v = vec![fl!("none")];
+        v.extend(names);
+        v
     }
 
     pub fn index_of(&self, name: &str) -> Option<usize> {
@@ -285,7 +290,7 @@ impl ConfigNames {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.data.len() == 1
+        self.data.is_empty()
     }
 }
 

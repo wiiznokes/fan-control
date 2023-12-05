@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 pub fn add_sorted(sorted_vec: &mut Vec<String>, name: String) -> usize {
     let insert_position = match sorted_vec.binary_search_by(|e| compare_names(&name, e)) {
-        Ok(position) => position, // Element already exists at this position
+        Ok(position) => position,  // Element already exists at this position
         Err(position) => position, // Element doesn't exist, insert at this position
     };
     sorted_vec.insert(insert_position, name);
@@ -10,12 +10,6 @@ pub fn add_sorted(sorted_vec: &mut Vec<String>, name: String) -> usize {
 }
 
 pub fn compare_names(name1: &str, name2: &str) -> Ordering {
-    if name1 == "None" {
-        return Ordering::Less;
-    }
-    if name2 == "None" {
-        return Ordering::Greater;
-    }
     parse_to_lexemes(name1).cmp(&parse_to_lexemes(name2))
 }
 
