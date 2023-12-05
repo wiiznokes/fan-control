@@ -16,9 +16,10 @@ use cosmic::{
     executor,
     iced::{self, time},
     iced_core::Length,
+    iced_widget::PickList,
     theme,
     widget::{self, Column, Dropdown, Space, Text, TextInput},
-    ApplicationExt, Element, iced_widget::PickList,
+    ApplicationExt, Element,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -441,11 +442,9 @@ impl cosmic::Application for Ui {
             elems.push(save_button);
         }
 
-        let selected_index = dir_manager.config_names.index();
-
         let mut name = TextInput::new("name", &self.cache.current_config)
             .on_input(AppMsg::RenameConfig)
-            .width(Length::Fixed(200.0));
+            .width(Length::Fixed(150.0));
 
         if dir_manager
             .config_names
@@ -456,12 +455,23 @@ impl cosmic::Application for Ui {
 
         elems.push(name.into());
 
-        let selection = PickList::new(
-            dir_manager.config_names.names(),
-            None,
-            |index| AppMsg::ChangeConfig(0),
+        let selected = match dir_manager.config_names.get_current() {
+            Some(name) => name.clone(),
+            None => fl!("none"),
+        };
+        let selection = PickList::new(dir_manager.config_names.names(), Some(selected), |name| {
+            AppMsg::ChangeConfig(dir_manager.config_names.index_of(&name).unwrap())
+        })
+        .into();
+
+        /*
+        let selection = Dropdown::new(
+            &dir_manager.config_names.names(),
+            Some(selected_index),
+            |index| AppMsg::ChangeConfig(index),
         )
         .into();
+         */
 
         elems.push(selection);
 

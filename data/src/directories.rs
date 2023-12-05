@@ -281,22 +281,13 @@ impl ConfigNames {
         self.get(self.current_index)
     }
 
-    pub fn names(&self) -> &[String] {
-        
-
-        let (_left, right) = self.data.split_at(self.current_index);
-        let (_, right) = right.split_at(1); // Exclude the element at index n
-
-        
-        right
-
-        /*
-        self.data.iter().enumerate().filter(|(i, _)|{
-            i != &self.current_index
-        }).map(|(_,e)|{
-            e
-        }).collect()
-         */
+    pub fn names(&self) -> Vec<String> {
+        self.data
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| i != &self.current_index)
+            .map(|(_, e)| e.clone())
+            .collect::<Vec<_>>()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -311,8 +302,22 @@ impl ConfigNames {
         self.current_index
     }
 
-    pub fn is_valid(&self, _name: &str) -> bool {
-        todo!()
+    pub fn is_valid(&self, name: &str) -> bool {
+        let nb = self
+            .data
+            .iter()
+            .filter(|n| n == &name)
+            .collect::<Vec<_>>()
+            .len();
+
+        if nb == 1 {
+            match self.get_current() {
+                Some(n) => n == name,
+                None => false,
+            }
+        } else {
+            false
+        }
     }
 }
 
