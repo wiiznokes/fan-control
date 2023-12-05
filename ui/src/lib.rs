@@ -5,7 +5,7 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    directories::filter_none,
+    dir_manager::filter_none,
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,

@@ -8,7 +8,7 @@ extern crate log;
 
 pub mod cli;
 pub mod config;
-pub mod directories;
+pub mod dir_manager;
 pub mod id;
 #[macro_use]
 pub mod localize;
@@ -24,7 +24,7 @@ use crate::app_graph::AppGraph;
 use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
 use update::Update;
 
-use crate::directories::DirManager;
+use crate::dir_manager::DirManager;
 
 pub type BoxedHardwareBridge = Box<dyn HardwareBridge>;
 

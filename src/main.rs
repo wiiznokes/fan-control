@@ -1,6 +1,6 @@
 use clap::Parser;
 use data::{
-    app_graph::AppGraph, cli::Args, config::Config, directories::DirManager, serde_helper,
+    app_graph::AppGraph, cli::Args, config::Config, dir_manager::DirManager, serde_helper,
     update::Update, AppState,
 };
 use hardware::{self, HardwareBridge};
