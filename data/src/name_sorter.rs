@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 pub fn add_sorted(sorted_vec: &mut Vec<String>, name: String) -> usize {
     let insert_position = match sorted_vec.binary_search_by(|e| compare_names(&name, e)) {
-        Ok(_position) => panic!(), // Element already exists at this position
+        Ok(position) => position, // Element already exists at this position
         Err(position) => position, // Element doesn't exist, insert at this position
     };
     sorted_vec.insert(insert_position, name);

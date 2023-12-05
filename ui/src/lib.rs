@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use data::{
     config::Config,
+    directories::filter_none,
     id::Id,
     node::{validate_name, AppGraph, NodeType, NodeTypeLight},
     settings::AppTheme,
@@ -59,8 +60,8 @@ pub enum AppMsg {
     Tick,
     SaveConfig,
     RenameConfig(String),
-    ChangeConfig(usize),
-    RemoveConfig(usize),
+    ChangeConfig(Option<String>),
+    RemoveConfig(String),
     CreateConfig(String),
     ModifNode(Id, ModifNodeMsg),
     NewNode(NodeTypeLight),
@@ -347,7 +348,7 @@ impl cosmic::Application for Ui {
                     error!("{:?}", e);
                 };
             }
-            AppMsg::ChangeConfig(index) => match dir_manager.change_config(index) {
+            AppMsg::ChangeConfig(selected) => match dir_manager.change_config(selected) {
                 Ok(config) => match config {
                     Some((config_name, config)) => {
                         self.cache.current_config = config_name;
@@ -442,44 +443,42 @@ impl cosmic::Application for Ui {
             elems.push(save_button);
         }
 
-        let mut name = TextInput::new("name", &self.cache.current_config)
+        let mut name = TextInput::new(&fl!("config_name"), &self.cache.current_config)
             .on_input(AppMsg::RenameConfig)
             .width(Length::Fixed(150.0));
 
         if dir_manager
             .config_names
-            .is_valid(&self.cache.current_config)
+            .is_valid_name(&self.cache.current_config)
         {
             name = name.error("this name is already beeing use");
         }
 
         elems.push(name.into());
 
-        let selected = match dir_manager.config_names.get_current() {
-            Some(name) => name.clone(),
-            None => fl!("none"),
-        };
-        let selection = PickList::new(dir_manager.config_names.names(), Some(selected), |name| {
-            AppMsg::ChangeConfig(dir_manager.config_names.index_of(&name).unwrap())
-        })
-        .into();
+        if !dir_manager.config_names.is_empty() {
+            let selected = match &dir_manager.settings.current_config {
+                Some(name) => name.clone(),
+                None => fl!("none"),
+            };
+            let selection = PickList::new(
+                dir_manager
+                    .config_names
+                    .names(&dir_manager.settings.current_config),
+                Some(selected),
+                |name| AppMsg::ChangeConfig(filter_none(name)),
+            )
+            .width(Length::Fixed(100.0))
+            .into();
 
-        /*
-        let selection = Dropdown::new(
-            &dir_manager.config_names.names(),
-            Some(selected_index),
-            |index| AppMsg::ChangeConfig(index),
-        )
-        .into();
-         */
-
-        elems.push(selection);
+            elems.push(selection);
+        }
 
         let mut new_button = icon_button("sign/plus/add40");
 
-        if !dir_manager
+        if dir_manager
             .config_names
-            .contains(&self.cache.current_config)
+            .is_valid_create(&self.cache.current_config)
         {
             new_button =
                 new_button.on_press(AppMsg::CreateConfig(self.cache.current_config.to_owned()));

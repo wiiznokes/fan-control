@@ -52,7 +52,7 @@ impl Settings {
     pub fn current_config_text(&self) -> &str {
         match &self.current_config {
             Some(current_config) => current_config,
-            None => "None",
+            None => "",
         }
     }
 }

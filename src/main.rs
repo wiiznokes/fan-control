@@ -16,6 +16,7 @@ mod integrated_test;
 fn main() {
     env_logger::init();
     ui::localize::localize();
+    data::localize::localize();
 
     let args = Args::parse();
 

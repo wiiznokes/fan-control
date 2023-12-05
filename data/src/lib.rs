@@ -10,6 +10,7 @@ pub mod cli;
 pub mod config;
 pub mod directories;
 pub mod id;
+pub mod localize;
 mod name_sorter;
 pub mod node;
 pub mod serde_helper;
