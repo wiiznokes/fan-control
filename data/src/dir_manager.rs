@@ -23,7 +23,7 @@ static HARDWARE_FILENAME: &str = "hardware.toml";
 pub struct DirManager {
     pub config_dir_path: PathBuf,
     pub config_names: ConfigNames,
-    pub settings: Settings,
+    settings: Settings,
 }
 
 #[derive(Debug)]
@@ -87,11 +87,23 @@ impl DirManager {
     pub fn config_file_path(&self, name: &str) -> PathBuf {
         self.config_dir_path.join(add_toml_ext(name).into_owned())
     }
+
+    pub fn settings(&self) -> &Settings {
+        &self.settings
+    }
+
+    pub fn update_settings(&mut self, mut f: impl FnMut(&mut Settings)) {
+        f(&mut self.settings);
+
+        if let Err(e) = serde_helper::serialize(&self.settings_file_path(), &self.settings()) {
+            error!("{e}");
+        }
+    }
 }
 
 impl DirManager {
     pub fn save_config(&mut self, new_name: &str, config: &Config) -> Result<(), String> {
-        let Some(previous_name) = &self.settings.current_config else {
+        let Some(previous_name) = &self.settings().current_config else {
             return Err("can't save config: no name".to_string());
         };
 
@@ -104,10 +116,12 @@ impl DirManager {
 
         serde_helper::serialize(&new_path, config)?;
 
-        self.config_names.remove(previous_name);
+        self.config_names.remove(&previous_name.clone());
         self.config_names.add(new_name);
 
-        self.settings.current_config = Some(new_name.to_owned());
+        self.update_settings(|settings| {
+            settings.current_config = Some(new_name.to_owned());
+        });
 
         Ok(())
     }
@@ -120,11 +134,15 @@ impl DirManager {
             Some(new_config_name) => {
                 let new_config_path = self.config_file_path(&new_config_name);
                 let config = serde_helper::deserialize::<Config>(&new_config_path)?;
-                self.settings.current_config = Some(new_config_name.to_owned());
+                self.update_settings(|settings| {
+                    settings.current_config = Some(new_config_name.to_owned());
+                });
                 Ok(Some((new_config_name, config)))
             }
             None => {
-                self.settings.current_config = None;
+                self.update_settings(|settings| {
+                    settings.current_config = None;
+                });
                 Ok(None)
             }
         }
@@ -139,9 +157,11 @@ impl DirManager {
             warn!("{:?}", e);
         }
 
-        if let Some(current_config) = &self.settings.current_config {
+        if let Some(current_config) = &self.settings().current_config {
             if current_config == &config_name {
-                self.settings.current_config.take();
+                self.update_settings(|settings| {
+                    settings.current_config.take();
+                });
                 return Ok(true);
             }
         }
@@ -157,7 +177,9 @@ impl DirManager {
         serde_helper::serialize(&new_path, new_config)?;
 
         self.config_names.add(new_config_name);
-        self.settings.current_config = Some(new_config_name.to_owned());
+        self.update_settings(|settings| {
+            settings.current_config = Some(new_config_name.to_owned());
+        });
 
         Ok(())
     }

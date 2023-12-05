@@ -109,7 +109,11 @@ impl cosmic::Application for Ui {
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let app_cache = AppCache {
-            current_config: flags.dir_manager.settings.current_config_text().to_owned(),
+            current_config: flags
+                .dir_manager
+                .settings()
+                .current_config_text()
+                .to_owned(),
             theme_list: AppTheme::iter().map(|e| e.to_string()).collect(),
         };
 
@@ -406,10 +410,10 @@ impl cosmic::Application for Ui {
                     self.set_context_title("Settings".into());
                 }
                 SettingsMsg::ChangeTheme(theme) => {
-                    dir_manager.settings.theme = theme;
-                    return cosmic::app::command::set_theme(to_cosmic_theme(
-                        &dir_manager.settings.theme,
-                    ));
+                    dir_manager.update_settings(|settings| {
+                        settings.theme = theme;
+                    });
+                    return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
                     // todo: save on fs
                 }
             },
@@ -455,7 +459,7 @@ impl cosmic::Application for Ui {
     }
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
-        let settings = &self.app_state.dir_manager.settings;
+        let settings = self.app_state.dir_manager.settings();
         let dir_manager = &self.app_state.dir_manager;
 
         let mut elems = vec![];
@@ -482,14 +486,12 @@ impl cosmic::Application for Ui {
         elems.push(name.into());
 
         if !dir_manager.config_names.is_empty() {
-            let selected = match &dir_manager.settings.current_config {
+            let selected = match &settings.current_config {
                 Some(name) => name.clone(),
                 None => fl!("none"),
             };
             let selection = PickList::new(
-                dir_manager
-                    .config_names
-                    .names(&dir_manager.settings.current_config),
+                dir_manager.config_names.names(&settings.current_config),
                 Some(selected),
                 |name| AppMsg::ChangeConfig(filter_none(name)),
             )
@@ -530,7 +532,7 @@ impl cosmic::Application for Ui {
             return None;
         }
         let app_theme_selected = AppTheme::iter()
-            .position(|e| e == self.app_state.dir_manager.settings.theme)
+            .position(|e| e == self.app_state.dir_manager.settings().theme)
             .unwrap();
 
         let settings_context =
@@ -553,7 +555,7 @@ impl cosmic::Application for Ui {
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         time::every(Duration::from_millis(
-            self.app_state.dir_manager.settings.update_delay,
+            self.app_state.dir_manager.settings().update_delay,
         ))
         .map(|_| AppMsg::Tick)
 

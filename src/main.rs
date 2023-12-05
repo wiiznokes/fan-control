@@ -37,7 +37,7 @@ fn main() {
         warn!("{}", e);
     }
 
-    let config = match &dir_manager.settings.current_config {
+    let config = match &dir_manager.settings().current_config {
         Some(config_name) => {
             match serde_helper::deserialize::<Config>(&dir_manager.config_file_path(config_name)) {
                 Ok(config) => Some(config),
