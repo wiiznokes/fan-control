@@ -1,14 +1,12 @@
 # Build
 
-This will depend on the host platform
-
-### Build Linux on Linux
+### Linux
 ```
 sudo apt install make bison flex clang -y
 make libsensors
 cargo run --release
 ```
-### Build Windows on Windows
+### Windows
 1. install [dotnet 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 2. run these commands
     ```

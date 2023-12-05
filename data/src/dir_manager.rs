@@ -5,6 +5,7 @@ use std::{
 };
 
 use directories::ProjectDirs;
+use hardware::Hardware;
 
 use crate::{
     cli::Args, config::Config, fl, name_sorter, serde_helper, settings::Settings, utils::RemoveElem,
@@ -76,15 +77,15 @@ impl DirManager {
         }
     }
 
-    pub fn settings_file_path(&self) -> PathBuf {
+    fn settings_file_path(&self) -> PathBuf {
         self.config_dir_path.join(SETTINGS_FILENAME)
     }
 
-    pub fn hardware_file_path(&self) -> PathBuf {
+    fn hardware_file_path(&self) -> PathBuf {
         self.config_dir_path.join(HARDWARE_FILENAME)
     }
 
-    pub fn config_file_path(&self, name: &str) -> PathBuf {
+    fn config_file_path(&self, name: &str) -> PathBuf {
         self.config_dir_path.join(add_toml_ext(name).into_owned())
     }
 
@@ -97,6 +98,27 @@ impl DirManager {
 
         if let Err(e) = serde_helper::serialize(&self.settings_file_path(), &self.settings()) {
             error!("{e}");
+        }
+    }
+
+    pub fn get_config(&self) -> Option<Config> {
+        match &self.settings().current_config {
+            Some(config_name) => {
+                match serde_helper::deserialize::<Config>(&self.config_file_path(config_name)) {
+                    Ok(config) => Some(config),
+                    Err(e) => {
+                        warn!("{:?}", e);
+                        None
+                    }
+                }
+            }
+            None => None,
+        }
+    }
+
+    pub fn serialize_hardware(&self, hardware: &Hardware) {
+        if let Err(e) = serde_helper::serialize(&self.hardware_file_path(), hardware) {
+            warn!("{}", e);
         }
     }
 }
