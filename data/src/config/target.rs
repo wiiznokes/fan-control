@@ -1,7 +1,7 @@
 use crate::{
     app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
+    node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 use hardware::{Hardware, Value};
@@ -70,10 +70,8 @@ impl IsValid for Target {
 impl ToNode for Target {
     fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
         let cache = self.cache();
-        sanitize_inputs(
-            Node::new(id_generator, NodeType::Target(self, cache), Vec::new()),
-            nodes,
-        )
+
+        Node::new(id_generator, NodeType::Target(self, cache), nodes)
     }
 }
 

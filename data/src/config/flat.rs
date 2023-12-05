@@ -5,7 +5,7 @@ use hardware::Hardware;
 use crate::{
     app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
+    node::{IsValid, Node, NodeType, ToNode},
 };
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Flat {
@@ -21,10 +21,7 @@ impl IsValid for Flat {
 
 impl ToNode for Flat {
     fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
-        sanitize_inputs(
-            Node::new(id_generator, NodeType::Flat(self), Vec::new()),
-            nodes,
-        )
+        Node::new(id_generator, NodeType::Flat(self), nodes)
     }
 }
 impl Default for Flat {

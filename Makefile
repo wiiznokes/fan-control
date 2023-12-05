@@ -1,6 +1,6 @@
 
 fake:
-	cargo run --features fake_hardware -- -p ./.config
+	cargo run --features fake_hardware -- -p ./.test
 
 ## Build Libs
 	

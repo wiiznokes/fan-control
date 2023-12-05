@@ -120,7 +120,7 @@ pub fn pick_hardware<'a, P: 'a>(
 where
     Pick<String>: From<&'a Rc<P>>,
 {
-    let hardware_id = node.hardware_id().unwrap();
+    let hardware_id = node.hardware_id();
 
     let mut hardware_options = hardwares
         .iter()

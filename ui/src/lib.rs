@@ -416,7 +416,17 @@ impl cosmic::Application for Ui {
             AppMsg::NewNode(node_type_light) => {
                 self.app_state.app_graph.add_new_node(node_type_light);
             }
-            AppMsg::DeleteNode(_id) => {}
+            AppMsg::DeleteNode(id) => {
+                if let Some(mut node) = self.app_state.app_graph.remove_node(id) {
+                    if let NodeType::Control(control) = &mut node.node_type {
+                        if let Err(e) = control.set_mode(false, &mut self.app_state.bridge) {
+                            error!("{:?}", e);
+                        }
+                    }
+                }
+
+                self.app_state.app_graph.sanitize_inputs()
+            }
         }
 
         Command::none()

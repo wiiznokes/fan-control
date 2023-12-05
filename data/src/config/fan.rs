@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
+    node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 use hardware::{FanH, Hardware, HardwareBridgeT, Value};
@@ -66,9 +66,6 @@ impl ToNode for Fan {
             }
         }
 
-        sanitize_inputs(
-            Node::new(id_generator, NodeType::Fan(self), Vec::new()),
-            nodes,
-        )
+        Node::new(id_generator, NodeType::Fan(self), nodes)
     }
 }

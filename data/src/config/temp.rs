@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, ToNode},
+    node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 
@@ -66,9 +66,7 @@ impl ToNode for Temp {
                 }
             }
         }
-        sanitize_inputs(
-            Node::new(id_generator, NodeType::Temp(self), Vec::new()),
-            nodes,
-        )
+
+        Node::new(id_generator, NodeType::Temp(self), nodes)
     }
 }

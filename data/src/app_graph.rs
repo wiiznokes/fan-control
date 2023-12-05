@@ -8,7 +8,8 @@ use crate::config::Config;
 use crate::config::{control::Control, fan::Fan, temp::Temp};
 
 use crate::id::{Id, IdGenerator};
-use crate::node::{Node, NodeType, NodeTypeLight, ToNode};
+use crate::node::{sanitize_inputs, Node, NodeType, NodeTypeLight, ToNode};
+use crate::utils::RemoveElem;
 
 pub type Nodes = HashMap<Id, Node>;
 pub type RootNodes = Vec<Id>;
@@ -29,6 +30,23 @@ impl AppGraph {
         }
     }
 
+    pub fn insert_node(&mut self, node: Node) {
+        if node.is_root() {
+            self.root_nodes.push(node.id);
+        }
+        self.nodes.insert(node.id, node);
+    }
+
+    pub fn remove_node(&mut self, id: Id) -> Option<Node> {
+        let node = self.nodes.remove(&id);
+        if let Some(node) = &node {
+            if node.is_root() {
+                self.root_nodes.remove_elem(|e| e == &id);
+            }
+        }
+        node
+    }
+
     pub fn default(hardware: &Hardware) -> Self {
         let mut app_graph = AppGraph::new();
 
@@ -44,10 +62,9 @@ impl AppGraph {
             let node = Node::new(
                 &mut app_graph.id_generator,
                 NodeType::Control(control),
-                Vec::new(),
+                &app_graph.nodes,
             );
-            app_graph.root_nodes.push(node.id);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for fan_h in &hardware.fans {
@@ -57,8 +74,12 @@ impl AppGraph {
                 fan_h: Some(fan_h.clone()),
             };
 
-            let node = Node::new(&mut app_graph.id_generator, NodeType::Fan(fan), Vec::new());
-            app_graph.nodes.insert(node.id, node);
+            let node = Node::new(
+                &mut app_graph.id_generator,
+                NodeType::Fan(fan),
+                &app_graph.nodes,
+            );
+            app_graph.insert_node(node);
         }
 
         for temp_h in &hardware.temps {
@@ -71,9 +92,9 @@ impl AppGraph {
             let node = Node::new(
                 &mut app_graph.id_generator,
                 NodeType::Temp(temp),
-                Vec::new(),
+                &app_graph.nodes,
             );
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         app_graph
@@ -86,38 +107,37 @@ impl AppGraph {
 
         for fan in config.fans {
             let node = fan.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for temp in config.temps {
             let node = temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for custom_temp in config.custom_temps {
             let node = custom_temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for flat in config.flats {
             let node = flat.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for linear in config.linears {
             let node = linear.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for target in config.targets {
             let node = target.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         for control in config.controls {
             let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
-            app_graph.root_nodes.push(node.id);
-            app_graph.nodes.insert(node.id, node);
+            app_graph.insert_node(node);
         }
 
         app_graph
@@ -170,11 +190,19 @@ impl AppGraph {
         let new_name = self.generate_default_name(node_type_light);
         node_type.set_name(&new_name);
 
-        let node = Node::new(&mut self.id_generator, node_type, Vec::new());
+        let node = Node::new(&mut self.id_generator, node_type, &self.nodes);
         self.nodes.insert(node.id, node);
     }
 
     pub fn sanitize_inputs(&mut self) {
-        
+        let mut sanitizes = Vec::new();
+        for node in self.nodes.values() {
+            sanitizes.push(sanitize_inputs(node, &self.nodes));
+        }
+
+        for inputs in sanitizes {
+            let node = self.nodes.get_mut(&inputs.id).unwrap();
+            node.set_inputs(inputs);
+        }
     }
 }

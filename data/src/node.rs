@@ -45,16 +45,25 @@ pub enum NbInput {
     Infinity,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Sanitize {
+    pub id: Id,
     item: Vec<String>,
     node: Vec<(Id, String)>,
 }
 
 impl Sanitize {
-    fn add(&mut self, id: Id, name: &String) {
-        self.item.push(name.clone());
-        self.node.push((id, name.clone()));
+    fn new(id: Id) -> Self {
+        Sanitize {
+            id,
+            item: Default::default(),
+            node: Default::default(),
+        }
+    }
+
+    fn add(&mut self, id: Id, name: &str) {
+        self.item.push(name.to_owned());
+        self.node.push((id, name.to_owned()));
     }
 }
 
@@ -63,8 +72,8 @@ pub enum ToRemove {
     Specific(Vec<String>),
 }
 
-pub fn sanitize_inputs2(node: &Node, nodes: &Nodes) -> Sanitize {
-    let mut sanitize = Sanitize::default();
+pub fn sanitize_inputs(node: &Node, nodes: &Nodes) -> Sanitize {
+    let mut sanitize = Sanitize::new(node.id);
 
     match node.node_type.max_input() {
         NbInput::Zero => {
@@ -111,75 +120,6 @@ pub fn sanitize_inputs2(node: &Node, nodes: &Nodes) -> Sanitize {
     sanitize
 }
 
-impl Node {
-    
-    fn set_inputs(mut)
-}
-
-pub fn sanitize_inputs(mut node: Node, nodes: &Nodes) -> Node {
-    node.inputs.clear();
-    match node.node_type.max_input() {
-        NbInput::Zero => {
-            if !node.node_type.get_inputs().is_empty() {
-                eprintln!(
-                    "{:?}: number of dep allowed == {:?}",
-                    node.node_type.to_light(),
-                    node.node_type.max_input()
-                );
-                node.node_type.clear_inputs();
-            };
-            return node;
-        }
-        NbInput::One => {
-            if node.node_type.get_inputs().len() > 1 {
-                eprintln!(
-                    "{:?}: number of dep allowed == {:?}",
-                    node.node_type.to_light(),
-                    node.node_type.max_input()
-                );
-                node.node_type.clear_inputs();
-                return node;
-            }
-        }
-        _ => {}
-    };
-
-    for name in node.node_type.get_inputs() {
-        if let Some(n) = nodes.values().find(|n| n.name() == &name) {
-            if !node
-                .node_type
-                .allowed_dep()
-                .contains(&n.node_type.to_light())
-            {
-                eprintln!(
-                    "sanitize_inputs: incompatible node type. {:?} <- {}. Fall back: remove all",
-                    n.node_type.to_light(),
-                    name
-                );
-                node.node_type.clear_inputs();
-                node.inputs.clear();
-                return node;
-            }
-            node.inputs.push((n.id, name.clone()))
-        } else {
-            eprintln!(
-                "sanitize_inputs: can't find {} in app_graph. Fall back: remove all",
-                name
-            );
-            node.node_type.clear_inputs();
-            node.inputs.clear();
-            return node;
-        }
-    }
-
-    if node.node_type.max_input() == NbInput::One && node.inputs.len() > 1 {
-        node.node_type.clear_inputs();
-        node.inputs.clear();
-        return node;
-    }
-    node
-}
-
 pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
     if name.trim().is_empty() {
         return false;
@@ -197,33 +137,37 @@ pub trait IsValid {
 }
 
 impl Node {
-    pub fn new(
-        id_generator: &mut IdGenerator,
-        node_type: NodeType,
-        inputs: Vec<(Id, String)>,
-    ) -> Self {
+    pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, nodes: &Nodes) -> Self {
         let name_cached = node_type.name().clone();
-        Self {
+        let mut node = Self {
             id: id_generator.new_id(),
             node_type,
-            inputs,
+            inputs: Vec::new(),
             value: None,
             name_cached,
             is_error_name: false,
-        }
+        };
+
+        let sanitize = sanitize_inputs(&node, nodes);
+        node.set_inputs(sanitize);
+        node
     }
 
     pub fn name(&self) -> &String {
         self.node_type.name()
     }
 
-    #[allow(clippy::result_unit_err)]
-    pub fn hardware_id(&self) -> Result<&Option<String>, ()> {
+    pub fn set_inputs(&mut self, sanitize: Sanitize) {
+        self.inputs = sanitize.node;
+        self.node_type.set_inputs(sanitize.item);
+    }
+
+    pub fn hardware_id(&self) -> &Option<String> {
         match &self.node_type {
-            NodeType::Control(i) => Ok(&i.hardware_id),
-            NodeType::Fan(i) => Ok(&i.hardware_id),
-            NodeType::Temp(i) => Ok(&i.hardware_id),
-            _ => Err(()),
+            NodeType::Control(i) => &i.hardware_id,
+            NodeType::Fan(i) => &i.hardware_id,
+            NodeType::Temp(i) => &i.hardware_id,
+            _ => panic!(),
         }
     }
 
@@ -237,6 +181,10 @@ impl Node {
             },
             None => "No value".into(),
         }
+    }
+
+    pub fn is_root(&self) -> bool {
+        matches!(self.node_type, NodeType::Control(..))
     }
 }
 
@@ -285,29 +233,6 @@ impl NodeType {
             NodeType::Linear(linear, ..) => linear.is_valid(),
             NodeType::Target(target, ..) => target.is_valid(),
         }
-    }
-
-    pub fn clear_inputs(&mut self) {
-        match self {
-            NodeType::Control(i) => {
-                i.input.take();
-            }
-            NodeType::CustomTemp(i) => {
-                i.input.clear();
-            }
-            NodeType::Graph(i) => {
-                i.input.take();
-            }
-            NodeType::Linear(i, ..) => {
-                i.input.take();
-            }
-            NodeType::Target(i, ..) => {
-                i.input.take();
-            }
-            NodeType::Fan(_) => {}
-            NodeType::Temp(_) => {}
-            NodeType::Flat(_) => {}
-        };
     }
 
     pub fn get_inputs(&self) -> Vec<String> {
