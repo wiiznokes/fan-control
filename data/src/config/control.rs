@@ -4,12 +4,13 @@ use hardware::{ControlH, Hardware, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    app_graph::Nodes,
     id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
+    node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Control {
     pub name: String,
     #[serde(rename = "id")]
@@ -132,9 +133,6 @@ impl ToNode for Control {
             }
         }
 
-        sanitize_inputs(
-            Node::new(id_generator, NodeType::Control(self), Vec::new()),
-            nodes,
-        )
+        Node::new(id_generator, NodeType::Control(self), nodes)
     }
 }

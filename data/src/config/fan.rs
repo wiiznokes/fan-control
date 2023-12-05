@@ -1,15 +1,15 @@
 use std::rc::Rc;
 
+use crate::{
+    app_graph::Nodes,
+    id::IdGenerator,
+    node::{IsValid, Node, NodeType, ToNode},
+    update::UpdateError,
+};
 use hardware::{FanH, Hardware, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    id::IdGenerator,
-    node::{sanitize_inputs, IsValid, Node, NodeType, Nodes, ToNode},
-    update::UpdateError,
-};
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Fan {
     pub name: String,
     #[serde(rename = "id")]
@@ -66,9 +66,6 @@ impl ToNode for Fan {
             }
         }
 
-        sanitize_inputs(
-            Node::new(id_generator, NodeType::Fan(self), Vec::new()),
-            nodes,
-        )
+        Node::new(id_generator, NodeType::Fan(self), nodes)
     }
 }

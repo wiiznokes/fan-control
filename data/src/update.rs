@@ -3,8 +3,9 @@ use std::{cmp::Ordering, collections::HashSet};
 use hardware::{HardwareBridgeT, HardwareError, Value};
 
 use crate::{
+    app_graph::{Nodes, RootNodes},
     id::Id,
-    node::{Node, NodeType, Nodes, RootNodes},
+    node::{Node, NodeType},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -17,9 +18,7 @@ pub enum UpdateError {
     CantSetMode,
 }
 
-pub struct Update {
-    config_changed: bool,
-}
+pub struct Update {}
 
 impl Default for Update {
     fn default() -> Self {
@@ -29,17 +28,9 @@ impl Default for Update {
 
 impl Update {
     pub fn new() -> Self {
-        Self {
-            config_changed: false,
-        }
+        Self {}
     }
 
-    pub fn config_changed(&mut self) {
-        self.config_changed = true;
-    }
-}
-
-impl Update {
     pub fn optimized(
         &mut self,
         nodes: &mut Nodes,
@@ -49,9 +40,6 @@ impl Update {
         if let Err(e) = bridge.update() {
             error!("{:?}", e);
             return;
-        }
-        if self.config_changed {
-            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge);
         }
 
         let mut updated: HashSet<Id> = HashSet::new();
@@ -66,9 +54,6 @@ impl Update {
         if let Err(e) = bridge.update() {
             error!("{:?}", e);
             return;
-        }
-        if self.config_changed {
-            self.set_invalid_controls_to_auto(nodes, root_nodes, bridge);
         }
 
         for id in root_nodes {
@@ -153,7 +138,26 @@ impl Update {
         }
     }
 
-    fn set_invalid_controls_to_auto(
+    pub fn set_all_control_to_auto(
+        &mut self,
+        nodes: &mut Nodes,
+        root_nodes: &RootNodes,
+        bridge: &mut HardwareBridgeT,
+    ) {
+        for node_id in root_nodes {
+            let Some(node) = nodes.get_mut(node_id) else {
+                warn!("node not found in set_all_control_to_auto function");
+                continue;
+            };
+            if let NodeType::Control(control) = &mut node.node_type {
+                if let Err(e) = control.set_mode(false, bridge) {
+                    error!("{:?}", e);
+                }
+            }
+        }
+    }
+
+    pub fn set_invalid_controls_to_auto(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
@@ -172,7 +176,6 @@ impl Update {
                 }
             }
         }
-        self.config_changed = false;
     }
 
     fn validate_rec(nodes: &Nodes, node_id: &Id) -> bool {

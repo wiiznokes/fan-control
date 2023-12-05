@@ -2,10 +2,7 @@ use std::rc::Rc;
 
 use crate::{fl, ModifNodeMsg};
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
-use data::{
-    id::Id,
-    node::{Node, Nodes},
-};
+use data::{app_graph::Nodes, id::Id, node::Node};
 use hardware::{ControlH, FanH, TempH};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -123,7 +120,7 @@ pub fn pick_hardware<'a, P: 'a>(
 where
     Pick<String>: From<&'a Rc<P>>,
 {
-    let hardware_id = node.hardware_id().unwrap();
+    let hardware_id = node.hardware_id();
 
     let mut hardware_options = hardwares
         .iter()

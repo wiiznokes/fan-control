@@ -3,9 +3,13 @@
 use std::time::Duration;
 
 use data::{
+    app_graph::AppGraph,
+    config::Config,
+    dir_manager::filter_none,
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,
+    utils::RemoveElem,
     AppState,
 };
 
@@ -16,20 +20,21 @@ use cosmic::{
     iced_core::Length,
     iced_widget::PickList,
     theme,
-    widget::{self, Column, Space, Text, TextInput},
+    widget::{self, Column, Dropdown, Space, Text, TextInput},
     ApplicationExt, Element,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 use pick::Pick;
 use strum::IntoEnumIterator;
-use utils::{icon_button, my_icon, RemoveElem};
+use utils::{icon_button, my_icon};
 
 #[macro_use]
 extern crate log;
 
 mod input_line;
 mod item;
+#[macro_use]
 pub mod localize;
 mod pick;
 //mod theme;
@@ -59,22 +64,16 @@ pub enum AppMsg {
     RenameConfig(String),
     ChangeConfig(Option<String>),
     RemoveConfig(String),
-    CreateConfig(CreateConfigMsg),
+    CreateConfig(String),
     ModifNode(Id, ModifNodeMsg),
     NewNode(NodeTypeLight),
+    DeleteNode(Id),
     Settings(SettingsMsg),
 }
 
 #[derive(Debug, Clone)]
-pub enum CreateConfigMsg {
-    Init,
-    Cancel,
-    New(String),
-}
-
-#[derive(Debug, Clone)]
 pub enum SettingsMsg {
-    Open,
+    Toggle,
     ChangeTheme(AppTheme),
 }
 
@@ -91,8 +90,6 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
-
-    Delete,
 }
 
 impl cosmic::Application for Ui {
@@ -112,7 +109,11 @@ impl cosmic::Application for Ui {
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let app_cache = AppCache {
-            current_config: flags.settings.current_config_text().to_owned(),
+            current_config: flags
+                .dir_manager
+                .settings()
+                .current_config_text()
+                .to_owned(),
             theme_list: AppTheme::iter().map(|e| e.to_string()).collect(),
         };
 
@@ -125,6 +126,8 @@ impl cosmic::Application for Ui {
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        let dir_manager = &mut self.app_state.dir_manager;
+
         match message {
             AppMsg::Tick => {
                 self.app_state.update.all(
@@ -338,33 +341,96 @@ impl cosmic::Application for Ui {
                             }
                         }
                     }
-                    ModifNodeMsg::Delete => {}
                 }
 
-                self.app_state.update.config_changed();
+                self.app_state.update.set_invalid_controls_to_auto(
+                    &mut self.app_state.app_graph.nodes,
+                    &self.app_state.app_graph.root_nodes,
+                    &mut self.app_state.bridge,
+                );
             }
-            AppMsg::SaveConfig => {}
-            AppMsg::ChangeConfig(_name) => {}
-            AppMsg::RemoveConfig(_) => {}
-            AppMsg::CreateConfig(_) => {}
+            AppMsg::SaveConfig => {
+                let config = Config::from_app_graph(&self.app_state.app_graph);
 
+                if let Err(e) = dir_manager.save_config(&self.cache.current_config, &config) {
+                    error!("{:?}", e);
+                };
+            }
+            AppMsg::ChangeConfig(selected) => {
+                self.app_state.update.set_all_control_to_auto(
+                    &mut self.app_state.app_graph.nodes,
+                    &self.app_state.app_graph.root_nodes,
+                    &mut self.app_state.bridge,
+                );
+
+                match dir_manager.change_config(selected) {
+                    Ok(config) => match config {
+                        Some((config_name, config)) => {
+                            self.cache.current_config = config_name;
+                            self.app_state.app_graph =
+                                AppGraph::from_config(config, &self.app_state.hardware);
+                        }
+                        None => {
+                            self.cache.current_config.clear();
+                        }
+                    },
+                    Err(e) => {
+                        error!("{:?}", e);
+                    }
+                }
+            }
+            AppMsg::RemoveConfig(index) => match dir_manager.remove_config(index) {
+                Ok(is_current_config) => {
+                    if is_current_config {
+                        self.cache.current_config.clear();
+                    }
+                }
+                Err(e) => {
+                    error!("can't remove config: {:?}", e);
+                }
+            },
+            AppMsg::CreateConfig(new_name) => {
+                let config = Config::from_app_graph(&self.app_state.app_graph);
+
+                match dir_manager.create_config(&new_name, &config) {
+                    Ok(_) => {
+                        self.cache.current_config = new_name;
+                    }
+                    Err(e) => {
+                        error!("can't create config: {:?}", e);
+                    }
+                }
+            }
             AppMsg::RenameConfig(name) => {
                 self.cache.current_config = name;
             }
             AppMsg::Settings(settings_msg) => match settings_msg {
-                SettingsMsg::Open => {
+                SettingsMsg::Toggle => {
                     self.core.window.show_context = !self.core.window.show_context;
                     self.set_context_title("Settings".into());
                 }
                 SettingsMsg::ChangeTheme(theme) => {
-                    self.app_state.settings.theme = theme;
-                    return cosmic::app::command::set_theme(to_cosmic_theme(
-                        &self.app_state.settings.theme,
-                    ));
+                    dir_manager.update_settings(|settings| {
+                        settings.theme = theme;
+                    });
+                    return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
                     // todo: save on fs
                 }
             },
-            AppMsg::NewNode(_) => {}
+            AppMsg::NewNode(node_type_light) => {
+                self.app_state.app_graph.add_new_node(node_type_light);
+            }
+            AppMsg::DeleteNode(id) => {
+                if let Some(mut node) = self.app_state.app_graph.remove_node(id) {
+                    if let NodeType::Control(control) = &mut node.node_type {
+                        if let Err(e) = control.set_mode(false, &mut self.app_state.bridge) {
+                            error!("{:?}", e);
+                        }
+                    }
+                }
+
+                self.app_state.app_graph.sanitize_inputs()
+            }
         }
 
         Command::none()
@@ -393,7 +459,7 @@ impl cosmic::Application for Ui {
     }
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
-        let settings = &self.app_state.settings;
+        let settings = self.app_state.dir_manager.settings();
         let dir_manager = &self.app_state.dir_manager;
 
         let mut elems = vec![];
@@ -406,27 +472,46 @@ impl cosmic::Application for Ui {
             elems.push(save_button);
         }
 
-        if !dir_manager.config_names.is_empty() {
-            let choose_config = if self.app_state.settings.current_config.is_some() {
-                TextInput::new("name", &self.cache.current_config)
-                    .on_input(AppMsg::RenameConfig)
-                    .width(Length::Fixed(200.0))
-                    .into()
-            } else {
-                PickList::new(
-                    &dir_manager.config_names,
-                    Some(self.cache.current_config.to_owned()),
-                    |name| AppMsg::ChangeConfig(Some(name)),
-                )
-                .into()
-            };
-            elems.push(choose_config);
+        let mut name = TextInput::new(&fl!("config_name"), &self.cache.current_config)
+            .on_input(AppMsg::RenameConfig)
+            .width(Length::Fixed(150.0));
+
+        if dir_manager
+            .config_names
+            .is_valid_name(&self.cache.current_config)
+        {
+            name = name.error("this name is already beeing use");
         }
 
-        let new_button = icon_button("sign/plus/add40")
-            .on_press(AppMsg::CreateConfig(CreateConfigMsg::Init))
+        elems.push(name.into());
+
+        if !dir_manager.config_names.is_empty() {
+            let selected = match &settings.current_config {
+                Some(name) => name.clone(),
+                None => fl!("none"),
+            };
+            let selection = PickList::new(
+                dir_manager.config_names.names(&settings.current_config),
+                Some(selected),
+                |name| AppMsg::ChangeConfig(filter_none(name)),
+            )
+            .width(Length::Fixed(100.0))
             .into();
-        elems.push(new_button);
+
+            elems.push(selection);
+        }
+
+        let mut new_button = icon_button("sign/plus/add40");
+
+        if dir_manager
+            .config_names
+            .is_valid_create(&self.cache.current_config)
+        {
+            new_button =
+                new_button.on_press(AppMsg::CreateConfig(self.cache.current_config.to_owned()));
+        }
+
+        elems.push(new_button.into());
 
         elems
     }
@@ -435,7 +520,7 @@ impl cosmic::Application for Ui {
         let mut elems = vec![];
 
         let settings_button = icon_button("topBar/settings40")
-            .on_press(AppMsg::Settings(SettingsMsg::Open))
+            .on_press(AppMsg::Settings(SettingsMsg::Toggle))
             .into();
         elems.push(settings_button);
 
@@ -447,13 +532,13 @@ impl cosmic::Application for Ui {
             return None;
         }
         let app_theme_selected = AppTheme::iter()
-            .position(|e| e == self.app_state.settings.theme)
+            .position(|e| e == self.app_state.dir_manager.settings().theme)
             .unwrap();
 
         let settings_context =
             widget::settings::view_column(vec![widget::settings::view_section("")
                 .add(
-                    widget::settings::item::builder("Theme").control(widget::dropdown(
+                    widget::settings::item::builder("Theme").control(Dropdown::new(
                         &self.cache.theme_list,
                         Some(app_theme_selected),
                         move |index| {
@@ -469,8 +554,10 @@ impl cosmic::Application for Ui {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(self.app_state.settings.update_delay))
-            .map(|_| AppMsg::Tick)
+        time::every(Duration::from_millis(
+            self.app_state.dir_manager.settings().update_delay,
+        ))
+        .map(|_| AppMsg::Tick)
 
         //cosmic::iced_futures::Subscription::none()
     }
