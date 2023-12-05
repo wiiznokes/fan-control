@@ -1,11 +1,12 @@
 use std::{
     fs::{self},
     path::{Path, PathBuf},
+    vec,
 };
 
 use directories::ProjectDirs;
 
-use crate::{cli::Args, config::Config, serde_helper, settings::Settings, utils::RemoveElem};
+use crate::{cli::Args, config::Config, name_sorter, serde_helper, settings::Settings};
 
 use self::toml::{add_toml_ext, remove_toml_ext};
 
@@ -25,7 +26,8 @@ pub struct DirManager {
 
 #[derive(Debug)]
 pub struct ConfigNames {
-    config_names: Vec<String>,
+    pub data: Vec<String>,
+    current_index: usize,
 }
 
 impl DirManager {
@@ -57,13 +59,17 @@ impl DirManager {
 
         let mut settings = init_settings(&config_dir_path);
 
-        let config_names = ConfigNames::new(&config_dir_path);
+        let mut config_names = ConfigNames::new(&config_dir_path);
 
         if let Some(config_name) = args.config_name {
             let config_name = remove_toml_ext(&config_name).to_owned();
             if config_names.contains(&config_name) {
-                settings.current_config = Some(config_name)
+                settings.current_config = Some(config_name);
             }
+        };
+
+        if let Some(config_name) = &settings.current_config {
+            config_names.set_index(config_name);
         };
 
         DirManager {
@@ -88,11 +94,11 @@ impl DirManager {
 
 impl DirManager {
     pub fn save_config(&mut self, new_name: &str, config: &Config) -> Result<(), String> {
-        let Some(previous_name) = self.settings.current_config.clone() else {
-            return Err("try to save config but current config is none".to_string());
+        let Some(previous_name) = self.config_names.get_current() else {
+            return Err("can't save config: no name".to_string());
         };
 
-        let previous_path = self.config_file_path(&previous_name);
+        let previous_path = self.config_file_path(previous_name);
         if let Err(e) = fs::remove_file(previous_path) {
             warn!("{:?}", e);
         }
@@ -101,7 +107,7 @@ impl DirManager {
 
         serde_helper::serialize(&new_path, config)?;
 
-        self.config_names.remove(&previous_name);
+        self.config_names.remove_current();
         self.config_names.add(new_name);
 
         self.settings.current_config = Some(new_name.to_owned());
@@ -109,11 +115,10 @@ impl DirManager {
         Ok(())
     }
 
-    pub fn change_config(
-        &mut self,
-        new_config_name: &Option<String>,
-    ) -> Result<Option<(String, Config)>, String> {
-        match new_config_name {
+    pub fn change_config(&mut self, index: usize) -> Result<Option<(String, Config)>, String> {
+        self.config_names.current_index = index;
+
+        match self.config_names.get(index) {
             Some(new_config_name) => {
                 let new_config_path = self.config_file_path(new_config_name);
                 let config: Config = serde_helper::deserialize(&new_config_path)?;
@@ -128,16 +133,16 @@ impl DirManager {
     }
 
     /// return true if it's the current config whitch has been removed
-    pub fn remove_config(&mut self, config_name: &str) -> Result<bool, String> {
-        self.config_names.remove(config_name);
+    pub fn remove_config(&mut self, index: usize) -> Result<bool, String> {
+        let config_name = self.config_names.remove(index);
 
-        let config_path = self.config_file_path(config_name);
+        let config_path = self.config_file_path(&config_name);
         if let Err(e) = fs::remove_file(config_path) {
             warn!("{:?}", e);
         }
 
         if let Some(current_config) = &self.settings.current_config {
-            if current_config == config_name {
+            if current_config == &config_name {
                 self.settings.current_config.take();
                 return Ok(true);
             }
@@ -191,10 +196,13 @@ fn init_settings(config_dir_path: &Path) -> Settings {
 
 impl ConfigNames {
     fn new(config_dir_path: &Path) -> Self {
-        let mut config_names = Vec::new();
+        let mut config_names = ConfigNames {
+            data: vec!["None".to_owned()],
+            current_index: 0,
+        };
 
         let Ok(files) = config_dir_path.read_dir() else {
-            return ConfigNames { config_names };
+            return config_names;
         };
 
         for file in files {
@@ -221,37 +229,94 @@ impl ConfigNames {
             }
 
             let file_name = remove_toml_ext(&file.file_name().to_string_lossy()).to_owned();
-            config_names.push(file_name);
+            config_names.data.push(file_name);
         }
 
-        ConfigNames { config_names }
+        config_names
+            .data
+            .sort_by(|first, second| name_sorter::compare_names(first, second));
+
+        config_names
     }
 
-    fn remove(&mut self, name: &str) {
-        let name = remove_toml_ext(name);
-        if self.config_names.remove_elem(|e| e == name).is_none() {
-            warn!("can't find {} in config_names to remove it", name);
+    fn set_index(&mut self, config_name: &str) {
+        if let Some(index) = self.data.iter().position(|n| n == config_name) {
+            self.current_index = index;
         }
+    }
+
+    fn remove_current(&mut self) -> String {
+        self.remove(self.current_index)
+    }
+    fn remove(&mut self, index: usize) -> String {
+        if index == 0 {
+            panic!()
+        }
+        if self.current_index == index {
+            self.current_index = 0;
+        }
+        self.data.remove(index)
     }
 
     fn add(&mut self, name: &str) {
         let name = remove_toml_ext(name).to_owned();
-        self.config_names.push(name);
+        let index = name_sorter::add_sorted(&mut self.data, name);
+        self.current_index = index;
     }
 
-    fn contains(&self, name: &str) -> bool {
+    pub fn contains(&self, name: &str) -> bool {
         let name = remove_toml_ext(name).to_owned();
-        self.config_names.contains(&name)
+        self.data.contains(&name)
     }
 
-    pub fn get(&self) -> &Vec<String> {
-        &self.config_names
+    pub fn get(&self, index: usize) -> Option<&String> {
+        if index == 0 {
+            None
+        } else {
+            Some(&self.data[index])
+        }
+    }
+
+    pub fn get_current(&self) -> Option<&String> {
+        self.get(self.current_index)
+    }
+
+    pub fn names(&self) -> &[String] {
+        
+
+        let (_left, right) = self.data.split_at(self.current_index);
+        let (_, right) = right.split_at(1); // Exclude the element at index n
+
+        
+        right
+
+        /*
+        self.data.iter().enumerate().filter(|(i, _)|{
+            i != &self.current_index
+        }).map(|(_,e)|{
+            e
+        }).collect()
+         */
     }
 
     pub fn is_empty(&self) -> bool {
-        self.config_names.is_empty()
+        self.data.len() > 1
+    }
+
+    pub fn index_of(&self, name: &str) -> Option<usize> {
+        self.data.iter().position(|n| n == name)
+    }
+
+    pub fn index(&self) -> usize {
+        self.current_index
+    }
+
+    pub fn is_valid(&self, _name: &str) -> bool {
+        todo!()
     }
 }
+
+static NONE: &str = "none";
 
 mod toml {
     use std::borrow::Cow;

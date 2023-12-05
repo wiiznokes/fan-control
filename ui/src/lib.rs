@@ -16,10 +16,9 @@ use cosmic::{
     executor,
     iced::{self, time},
     iced_core::Length,
-    iced_widget::PickList,
     theme,
-    widget::{self, Column, Space, Text, TextInput},
-    ApplicationExt, Element,
+    widget::{self, Column, Dropdown, Space, Text, TextInput},
+    ApplicationExt, Element, iced_widget::PickList,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -59,8 +58,8 @@ pub enum AppMsg {
     Tick,
     SaveConfig,
     RenameConfig(String),
-    ChangeConfig(Option<String>),
-    RemoveConfig(String),
+    ChangeConfig(usize),
+    RemoveConfig(usize),
     CreateConfig(String),
     ModifNode(Id, ModifNodeMsg),
     NewNode(NodeTypeLight),
@@ -347,7 +346,7 @@ impl cosmic::Application for Ui {
                     error!("{:?}", e);
                 };
             }
-            AppMsg::ChangeConfig(name) => match dir_manager.change_config(&name) {
+            AppMsg::ChangeConfig(index) => match dir_manager.change_config(index) {
                 Ok(config) => match config {
                     Some((config_name, config)) => {
                         self.cache.current_config = config_name;
@@ -362,7 +361,7 @@ impl cosmic::Application for Ui {
                     error!("{:?}", e);
                 }
             },
-            AppMsg::RemoveConfig(name) => match dir_manager.remove_config(&name) {
+            AppMsg::RemoveConfig(index) => match dir_manager.remove_config(index) {
                 Ok(is_current_config) => {
                     if is_current_config {
                         self.cache.current_config.clear();
@@ -442,27 +441,36 @@ impl cosmic::Application for Ui {
             elems.push(save_button);
         }
 
-        if !dir_manager.config_names.is_empty() {
-            let choose_config = if settings.current_config.is_some() {
-                TextInput::new("name", &self.cache.current_config)
-                    .on_input(AppMsg::RenameConfig)
-                    .width(Length::Fixed(200.0))
-                    .into()
-            } else {
-                PickList::new(
-                    dir_manager.config_names.get(),
-                    Some(self.cache.current_config.to_owned()),
-                    |name| AppMsg::ChangeConfig(Some(name.to_owned())),
-                )
-                .into()
-            };
-            elems.push(choose_config);
+        let selected_index = dir_manager.config_names.index();
+
+        let mut name = TextInput::new("name", &self.cache.current_config)
+            .on_input(AppMsg::RenameConfig)
+            .width(Length::Fixed(200.0));
+
+        if dir_manager
+            .config_names
+            .is_valid(&self.cache.current_config)
+        {
+            name = name.error("this name is already beeing use");
         }
+
+        elems.push(name.into());
+
+        let selection = PickList::new(
+            dir_manager.config_names.names(),
+            None,
+            |index| AppMsg::ChangeConfig(0),
+        )
+        .into();
+
+        elems.push(selection);
 
         let mut new_button = icon_button("sign/plus/add40");
 
-        // todo
-        if true {
+        if !dir_manager
+            .config_names
+            .contains(&self.cache.current_config)
+        {
             new_button =
                 new_button.on_press(AppMsg::CreateConfig(self.cache.current_config.to_owned()));
         }
@@ -494,7 +502,7 @@ impl cosmic::Application for Ui {
         let settings_context =
             widget::settings::view_column(vec![widget::settings::view_section("")
                 .add(
-                    widget::settings::item::builder("Theme").control(widget::dropdown(
+                    widget::settings::item::builder("Theme").control(Dropdown::new(
                         &self.cache.theme_list,
                         Some(app_theme_selected),
                         move |index| {
