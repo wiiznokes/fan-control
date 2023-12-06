@@ -117,9 +117,18 @@ where
         renderer: &Renderer,
         operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
     ) {
-        self.underlay
-            .as_widget()
-            .operate(&mut state.children[0], layout, renderer, operation);
+        if self.show {
+            let mut content = (self.lazy_overlay)();
+            content.as_widget_mut().diff(&mut state.children[1]);
+
+            content
+                .as_widget()
+                .operate(&mut state.children[1], layout, renderer, operation);
+        } else {
+            self.underlay
+                .as_widget()
+                .operate(&mut state.children[0], layout, renderer, operation);
+        }
     }
 
     fn on_event(
@@ -168,6 +177,10 @@ where
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'b, Message, Renderer>> {
+        dbg!("in over");
+
+        info!("in overlay");
+
         if !self.show {
             return self
                 .underlay
@@ -177,7 +190,7 @@ where
 
         if state.children.len() == 2 {
             let bounds = layout.bounds();
-
+            info!("will generate overlay");
             Some(overlay::Element::new(
                 bounds.position(),
                 Box::new(DropDownOverlay::new(
@@ -188,6 +201,7 @@ where
                 )),
             ))
         } else {
+            info!("will not generate overlay");
             None
         }
     }

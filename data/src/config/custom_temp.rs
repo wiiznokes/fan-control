@@ -14,6 +14,8 @@ pub struct CustomTemp {
     pub name: String,
     pub kind: CustomTempKind,
     pub inputs: Vec<String>,
+
+    #[serde(skip)]
     pub kind_expanded: bool,
 }
 

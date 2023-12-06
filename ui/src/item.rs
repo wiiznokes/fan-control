@@ -2,7 +2,7 @@ use cosmic::{
     iced_core::{Alignment, Length, Padding},
     iced_widget::{
         scrollable::{Direction, Properties},
-        PickList, Scrollable, Toggler,
+        Button, Scrollable, Toggler,
     },
     style,
     widget::{Column, Container, Row, Slider, Space, Text, TextInput},
@@ -17,8 +17,9 @@ use hardware::Hardware;
 
 use crate::{
     input_line::{input_line, InputLineUnit},
+    my_widgets::drop_down,
     pick::{pick_hardware, pick_input, Pick},
-    utils::{icon_button, icon_path_for_node_type, my_icon},
+    utils::{expand_icon, icon_button, icon_path_for_node_type, my_icon},
     AppMsg, ModifNodeMsg,
 };
 
@@ -179,6 +180,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         })
         .collect();
 
+    /*
     let kind_options = CustomTempKind::VALUES
         .iter()
         .filter(|k| &custom_temp.kind != *k)
@@ -190,6 +192,39 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
     })
     .width(Length::Fill)
     .into();
+     */
+
+    let underlay = Row::new()
+        .push(Text::new(custom_temp.kind.to_string()))
+        .push(Space::new(Length::Fill, 0.0))
+        .push(expand_icon(custom_temp.kind_expanded).on_press(AppMsg::Ui(
+            crate::UiMsg::ToggleCustomTempKind(node.id, !custom_temp.kind_expanded),
+        )))
+        .align_items(Alignment::Center);
+
+    let overlay = || {
+        let list = CustomTempKind::VALUES
+            .iter()
+            .filter(|k| &custom_temp.kind != *k)
+            .map(|value| {
+                Button::new(Text::new(value.to_string()))
+                    .on_press(
+                        ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(value.clone()))
+                            .to_app(node.id),
+                    )
+                    .into()
+            })
+            .collect();
+
+        Column::with_children(list).into()
+    };
+
+    let pick_kind = drop_down::DropDown::new(underlay, overlay)
+        .show(custom_temp.kind_expanded)
+        .on_dismiss(Some(AppMsg::Ui(crate::UiMsg::ToggleCustomTempKind(
+            node.id, false,
+        ))))
+        .into();
 
     let content = vec![
         pick_kind,

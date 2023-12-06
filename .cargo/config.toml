@@ -3,7 +3,7 @@ LMSENSORS_STATIC = "1"
 LMSENSORS_INCLUDE_DIR = { value = "target/libsensors_build/include", relative = true }
 LMSENSORS_LIB_DIR = { value = "target/libsensors_build/lib", relative = true }
 RUST_LOG = "fan_control=debug,data=info,hardware=debug,ui=debug"
-#RUST_BACKTRACE = "full"
+RUST_BACKTRACE = "full"
 
 [build]
 # Because compilation fails on Fedora 39 if not enabled

@@ -86,14 +86,6 @@ where
     Message: 'a + Clone,
     Renderer: core::Renderer,
 {
-    fn children(&self) -> Vec<Tree> {
-        vec![Tree::new(&self.underlay), Tree::new(&self.element)]
-    }
-
-    fn diff(&mut self, tree: &mut Tree) {
-        tree.diff_children(&mut [&mut self.underlay, &mut self.element]);
-    }
-
     fn width(&self) -> Length {
         self.underlay.as_widget().width()
     }
@@ -104,6 +96,47 @@ where
 
     fn layout(&self, renderer: &Renderer, limits: &Limits) -> Node {
         self.underlay.as_widget().layout(renderer, limits)
+    }
+
+    fn draw(
+        &self,
+        state: &Tree,
+        renderer: &mut Renderer,
+        theme: &Renderer::Theme,
+        style: &renderer::Style,
+        layout: Layout<'_>,
+        cursor: Cursor,
+        viewport: &Rectangle,
+    ) {
+        self.underlay.as_widget().draw(
+            &state.children[0],
+            renderer,
+            theme,
+            style,
+            layout,
+            cursor,
+            viewport,
+        );
+    }
+
+    fn children(&self) -> Vec<Tree> {
+        vec![Tree::new(&self.underlay), Tree::new(&self.element)]
+    }
+
+    fn diff(&mut self, tree: &mut Tree) {
+        tree.diff_children(&mut [&mut self.underlay, &mut self.element]);
+    }
+
+    fn operate<'b>(
+        &'b self,
+        state: &'b mut Tree,
+        layout: Layout<'_>,
+        renderer: &Renderer,
+        operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
+    ) {
+        self.underlay
+            .as_widget()
+            .operate(&mut state.children[0], layout, renderer, operation);
     }
 
     fn on_event(
@@ -144,39 +177,6 @@ where
             viewport,
             renderer,
         )
-    }
-
-    fn draw(
-        &self,
-        state: &Tree,
-        renderer: &mut Renderer,
-        theme: &Renderer::Theme,
-        style: &renderer::Style,
-        layout: Layout<'_>,
-        cursor: Cursor,
-        viewport: &Rectangle,
-    ) {
-        self.underlay.as_widget().draw(
-            &state.children[0],
-            renderer,
-            theme,
-            style,
-            layout,
-            cursor,
-            viewport,
-        );
-    }
-
-    fn operate<'b>(
-        &'b self,
-        state: &'b mut Tree,
-        layout: Layout<'_>,
-        renderer: &Renderer,
-        operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
-    ) {
-        self.underlay
-            .as_widget()
-            .operate(&mut state.children[0], layout, renderer, operation);
     }
 
     fn overlay<'b>(
