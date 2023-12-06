@@ -12,46 +12,44 @@ use iced_widget::core::{
     Clipboard, Element, Event, Layout, Length, Point, Rectangle, Shell, Widget,
 };
 
-pub struct DropDown<'a, Overlay, Message, Renderer = iced::Renderer>
+pub struct DropDown<'a, Message, Renderer = iced::Renderer>
 where
-    Overlay: Fn() -> Element<'a, Message, Renderer>,
     Message: Clone,
     Renderer: core::Renderer,
 {
     underlay: Element<'a, Message, Renderer>,
-    lazy_overlay: Overlay,
+    overlay: Element<'a, Message, Renderer>,
     on_dismiss: Option<Message>,
-    show: bool,
+    expanded: bool,
 }
 
-impl<'a, Overlay, Message, Renderer> DropDown<'a, Overlay, Message, Renderer>
+impl<'a, Message, Renderer> DropDown<'a, Message, Renderer>
 where
-    Overlay: Fn() -> Element<'a, Message, Renderer>,
     Message: Clone,
     Renderer: core::Renderer,
 {
-    pub fn new<U>(underlay: U, overlay: Overlay) -> Self
+    pub fn new<U, B>(underlay: U, overlay: B) -> Self
     where
         U: Into<Element<'a, Message, Renderer>>,
+        B: Into<Element<'a, Message, Renderer>>,
     {
         DropDown {
             underlay: underlay.into(),
-            lazy_overlay: overlay,
-            show: false,
+            overlay: overlay.into(),
+            expanded: false,
             on_dismiss: None,
         }
     }
 }
 
-impl<'a, Overlay, Message, Renderer> DropDown<'a, Overlay, Message, Renderer>
+impl<'a, Message, Renderer> DropDown<'a, Message, Renderer>
 where
-    Overlay: Fn() -> Element<'a, Message, Renderer>,
     Message: Clone,
     Renderer: core::Renderer,
 {
     #[must_use]
-    pub fn show(mut self, show: bool) -> Self {
-        self.show = show;
+    pub fn expanded(mut self, expanded: bool) -> Self {
+        self.expanded = expanded;
         self
     }
 
@@ -62,10 +60,9 @@ where
     }
 }
 
-impl<'a, Content, Message, Renderer> Widget<Message, Renderer>
-    for DropDown<'a, Content, Message, Renderer>
+impl<'a, Message, Renderer> Widget<Message, Renderer>
+    for DropDown<'a, Message, Renderer>
 where
-    Content: 'a + Fn() -> Element<'a, Message, Renderer>,
     Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
 {
@@ -103,11 +100,11 @@ where
     }
 
     fn children(&self) -> Vec<Tree> {
-        vec![Tree::new(&self.underlay), Tree::new(&(self.lazy_overlay)())]
+        vec![Tree::new(&self.underlay), Tree::new(&self.overlay)]
     }
 
     fn diff(&mut self, tree: &mut Tree) {
-        tree.diff_children(&mut [&mut self.underlay, &mut (self.lazy_overlay)()]);
+        tree.diff_children(&mut [&mut self.underlay, &mut self.overlay]);
     }
 
     fn operate<'b>(
@@ -117,18 +114,11 @@ where
         renderer: &Renderer,
         operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
     ) {
-        if self.show {
-            let mut content = (self.lazy_overlay)();
-            content.as_widget_mut().diff(&mut state.children[1]);
-
-            content
-                .as_widget()
-                .operate(&mut state.children[1], layout, renderer, operation);
-        } else {
-            self.underlay
+        info!("operate");
+        
+        self.underlay
                 .as_widget()
                 .operate(&mut state.children[0], layout, renderer, operation);
-        }
     }
 
     fn on_event(
@@ -181,7 +171,7 @@ where
 
         info!("in overlay");
 
-        if !self.show {
+        if !self.expanded {
             return self
                 .underlay
                 .as_widget_mut()
@@ -195,7 +185,7 @@ where
                 bounds.position(),
                 Box::new(DropDownOverlay::new(
                     &mut state.children[1],
-                    (self.lazy_overlay)(),
+                    &mut self.overlay,
                     &self.on_dismiss,
                     bounds,
                 )),
@@ -207,14 +197,13 @@ where
     }
 }
 
-impl<'a, Content, Message, Renderer> From<DropDown<'a, Content, Message, Renderer>>
+impl<'a, Message, Renderer> From<DropDown<'a, Message, Renderer>>
     for Element<'a, Message, Renderer>
 where
-    Content: 'a + Fn() -> Element<'a, Message, Renderer>,
     Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
 {
-    fn from(drop_down: DropDown<'a, Content, Message, Renderer>) -> Self {
+    fn from(drop_down: DropDown<'a, Message, Renderer>) -> Self {
         Element::new(drop_down)
     }
 }
@@ -224,7 +213,7 @@ where
     Message: Clone,
 {
     state: &'b mut Tree,
-    element: Element<'a, Message, Renderer>,
+    element: &'b mut Element<'a, Message, Renderer>,
     on_dismiss: &'b Option<Message>,
     underlay_bounds: Rectangle,
 }
@@ -236,7 +225,7 @@ where
 {
     fn new(
         state: &'b mut Tree,
-        element: Element<'a, Message, Renderer>,
+        element: &'b mut Element<'a, Message, Renderer>,
         on_dismiss: &'b Option<Message>,
         underlay_bounds: Rectangle,
     ) -> Self {
@@ -259,20 +248,11 @@ where
         let limits = Limits::new(Size::ZERO, bounds);
         let max_size = limits.max();
 
-        let mut content = self.element.as_widget().layout(renderer, &limits);
+        let mut node = self.element.as_widget().layout(renderer, &limits);
 
-        // Try to stay inside borders
-        let mut position = position;
-        if position.x + content.size().width > bounds.width {
-            position.x = f32::max(0.0, position.x - content.size().width);
-        }
-        if position.y + content.size().height > bounds.height {
-            position.y = f32::max(0.0, position.y - content.size().height);
-        }
+        node.move_to(self.underlay_bounds.position());
 
-        content.move_to(position);
-
-        Node::with_children(max_size, vec![content])
+        node
     }
 
     fn draw(
@@ -341,5 +321,15 @@ where
         self.element
             .as_widget()
             .mouse_interaction(self.state, layout, cursor, viewport, renderer)
+    }
+
+    fn overlay<'c>(
+        &'c mut self,
+        layout: Layout<'_>,
+        renderer: &Renderer,
+    ) -> Option<overlay::Element<'c, Message, Renderer>> {
+        self.element
+            .as_widget_mut()
+            .overlay(self.state, layout, renderer)
     }
 }

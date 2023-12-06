@@ -201,26 +201,28 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
             crate::UiMsg::ToggleCustomTempKind(node.id, !custom_temp.kind_expanded),
         )))
         .align_items(Alignment::Center);
-
-    let overlay = || {
+        
+        /* 
         let list = CustomTempKind::VALUES
-            .iter()
-            .filter(|k| &custom_temp.kind != *k)
-            .map(|value| {
-                Button::new(Text::new(value.to_string()))
-                    .on_press(
-                        ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(value.clone()))
-                            .to_app(node.id),
-                    )
-                    .into()
-            })
-            .collect();
+        .iter()
+        .filter(|k| &custom_temp.kind != *k)
+        .map(|value| {
+            Button::new(Text::new(value.to_string()))
+                .on_press(
+                    ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(value.clone()))
+                        .to_app(node.id),
+                )
+                .into()
+        })
+        .collect();
 
-        Column::with_children(list).into()
-    };
+        let overlay = Column::with_children(list);
+        */
+        let overlay = Text::new("hello la miff");
+ 
 
     let pick_kind = drop_down::DropDown::new(underlay, overlay)
-        .show(custom_temp.kind_expanded)
+        .expanded(custom_temp.kind_expanded)
         .on_dismiss(Some(AppMsg::Ui(crate::UiMsg::ToggleCustomTempKind(
             node.id, false,
         ))))

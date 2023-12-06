@@ -320,6 +320,20 @@ where
         node
     }
 
+    fn draw(
+        &self,
+        renderer: &mut Renderer,
+        theme: &Renderer::Theme,
+        style: &renderer::Style,
+        layout: Layout<'_>,
+        cursor: Cursor,
+    ) {
+        let bounds = layout.bounds();
+        self.element
+            .as_widget()
+            .draw(self.state, renderer, theme, style, layout, cursor, &bounds);
+    }
+
     fn on_event(
         &mut self,
         event: Event,
@@ -374,19 +388,7 @@ where
             .mouse_interaction(self.state, layout, cursor, viewport, renderer)
     }
 
-    fn draw(
-        &self,
-        renderer: &mut Renderer,
-        theme: &Renderer::Theme,
-        style: &renderer::Style,
-        layout: Layout<'_>,
-        cursor: Cursor,
-    ) {
-        let bounds = layout.bounds();
-        self.element
-            .as_widget()
-            .draw(self.state, renderer, theme, style, layout, cursor, &bounds);
-    }
+   
 
     fn overlay<'c>(
         &'c mut self,
