@@ -32,6 +32,8 @@ use pick::Pick;
 use strum::IntoEnumIterator;
 use utils::{icon_button, my_icon};
 
+use crate::add_node::add_node_button_view;
+
 #[macro_use]
 extern crate log;
 
@@ -39,9 +41,9 @@ mod input_line;
 mod item;
 #[macro_use]
 pub mod localize;
-mod pick;
-//mod theme;
+mod add_node;
 mod my_widgets;
+mod pick;
 mod utils;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
@@ -53,6 +55,7 @@ pub struct Ui {
     core: Core,
     app_state: AppState,
     cache: AppCache,
+    create_button_expanded: bool,
 }
 
 pub struct AppCache {
@@ -72,6 +75,7 @@ pub enum AppMsg {
     NewNode(NodeTypeLight),
     DeleteNode(Id),
     Settings(SettingsMsg),
+    CreateButton(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -124,6 +128,7 @@ impl cosmic::Application for Ui {
             cache: app_cache,
             app_state: flags,
             core,
+            create_button_expanded: false,
         };
         (ui_state, Command::none())
     }
@@ -434,6 +439,7 @@ impl cosmic::Application for Ui {
 
                 self.app_state.app_graph.sanitize_inputs()
             }
+            AppMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
         }
 
         Command::none()
@@ -445,15 +451,18 @@ impl cosmic::Application for Ui {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let create_button =
-            icon_button("sign/plus/add40").on_press(AppMsg::NewNode(NodeTypeLight::Fan));
-
-        floating_element::FloatingElement::new(
+        let mut content = floating_element::FloatingElement::new(
             items_view(&app_graph.nodes, &app_state.hardware),
-            create_button,
+            add_node_button_view(self.create_button_expanded),
             floating_element::Anchor::new(Vertical::Bottom, Horizontal::Right),
         )
-        .into()
+        .offset(floating_element::Offset::new(15.0, 10.0));
+
+        if self.create_button_expanded {
+            content = content.on_dismiss(Some(AppMsg::CreateButton(false)));
+        }
+
+        content.into()
     }
 
     fn header_start(&self) -> Vec<Element<Self::Message>> {

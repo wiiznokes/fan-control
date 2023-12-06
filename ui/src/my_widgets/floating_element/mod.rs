@@ -32,6 +32,7 @@ where
     hidden: bool,
     underlay: Element<'a, Message, Renderer>,
     element: Element<'a, Message, Renderer>,
+    on_dismiss: Option<Message>,
 }
 
 impl<'a, Message, Renderer> FloatingElement<'a, Message, Renderer>
@@ -49,6 +50,7 @@ where
             hidden: false,
             underlay: underlay.into(),
             element: element.into(),
+            on_dismiss: None,
         }
     }
 
@@ -66,6 +68,14 @@ where
         O: Into<Offset>,
     {
         self.offset = offset.into();
+        self
+    }
+
+    /// Trigger when a click is made outside of the floating element
+    // todo
+    #[must_use]
+    pub fn on_dismiss(mut self, message: Option<Message>) -> Self {
+        self.on_dismiss = message;
         self
     }
 }
@@ -282,7 +292,7 @@ where
             ),
             (Vertical::Center, Horizontal::Center) => Point::new(
                 position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
-                position.y + self.underlay_bounds.height / 2.0 - node.bounds().height / 2.0
+                position.y + self.underlay_bounds.height / 2.0 - node.bounds().height / 2.0,
             ),
             (Vertical::Center, Horizontal::Right) => Point::new(
                 position.x + self.underlay_bounds.width - node.bounds().width - self.offset.x,

@@ -8,12 +8,6 @@ pub struct Offset {
     pub y: f32,
 }
 
-impl Offset {
-    pub fn new(x: f32, y: f32) -> Self {
-        Offset { x, y }
-    }
-}
-
 impl From<f32> for Offset {
     fn from(float: f32) -> Self {
         Self { x: float, y: float }
