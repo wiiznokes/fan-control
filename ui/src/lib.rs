@@ -17,10 +17,13 @@ use cosmic::{
     app::{Command, Core},
     executor,
     iced::{self, time},
-    iced_core::Length,
+    iced_core::{
+        alignment::{Horizontal, Vertical},
+        Length,
+    },
     iced_widget::PickList,
     theme,
-    widget::{self, Column, Dropdown, Space, Text, TextInput},
+    widget::{self, Dropdown, Space, Text, TextInput},
     ApplicationExt, Element,
 };
 
@@ -38,8 +41,8 @@ mod item;
 pub mod localize;
 mod pick;
 //mod theme;
+mod my_widgets;
 mod utils;
-//mod widgets;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
     let settings = cosmic::app::Settings::default();
@@ -437,12 +440,20 @@ impl cosmic::Application for Ui {
     }
 
     fn view(&self) -> Element<Self::Message> {
+        use my_widgets::floating_element;
+
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        Column::new()
-            .push(items_view(&app_graph.nodes, &app_state.hardware))
-            .into()
+        let create_button =
+            icon_button("sign/plus/add40").on_press(AppMsg::NewNode(NodeTypeLight::Fan));
+
+        floating_element::FloatingElement::new(
+            items_view(&app_graph.nodes, &app_state.hardware),
+            create_button,
+            floating_element::Anchor::new(Vertical::Bottom, Horizontal::Right),
+        )
+        .into()
     }
 
     fn header_start(&self) -> Vec<Element<Self::Message>> {
