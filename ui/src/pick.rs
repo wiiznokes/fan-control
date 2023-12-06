@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{fl, ModifNodeMsg};
+use crate::{fl, AppMsg, ModifNodeMsg};
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
 use data::{app_graph::Nodes, id::Id, node::Node};
 use hardware::{ControlH, FanH, TempH};
@@ -79,14 +79,13 @@ impl<I> ToString for Pick<I> {
     }
 }
 
-pub fn pick_input<'a, M: 'a>(
+pub fn pick_input<'a>(
     node: &'a Node,
     nodes: &'a Nodes,
     current_input: &Option<String>,
     add_none: bool,
-    // todo: try to remove this box with sized
-    map_pick: Box<dyn Fn(Pick<Id>) -> M>,
-) -> Element<'a, M> {
+    map_pick: impl Fn(Pick<Id>) -> AppMsg + 'a,
+) -> Element<'a, AppMsg> {
     let mut input_options = nodes
         .values()
         .filter(|n| {

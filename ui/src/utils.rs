@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use cosmic::widget::{self, icon::Handle, Icon};
+use cosmic::widget::{self, icon::Handle, Icon, IconButton};
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
@@ -40,5 +40,13 @@ pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {
         NodeTypeLight::Flat => "items/horizontal_rule24",
         NodeTypeLight::Linear => "items/linear24",
         NodeTypeLight::Target => "items/my_location24",
+    }
+}
+
+pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
+    if expanded {
+        icon_button("arrow/expand/expand_more24")
+    } else {
+        icon_button("arrow/expand/expand_less24")
     }
 }

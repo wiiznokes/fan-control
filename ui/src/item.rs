@@ -69,11 +69,11 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
         .into()
 }
 
-fn item_view<'a>(node: &'a Node, content: Vec<Element<'a, ModifNodeMsg>>) -> Element<'a, AppMsg> {
+fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
     let mut name = TextInput::new("name", &node.name_cached)
-        .on_input(|s| AppMsg::ModifNode(node.id, ModifNodeMsg::Rename(s)));
+        .on_input(|s| ModifNodeMsg::Rename(s).to_app(node.id));
 
     if node.is_error_name {
         name = name.error("this name is already beeing use");
@@ -87,14 +87,12 @@ fn item_view<'a>(node: &'a Node, content: Vec<Element<'a, ModifNodeMsg>>) -> Ele
         .push(item_icon)
         .push(name)
         .push(delete_button)
-        .align_items(Alignment::Center);
-
-    let content: Element<ModifNodeMsg> = Column::with_children(content).spacing(5).into();
-
-    let column: Element<AppMsg> = Column::new()
-        .push(top)
-        .push(content.map(|m| AppMsg::ModifNode(node.id, m)))
+        .align_items(Alignment::Center)
         .into();
+
+    content.push(top);
+
+    let column = Column::with_children(content).spacing(5);
 
     Container::new(column)
         .width(Length::Fixed(200.0))
@@ -118,19 +116,15 @@ fn control_view<'a>(
     };
 
     let content = vec![
-        pick_hardware(node, &hardware.controls, true),
-        pick_input(
-            node,
-            nodes,
-            &control.input,
-            true,
-            Box::new(ModifNodeMsg::ReplaceInput),
-        ),
+        pick_hardware(node, &hardware.controls, true).map(|m| m.to_app(node.id)),
+        pick_input(node, nodes, &control.input, true, |pick| {
+            ModifNodeMsg::ReplaceInput(pick).to_app(node.id)
+        }),
         Row::new()
             .push(Text::new(node.value_text(&ValueKind::Porcentage)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
             .push(Toggler::new(None, control.active, |is_active| {
-                ModifNodeMsg::Control(ControlMsg::Active(is_active))
+                ModifNodeMsg::Control(ControlMsg::Active(is_active)).to_app(node.id)
             }))
             .align_items(Alignment::Center)
             .width(Length::Fill)
@@ -142,7 +136,7 @@ fn control_view<'a>(
 
 fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        pick_hardware(node, &hardware.temps, false),
+        pick_hardware(node, &hardware.temps, false).map(|m| m.to_app(node.id)),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
@@ -151,7 +145,7 @@ fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> 
 
 fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        pick_hardware(node, &hardware.fans, false),
+        pick_hardware(node, &hardware.fans, false).map(|m| m.to_app(node.id)),
         Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
@@ -164,6 +158,7 @@ pub enum CustomTempMsg {
 }
 
 fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+    let _custom_temp = node.to_custom_temp();
     let NodeType::CustomTemp(custom_temp) = &node.node_type else {
         panic!()
     };
@@ -177,7 +172,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
                 .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
                     icon_button("select/close/close20")
-                        .on_press(ModifNodeMsg::RemoveInput(Pick::new(&i.1, &i.0))),
+                        .on_press(ModifNodeMsg::RemoveInput(Pick::new(&i.1, &i.0)).to_app(node.id)),
                 )
                 .align_items(Alignment::Center)
                 .into()
@@ -191,19 +186,16 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         .collect::<Vec<_>>();
 
     let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
-        ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(k))
+        ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(k)).to_app(node.id)
     })
     .width(Length::Fill)
     .into();
+
     let content = vec![
         pick_kind,
-        pick_input(
-            node,
-            nodes,
-            &Some("Choose Temp".into()),
-            false,
-            Box::new(ModifNodeMsg::AddInput),
-        ),
+        pick_input(node, nodes, &Some("Choose Temp".into()), false, |pick| {
+            ModifNodeMsg::AddInput(pick).to_app(node.id)
+        }),
         Column::with_children(inputs).into(),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
@@ -223,12 +215,14 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
 
     let mut sub_button = icon_button("sign/minus/remove24");
     if flat.value > 0 {
-        sub_button = sub_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value - 1)));
+        sub_button =
+            sub_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value - 1)).to_app(node.id));
     }
 
     let mut add_button = icon_button("sign/plus/add24");
     if flat.value < 100 {
-        add_button = add_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value + 1)));
+        add_button =
+            add_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value + 1)).to_app(node.id));
     }
 
     let buttons = Row::new()
@@ -244,7 +238,7 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
         .into();
 
     let slider = Slider::new(0..=100, flat.value, |v| {
-        ModifNodeMsg::Flat(FlatMsg::Value(v))
+        ModifNodeMsg::Flat(FlatMsg::Value(v)).to_app(node.id)
     })
     .into();
 
@@ -267,13 +261,9 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
     };
 
     let content = vec![
-        pick_input(
-            node,
-            nodes,
-            &linear.input,
-            true,
-            Box::new(ModifNodeMsg::ReplaceInput),
-        ),
+        pick_input(node, nodes, &linear.input, true, |pick| {
+            ModifNodeMsg::ReplaceInput(pick).to_app(node.id)
+        }),
         Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
             "min temp",
@@ -282,7 +272,8 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinTemp(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
         input_line(
             "min speed",
             &linear.min_speed,
@@ -290,7 +281,8 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinSpeed(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
         input_line(
             "max temp",
             &linear.max_temp,
@@ -298,7 +290,8 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxTemp(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
         input_line(
             "max speed",
             &linear.max_speed,
@@ -306,7 +299,8 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxSpeed(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
     ];
 
     item_view(node, content)
@@ -326,13 +320,9 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
     };
 
     let content = vec![
-        pick_input(
-            node,
-            nodes,
-            &target.input,
-            true,
-            Box::new(ModifNodeMsg::ReplaceInput),
-        ),
+        pick_input(node, nodes, &target.input, true, |pick| {
+            ModifNodeMsg::ReplaceInput(pick).to_app(node.id)
+        }),
         Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
             "idle temp",
@@ -341,7 +331,8 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleTemp(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
         input_line(
             "idle speed",
             &target.idle_speed,
@@ -349,7 +340,8 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleSpeed(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
         input_line(
             "load temp",
             &target.load_temp,
@@ -357,7 +349,8 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadTemp(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
         input_line(
             "load speed",
             &target.load_speed,
@@ -365,7 +358,8 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadSpeed(val, cached_val)),
-        ),
+        )
+        .map(|m| m.to_app(node.id)),
     ];
 
     item_view(node, content)

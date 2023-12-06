@@ -54,6 +54,12 @@ where
         self.show = show;
         self
     }
+
+    #[must_use]
+    pub fn on_dismiss(mut self, message: Option<Message>) -> Self {
+        self.on_dismiss = message;
+        self
+    }
 }
 
 impl<'a, Content, Message, Renderer> Widget<Message, Renderer>

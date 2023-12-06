@@ -240,7 +240,7 @@ impl NodeType {
             NodeType::Control(i) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
             NodeType::Fan(_) => Vec::new(),
             NodeType::Temp(_) => Vec::new(),
-            NodeType::CustomTemp(i) => i.input.clone(),
+            NodeType::CustomTemp(i) => i.inputs.clone(),
             NodeType::Graph(i) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
             NodeType::Flat(_) => Vec::new(),
             NodeType::Linear(i, ..) => i.input.clone().map_or(Vec::new(), |i| vec![i]),
@@ -259,7 +259,7 @@ impl NodeType {
                 }
             },
             NodeType::CustomTemp(i) => {
-                i.input = inputs;
+                i.inputs = inputs;
             }
             NodeType::Graph(i) => match inputs.get(0) {
                 Some(input) => {

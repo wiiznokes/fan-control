@@ -5,7 +5,6 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    dir_manager::filter_none,
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,
@@ -21,9 +20,8 @@ use cosmic::{
         alignment::{Horizontal, Vertical},
         Length,
     },
-    iced_widget::PickList,
     theme,
-    widget::{self, Dropdown, Space, Text, TextInput},
+    widget::{self, Dropdown, Space, Text},
     ApplicationExt, Element,
 };
 
@@ -42,6 +40,7 @@ mod item;
 #[macro_use]
 pub mod localize;
 mod add_node;
+mod headers;
 mod my_widgets;
 mod pick;
 mod utils;
@@ -75,12 +74,19 @@ pub enum AppMsg {
     NewNode(NodeTypeLight),
     DeleteNode(Id),
     Settings(SettingsMsg),
-    CreateButton(bool),
+
+    Ui(UiMsg),
+}
+
+#[derive(Debug, Clone)]
+pub enum UiMsg {
+    ToggleCreateButton(bool),
+    ToggleCustomTempKind(Id, bool),
+    ToggleSettings,
 }
 
 #[derive(Debug, Clone)]
 pub enum SettingsMsg {
-    Toggle,
     ChangeTheme(AppTheme),
 }
 
@@ -97,6 +103,12 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
+}
+
+impl ModifNodeMsg {
+    pub fn to_app(self, id: Id) -> AppMsg {
+        AppMsg::ModifNode(id, self)
+    }
 }
 
 impl cosmic::Application for Ui {
@@ -252,7 +264,7 @@ impl cosmic::Application for Ui {
                         node.inputs.push(pick.to_couple().unwrap());
 
                         match &mut node.node_type {
-                            NodeType::CustomTemp(i) => i.input.push(pick.name().unwrap()),
+                            NodeType::CustomTemp(i) => i.inputs.push(pick.name().unwrap()),
                             _ => panic!("node have not multiple inputs"),
                         }
                     }
@@ -263,7 +275,7 @@ impl cosmic::Application for Ui {
 
                         match &mut node.node_type {
                             NodeType::CustomTemp(i) => {
-                                i.input.remove_elem(|n| n == &pick.name().unwrap());
+                                i.inputs.remove_elem(|n| n == &pick.name().unwrap());
                             }
                             _ => panic!("node have not multiple inputs"),
                         }
@@ -413,10 +425,6 @@ impl cosmic::Application for Ui {
                 self.cache.current_config = name;
             }
             AppMsg::Settings(settings_msg) => match settings_msg {
-                SettingsMsg::Toggle => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title("Settings".into());
-                }
                 SettingsMsg::ChangeTheme(theme) => {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
@@ -439,7 +447,19 @@ impl cosmic::Application for Ui {
 
                 self.app_state.app_graph.sanitize_inputs()
             }
-            AppMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
+            AppMsg::Ui(ui_msg) => match ui_msg {
+                UiMsg::ToggleCreateButton(expanded) => self.create_button_expanded = expanded,
+                UiMsg::ToggleCustomTempKind(id, expanded) => {
+                    self.app_state
+                        .app_graph
+                        .get_custom_temp_mut(id)
+                        .kind_expanded = expanded;
+                }
+                UiMsg::ToggleSettings => {
+                    self.core.window.show_context = !self.core.window.show_context;
+                    self.set_context_title("Settings".into());
+                }
+            },
         }
 
         Command::none()
@@ -459,7 +479,7 @@ impl cosmic::Application for Ui {
         .offset(floating_element::Offset::new(15.0, 10.0));
 
         if self.create_button_expanded {
-            content = content.on_dismiss(Some(AppMsg::CreateButton(false)));
+            content = content.on_dismiss(Some(AppMsg::Ui(UiMsg::ToggleCreateButton(false))));
         }
 
         content.into()
@@ -479,68 +499,14 @@ impl cosmic::Application for Ui {
     }
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
-        let settings = self.app_state.dir_manager.settings();
-        let dir_manager = &self.app_state.dir_manager;
-
-        let mut elems = vec![];
-
-        if settings.current_config.is_some() {
-            let save_button = icon_button("topBar/save40")
-                .on_press(AppMsg::SaveConfig)
-                .into();
-
-            elems.push(save_button);
-        }
-
-        let mut name = TextInput::new(&fl!("config_name"), &self.cache.current_config)
-            .on_input(AppMsg::RenameConfig)
-            .width(Length::Fixed(150.0));
-
-        if dir_manager
-            .config_names
-            .is_valid_name(&self.cache.current_config)
-        {
-            name = name.error("this name is already beeing use");
-        }
-
-        elems.push(name.into());
-
-        if !dir_manager.config_names.is_empty() {
-            let selected = match &settings.current_config {
-                Some(name) => name.clone(),
-                None => fl!("none"),
-            };
-            let selection = PickList::new(
-                dir_manager.config_names.names(&settings.current_config),
-                Some(selected),
-                |name| AppMsg::ChangeConfig(filter_none(name)),
-            )
-            .width(Length::Fixed(100.0))
-            .into();
-
-            elems.push(selection);
-        }
-
-        let mut new_button = icon_button("sign/plus/add40");
-
-        if dir_manager
-            .config_names
-            .is_valid_create(&self.cache.current_config)
-        {
-            new_button =
-                new_button.on_press(AppMsg::CreateConfig(self.cache.current_config.to_owned()));
-        }
-
-        elems.push(new_button.into());
-
-        elems
+        headers::header_center(&self.app_state.dir_manager, &self.cache.current_config)
     }
 
     fn header_end(&self) -> Vec<Element<Self::Message>> {
         let mut elems = vec![];
 
         let settings_button = icon_button("topBar/settings40")
-            .on_press(AppMsg::Settings(SettingsMsg::Toggle))
+            .on_press(AppMsg::Ui(UiMsg::ToggleSettings))
             .into();
         elems.push(settings_button);
 
