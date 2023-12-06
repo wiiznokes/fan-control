@@ -242,7 +242,7 @@ where
 {
     /// Creates a new [`FloatingElementOverlay`] containing the given
     /// [`Element`](iced_widget::core::Element).
-    pub fn new(
+    fn new(
         state: &'b mut Tree,
         element: &'b mut Element<'a, Message, Renderer>,
         anchor: &'b Anchor,
