@@ -1,5 +1,5 @@
 use cosmic::{
-    iced,
+    iced::{self, keyboard, touch},
     iced_core::{
         alignment::{Horizontal, Vertical},
         widget::OperationOutputWrapper,
@@ -26,6 +26,7 @@ pub use offset::Offset;
 pub struct FloatingElement<'a, Message, Renderer = iced::Renderer>
 where
     Renderer: core::Renderer,
+    Message: Clone,
 {
     anchor: Anchor,
     offset: Offset,
@@ -38,6 +39,7 @@ where
 impl<'a, Message, Renderer> FloatingElement<'a, Message, Renderer>
 where
     Renderer: core::Renderer,
+    Message: Clone,
 {
     pub fn new<U, B>(underlay: U, element: B, anchor: Anchor) -> Self
     where
@@ -72,7 +74,6 @@ where
     }
 
     /// Trigger when a click is made outside of the floating element
-    // todo
     #[must_use]
     pub fn on_dismiss(mut self, message: Option<Message>) -> Self {
         self.on_dismiss = message;
@@ -82,7 +83,7 @@ where
 
 impl<'a, Message, Renderer> Widget<Message, Renderer> for FloatingElement<'a, Message, Renderer>
 where
-    Message: 'a,
+    Message: 'a + Clone,
     Renderer: core::Renderer,
 {
     fn children(&self) -> Vec<Tree> {
@@ -201,6 +202,7 @@ where
                     &mut self.element,
                     &self.anchor,
                     &self.offset,
+                    &self.on_dismiss,
                     bounds,
                 )),
             ))
@@ -213,7 +215,7 @@ where
 impl<'a, Message, Renderer> From<FloatingElement<'a, Message, Renderer>>
     for Element<'a, Message, Renderer>
 where
-    Message: 'a,
+    Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
 {
     fn from(floating_element: FloatingElement<'a, Message, Renderer>) -> Self {
@@ -221,25 +223,22 @@ where
     }
 }
 
-/// The internal overlay of a [`FloatingElement`](crate::FloatingElement) for
-/// rendering a [`Element`](iced_widget::core::Element) as an overlay.
-#[allow(missing_debug_implementations)]
-struct FloatingElementOverlay<'a, 'b, Message, Renderer: core::Renderer> {
-    /// The state of the element.
+struct FloatingElementOverlay<'a, 'b, Message, Renderer: core::Renderer>
+where
+    Message: Clone,
+{
     state: &'b mut Tree,
-    /// The floating element
     element: &'b mut Element<'a, Message, Renderer>,
-    /// The anchor of the element.
     anchor: &'b Anchor,
-    /// The offset of the element.
     offset: &'b Offset,
-    /// The bounds of the underlay element.
+    on_dismiss: &'b Option<Message>,
     underlay_bounds: Rectangle,
 }
 
 impl<'a, 'b, Message, Renderer> FloatingElementOverlay<'a, 'b, Message, Renderer>
 where
     Renderer: core::Renderer,
+    Message: Clone,
 {
     /// Creates a new [`FloatingElementOverlay`] containing the given
     /// [`Element`](iced_widget::core::Element).
@@ -248,6 +247,7 @@ where
         element: &'b mut Element<'a, Message, Renderer>,
         anchor: &'b Anchor,
         offset: &'b Offset,
+        on_dismiss: &'b Option<Message>,
         underlay_bounds: Rectangle,
     ) -> Self {
         FloatingElementOverlay {
@@ -255,6 +255,7 @@ where
             element,
             anchor,
             offset,
+            on_dismiss,
             underlay_bounds,
         }
     }
@@ -264,6 +265,7 @@ impl<'a, 'b, Message, Renderer> core::Overlay<Message, Renderer>
     for FloatingElementOverlay<'a, 'b, Message, Renderer>
 where
     Renderer: core::Renderer,
+    Message: Clone,
 {
     fn layout(&self, renderer: &Renderer, _bounds: Size, position: Point) -> layout::Node {
         // Constrain overlay to fit inside the underlay's bounds
@@ -327,6 +329,27 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<Message>,
     ) -> event::Status {
+        if let Some(message) = self.on_dismiss {
+            match event {
+                Event::Keyboard(keyboard::Event::KeyPressed { key_code, .. }) => {
+                    if key_code == keyboard::KeyCode::Escape {
+                        shell.publish(message.clone());
+                    }
+                }
+
+                Event::Mouse(mouse::Event::ButtonPressed(
+                    mouse::Button::Left | mouse::Button::Right,
+                ))
+                | Event::Touch(touch::Event::FingerPressed { .. }) => {
+                    if !cursor.is_over(layout.bounds()) {
+                        shell.publish(message.clone());
+                    }
+                }
+
+                _ => {}
+            }
+        }
+
         self.element.as_widget_mut().on_event(
             self.state,
             event,
