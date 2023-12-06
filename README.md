@@ -25,10 +25,10 @@
     - [x] impl UI for managing configs
     - [x] impl UI for removing nodes
     - [x] impl UI settings page
-    - [ ] impl UI for adding nodes
+    - [x] impl UI for adding nodes
     - [ ] impl UI for removing config
     - [ ] CustomDropDown widget
-    - [ ] FloatingElement witget
+    - [x] FloatingElement witget
 - [ ] impl UI graph behavior
 - [x] icons
 - [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))

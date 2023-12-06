@@ -18,7 +18,7 @@ use hardware::Hardware;
 use crate::{
     input_line::{input_line, InputLineUnit},
     pick::{pick_hardware, pick_input, Pick},
-    utils::{icon_button, my_icon},
+    utils::{icon_button, icon_path_for_node_type, my_icon},
     AppMsg, ModifNodeMsg,
 };
 
@@ -70,16 +70,7 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
 }
 
 fn item_view<'a>(node: &'a Node, content: Vec<Element<'a, ModifNodeMsg>>) -> Element<'a, AppMsg> {
-    let item_icon = match node.node_type {
-        NodeType::Control(_) => my_icon("items/speed24"),
-        NodeType::Fan(_) => my_icon("items/toys_fan24"),
-        NodeType::Temp(_) => my_icon("items/thermometer24"),
-        NodeType::CustomTemp(_) => my_icon("items/thermostat24"),
-        NodeType::Graph(_) => todo!(),
-        NodeType::Flat(_) => my_icon("items/horizontal_rule24"),
-        NodeType::Linear(_, _) => my_icon("items/linear24"),
-        NodeType::Target(_, _) => my_icon("items/my_location24"),
-    };
+    let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
     let mut name = TextInput::new("name", &node.name_cached)
         .on_input(|s| AppMsg::ModifNode(node.id, ModifNodeMsg::Rename(s)));
