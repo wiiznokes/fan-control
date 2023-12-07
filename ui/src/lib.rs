@@ -12,25 +12,20 @@ use data::{
     AppState,
 };
 
-use cosmic::{
-    app::{Command, Core},
-    executor,
-    iced::{self, time},
-    iced_core::{
-        alignment::{Horizontal, Vertical},
-        Length,
-    },
-    theme,
-    widget::{self, Dropdown, Space, Text},
-    ApplicationExt, Element,
+use iced::{
+    alignment::{Horizontal, Vertical},
+    executor, time,
+    widget::{Column, Row, Space},
+    Application, Command, Element, Length,
 };
-
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 use pick::Pick;
 use strum::IntoEnumIterator;
-use utils::{icon_button, my_icon};
 
-use crate::add_node::add_node_button_view;
+use crate::{
+    add_node::add_node_button_view,
+    headers::{header_center, header_end, header_start, header_wrapper},
+};
 
 #[macro_use]
 extern crate log;
@@ -40,21 +35,22 @@ mod item;
 #[macro_use]
 pub mod localize;
 mod add_node;
+//mod drawer;
 mod headers;
 mod my_widgets;
 mod pick;
 mod utils;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
-    let settings = cosmic::app::Settings::default();
-    cosmic::app::run::<Ui>(settings, app_state)?;
+    let settings = iced::Settings::with_flags(app_state);
+    Ui::run(settings)?;
     Ok(())
 }
 pub struct Ui {
-    core: Core,
     app_state: AppState,
     cache: AppCache,
     create_button_expanded: bool,
+    settings_expanded: bool,
 }
 
 pub struct AppCache {
@@ -82,7 +78,7 @@ pub enum AppMsg {
 pub enum UiMsg {
     ToggleCreateButton(bool),
     ToggleCustomTempKind(Id, bool),
-    ToggleSettings,
+    ToggleSettings(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -111,22 +107,17 @@ impl ModifNodeMsg {
     }
 }
 
-impl cosmic::Application for Ui {
+impl iced::Application for Ui {
     type Executor = executor::Default;
     type Message = AppMsg;
     type Flags = AppState;
+    type Theme = iced::Theme;
 
-    const APP_ID: &'static str = "com.wiiznokes.fan-control";
-
-    fn core(&self) -> &Core {
-        &self.core
+    fn title(&self) -> String {
+        "fan-control".into()
     }
 
-    fn core_mut(&mut self) -> &mut Core {
-        &mut self.core
-    }
-
-    fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let app_cache = AppCache {
             current_config: flags
                 .dir_manager
@@ -139,8 +130,8 @@ impl cosmic::Application for Ui {
         let ui_state = Ui {
             cache: app_cache,
             app_state: flags,
-            core,
             create_button_expanded: false,
+            settings_expanded: false,
         };
         (ui_state, Command::none())
     }
@@ -429,8 +420,6 @@ impl cosmic::Application for Ui {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
                     });
-                    return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
-                    // todo: save on fs
                 }
             },
             AppMsg::NewNode(node_type_light) => {
@@ -455,9 +444,8 @@ impl cosmic::Application for Ui {
                         .get_custom_temp_mut(id)
                         .kind_expanded = expanded;
                 }
-                UiMsg::ToggleSettings => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title("Settings".into());
+                UiMsg::ToggleSettings(expanded) => {
+                    self.settings_expanded = expanded;
                 }
             },
         }
@@ -471,72 +459,34 @@ impl cosmic::Application for Ui {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let mut content = floating_element::FloatingElement::new(
-            items_view(&app_graph.nodes, &app_state.hardware),
+        let header_bar = Row::new()
+            .push(header_wrapper(header_start()))
+            .push(Space::new(Length::Fill, 0.0))
+            .push(header_wrapper(header_center(
+                &app_state.dir_manager,
+                &self.cache.current_config,
+            )))
+            .push(header_wrapper(header_end(self.settings_expanded)))
+            .align_items(iced::Alignment::Center)
+            .width(Length::Fill);
+
+        let content = Column::new()
+            .push(header_bar)
+            .push(items_view(&app_graph.nodes, &app_state.hardware));
+
+        let mut content_with_floating_button = floating_element::FloatingElement::new(
+            content,
             add_node_button_view(self.create_button_expanded),
             floating_element::Anchor::new(Vertical::Bottom, Horizontal::Right),
         )
         .offset(floating_element::Offset::new(15.0, 10.0));
 
         if self.create_button_expanded {
-            content = content.on_dismiss(Some(AppMsg::Ui(UiMsg::ToggleCreateButton(false))));
+            content_with_floating_button = content_with_floating_button
+                .on_dismiss(Some(AppMsg::Ui(UiMsg::ToggleCreateButton(false))));
         }
 
-        content.into()
-    }
-
-    fn header_start(&self) -> Vec<Element<Self::Message>> {
-        let mut elems = vec![];
-
-        let app_icon = my_icon("app/toys_fan48").into();
-        elems.push(app_icon);
-
-        elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
-
-        let app_name = Text::new("fan-control").into();
-        elems.push(app_name);
-        elems
-    }
-
-    fn header_center(&self) -> Vec<Element<Self::Message>> {
-        headers::header_center(&self.app_state.dir_manager, &self.cache.current_config)
-    }
-
-    fn header_end(&self) -> Vec<Element<Self::Message>> {
-        let mut elems = vec![];
-
-        let settings_button = icon_button("topBar/settings40")
-            .on_press(AppMsg::Ui(UiMsg::ToggleSettings))
-            .into();
-        elems.push(settings_button);
-
-        elems
-    }
-
-    fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        if !self.core.window.show_context {
-            return None;
-        }
-        let app_theme_selected = AppTheme::iter()
-            .position(|e| e == self.app_state.dir_manager.settings().theme)
-            .unwrap();
-
-        let settings_context =
-            widget::settings::view_column(vec![widget::settings::view_section("")
-                .add(
-                    widget::settings::item::builder("Theme").control(Dropdown::new(
-                        &self.cache.theme_list,
-                        Some(app_theme_selected),
-                        move |index| {
-                            let theme = AppTheme::iter().nth(index).unwrap();
-                            AppMsg::Settings(SettingsMsg::ChangeTheme(theme))
-                        },
-                    )),
-                )
-                .into()])
-            .into();
-
-        Some(settings_context)
+        content_with_floating_button.into()
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
@@ -546,13 +496,5 @@ impl cosmic::Application for Ui {
         .map(|_| AppMsg::Tick)
 
         //cosmic::iced_futures::Subscription::none()
-    }
-}
-
-fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
-    match theme {
-        AppTheme::Dark => theme::Theme::dark(),
-        AppTheme::Light => theme::Theme::light(),
-        AppTheme::System => theme::system_preference(),
     }
 }

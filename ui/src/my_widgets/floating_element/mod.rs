@@ -1,21 +1,19 @@
-use cosmic::{
-    iced::{self, keyboard, touch},
-    iced_core::{
-        alignment::{Horizontal, Vertical},
-        widget::OperationOutputWrapper,
+use iced::{
+    self,
+    advanced::{
+        layout,
+        widget::{Operation, Tree},
     },
-    iced_widget,
-};
-use iced_widget::core::{
-    self, event,
-    layout::{Limits, Node},
+    advanced::{
+        layout::{Limits, Node},
+        Clipboard, Layout, Shell, Widget,
+    },
+    advanced::{renderer, Overlay},
+    alignment::{Horizontal, Vertical},
+    event, keyboard,
     mouse::{self, Cursor},
-    overlay, renderer,
-    widget::{Operation, Tree},
-    Clipboard, Element, Event, Layout, Length, Rectangle, Shell, Widget,
+    overlay, touch, Element, Event, Length, Point, Rectangle, Size,
 };
-
-use iced_widget::core::{layout, Point, Size};
 
 mod anchor;
 mod offset;
@@ -25,7 +23,7 @@ pub use offset::Offset;
 
 pub struct FloatingElement<'a, Message, Renderer = iced::Renderer>
 where
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
     Message: Clone,
 {
     anchor: Anchor,
@@ -38,7 +36,7 @@ where
 
 impl<'a, Message, Renderer> FloatingElement<'a, Message, Renderer>
 where
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
     Message: Clone,
 {
     pub fn new<U, B>(underlay: U, element: B, anchor: Anchor) -> Self
@@ -84,7 +82,7 @@ where
 impl<'a, Message, Renderer> Widget<Message, Renderer> for FloatingElement<'a, Message, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     fn width(&self) -> Length {
         self.underlay.as_widget().width()
@@ -123,8 +121,8 @@ where
         vec![Tree::new(&self.underlay), Tree::new(&self.element)]
     }
 
-    fn diff(&mut self, tree: &mut Tree) {
-        tree.diff_children(&mut [&mut self.underlay, &mut self.element]);
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(&[&self.underlay, &self.element]);
     }
 
     fn operate<'b>(
@@ -132,7 +130,7 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
+        operation: &mut dyn Operation<Message>,
     ) {
         self.underlay
             .as_widget()
@@ -216,14 +214,14 @@ impl<'a, Message, Renderer> From<FloatingElement<'a, Message, Renderer>>
     for Element<'a, Message, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: 'a + core::Renderer,
+    Renderer: 'a + renderer::Renderer,
 {
     fn from(floating_element: FloatingElement<'a, Message, Renderer>) -> Self {
         Element::new(floating_element)
     }
 }
 
-struct FloatingElementOverlay<'a, 'b, Message, Renderer: core::Renderer>
+struct FloatingElementOverlay<'a, 'b, Message, Renderer: renderer::Renderer>
 where
     Message: Clone,
 {
@@ -237,7 +235,7 @@ where
 
 impl<'a, 'b, Message, Renderer> FloatingElementOverlay<'a, 'b, Message, Renderer>
 where
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
     Message: Clone,
 {
     /// Creates a new [`FloatingElementOverlay`] containing the given
@@ -261,10 +259,10 @@ where
     }
 }
 
-impl<'a, 'b, Message, Renderer> core::Overlay<Message, Renderer>
+impl<'a, 'b, Message, Renderer> Overlay<Message, Renderer>
     for FloatingElementOverlay<'a, 'b, Message, Renderer>
 where
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
     Message: Clone,
 {
     fn layout(&self, renderer: &Renderer, _bounds: Size, position: Point) -> layout::Node {

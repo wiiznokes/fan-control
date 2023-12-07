@@ -1,9 +1,8 @@
 use std::ops::{Add, RangeInclusive, Sub};
 
-use cosmic::{
-    iced_core::{Alignment, Length},
+use iced::{
     widget::{Column, Row, Space, Text, TextInput},
-    Element,
+    Alignment, Element, Length,
 };
 
 use crate::{utils::icon_button, ModifNodeMsg};
@@ -66,7 +65,7 @@ where
         None
     };
 
-    let mut input = TextInput::new("value", cached_value)
+    let input = TextInput::new("value", cached_value)
         .on_input(move |s| {
             let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
                 Some(value_not_tested) => match range.contains(&value_not_tested) {
@@ -86,7 +85,8 @@ where
     };
 
     if is_error {
-        input = input.error("this value is invalid");
+        // todo
+        //input = input.error("this value is invalid");
     }
 
     let unit_text = match unit {

@@ -1,4 +1,4 @@
-use cosmic::iced_core::Point;
+use iced::Point;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Offset {

@@ -15,16 +15,23 @@ lazy_static.workspace = true
 strum.workspace = true
 once_cell = "1.18"
 
-[dependencies.libcosmic]
-git = "https://github.com/wiiznokes/libcosmic"
-branch = "flags-not-clone"
-default-features = false
+[dependencies.iced]
+version = "0.10"
 features = [
-    #"a11y",
-    #"debug",
-    #"serde-keycode",
     "smol",
-    #"wayland",
-    "wgpu",
-    "winit"
+    "svg",
+    "advanced",
 ]
+# [dependencies.libcosmic]
+# git = "https://github.com/wiiznokes/libcosmic"
+# branch = "flags-not-clone"
+# default-features = false
+# features = [
+#     #"a11y",
+#     #"debug",
+#     #"serde-keycode",
+#     "smol",
+#     #"wayland",
+#     "wgpu",
+#     "winit"
+# ]

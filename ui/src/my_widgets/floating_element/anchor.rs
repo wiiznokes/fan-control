@@ -1,4 +1,4 @@
-use cosmic::iced_core::alignment::{Horizontal, Vertical};
+use iced::alignment::{Horizontal, Vertical};
 
 pub struct Anchor {
     pub vertical: Vertical,

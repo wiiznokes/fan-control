@@ -1,4 +1,8 @@
-use cosmic::{iced_widget::Column, widget::IconButton, Element};
+use iced::{
+    widget::{Button, Column},
+    Element,
+};
+
 use data::node::NodeTypeLight;
 
 use crate::{
@@ -24,14 +28,11 @@ pub fn add_node_button_view(expanded: bool) -> Element<'static, AppMsg> {
 
         false => icon_button("sign/plus/add40")
             .on_press(AppMsg::Ui(UiMsg::ToggleCreateButton(true)))
-            .tooltip(fl!("add_item"))
             .into(),
     }
 }
 
-fn add_item<'a>(kind: NodeTypeLight, desc: String) -> IconButton<'a, AppMsg> {
+fn add_item<'a>(kind: NodeTypeLight, _desc: String) -> Button<'a, AppMsg> {
     let icon_path = icon_path_for_node_type(&kind);
-    icon_button(icon_path)
-        .on_press(AppMsg::NewNode(kind.clone()))
-        .tooltip(desc)
+    icon_button(icon_path).on_press(AppMsg::NewNode(kind.clone()))
 }

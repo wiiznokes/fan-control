@@ -1,13 +1,11 @@
-use cosmic::{
-    iced_core::{Alignment, Length, Padding},
-    iced_widget::{
+use iced::{
+    widget::{
         scrollable::{Direction, Properties},
-        Scrollable, Toggler,
+        Column, Container, Row, Scrollable, Slider, Space, Text, TextInput, Toggler,
     },
-    style,
-    widget::{Column, Container, Row, Slider, Space, Text, TextInput},
-    Element,
+    Alignment, Element, Length, Padding,
 };
+
 use data::{
     app_graph::Nodes,
     config::custom_temp::CustomTempKind,
@@ -70,35 +68,35 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
         .into()
 }
 
-fn item_view<'a>(node: &'a Node, mut content: Vec<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
+fn item_view<'a>(node: &'a Node, bottom: impl Into<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
-    let mut name = TextInput::new("name", &node.name_cached)
-        .on_input(|s| ModifNodeMsg::Rename(s).to_app(node.id));
+    let name = TextInput::new("name", &node.name_cached)
+        .on_input(|s| ModifNodeMsg::Rename(s).to_app(node.id))
+        .width(Length::Fill);
 
     if node.is_error_name {
-        name = name.error("this name is already beeing use");
+        // todo
+        //name = name.error("this name is already beeing use");
     }
 
-    // todo: dropdown menu
+    // todo: context menu
     let delete_button =
         icon_button("select/delete_forever24").on_press(AppMsg::DeleteNode(node.id));
 
     let top = Row::new()
         .push(item_icon)
         .push(name)
+        //.push(Space::new(Length::Fill, 0.0))
         .push(delete_button)
         .align_items(Alignment::Center)
-        .into();
+        .width(Length::Fill);
 
-    content.push(top);
+    let content = Column::new().push(top).push(bottom).spacing(5);
 
-    let column = Column::with_children(content).spacing(5);
-
-    Container::new(column)
+    Container::new(content)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
-        .style(style::Container::Card)
         .into()
 }
 
@@ -132,7 +130,7 @@ fn control_view<'a>(
             .into(),
     ];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
 
 fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
@@ -141,7 +139,7 @@ fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> 
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
 
 fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
@@ -150,7 +148,7 @@ fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
         Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -236,7 +234,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -280,7 +278,7 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
 
     let content = vec![buttons, slider];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -339,7 +337,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         .map(|m| m.to_app(node.id)),
     ];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -398,5 +396,5 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         .map(|m| m.to_app(node.id)),
     ];
 
-    item_view(node, content)
+    item_view(node, Column::with_children(content))
 }
