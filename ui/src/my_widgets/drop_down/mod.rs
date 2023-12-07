@@ -60,8 +60,7 @@ where
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Renderer>
-    for DropDown<'a, Message, Renderer>
+impl<'a, Message, Renderer> Widget<Message, Renderer> for DropDown<'a, Message, Renderer>
 where
     Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
@@ -114,11 +113,9 @@ where
         renderer: &Renderer,
         operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
     ) {
-        info!("operate");
-        
         self.underlay
-                .as_widget()
-                .operate(&mut state.children[0], layout, renderer, operation);
+            .as_widget()
+            .operate(&mut state.children[0], layout, renderer, operation);
     }
 
     fn on_event(
@@ -167,10 +164,6 @@ where
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'b, Message, Renderer>> {
-        dbg!("in over");
-
-        info!("in overlay");
-
         if !self.expanded {
             return self
                 .underlay
@@ -178,27 +171,21 @@ where
                 .overlay(&mut state.children[0], layout, renderer);
         }
 
-        if state.children.len() == 2 {
-            let bounds = layout.bounds();
-            info!("will generate overlay");
-            Some(overlay::Element::new(
-                bounds.position(),
-                Box::new(DropDownOverlay::new(
-                    &mut state.children[1],
-                    &mut self.overlay,
-                    &self.on_dismiss,
-                    bounds,
-                )),
-            ))
-        } else {
-            info!("will not generate overlay");
-            None
-        }
+        let bounds = layout.bounds();
+
+        Some(overlay::Element::new(
+            bounds.position(),
+            Box::new(DropDownOverlay::new(
+                &mut state.children[1],
+                &mut self.overlay,
+                &self.on_dismiss,
+                bounds,
+            )),
+        ))
     }
 }
 
-impl<'a, Message, Renderer> From<DropDown<'a, Message, Renderer>>
-    for Element<'a, Message, Renderer>
+impl<'a, Message, Renderer> From<DropDown<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
     Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
@@ -244,13 +231,18 @@ where
     Message: Clone,
     Renderer: core::Renderer,
 {
-    fn layout(&self, renderer: &Renderer, bounds: Size, position: Point) -> Node {
+    fn layout(&self, renderer: &Renderer, bounds: Size, _position: Point) -> Node {
         let limits = Limits::new(Size::ZERO, bounds);
-        let max_size = limits.max();
 
         let mut node = self.element.as_widget().layout(renderer, &limits);
 
-        node.move_to(self.underlay_bounds.position());
+        let mut position = self.underlay_bounds.position();
+
+        let offset = 5.0;
+
+        position.y += self.underlay_bounds.height + offset;
+
+        node.move_to(position);
 
         node
     }
@@ -290,7 +282,7 @@ where
                     mouse::Button::Left | mouse::Button::Right,
                 ))
                 | Event::Touch(touch::Event::FingerPressed { .. }) => {
-                    if !cursor.is_over(layout.bounds()) {
+                    if !cursor.is_over(layout.bounds()) && !cursor.is_over(self.underlay_bounds) {
                         shell.publish(message.clone());
                     }
                 }

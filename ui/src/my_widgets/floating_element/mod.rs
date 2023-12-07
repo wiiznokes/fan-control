@@ -388,8 +388,6 @@ where
             .mouse_interaction(self.state, layout, cursor, viewport, renderer)
     }
 
-   
-
     fn overlay<'c>(
         &'c mut self,
         layout: Layout<'_>,
