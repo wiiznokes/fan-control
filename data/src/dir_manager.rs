@@ -65,8 +65,11 @@ impl DirManager {
 
         if let Some(config_name) = args.config_name {
             let config_name = remove_toml_ext(&config_name).to_owned();
-            if config_names.contains(&config_name) {
-                settings.current_config = Some(config_name);
+            settings.current_config = if config_names.contains(&config_name) {
+                Some(config_name)
+            } else {
+                warn!("config gave as parameter not exist");
+                None
             }
         };
 
@@ -256,7 +259,8 @@ impl ConfigNames {
                 continue;
             }
 
-            if serde_helper::deserialize::<Config>(&file.path()).is_err() {
+            if let Err(e) = serde_helper::deserialize::<Config>(&file.path()) {
+                warn!("error while deserialize conifg in config dir: {}", e);
                 continue;
             }
 
