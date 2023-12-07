@@ -39,6 +39,7 @@ mod add_node;
 mod headers;
 mod my_widgets;
 mod pick;
+mod theme;
 mod utils;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {

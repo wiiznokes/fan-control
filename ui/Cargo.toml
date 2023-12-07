@@ -8,7 +8,7 @@ edition = "2021"
 data.workspace = true
 hardware.workspace = true
 log.workspace = true
-i18n-embed.workspace = true
+i18n-embed.workspace = true 
 i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 lazy_static.workspace = true
@@ -16,7 +16,11 @@ strum.workspace = true
 once_cell = "1.18"
 
 [dependencies.iced]
-version = "0.10"
+#branch = "dev"
+#version = "0.10"
+#path = "./../iced"
+git = "https://github.com/iced-rs/iced.git"
+rev = "eaaea414b8544b883c0388a5a92cbb0df7fc6633"
 features = [
     "smol",
     "svg",

@@ -8,7 +8,7 @@ use iced::{
     advanced::{renderer, Overlay},
     event, keyboard,
     mouse::{self, Cursor},
-    overlay, touch, Element, Event, Length, Point, Rectangle, Size,
+    overlay, touch, Element, Event, Length, Point, Rectangle, Size, Vector,
 };
 
 pub struct DropDown<'a, Message, Renderer = iced::Renderer>
@@ -72,8 +72,10 @@ where
         self.underlay.as_widget().height()
     }
 
-    fn layout(&self, renderer: &Renderer, limits: &Limits) -> Node {
-        self.underlay.as_widget().layout(renderer, limits)
+    fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
+        self.underlay
+            .as_widget()
+            .layout(&mut tree.children[0], renderer, limits)
     }
 
     fn draw(
@@ -230,10 +232,19 @@ where
     Message: Clone,
     Renderer: renderer::Renderer,
 {
-    fn layout(&self, renderer: &Renderer, bounds: Size, _position: Point) -> Node {
+    fn layout(
+        &mut self,
+        renderer: &Renderer,
+        bounds: Size,
+        _position: Point,
+        _translation: Vector,
+    ) -> Node {
         let limits = Limits::new(Size::ZERO, bounds);
 
-        let mut node = self.element.as_widget().layout(renderer, &limits);
+        let mut node = self
+            .element
+            .as_widget()
+            .layout(self.state, renderer, &limits);
 
         let mut position = self.underlay_bounds.position();
 

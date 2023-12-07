@@ -1,5 +1,8 @@
 use data::node::NodeTypeLight;
-use iced::{widget::{self, svg::Handle, Button}, Length};
+use iced::{
+    widget::{self, svg::Handle, Button},
+    Length,
+};
 use once_cell::sync::Lazy;
 
 static RESSOURCE_PATH: &str = "./ressource/icons/";
@@ -13,8 +16,7 @@ pub fn icon_button<M>(name: &str) -> Button<M> {
 
 pub fn my_icon(name: &str) -> widget::svg::Svg {
     let handle = get_handle_icon(name);
-    widget::svg::Svg::new(handle)
-    .width(Length::Shrink)
+    widget::svg::Svg::new(handle).width(Length::Shrink)
 }
 
 fn get_handle_icon(name: &str) -> Handle {
