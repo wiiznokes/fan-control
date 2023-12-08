@@ -1,6 +1,6 @@
 use cosmic::{
     iced::{self, keyboard, touch},
-    iced_core::{widget::OperationOutputWrapper, Size},
+    iced_core::{widget::OperationOutputWrapper, Size, Vector},
     iced_widget,
 };
 use iced_widget::core::{
@@ -73,8 +73,8 @@ where
         self.underlay.as_widget().height()
     }
 
-    fn layout(&self, renderer: &Renderer, limits: &Limits) -> Node {
-        self.underlay.as_widget().layout(renderer, limits)
+    fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
+        self.underlay.as_widget().layout(tree, renderer, limits)
     }
 
     fn draw(
@@ -231,10 +231,19 @@ where
     Message: Clone,
     Renderer: core::Renderer,
 {
-    fn layout(&self, renderer: &Renderer, bounds: Size, _position: Point) -> Node {
+    fn layout(
+        &mut self,
+        renderer: &Renderer,
+        bounds: Size,
+        _position: Point,
+        _translation: Vector,
+    ) -> Node {
         let limits = Limits::new(Size::ZERO, bounds);
 
-        let mut node = self.element.as_widget().layout(renderer, &limits);
+        let mut node = self
+            .element
+            .as_widget()
+            .layout(self.state, renderer, &limits);
 
         let mut position = self.underlay_bounds.position();
 

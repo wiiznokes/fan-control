@@ -36,7 +36,7 @@ pub enum InputLineUnit {
 pub fn input_line<'a, V, F>(
     info: &'a str,
     value: &'a V,
-    cached_value: &str,
+    cached_value: &'a str,
     unit: InputLineUnit,
     range: &'a RangeInclusive<V>,
     map_value: F,

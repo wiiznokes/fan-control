@@ -50,7 +50,7 @@ pub fn header_center<'a>(
 
     elems.push(save_button.into());
 
-    let mut name = TextInput::new(&fl!("config_name"), current_config)
+    let mut name = TextInput::new(fl!("config_name"), current_config)
         .on_input(AppMsg::RenameConfig)
         .width(Length::Fixed(150.0));
 
