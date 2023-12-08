@@ -92,8 +92,7 @@ fn item_view<'a>(
     }
 
     // todo: context menu
-    let delete_button =
-        icon_button("select/delete_forever24").on_press(AppMsg::DeleteNode(node.id));
+    let delete_button = icon_button("delete_forever/24").on_press(AppMsg::DeleteNode(node.id));
 
     let top = Row::new()
         .push(item_icon)
@@ -202,7 +201,7 @@ fn custom_temp_view<'a>(
                 .push(Text::new(i.1.clone()))
                 .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
-                    icon_button("select/close/close20")
+                    icon_button("close/20")
                         .on_press(ModifNodeMsg::RemoveInput(Pick::new(&i.1, &i.0)).to_app(node.id)),
                 )
                 .align_items(Alignment::Center)
@@ -232,13 +231,13 @@ fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
         panic!()
     };
 
-    let mut sub_button = icon_button("sign/minus/remove24");
+    let mut sub_button = icon_button("remove/24");
     if flat.value > 0 {
         sub_button =
             sub_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value - 1)).to_app(node.id));
     }
 
-    let mut add_button = icon_button("sign/plus/add24");
+    let mut add_button = icon_button("add/24");
     if flat.value < 100 {
         add_button =
             add_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value + 1)).to_app(node.id));

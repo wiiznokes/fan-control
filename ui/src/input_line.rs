@@ -107,13 +107,13 @@ where
                 .push(
                     Column::new()
                         .push(
-                            icon_button("sign/plus/add20")
+                            icon_button("add/20")
                                 .on_press_maybe(plus_message)
                                 .width(icon_lenght)
                                 .height(icon_lenght),
                         )
                         .push(
-                            icon_button("sign/minus/remove20")
+                            icon_button("remove/20")
                                 .on_press_maybe(sub_message)
                                 .width(icon_lenght)
                                 .height(icon_lenght),

@@ -14,3 +14,5 @@ target/
 bin/
 obj/
 .config/hardware.toml
+/scripts/*
+!scripts/icons.py

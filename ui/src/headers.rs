@@ -18,7 +18,7 @@ static ICON_LENGHT: Length = Length::Fixed(35.0);
 pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
 
-    let app_icon = my_icon("app/toys_fan48").into();
+    let app_icon = my_icon("toys_fan/48").into();
     elems.push(app_icon);
 
     // elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
@@ -36,7 +36,7 @@ pub fn header_center<'a>(
     let settings = dir_manager.settings();
     let mut elems = Vec::new();
 
-    let mut save_button = icon_button("topBar/save40")
+    let mut save_button = icon_button("save/40")
         .height(ICON_LENGHT)
         .width(ICON_LENGHT);
 
@@ -96,7 +96,7 @@ pub fn header_center<'a>(
 
     elems.push(choose_config);
 
-    let mut new_button = icon_button("sign/plus/add40");
+    let mut new_button = icon_button("add/40");
 
     if dir_manager.config_names.is_valid_create(current_config) {
         new_button = new_button.on_press(AppMsg::CreateConfig(current_config.to_owned()));
@@ -117,7 +117,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
 
     if optional_name.is_some() {
         elements.push(
-            icon_button("select/delete_forever24")
+            icon_button("delete_forever/24")
                 .on_press(AppMsg::RemoveConfig(name))
                 .into(),
         );
@@ -131,7 +131,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
 pub fn header_end<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
 
-    let settings_button = icon_button("topBar/settings40")
+    let settings_button = icon_button("settings/40")
         .on_press(AppMsg::Ui(UiMsg::ToggleSettings))
         .height(ICON_LENGHT)
         .width(ICON_LENGHT)

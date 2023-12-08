@@ -8,7 +8,7 @@ use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
 static RESSOURCE_PATH: &str = "./ressource/icons/";
-static EXTENSION: &str = ".svg";
+static EXTENSION: &str = "px.svg";
 
 static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));
 
@@ -37,21 +37,21 @@ fn get_handle_icon(name: &str) -> Handle {
 
 pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {
     match node_type {
-        NodeTypeLight::Control => "items/speed24",
-        NodeTypeLight::Fan => "items/toys_fan24",
-        NodeTypeLight::Temp => "items/thermometer24",
-        NodeTypeLight::CustomTemp => "items/thermostat24",
-        NodeTypeLight::Graph => "items/psychology24",
-        NodeTypeLight::Flat => "items/horizontal_rule24",
-        NodeTypeLight::Linear => "items/linear24",
-        NodeTypeLight::Target => "items/my_location24",
+        NodeTypeLight::Control => "speed/24",
+        NodeTypeLight::Fan => "toys_fan/24",
+        NodeTypeLight::Temp => "thermometer/24",
+        NodeTypeLight::CustomTemp => "thermostat/24",
+        NodeTypeLight::Graph => "psychology/24",
+        NodeTypeLight::Flat => "horizontal_rule/24",
+        NodeTypeLight::Linear => "linear/24",
+        NodeTypeLight::Target => "my_location/24",
     }
 }
 
 pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
     if expanded {
-        icon_button("arrow/expand/expand_less24")
+        icon_button("expand_less/24")
     } else {
-        icon_button("arrow/expand/expand_more24")
+        icon_button("expand_more/24")
     }
 }
