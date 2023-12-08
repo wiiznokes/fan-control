@@ -8,9 +8,10 @@ use cosmic::{
 use data::dir_manager::DirManager;
 
 use crate::{
+    message::ConfigMsg,
     my_widgets::drop_down,
     utils::{expand_icon, icon_button, my_icon},
-    AppMsg, UiMsg,
+    AppMsg, ToogleMsg,
 };
 
 static ICON_LENGHT: Length = Length::Fixed(35.0);
@@ -45,13 +46,13 @@ pub fn header_center<'a>(
             .config_names
             .is_valid_name(&settings.current_config, current_config)
     {
-        save_button = save_button.on_press(AppMsg::SaveConfig);
+        save_button = save_button.on_press(ConfigMsg::Save.into());
     }
 
     elems.push(save_button.into());
 
     let mut name = TextInput::new(fl!("config_name"), current_config)
-        .on_input(AppMsg::RenameConfig)
+        .on_input(|name| ConfigMsg::Rename(name).into())
         .width(Length::Fixed(150.0));
 
     if !dir_manager
@@ -78,7 +79,8 @@ pub fn header_center<'a>(
     let mut expand_icon = expand_icon(expanded).height(ICON_LENGHT).width(ICON_LENGHT);
 
     if !configs.is_empty() {
-        expand_icon = expand_icon.on_press(AppMsg::Ui(crate::UiMsg::ToggleChooseConfig(!expanded)));
+        expand_icon =
+            expand_icon.on_press(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(!expanded)));
     }
 
     let underlay = Row::new()
@@ -91,7 +93,7 @@ pub fn header_center<'a>(
 
     let choose_config = drop_down::DropDown::new(underlay, overlay)
         .expanded(expanded)
-        .on_dismiss(Some(AppMsg::Ui(crate::UiMsg::ToggleChooseConfig(false))))
+        .on_dismiss(Some(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(false))))
         .into();
 
     elems.push(choose_config);
@@ -99,7 +101,7 @@ pub fn header_center<'a>(
     let mut new_button = icon_button("add/40");
 
     if dir_manager.config_names.is_valid_create(current_config) {
-        new_button = new_button.on_press(AppMsg::CreateConfig(current_config.to_owned()));
+        new_button = new_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());
     }
 
     elems.push(new_button.into());
@@ -111,14 +113,14 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
     let name = optional_name.clone().unwrap_or(fl!("none"));
 
     let mut elements = vec![Button::new(Text::new(name.clone()))
-        .on_press(AppMsg::ChangeConfig(optional_name.clone()))
+        .on_press(ConfigMsg::Change(optional_name.clone()).into())
         .width(Length::Fill)
         .into()];
 
     if optional_name.is_some() {
         elements.push(
             icon_button("delete_forever/24")
-                .on_press(AppMsg::RemoveConfig(name))
+                .on_press(ConfigMsg::Remove(name).into())
                 .into(),
         );
     }
@@ -132,7 +134,7 @@ pub fn header_end<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
 
     let settings_button = icon_button("settings/40")
-        .on_press(AppMsg::Ui(UiMsg::ToggleSettings))
+        .on_press(AppMsg::Toggle(ToogleMsg::Settings))
         .height(ICON_LENGHT)
         .width(ICON_LENGHT)
         .into();

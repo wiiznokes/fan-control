@@ -1,6 +1,9 @@
 use std::rc::Rc;
 
-use crate::{fl, AppMsg, ModifNodeMsg};
+use crate::{
+    fl,
+    message::{AppMsg, ModifNodeMsg},
+};
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
 use data::{app_graph::Nodes, id::Id, node::Node};
 use hardware::{ControlH, FanH, TempH};

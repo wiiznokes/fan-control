@@ -6,7 +6,7 @@ use cosmic::{
 use data::{dir_manager::DirManager, settings::AppTheme};
 use strum::IntoEnumIterator;
 
-use crate::{AppMsg, SettingsMsg};
+use crate::message::{AppMsg, SettingsMsg};
 
 pub fn settings_drawer(show: bool, dir_manager: &DirManager) -> Option<Element<'_, AppMsg>> {
     if !show {

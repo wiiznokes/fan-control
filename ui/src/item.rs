@@ -17,10 +17,10 @@ use hardware::Hardware;
 
 use crate::{
     input_line::{input_line, InputLineUnit},
-    item_cache::{NodeC, NodeTypeC, NodesC},
+    message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg},
+    node_cache::{NodeC, NodeTypeC, NodesC},
     pick::{pick_hardware, pick_input, Pick},
     utils::{icon_button, icon_path_for_node_type, my_icon},
-    AppMsg, ModifNodeMsg,
 };
 
 pub fn items_view<'a>(
@@ -84,7 +84,7 @@ fn item_view<'a>(
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
     let mut name = TextInput::new("name", &node_c.name)
-        .on_input(|s| ModifNodeMsg::Rename(s).to_app(node.id))
+        .on_input(|s| AppMsg::Rename(node.id, s))
         .width(Length::Fill);
 
     if node_c.is_error_name {
@@ -92,7 +92,8 @@ fn item_view<'a>(
     }
 
     // todo: context menu
-    let delete_button = icon_button("delete_forever/24").on_press(AppMsg::DeleteNode(node.id));
+    let delete_button =
+        icon_button("delete_forever/24").on_press(ModifNodeMsg::Delete.to_app(node.id));
 
     let top = Row::new()
         .push(item_icon)
@@ -112,11 +113,6 @@ fn item_view<'a>(
         .padding(Padding::new(10.0))
         .style(style::Container::Card)
         .into()
-}
-
-#[derive(Debug, Clone)]
-pub enum ControlMsg {
-    Active(bool),
 }
 
 fn control_view<'a>(
@@ -164,11 +160,6 @@ fn fan_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> El
     ];
 
     item_view(node, node_c, Column::with_children(content))
-}
-
-#[derive(Debug, Clone)]
-pub enum CustomTempMsg {
-    Kind(CustomTempKind),
 }
 
 fn custom_temp_view<'a>(
@@ -221,11 +212,6 @@ fn custom_temp_view<'a>(
     item_view(node, node_c, Column::with_children(content))
 }
 
-#[derive(Debug, Clone)]
-pub enum FlatMsg {
-    Value(u16),
-}
-
 fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
     let NodeType::Flat(flat) = &node.node_type else {
         panic!()
@@ -263,14 +249,6 @@ fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
     let content = vec![buttons, slider];
 
     item_view(node, node_c, Column::with_children(content))
-}
-
-#[derive(Debug, Clone)]
-pub enum LinearMsg {
-    MinTemp(u8, String),
-    MinSpeed(u8, String),
-    MaxTemp(u8, String),
-    MaxSpeed(u8, String),
 }
 
 fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
@@ -326,14 +304,6 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
     ];
 
     item_view(node, node_c, Column::with_children(content))
-}
-
-#[derive(Debug, Clone)]
-pub enum TargetMsg {
-    IdleTemp(u8, String),
-    IdleSpeed(u8, String),
-    LoadTemp(u8, String),
-    LoadSpeed(u8, String),
 }
 
 fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {

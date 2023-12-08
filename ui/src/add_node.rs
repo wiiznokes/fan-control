@@ -3,7 +3,7 @@ use data::node::NodeTypeLight;
 
 use crate::{
     utils::{icon_button, icon_path_for_node_type},
-    AppMsg, UiMsg,
+    AppMsg, ToogleMsg,
 };
 
 pub fn add_node_button_view(expanded: bool) -> Element<'static, AppMsg> {
@@ -16,11 +16,11 @@ pub fn add_node_button_view(expanded: bool) -> Element<'static, AppMsg> {
             .push(add_item(NodeTypeLight::Linear, fl!("add_linear")))
             .push(add_item(NodeTypeLight::Target, fl!("add_target")))
             .push(add_item(NodeTypeLight::Flat, fl!("add_flat")))
-            .push(icon_button("close/40").on_press(AppMsg::Ui(UiMsg::ToggleCreateButton(false))))
+            .push(icon_button("close/40").on_press(AppMsg::Toggle(ToogleMsg::CreateButton(false))))
             .into(),
 
         false => icon_button("add/40")
-            .on_press(AppMsg::Ui(UiMsg::ToggleCreateButton(true)))
+            .on_press(AppMsg::Toggle(ToogleMsg::CreateButton(true)))
             .tooltip(fl!("add_item"))
             .into(),
     }

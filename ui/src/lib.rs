@@ -5,13 +5,14 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    id::Id,
-    node::{validate_name, NodeType, NodeTypeLight},
+    node::{validate_name, NodeType},
     settings::AppTheme,
     utils::RemoveElem,
     AppState,
 };
-use item_cache::{NodeC, NodeTypeC, NodesC};
+use item::items_view;
+use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
+use node_cache::{NodeC, NodeTypeC, NodesC};
 
 use crate::settings_drawer::settings_drawer;
 
@@ -25,9 +26,7 @@ use cosmic::{
     ApplicationExt, Element,
 };
 
-use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
-
-use pick::Pick;
+use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 
 use crate::add_node::add_node_button_view;
 
@@ -40,8 +39,9 @@ mod item;
 pub mod localize;
 mod add_node;
 mod headers;
-mod item_cache;
+mod message;
 mod my_widgets;
+mod node_cache;
 mod pick;
 mod settings_drawer;
 mod utils;
@@ -58,55 +58,6 @@ pub struct Ui {
     create_button_expanded: bool,
     choose_config_expanded: bool,
     nodes_c: NodesC,
-}
-
-#[derive(Debug, Clone)]
-pub enum AppMsg {
-    Tick,
-    SaveConfig,
-    RenameConfig(String),
-    ChangeConfig(Option<String>),
-    RemoveConfig(String),
-    CreateConfig(String),
-    ModifNode(Id, ModifNodeMsg),
-    NewNode(NodeTypeLight),
-    DeleteNode(Id),
-    Settings(SettingsMsg),
-
-    Ui(UiMsg),
-}
-
-#[derive(Debug, Clone)]
-pub enum UiMsg {
-    ToggleCreateButton(bool),
-    ToggleSettings,
-    ToggleChooseConfig(bool),
-}
-
-#[derive(Debug, Clone)]
-pub enum SettingsMsg {
-    ChangeTheme(AppTheme),
-}
-
-#[derive(Debug, Clone)]
-pub enum ModifNodeMsg {
-    Rename(String),
-    ChangeHardware(Pick<String>),
-    ReplaceInput(Pick<Id>),
-    AddInput(Pick<Id>),
-    RemoveInput(Pick<Id>),
-
-    Control(ControlMsg),
-    CustomTemp(CustomTempMsg),
-    Flat(FlatMsg),
-    Linear(LinearMsg),
-    Target(TargetMsg),
-}
-
-impl ModifNodeMsg {
-    pub fn to_app(self, id: Id) -> AppMsg {
-        AppMsg::ModifNode(id, self)
-    }
 }
 
 impl cosmic::Application for Ui {
@@ -156,47 +107,6 @@ impl cosmic::Application for Ui {
 
             AppMsg::ModifNode(id, change_config) => {
                 match change_config {
-                    ModifNodeMsg::Rename(name) => {
-                        let name_is_valid =
-                            validate_name(&self.app_state.app_graph.nodes, &id, &name);
-
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                        let nodec = self.nodes_c.get_mut(&id);
-
-                        nodec.name = name.clone();
-                        if name_is_valid {
-                            nodec.is_error_name = false;
-                            let previous_name = node.name().clone();
-                            node.node_type.set_name(&name);
-
-                            let node_id = node.id;
-                            // find nodes that depend on node.id
-                            // change the name in input and item.input
-
-                            for n in self.app_state.app_graph.nodes.values_mut() {
-                                if let Some(node_input) = n
-                                    .inputs
-                                    .iter_mut()
-                                    .find(|node_input| node_input.0 == node_id)
-                                {
-                                    node_input.1 = name.clone();
-                                    let mut inputs = n.node_type.get_inputs();
-
-                                    match inputs.iter().position(|n| n == &previous_name) {
-                                        Some(index) => {
-                                            inputs[index] = name.clone();
-                                            n.node_type.set_inputs(inputs)
-                                        }
-                                        None => {
-                                            error!("input id found in node inputs but the corresponding name was not found in item input")
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            nodec.is_error_name = true;
-                        }
-                    }
                     ModifNodeMsg::ChangeHardware(pick) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         let hardware = &self.app_state.hardware;
@@ -371,6 +281,19 @@ impl cosmic::Application for Ui {
                             }
                         }
                     }
+                    ModifNodeMsg::Delete => {
+                        if let Some(mut node) = self.app_state.app_graph.remove_node(id) {
+                            if let NodeType::Control(control) = &mut node.node_type {
+                                if let Err(e) = control.set_mode(false, &mut self.app_state.bridge)
+                                {
+                                    error!("{:?}", e);
+                                }
+                            }
+                        }
+
+                        self.nodes_c.remove(&id);
+                        self.app_state.app_graph.sanitize_inputs()
+                    }
                 }
 
                 self.app_state.update.set_invalid_controls_to_auto(
@@ -379,62 +302,7 @@ impl cosmic::Application for Ui {
                     &mut self.app_state.bridge,
                 );
             }
-            AppMsg::SaveConfig => {
-                let config = Config::from_app_graph(&self.app_state.app_graph);
 
-                if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
-                    error!("{:?}", e);
-                };
-            }
-            AppMsg::ChangeConfig(selected) => {
-                self.choose_config_expanded = false;
-                self.app_state.update.set_all_control_to_auto(
-                    &mut self.app_state.app_graph.nodes,
-                    &self.app_state.app_graph.root_nodes,
-                    &mut self.app_state.bridge,
-                );
-
-                match dir_manager.change_config(selected) {
-                    Ok(config) => match config {
-                        Some((config_name, config)) => {
-                            self.current_config_cached = config_name;
-                            self.app_state.app_graph =
-                                AppGraph::from_config(config, &self.app_state.hardware);
-                        }
-                        None => {
-                            self.current_config_cached.clear();
-                        }
-                    },
-                    Err(e) => {
-                        error!("{:?}", e);
-                    }
-                }
-            }
-            AppMsg::RemoveConfig(name) => match dir_manager.remove_config(name) {
-                Ok(is_current_config) => {
-                    if is_current_config {
-                        self.current_config_cached.clear();
-                    }
-                }
-                Err(e) => {
-                    error!("can't remove config: {:?}", e);
-                }
-            },
-            AppMsg::CreateConfig(new_name) => {
-                let config = Config::from_app_graph(&self.app_state.app_graph);
-
-                match dir_manager.create_config(&new_name, &config) {
-                    Ok(_) => {
-                        self.current_config_cached = new_name;
-                    }
-                    Err(e) => {
-                        error!("can't create config: {:?}", e);
-                    }
-                }
-            }
-            AppMsg::RenameConfig(name) => {
-                self.current_config_cached = name;
-            }
             AppMsg::Settings(settings_msg) => match settings_msg {
                 SettingsMsg::ChangeTheme(theme) => {
                     dir_manager.update_settings(|settings| {
@@ -449,28 +317,118 @@ impl cosmic::Application for Ui {
                 self.nodes_c.insert(node.id, node_c);
                 self.app_state.app_graph.insert_node(node);
             }
-            AppMsg::DeleteNode(id) => {
-                if let Some(mut node) = self.app_state.app_graph.remove_node(id) {
-                    if let NodeType::Control(control) = &mut node.node_type {
-                        if let Err(e) = control.set_mode(false, &mut self.app_state.bridge) {
+            AppMsg::Toggle(ui_msg) => match ui_msg {
+                ToogleMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
+                ToogleMsg::Settings => {
+                    self.core.window.show_context = !self.core.window.show_context;
+                    self.set_context_title("Settings".into());
+                }
+                ToogleMsg::ChooseConfig(expanded) => {
+                    self.choose_config_expanded = expanded;
+                }
+                ToogleMsg::NodeContextMenu(id, expanded) => {
+                    let node_c = self.nodes_c.get_mut(&id);
+                    node_c.context_menu_expanded = expanded;
+                }
+            },
+            AppMsg::Config(config_msg) => match config_msg {
+                ConfigMsg::Save => {
+                    let config = Config::from_app_graph(&self.app_state.app_graph);
+
+                    if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
+                        error!("{:?}", e);
+                    };
+                }
+                ConfigMsg::Change(selected) => {
+                    self.choose_config_expanded = false;
+                    self.app_state.update.set_all_control_to_auto(
+                        &mut self.app_state.app_graph.nodes,
+                        &self.app_state.app_graph.root_nodes,
+                        &mut self.app_state.bridge,
+                    );
+
+                    match dir_manager.change_config(selected) {
+                        Ok(config) => match config {
+                            Some((config_name, config)) => {
+                                self.current_config_cached = config_name;
+                                self.app_state.app_graph =
+                                    AppGraph::from_config(config, &self.app_state.hardware);
+                            }
+                            None => {
+                                self.current_config_cached.clear();
+                            }
+                        },
+                        Err(e) => {
                             error!("{:?}", e);
                         }
                     }
                 }
+                ConfigMsg::Remove(name) => match dir_manager.remove_config(name) {
+                    Ok(is_current_config) => {
+                        if is_current_config {
+                            self.current_config_cached.clear();
+                        }
+                    }
+                    Err(e) => {
+                        error!("can't remove config: {:?}", e);
+                    }
+                },
+                ConfigMsg::Create(new_name) => {
+                    let config = Config::from_app_graph(&self.app_state.app_graph);
 
-                self.nodes_c.remove(&id);
-                self.app_state.app_graph.sanitize_inputs()
-            }
-            AppMsg::Ui(ui_msg) => match ui_msg {
-                UiMsg::ToggleCreateButton(expanded) => self.create_button_expanded = expanded,
-                UiMsg::ToggleSettings => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title("Settings".into());
+                    match dir_manager.create_config(&new_name, &config) {
+                        Ok(_) => {
+                            self.current_config_cached = new_name;
+                        }
+                        Err(e) => {
+                            error!("can't create config: {:?}", e);
+                        }
+                    }
                 }
-                UiMsg::ToggleChooseConfig(expanded) => {
-                    self.choose_config_expanded = expanded;
+                ConfigMsg::Rename(name) => {
+                    self.current_config_cached = name;
                 }
             },
+            AppMsg::Rename(id, name) => {
+                let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
+
+                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                let nodec = self.nodes_c.get_mut(&id);
+
+                nodec.name = name.clone();
+                if name_is_valid {
+                    nodec.is_error_name = false;
+                    let previous_name = node.name().clone();
+                    node.node_type.set_name(&name);
+
+                    let node_id = node.id;
+                    // find nodes that depend on node.id
+                    // change the name in input and item.input
+
+                    for n in self.app_state.app_graph.nodes.values_mut() {
+                        if let Some(node_input) = n
+                            .inputs
+                            .iter_mut()
+                            .find(|node_input| node_input.0 == node_id)
+                        {
+                            node_input.1 = name.clone();
+                            let mut inputs = n.node_type.get_inputs();
+
+                            match inputs.iter().position(|n| n == &previous_name) {
+                                Some(index) => {
+                                    inputs[index] = name.clone();
+                                    n.node_type.set_inputs(inputs)
+                                }
+                                None => {
+                                    error!("input id found in node inputs but the corresponding name was not found in item input")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    nodec.is_error_name = true;
+                }
+            }
         }
 
         Command::none()
