@@ -14,9 +14,6 @@ pub struct CustomTemp {
     pub name: String,
     pub kind: CustomTempKind,
     pub inputs: Vec<String>,
-
-    #[serde(skip)]
-    pub kind_expanded: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Values, Default, PartialEq, Eq)]
@@ -29,12 +26,7 @@ pub enum CustomTempKind {
 
 impl CustomTemp {
     pub fn new(name: String, kind: CustomTempKind, inputs: Vec<String>) -> Self {
-        Self {
-            name,
-            kind,
-            inputs,
-            kind_expanded: false,
-        }
+        Self { name, kind, inputs }
     }
 
     pub fn update(&self, values: &Vec<Value>) -> Result<Value, UpdateError> {

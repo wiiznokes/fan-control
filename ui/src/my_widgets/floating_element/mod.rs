@@ -192,23 +192,19 @@ where
                 .overlay(&mut state.children[0], layout, renderer);
         }
 
-        if state.children.len() == 2 {
-            let bounds = layout.bounds();
+        let bounds = layout.bounds();
 
-            Some(overlay::Element::new(
-                bounds.position(),
-                Box::new(FloatingElementOverlay::new(
-                    &mut state.children[1],
-                    &mut self.element,
-                    &self.anchor,
-                    &self.offset,
-                    &self.on_dismiss,
-                    bounds,
-                )),
-            ))
-        } else {
-            None
-        }
+        Some(overlay::Element::new(
+            bounds.position(),
+            Box::new(FloatingElementOverlay::new(
+                &mut state.children[1],
+                &mut self.element,
+                &self.anchor,
+                &self.offset,
+                &self.on_dismiss,
+                bounds,
+            )),
+        ))
     }
 }
 

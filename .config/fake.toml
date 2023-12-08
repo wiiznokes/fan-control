@@ -34,7 +34,7 @@ loadSpeed = 100
 [[CustomTemp]]
 name = "custom_temp"
 kind = "Average"
-input = [
+inputs = [
     "temp1",
     "temp2",
 ]

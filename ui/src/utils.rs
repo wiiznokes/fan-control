@@ -25,9 +25,7 @@ fn get_handle_icon(name: &str) -> Handle {
         BUF.insert_str(BUF.len(), EXTENSION);
     };
 
-    let path = format!("{}{}{}", RESSOURCE_PATH, name, EXTENSION);
-
-    cosmic::widget::icon::from_path(PathBuf::from(path))
+    cosmic::widget::icon::from_path(PathBuf::from(unsafe { BUF.as_str() }))
 }
 
 pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {

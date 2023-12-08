@@ -1,6 +1,6 @@
 use cosmic::{
     iced::{self, keyboard, touch},
-    iced_core::{event::Status, widget::OperationOutputWrapper, Size},
+    iced_core::{widget::OperationOutputWrapper, Size},
     iced_widget,
 };
 use iced_widget::core::{
@@ -269,7 +269,7 @@ where
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<Message>,
-    ) -> Status {
+    ) -> event::Status {
         if let Some(message) = self.on_dismiss {
             match event {
                 Event::Keyboard(keyboard::Event::KeyPressed { key_code, .. }) => {

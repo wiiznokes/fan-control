@@ -45,7 +45,7 @@ loadSpeed = 100
 [[CustomTemp]]
 name = "CPU"
 kind = "Average"
-input = [
+inputs = [
     "TSI0_TEMP nct6798-isa-0290",
     "AUXTIN1 nct6798-isa-0290",
 ]
@@ -53,7 +53,7 @@ input = [
 [[CustomTemp]]
 name = "GPU"
 kind = "Average"
-input = [
+inputs = [
 ]
 
 
