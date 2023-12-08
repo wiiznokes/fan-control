@@ -1,0 +1,4 @@
+[[CustomTemp]]
+name = "CPU"
+kind = "Average"
+inputs = []

@@ -140,11 +140,11 @@ fn config1() -> Config {
             hardware_id: None,
             fan_h: None,
         }],
-        custom_temps: vec![CustomTemp {
-            name: "CustomTemp".into(),
-            kind: CustomTempKind::Max,
-            input: vec!["temp1".into(), "temp2".into()],
-        }],
+        custom_temps: vec![CustomTemp::new(
+            "CustomTemp".into(),
+            CustomTempKind::Max,
+            vec!["temp1".into(), "temp2".into()],
+        )],
         graphs: vec![Graph {
             name: "Graph".into(),
             coords: vec![

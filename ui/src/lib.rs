@@ -5,7 +5,6 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    dir_manager::filter_none,
     id::Id,
     node::{validate_name, NodeType, NodeTypeLight},
     settings::AppTheme,
@@ -13,24 +12,22 @@ use data::{
     AppState,
 };
 
+use crate::settings_drawer::settings_drawer;
+
 use cosmic::{
     app::{Command, Core},
     executor,
     iced::{self, time},
-    iced_core::{
-        alignment::{Horizontal, Vertical},
-        Length,
-    },
-    iced_widget::PickList,
+    iced_core::Length,
     theme,
-    widget::{self, Dropdown, Space, Text, TextInput},
+    widget::{Column, Row, Space},
     ApplicationExt, Element,
 };
 
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
+
 use pick::Pick;
 use strum::IntoEnumIterator;
-use utils::{icon_button, my_icon};
 
 use crate::add_node::add_node_button_view;
 
@@ -42,8 +39,10 @@ mod item;
 #[macro_use]
 pub mod localize;
 mod add_node;
+mod headers;
 mod my_widgets;
 mod pick;
+mod settings_drawer;
 mod utils;
 
 pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
@@ -56,6 +55,7 @@ pub struct Ui {
     app_state: AppState,
     cache: AppCache,
     create_button_expanded: bool,
+    choose_config_expanded: bool,
 }
 
 pub struct AppCache {
@@ -75,12 +75,19 @@ pub enum AppMsg {
     NewNode(NodeTypeLight),
     DeleteNode(Id),
     Settings(SettingsMsg),
-    CreateButton(bool),
+
+    Ui(UiMsg),
+}
+
+#[derive(Debug, Clone)]
+pub enum UiMsg {
+    ToggleCreateButton(bool),
+    ToggleSettings,
+    ToggleChooseConfig(bool),
 }
 
 #[derive(Debug, Clone)]
 pub enum SettingsMsg {
-    Toggle,
     ChangeTheme(AppTheme),
 }
 
@@ -97,6 +104,12 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
+}
+
+impl ModifNodeMsg {
+    pub fn to_app(self, id: Id) -> AppMsg {
+        AppMsg::ModifNode(id, self)
+    }
 }
 
 impl cosmic::Application for Ui {
@@ -129,6 +142,7 @@ impl cosmic::Application for Ui {
             app_state: flags,
             core,
             create_button_expanded: false,
+            choose_config_expanded: false,
         };
         (ui_state, Command::none())
     }
@@ -252,7 +266,7 @@ impl cosmic::Application for Ui {
                         node.inputs.push(pick.to_couple().unwrap());
 
                         match &mut node.node_type {
-                            NodeType::CustomTemp(i) => i.input.push(pick.name().unwrap()),
+                            NodeType::CustomTemp(i) => i.inputs.push(pick.name().unwrap()),
                             _ => panic!("node have not multiple inputs"),
                         }
                     }
@@ -263,7 +277,7 @@ impl cosmic::Application for Ui {
 
                         match &mut node.node_type {
                             NodeType::CustomTemp(i) => {
-                                i.input.remove_elem(|n| n == &pick.name().unwrap());
+                                i.inputs.remove_elem(|n| n == &pick.name().unwrap());
                             }
                             _ => panic!("node have not multiple inputs"),
                         }
@@ -365,6 +379,7 @@ impl cosmic::Application for Ui {
                 };
             }
             AppMsg::ChangeConfig(selected) => {
+                self.choose_config_expanded = false;
                 self.app_state.update.set_all_control_to_auto(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
@@ -387,16 +402,20 @@ impl cosmic::Application for Ui {
                     }
                 }
             }
-            AppMsg::RemoveConfig(index) => match dir_manager.remove_config(index) {
-                Ok(is_current_config) => {
-                    if is_current_config {
-                        self.cache.current_config.clear();
+            AppMsg::RemoveConfig(name) => {
+                self.choose_config_expanded = false;
+
+                match dir_manager.remove_config(name) {
+                    Ok(is_current_config) => {
+                        if is_current_config {
+                            self.cache.current_config.clear();
+                        }
+                    }
+                    Err(e) => {
+                        error!("can't remove config: {:?}", e);
                     }
                 }
-                Err(e) => {
-                    error!("can't remove config: {:?}", e);
-                }
-            },
+            }
             AppMsg::CreateConfig(new_name) => {
                 let config = Config::from_app_graph(&self.app_state.app_graph);
 
@@ -413,10 +432,6 @@ impl cosmic::Application for Ui {
                 self.cache.current_config = name;
             }
             AppMsg::Settings(settings_msg) => match settings_msg {
-                SettingsMsg::Toggle => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title("Settings".into());
-                }
                 SettingsMsg::ChangeTheme(theme) => {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
@@ -439,138 +454,56 @@ impl cosmic::Application for Ui {
 
                 self.app_state.app_graph.sanitize_inputs()
             }
-            AppMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
+            AppMsg::Ui(ui_msg) => match ui_msg {
+                UiMsg::ToggleCreateButton(expanded) => self.create_button_expanded = expanded,
+                UiMsg::ToggleSettings => {
+                    self.core.window.show_context = !self.core.window.show_context;
+                    self.set_context_title("Settings".into());
+                }
+                UiMsg::ToggleChooseConfig(expanded) => {
+                    self.choose_config_expanded = expanded;
+                }
+            },
         }
 
         Command::none()
     }
 
     fn view(&self) -> Element<Self::Message> {
-        use my_widgets::floating_element;
-
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let mut content = floating_element::FloatingElement::new(
-            items_view(&app_graph.nodes, &app_state.hardware),
-            add_node_button_view(self.create_button_expanded),
-            floating_element::Anchor::new(Vertical::Bottom, Horizontal::Right),
-        )
-        .offset(floating_element::Offset::new(15.0, 10.0));
+        let content = items_view(&app_graph.nodes, &app_state.hardware);
 
-        if self.create_button_expanded {
-            content = content.on_dismiss(Some(AppMsg::CreateButton(false)));
-        }
+        let floating_button = Column::new()
+            .push(Space::new(0.0, Length::Fill))
+            .push(add_node_button_view(self.create_button_expanded));
 
-        content.into()
+        Row::new().push(content).push(floating_button).into()
     }
 
     fn header_start(&self) -> Vec<Element<Self::Message>> {
-        let mut elems = vec![];
-
-        let app_icon = my_icon("app/toys_fan48").into();
-        elems.push(app_icon);
-
-        elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
-
-        let app_name = Text::new("fan-control").into();
-        elems.push(app_name);
-        elems
+        headers::header_start()
     }
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
-        let settings = self.app_state.dir_manager.settings();
-        let dir_manager = &self.app_state.dir_manager;
-
-        let mut elems = vec![];
-
-        if settings.current_config.is_some() {
-            let save_button = icon_button("topBar/save40")
-                .on_press(AppMsg::SaveConfig)
-                .into();
-
-            elems.push(save_button);
-        }
-
-        let mut name = TextInput::new(&fl!("config_name"), &self.cache.current_config)
-            .on_input(AppMsg::RenameConfig)
-            .width(Length::Fixed(150.0));
-
-        if dir_manager
-            .config_names
-            .is_valid_name(&self.cache.current_config)
-        {
-            name = name.error("this name is already beeing use");
-        }
-
-        elems.push(name.into());
-
-        if !dir_manager.config_names.is_empty() {
-            let selected = match &settings.current_config {
-                Some(name) => name.clone(),
-                None => fl!("none"),
-            };
-            let selection = PickList::new(
-                dir_manager.config_names.names(&settings.current_config),
-                Some(selected),
-                |name| AppMsg::ChangeConfig(filter_none(name)),
-            )
-            .width(Length::Fixed(100.0))
-            .into();
-
-            elems.push(selection);
-        }
-
-        let mut new_button = icon_button("sign/plus/add40");
-
-        if dir_manager
-            .config_names
-            .is_valid_create(&self.cache.current_config)
-        {
-            new_button =
-                new_button.on_press(AppMsg::CreateConfig(self.cache.current_config.to_owned()));
-        }
-
-        elems.push(new_button.into());
-
-        elems
+        headers::header_center(
+            &self.app_state.dir_manager,
+            &self.cache.current_config,
+            self.choose_config_expanded,
+        )
     }
 
     fn header_end(&self) -> Vec<Element<Self::Message>> {
-        let mut elems = vec![];
-
-        let settings_button = icon_button("topBar/settings40")
-            .on_press(AppMsg::Settings(SettingsMsg::Toggle))
-            .into();
-        elems.push(settings_button);
-
-        elems
+        headers::header_end()
     }
 
     fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        if !self.core.window.show_context {
-            return None;
-        }
-        let app_theme_selected = AppTheme::iter()
-            .position(|e| e == self.app_state.dir_manager.settings().theme)
-            .unwrap();
-
-        let settings_context =
-            widget::settings::view_column(vec![widget::settings::view_section("")
-                .add(
-                    widget::settings::item::builder("Theme").control(Dropdown::new(
-                        &self.cache.theme_list,
-                        Some(app_theme_selected),
-                        move |index| {
-                            let theme = AppTheme::iter().nth(index).unwrap();
-                            AppMsg::Settings(SettingsMsg::ChangeTheme(theme))
-                        },
-                    )),
-                )
-                .into()])
-            .into();
-
-        Some(settings_context)
+        settings_drawer(
+            self.core.window.show_context,
+            &self.app_state.dir_manager,
+            &self.cache,
+        )
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {

@@ -13,6 +13,7 @@ pub mod id;
 #[macro_use]
 pub mod localize;
 pub mod app_graph;
+pub mod boilerplate;
 mod name_sorter;
 pub mod node;
 pub mod serde_helper;

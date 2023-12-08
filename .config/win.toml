@@ -60,7 +60,7 @@ loadSpeed = 100
 [[CustomTemp]]
 name = "CPU"
 kind = "Average"
-input = [
+inputs = [
     "Core (Tctl/Tdie)",
     "CCD1 (Tdie)",
 ]
@@ -68,7 +68,7 @@ input = [
 [[CustomTemp]]
 name = "GPU"
 kind = "Average"
-input = [
+inputs = [
     "GPU Core",
     "GPU Hot Spot"
 ]

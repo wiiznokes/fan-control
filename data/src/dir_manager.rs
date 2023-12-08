@@ -1,14 +1,13 @@
 use std::{
     fs::{self},
     path::{Path, PathBuf},
-    vec,
 };
 
 use directories::ProjectDirs;
 use hardware::Hardware;
 
 use crate::{
-    cli::Args, config::Config, fl, name_sorter, serde_helper, settings::Settings, utils::RemoveElem,
+    cli::Args, config::Config, name_sorter, serde_helper, settings::Settings, utils::RemoveElem,
 };
 
 use self::toml::{add_toml_ext, remove_toml_ext};
@@ -65,8 +64,11 @@ impl DirManager {
 
         if let Some(config_name) = args.config_name {
             let config_name = remove_toml_ext(&config_name).to_owned();
-            if config_names.contains(&config_name) {
-                settings.current_config = Some(config_name);
+            settings.current_config = if config_names.contains(&config_name) {
+                Some(config_name)
+            } else {
+                warn!("config gave as parameter not exist");
+                None
             }
         };
 
@@ -256,7 +258,8 @@ impl ConfigNames {
                 continue;
             }
 
-            if serde_helper::deserialize::<Config>(&file.path()).is_err() {
+            if let Err(e) = serde_helper::deserialize::<Config>(&file.path()) {
+                warn!("error while deserialize conifg in config dir: {}", e);
                 continue;
             }
 
@@ -296,21 +299,8 @@ impl ConfigNames {
         self.data.contains(&name)
     }
 
-    pub fn names(&self, without: &Option<String>) -> Vec<String> {
-        let Some(without) = without else {
-            return self.data.clone();
-        };
-
-        let names = self
-            .data
-            .iter()
-            .filter(|n| n != &without)
-            .cloned()
-            .collect::<Vec<_>>();
-
-        let mut v = vec![fl!("none")];
-        v.extend(names);
-        v
+    pub fn names(&self) -> &Vec<String> {
+        &self.data
     }
 
     pub fn index_of(&self, name: &str) -> Option<usize> {
@@ -333,14 +323,6 @@ impl ConfigNames {
 
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
-    }
-}
-
-pub fn filter_none(str: String) -> Option<String> {
-    if str == fl!("none") {
-        None
-    } else {
-        Some(str)
     }
 }
 

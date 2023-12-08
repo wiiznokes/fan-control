@@ -1,6 +1,6 @@
 
 fake:
-	cargo run --features fake_hardware -- -p ./.test
+	cargo run --features fake_hardware -- -p ./.config -c fake
 
 ## Build Libs
 	
@@ -50,6 +50,9 @@ clean-lhm:
 
 # Temp
 
+
+temp:
+	clear && cargo run -- -p ./.config -c tes
 
 run-lhm:
 	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release
