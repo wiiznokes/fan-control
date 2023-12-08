@@ -1,33 +1,26 @@
 use cosmic::{
-    widget::{self, Dropdown},
+    iced_widget::PickList,
+    widget::{self},
     Element,
 };
 use data::{dir_manager::DirManager, settings::AppTheme};
 use strum::IntoEnumIterator;
 
-use crate::{AppCache, AppMsg, SettingsMsg};
+use crate::{AppMsg, SettingsMsg};
 
-pub fn settings_drawer<'a>(
-    show: bool,
-    dir_manager: &'a DirManager,
-    cache: &'a AppCache,
-) -> Option<Element<'a, AppMsg>> {
+pub fn settings_drawer(show: bool, dir_manager: &DirManager) -> Option<Element<'_, AppMsg>> {
     if !show {
         return None;
     }
-    let app_theme_selected = AppTheme::iter()
-        .position(|e| e == dir_manager.settings().theme)
-        .unwrap();
+
+    let themes: Vec<_> = AppTheme::iter().collect();
 
     let settings_context = widget::settings::view_column(vec![widget::settings::view_section("")
         .add(
-            widget::settings::item::builder("Theme").control(Dropdown::new(
-                &cache.theme_list,
-                Some(app_theme_selected),
-                move |index| {
-                    let theme = AppTheme::iter().nth(index).unwrap();
-                    AppMsg::Settings(SettingsMsg::ChangeTheme(theme))
-                },
+            widget::settings::item::builder("Theme").control(PickList::new(
+                themes,
+                Some(dir_manager.settings().theme),
+                move |theme| AppMsg::Settings(SettingsMsg::ChangeTheme(theme)),
             )),
         )
         .into()])

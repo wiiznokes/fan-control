@@ -28,7 +28,6 @@ use cosmic::{
 use item::{items_view, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 
 use pick::Pick;
-use strum::IntoEnumIterator;
 
 use crate::add_node::add_node_button_view;
 
@@ -55,15 +54,10 @@ pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
 pub struct Ui {
     core: Core,
     app_state: AppState,
-    cache: AppCache,
     current_config_cached: String,
     create_button_expanded: bool,
     choose_config_expanded: bool,
     nodes_c: NodesC,
-}
-
-pub struct AppCache {
-    theme_list: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -131,10 +125,6 @@ impl cosmic::Application for Ui {
     }
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let app_cache = AppCache {
-            theme_list: AppTheme::iter().map(|e| e.to_string()).collect(),
-        };
-
         let current_config_cached = flags
             .dir_manager
             .settings()
@@ -143,7 +133,6 @@ impl cosmic::Application for Ui {
 
         let ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
-            cache: app_cache,
             app_state: flags,
             core,
             create_button_expanded: false,
@@ -521,11 +510,7 @@ impl cosmic::Application for Ui {
     }
 
     fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        settings_drawer(
-            self.core.window.show_context,
-            &self.app_state.dir_manager,
-            &self.cache,
-        )
+        settings_drawer(self.core.window.show_context, &self.app_state.dir_manager)
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
