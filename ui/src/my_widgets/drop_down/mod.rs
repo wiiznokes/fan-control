@@ -240,7 +240,13 @@ where
         _position: Point,
         _translation: Vector,
     ) -> Node {
-        let limits = Limits::new(Size::ZERO, bounds);
+        let limits = Limits::new(
+            Size::ZERO,
+            Size {
+                width: self.underlay_bounds.width,
+                height: bounds.height,
+            },
+        );
 
         let mut node = self
             .element

@@ -124,8 +124,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
     }
     Row::with_children(elements)
         .align_items(Alignment::Center)
-        // todo: control width with widget
-        .width(Length::Fixed(150.0))
+        .width(Length::Fill)
         .into()
 }
 
