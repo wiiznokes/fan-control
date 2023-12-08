@@ -21,14 +21,6 @@ pub struct Linear {
     pub input: Option<String>,
 }
 
-#[derive(Debug, Clone)]
-pub struct LinearCache {
-    pub min_temp: String,
-    pub min_speed: String,
-    pub max_temp: String,
-    pub max_speed: String,
-}
-
 impl IsValid for Linear {
     fn is_valid(&self) -> bool {
         self.input.is_some() && self.max_temp > self.min_temp && self.max_speed > self.min_speed
@@ -42,15 +34,6 @@ struct Affine {
 }
 
 impl Linear {
-    pub fn cache(&self) -> LinearCache {
-        LinearCache {
-            min_temp: self.min_temp.to_string(),
-            min_speed: self.min_speed.to_string(),
-            max_temp: self.max_temp.to_string(),
-            max_speed: self.max_speed.to_string(),
-        }
-    }
-
     pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
             return Ok(self.min_speed.into());
@@ -80,9 +63,7 @@ impl Linear {
 
 impl ToNode for Linear {
     fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
-        let cache = self.cache();
-
-        Node::new(id_generator, NodeType::Linear(self, cache), nodes)
+        Node::new(id_generator, NodeType::Linear(self), nodes)
     }
 }
 
