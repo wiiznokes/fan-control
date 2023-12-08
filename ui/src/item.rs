@@ -86,6 +86,7 @@ fn item_view<'a>(node: &'a Node, bottom: impl Into<Element<'a, AppMsg>>) -> Elem
 
     let top = Row::new()
         .push(item_icon)
+        .push(Space::new(5.0, 0.0))
         .push(name)
         .push(delete_button)
         .align_items(Alignment::Center);
@@ -165,6 +166,18 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         panic!()
     };
 
+    let kind_options = CustomTempKind::VALUES
+        .iter()
+        .filter(|k| &custom_temp.kind != *k)
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
+        ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(k)).to_app(node.id)
+    })
+    .width(Length::Fill)
+    .into();
+
     let inputs = node
         .inputs
         .iter()
@@ -180,18 +193,6 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
                 .into()
         })
         .collect();
-
-    let kind_options = CustomTempKind::VALUES
-        .iter()
-        .filter(|k| &custom_temp.kind != *k)
-        .cloned()
-        .collect::<Vec<_>>();
-
-    let pick_kind = PickList::new(kind_options, Some(custom_temp.kind.clone()), |k| {
-        ModifNodeMsg::CustomTemp(CustomTempMsg::Kind(k)).to_app(node.id)
-    })
-    .width(Length::Fill)
-    .into();
 
     let content = vec![
         pick_kind,

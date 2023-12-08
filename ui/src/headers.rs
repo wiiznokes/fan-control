@@ -2,7 +2,7 @@ use cosmic::{
     iced_core::{Alignment, Length},
     iced_widget::{Button, Column},
     theme,
-    widget::{Container, Row, Space, Text, TextInput},
+    widget::{Container, Row, Text, TextInput},
     Element,
 };
 use data::dir_manager::DirManager;
@@ -13,16 +13,18 @@ use crate::{
     AppMsg, UiMsg,
 };
 
+static ICON_LENGHT: Length = Length::Fixed(35.0);
+
 pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
 
     let app_icon = my_icon("app/toys_fan48").into();
     elems.push(app_icon);
 
-    elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
+    // elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
+    // let app_name = Text::new("fan-control").into();
+    // elems.push(app_name);
 
-    let app_name = Text::new("fan-control").into();
-    elems.push(app_name);
     elems
 }
 
@@ -34,7 +36,9 @@ pub fn header_center<'a>(
     let settings = dir_manager.settings();
     let mut elems = Vec::new();
 
-    let mut save_button = icon_button("topBar/save40");
+    let mut save_button = icon_button("topBar/save40")
+        .height(ICON_LENGHT)
+        .width(ICON_LENGHT);
 
     if settings.current_config.is_some()
         && dir_manager
@@ -71,7 +75,7 @@ pub fn header_center<'a>(
             .for_each(|name| configs.push(config_choice_line(Some(name.to_owned()))))
     }
 
-    let mut expand_icon = expand_icon(expanded);
+    let mut expand_icon = expand_icon(expanded).height(ICON_LENGHT).width(ICON_LENGHT);
 
     if !configs.is_empty() {
         expand_icon = expand_icon.on_press(AppMsg::Ui(crate::UiMsg::ToggleChooseConfig(!expanded)));
@@ -130,6 +134,8 @@ pub fn header_end<'a>() -> Vec<Element<'a, AppMsg>> {
 
     let settings_button = icon_button("topBar/settings40")
         .on_press(AppMsg::Ui(UiMsg::ToggleSettings))
+        .height(ICON_LENGHT)
+        .width(ICON_LENGHT)
         .into();
     elems.push(settings_button);
 

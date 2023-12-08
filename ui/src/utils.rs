@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use cosmic::widget::{self, icon::Handle, Icon, IconButton};
+use cosmic::{
+    iced_core::Length,
+    widget::{self, icon::Handle, Icon, IconButton},
+};
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
@@ -13,8 +16,12 @@ pub fn icon_button<M>(name: &str) -> widget::button::IconButton<M> {
     cosmic::widget::button::icon(get_handle_icon(name))
 }
 
+static ICON_LENGHT: Length = Length::Fixed(25.0);
+
 pub fn my_icon(name: &str) -> Icon {
     widget::icon::icon(get_handle_icon(name))
+        .height(ICON_LENGHT)
+        .width(ICON_LENGHT)
 }
 
 fn get_handle_icon(name: &str) -> Handle {

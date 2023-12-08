@@ -94,6 +94,8 @@ where
         InputLineUnit::Porcentage => " %",
     };
 
+    let icon_lenght = Length::Fixed(30.0);
+
     Row::new()
         .push(Text::new(info))
         .push(
@@ -104,8 +106,18 @@ where
                 .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
                     Column::new()
-                        .push(icon_button("sign/plus/add20").on_press_maybe(plus_message))
-                        .push(icon_button("sign/minus/remove20").on_press_maybe(sub_message)),
+                        .push(
+                            icon_button("sign/plus/add20")
+                                .on_press_maybe(plus_message)
+                                .width(icon_lenght)
+                                .height(icon_lenght),
+                        )
+                        .push(
+                            icon_button("sign/minus/remove20")
+                                .on_press_maybe(sub_message)
+                                .width(icon_lenght)
+                                .height(icon_lenght),
+                        ),
                 )
                 .align_items(Alignment::Center),
         )
