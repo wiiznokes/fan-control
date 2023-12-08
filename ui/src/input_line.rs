@@ -5,7 +5,7 @@ use iced::{
     Alignment, Element, Length,
 };
 
-use crate::{utils::icon_button, ModifNodeMsg};
+use crate::{theme, utils::icon_button, ModifNodeMsg};
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;
@@ -65,7 +65,7 @@ where
         None
     };
 
-    let input = TextInput::new("value", cached_value)
+    let mut input = TextInput::new("value", cached_value)
         .on_input(move |s| {
             let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
                 Some(value_not_tested) => match range.contains(&value_not_tested) {
@@ -85,8 +85,9 @@ where
     };
 
     if is_error {
-        // todo
-        //input = input.error("this value is invalid");
+        input = input.style(iced::theme::TextInput::Custom(Box::new(
+            theme::CustomTextInputStyle::Error,
+        )));
     }
 
     let unit_text = match unit {
@@ -94,6 +95,7 @@ where
         InputLineUnit::Porcentage => " %",
     };
 
+    let button_lenght = Length::Fixed(20.0);
     Row::new()
         .push(Text::new(info))
         .push(
@@ -104,8 +106,18 @@ where
                 .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
                     Column::new()
-                        .push(icon_button("sign/plus/add20").on_press_maybe(plus_message))
-                        .push(icon_button("sign/minus/remove20").on_press_maybe(sub_message)),
+                        .push(
+                            icon_button("sign/plus/add20")
+                                .on_press_maybe(plus_message)
+                                .height(button_lenght)
+                                .width(button_lenght),
+                        )
+                        .push(
+                            icon_button("sign/minus/remove20")
+                                .on_press_maybe(sub_message)
+                                .height(button_lenght)
+                                .width(button_lenght),
+                        ),
                 )
                 .align_items(Alignment::Center),
         )

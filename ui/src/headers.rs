@@ -5,6 +5,7 @@ use iced::{
 };
 
 use crate::{
+    theme,
     utils::{icon_button, my_icon},
     AppMsg, UiMsg,
 };
@@ -44,13 +45,14 @@ pub fn header_center<'a>(
         elems.push(save_button);
     }
 
-    let name = TextInput::new(&fl!("config_name"), current_config)
+    let mut name = TextInput::new(&fl!("config_name"), current_config)
         .on_input(AppMsg::RenameConfig)
         .width(Length::Fixed(150.0));
 
     if dir_manager.config_names.is_valid_name(current_config) {
-        // todo
-        //name = name.error("this name is already beeing use");
+        name = name.style(iced::theme::TextInput::Custom(Box::new(
+            theme::CustomTextInputStyle::Error,
+        )));
     }
 
     elems.push(name.into());

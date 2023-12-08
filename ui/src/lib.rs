@@ -474,7 +474,7 @@ impl iced::Application for Ui {
         let content = Column::new()
             .push(header_bar)
             .push(items_view(&app_graph.nodes, &app_state.hardware));
-
+        
         let mut content_with_floating_button = floating_element::FloatingElement::new(
             content,
             add_node_button_view(self.create_button_expanded),

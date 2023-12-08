@@ -17,6 +17,7 @@ use crate::{
     input_line::{input_line, InputLineUnit},
     my_widgets::drop_down,
     pick::{pick_hardware, pick_input, Pick},
+    theme::{self, CustomContainerStyle},
     utils::{expand_icon, icon_button, icon_path_for_node_type, my_icon},
     AppMsg, ModifNodeMsg,
 };
@@ -71,13 +72,14 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
 fn item_view<'a>(node: &'a Node, bottom: impl Into<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
-    let name = TextInput::new("name", &node.name_cached)
+    let mut name = TextInput::new("name", &node.name_cached)
         .on_input(|s| ModifNodeMsg::Rename(s).to_app(node.id))
         .width(Length::Fill);
 
     if node.is_error_name {
-        // todo
-        //name = name.error("this name is already beeing use");
+        name = name.style(iced::theme::TextInput::Custom(Box::new(
+            theme::CustomTextInputStyle::Error,
+        )));
     }
 
     // todo: context menu
@@ -92,11 +94,18 @@ fn item_view<'a>(node: &'a Node, bottom: impl Into<Element<'a, AppMsg>>) -> Elem
         .align_items(Alignment::Center)
         .width(Length::Fill);
 
-    let content = Column::new().push(top).push(bottom).spacing(5);
+    let content = Column::new()
+        .push(top)
+        .push(bottom)
+        .align_items(Alignment::Center)
+        .spacing(5);
 
     Container::new(content)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
+        .style(iced::theme::Container::Custom(Box::new(
+            CustomContainerStyle::Item,
+        )))
         .into()
 }
 
