@@ -32,35 +32,30 @@ pub fn header_center<'a>(
     expanded: bool,
 ) -> Vec<Element<'a, AppMsg>> {
     let settings = dir_manager.settings();
+    let mut elems = Vec::new();
 
-    let mut elems = vec![];
+    let mut save_button = icon_button("topBar/save40");
 
-    if settings.current_config.is_some() {
-        let save_button = icon_button("topBar/save40")
-            .on_press(AppMsg::SaveConfig)
-            .into();
-
-        elems.push(save_button);
+    if settings.current_config.is_some()
+        && dir_manager
+            .config_names
+            .is_valid_name(&settings.current_config, current_config)
+    {
+        save_button = save_button.on_press(AppMsg::SaveConfig);
     }
+
+    elems.push(save_button.into());
 
     let mut name = TextInput::new(&fl!("config_name"), current_config)
         .on_input(AppMsg::RenameConfig)
         .width(Length::Fixed(150.0));
 
-    if dir_manager.config_names.is_valid_name(current_config) {
+    if !dir_manager
+        .config_names
+        .is_valid_name(&settings.current_config, current_config)
+    {
         name = name.error("this name is already beeing use");
     }
-
-    let mut expand_icon = expand_icon(expanded);
-
-    if !dir_manager.config_names.is_empty() {
-        expand_icon = expand_icon.on_press(AppMsg::Ui(crate::UiMsg::ToggleChooseConfig(!expanded)));
-    }
-
-    let underlay = Row::new()
-        .push(name)
-        .push(expand_icon)
-        .align_items(Alignment::Center);
 
     let mut configs = Vec::new();
 
@@ -75,6 +70,17 @@ pub fn header_center<'a>(
             .iter()
             .for_each(|name| configs.push(config_choice_line(Some(name.to_owned()))))
     }
+
+    let mut expand_icon = expand_icon(expanded);
+
+    if !configs.is_empty() {
+        expand_icon = expand_icon.on_press(AppMsg::Ui(crate::UiMsg::ToggleChooseConfig(!expanded)));
+    }
+
+    let underlay = Row::new()
+        .push(name)
+        .push(expand_icon)
+        .align_items(Alignment::Center);
 
     let overlay = Container::new(Column::with_children(configs).align_items(Alignment::Center))
         .style(theme::Container::Dropdown);

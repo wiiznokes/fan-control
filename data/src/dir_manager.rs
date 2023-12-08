@@ -308,17 +308,28 @@ impl ConfigNames {
         self.data.iter().position(|n| n == &name)
     }
 
-    pub fn is_valid_name(&self, name: &str) -> bool {
-        if name.trim() != name || name.is_empty() {
+    pub fn is_valid_name(&self, previous_name: &Option<String>, new_name: &str) -> bool {
+        if new_name.trim() != new_name || new_name.is_empty() {
             return false;
         }
-        let name = remove_toml_ext(name);
-        self.data
+        let new_name = remove_toml_ext(new_name);
+
+        let is_same_name = match previous_name {
+            Some(previous_name) => {
+                let previous_name = remove_toml_ext(previous_name);
+                previous_name == new_name
+            }
+            None => false,
+        };
+
+        let nb_occurence = self
+            .data
             .iter()
-            .filter(|n| n == &name)
+            .filter(|n| n == &new_name)
             .collect::<Vec<_>>()
-            .len()
-            > 1
+            .len();
+
+        nb_occurence == 0 || (nb_occurence == 1 && is_same_name)
     }
 
     pub fn is_empty(&self) -> bool {
