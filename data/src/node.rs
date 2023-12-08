@@ -4,8 +4,6 @@ use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
 use crate::app_graph::Nodes;
-use crate::config::linear::LinearCache;
-use crate::config::target::TargetCache;
 
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
@@ -19,11 +17,7 @@ pub struct Node {
     pub id: Id,
     pub node_type: NodeType,
     pub inputs: Vec<(Id, String)>,
-
     pub value: Option<Value>,
-
-    pub name_cached: String,
-    pub is_error_name: bool,
 }
 
 #[derive(Debug, Clone, LightEnum)]
@@ -34,8 +28,8 @@ pub enum NodeType {
     CustomTemp(CustomTemp),
     Graph(Graph),
     Flat(Flat),
-    Linear(Linear, LinearCache),
-    Target(Target, TargetCache),
+    Linear(Linear),
+    Target(Target),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -138,14 +132,11 @@ pub trait IsValid {
 
 impl Node {
     pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, nodes: &Nodes) -> Self {
-        let name_cached = node_type.name().clone();
         let mut node = Self {
             id: id_generator.new_id(),
             node_type,
             inputs: Vec::new(),
             value: None,
-            name_cached,
-            is_error_name: false,
         };
 
         let sanitize = sanitize_inputs(&node, nodes);

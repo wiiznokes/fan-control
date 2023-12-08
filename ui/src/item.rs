@@ -17,27 +17,34 @@ use hardware::Hardware;
 
 use crate::{
     input_line::{input_line, InputLineUnit},
+    item_cache::{NodeC, NodeTypeC, NodesC},
     pick::{pick_hardware, pick_input, Pick},
     utils::{icon_button, icon_path_for_node_type, my_icon},
     AppMsg, ModifNodeMsg,
 };
 
-pub fn items_view<'a>(nodes: &'a Nodes, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+pub fn items_view<'a>(
+    nodes: &'a Nodes,
+    nodes_c: &'a NodesC,
+    hardware: &'a Hardware,
+) -> Element<'a, AppMsg> {
     let mut controls = Vec::new();
     let mut behaviors = Vec::new();
     let mut temps = Vec::new();
     let mut fans = Vec::new();
 
     for node in nodes.values() {
+        let node_c = nodes_c.get(&node.id);
+
         match node.node_type.to_light() {
-            NodeTypeLight::Control => controls.push(control_view(node, nodes, hardware)),
-            NodeTypeLight::Fan => fans.push(fan_view(node, hardware)),
-            NodeTypeLight::Temp => temps.push(temp_view(node, hardware)),
-            NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, nodes)),
+            NodeTypeLight::Control => controls.push(control_view(node, node_c, nodes, hardware)),
+            NodeTypeLight::Fan => fans.push(fan_view(node, node_c, hardware)),
+            NodeTypeLight::Temp => temps.push(temp_view(node, node_c, hardware)),
+            NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, node_c, nodes)),
             NodeTypeLight::Graph => {}
-            NodeTypeLight::Flat => behaviors.push(flat_view(node)),
-            NodeTypeLight::Linear => behaviors.push(linear_view(node, nodes)),
-            NodeTypeLight::Target => behaviors.push(target_view(node, nodes)),
+            NodeTypeLight::Flat => behaviors.push(flat_view(node, node_c)),
+            NodeTypeLight::Linear => behaviors.push(linear_view(node, node_c, nodes)),
+            NodeTypeLight::Target => behaviors.push(target_view(node, node_c, nodes)),
         }
     }
 
@@ -69,14 +76,18 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
         .into()
 }
 
-fn item_view<'a>(node: &'a Node, bottom: impl Into<Element<'a, AppMsg>>) -> Element<'a, AppMsg> {
+fn item_view<'a>(
+    node: &'a Node,
+    node_c: &'a NodeC,
+    bottom: impl Into<Element<'a, AppMsg>>,
+) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
-    let mut name = TextInput::new("name", &node.name_cached)
+    let mut name = TextInput::new("name", &node_c.name)
         .on_input(|s| ModifNodeMsg::Rename(s).to_app(node.id))
         .width(Length::Fill);
 
-    if node.is_error_name {
+    if node_c.is_error_name {
         name = name.error("this name is already beeing use");
     }
 
@@ -111,6 +122,7 @@ pub enum ControlMsg {
 
 fn control_view<'a>(
     node: &'a Node,
+    node_c: &'a NodeC,
     nodes: &'a Nodes,
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
@@ -134,25 +146,25 @@ fn control_view<'a>(
             .into(),
     ];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }
 
-fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+fn temp_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.temps, false).map(|m| m.to_app(node.id)),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }
 
-fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+fn fan_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.fans, false).map(|m| m.to_app(node.id)),
         Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -160,7 +172,11 @@ pub enum CustomTempMsg {
     Kind(CustomTempKind),
 }
 
-fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+fn custom_temp_view<'a>(
+    node: &'a Node,
+    node_c: &'a NodeC,
+    nodes: &'a Nodes,
+) -> Element<'a, AppMsg> {
     let _custom_temp = node.to_custom_temp();
     let NodeType::CustomTemp(custom_temp) = &node.node_type else {
         panic!()
@@ -203,7 +219,7 @@ fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg>
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -211,7 +227,7 @@ pub enum FlatMsg {
     Value(u16),
 }
 
-fn flat_view(node: &Node) -> Element<AppMsg> {
+fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
     let NodeType::Flat(flat) = &node.node_type else {
         panic!()
     };
@@ -247,7 +263,7 @@ fn flat_view(node: &Node) -> Element<AppMsg> {
 
     let content = vec![buttons, slider];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -258,8 +274,12 @@ pub enum LinearMsg {
     MaxSpeed(u8, String),
 }
 
-fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Linear(linear, linear_cache) = &node.node_type else {
+fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+    let NodeType::Linear(linear) = &node.node_type else {
+        panic!()
+    };
+
+    let NodeTypeC::Linear(linear_c) = &node_c.node_type_c else {
         panic!()
     };
 
@@ -271,7 +291,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "min temp",
             &linear.min_temp,
-            &linear_cache.min_temp,
+            &linear_c.min_temp,
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinTemp(val, cached_val)),
@@ -280,7 +300,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "min speed",
             &linear.min_speed,
-            &linear_cache.min_speed,
+            &linear_c.min_speed,
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinSpeed(val, cached_val)),
@@ -289,7 +309,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "max temp",
             &linear.max_temp,
-            &linear_cache.max_temp,
+            &linear_c.max_temp,
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxTemp(val, cached_val)),
@@ -298,7 +318,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "max speed",
             &linear.max_speed,
-            &linear_cache.max_speed,
+            &linear_c.max_speed,
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxSpeed(val, cached_val)),
@@ -306,7 +326,7 @@ fn linear_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         .map(|m| m.to_app(node.id)),
     ];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }
 
 #[derive(Debug, Clone)]
@@ -317,8 +337,12 @@ pub enum TargetMsg {
     LoadSpeed(u8, String),
 }
 
-fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Target(target, target_cache) = &node.node_type else {
+fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
+    let NodeType::Target(target) = &node.node_type else {
+        panic!()
+    };
+
+    let NodeTypeC::Target(target_c) = &node_c.node_type_c else {
         panic!()
     };
 
@@ -330,7 +354,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "idle temp",
             &target.idle_temp,
-            &target_cache.idle_temp,
+            &target_c.idle_temp,
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleTemp(val, cached_val)),
@@ -339,7 +363,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "idle speed",
             &target.idle_speed,
-            &target_cache.idle_speed,
+            &target_c.idle_speed,
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleSpeed(val, cached_val)),
@@ -348,7 +372,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "load temp",
             &target.load_temp,
-            &target_cache.load_temp,
+            &target_c.load_temp,
             InputLineUnit::Celcius,
             &(0..=255),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadTemp(val, cached_val)),
@@ -357,7 +381,7 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         input_line(
             "load speed",
             &target.load_speed,
-            &target_cache.load_speed,
+            &target_c.load_speed,
             InputLineUnit::Porcentage,
             &(0..=100),
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadSpeed(val, cached_val)),
@@ -365,5 +389,5 @@ fn target_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
         .map(|m| m.to_app(node.id)),
     ];
 
-    item_view(node, Column::with_children(content))
+    item_view(node, node_c, Column::with_children(content))
 }

@@ -11,6 +11,7 @@ use data::{
     utils::RemoveElem,
     AppState,
 };
+use item_cache::{NodeC, NodeTypeC, NodesC};
 
 use crate::settings_drawer::settings_drawer;
 
@@ -40,6 +41,7 @@ mod item;
 pub mod localize;
 mod add_node;
 mod headers;
+mod item_cache;
 mod my_widgets;
 mod pick;
 mod settings_drawer;
@@ -54,12 +56,13 @@ pub struct Ui {
     core: Core,
     app_state: AppState,
     cache: AppCache,
+    current_config_cached: String,
     create_button_expanded: bool,
     choose_config_expanded: bool,
+    nodes_c: NodesC,
 }
 
 pub struct AppCache {
-    current_config: String,
     theme_list: Vec<String>,
 }
 
@@ -129,20 +132,23 @@ impl cosmic::Application for Ui {
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let app_cache = AppCache {
-            current_config: flags
-                .dir_manager
-                .settings()
-                .current_config_text()
-                .to_owned(),
             theme_list: AppTheme::iter().map(|e| e.to_string()).collect(),
         };
 
+        let current_config_cached = flags
+            .dir_manager
+            .settings()
+            .current_config_text()
+            .to_owned();
+
         let ui_state = Ui {
+            nodes_c: NodesC::new(flags.app_graph.nodes.values()),
             cache: app_cache,
             app_state: flags,
             core,
             create_button_expanded: false,
             choose_config_expanded: false,
+            current_config_cached,
         };
         (ui_state, Command::none())
     }
@@ -166,10 +172,11 @@ impl cosmic::Application for Ui {
                             validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let nodec = self.nodes_c.get_mut(&id);
 
-                        node.name_cached = name.clone();
+                        nodec.name = name.clone();
                         if name_is_valid {
-                            node.is_error_name = false;
+                            nodec.is_error_name = false;
                             let previous_name = node.name().clone();
                             node.node_type.set_name(&name);
 
@@ -198,7 +205,7 @@ impl cosmic::Application for Ui {
                                 }
                             }
                         } else {
-                            node.is_error_name = true;
+                            nodec.is_error_name = true;
                         }
                     }
                     ModifNodeMsg::ChangeHardware(pick) => {
@@ -315,51 +322,63 @@ impl cosmic::Application for Ui {
                     },
                     ModifNodeMsg::Linear(linear_msg) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                        let NodeType::Linear(linear, linear_cache) = &mut node.node_type else {
+                        let NodeType::Linear(linear) = &mut node.node_type else {
+                            panic!()
+                        };
+
+                        let NodeTypeC::Linear(linear_c) =
+                            &mut self.nodes_c.get_mut(&id).node_type_c
+                        else {
                             panic!()
                         };
 
                         match linear_msg {
                             LinearMsg::MinTemp(min_temp, cached_value) => {
                                 linear.min_temp = min_temp;
-                                linear_cache.min_temp = cached_value;
+                                linear_c.min_temp = cached_value;
                             }
                             LinearMsg::MinSpeed(min_speed, cached_value) => {
                                 linear.min_speed = min_speed;
-                                linear_cache.min_speed = cached_value;
+                                linear_c.min_speed = cached_value;
                             }
                             LinearMsg::MaxTemp(max_temp, cached_value) => {
                                 linear.max_temp = max_temp;
-                                linear_cache.max_temp = cached_value;
+                                linear_c.max_temp = cached_value;
                             }
                             LinearMsg::MaxSpeed(max_speed, cached_value) => {
                                 linear.max_speed = max_speed;
-                                linear_cache.max_speed = cached_value;
+                                linear_c.max_speed = cached_value;
                             }
                         }
                     }
                     ModifNodeMsg::Target(target_msg) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                        let NodeType::Target(target, target_cache) = &mut node.node_type else {
+                        let NodeType::Target(target) = &mut node.node_type else {
+                            panic!()
+                        };
+
+                        let NodeTypeC::Target(target_c) =
+                            &mut self.nodes_c.get_mut(&id).node_type_c
+                        else {
                             panic!()
                         };
 
                         match target_msg {
                             TargetMsg::IdleTemp(idle_temp, cached_value) => {
                                 target.idle_temp = idle_temp;
-                                target_cache.idle_temp = cached_value;
+                                target_c.idle_temp = cached_value;
                             }
                             TargetMsg::IdleSpeed(idle_speed, cached_value) => {
                                 target.idle_speed = idle_speed;
-                                target_cache.idle_speed = cached_value;
+                                target_c.idle_speed = cached_value;
                             }
                             TargetMsg::LoadTemp(load_temp, cached_value) => {
                                 target.load_temp = load_temp;
-                                target_cache.load_temp = cached_value;
+                                target_c.load_temp = cached_value;
                             }
                             TargetMsg::LoadSpeed(load_speed, cached_value) => {
                                 target.load_speed = load_speed;
-                                target_cache.load_speed = cached_value;
+                                target_c.load_speed = cached_value;
                             }
                         }
                     }
@@ -374,7 +393,7 @@ impl cosmic::Application for Ui {
             AppMsg::SaveConfig => {
                 let config = Config::from_app_graph(&self.app_state.app_graph);
 
-                if let Err(e) = dir_manager.save_config(&self.cache.current_config, &config) {
+                if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
                     error!("{:?}", e);
                 };
             }
@@ -389,12 +408,12 @@ impl cosmic::Application for Ui {
                 match dir_manager.change_config(selected) {
                     Ok(config) => match config {
                         Some((config_name, config)) => {
-                            self.cache.current_config = config_name;
+                            self.current_config_cached = config_name;
                             self.app_state.app_graph =
                                 AppGraph::from_config(config, &self.app_state.hardware);
                         }
                         None => {
-                            self.cache.current_config.clear();
+                            self.current_config_cached.clear();
                         }
                     },
                     Err(e) => {
@@ -408,7 +427,7 @@ impl cosmic::Application for Ui {
                 match dir_manager.remove_config(name) {
                     Ok(is_current_config) => {
                         if is_current_config {
-                            self.cache.current_config.clear();
+                            self.current_config_cached.clear();
                         }
                     }
                     Err(e) => {
@@ -421,7 +440,7 @@ impl cosmic::Application for Ui {
 
                 match dir_manager.create_config(&new_name, &config) {
                     Ok(_) => {
-                        self.cache.current_config = new_name;
+                        self.current_config_cached = new_name;
                     }
                     Err(e) => {
                         error!("can't create config: {:?}", e);
@@ -429,7 +448,7 @@ impl cosmic::Application for Ui {
                 }
             }
             AppMsg::RenameConfig(name) => {
-                self.cache.current_config = name;
+                self.current_config_cached = name;
             }
             AppMsg::Settings(settings_msg) => match settings_msg {
                 SettingsMsg::ChangeTheme(theme) => {
@@ -437,11 +456,13 @@ impl cosmic::Application for Ui {
                         settings.theme = theme;
                     });
                     return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
-                    // todo: save on fs
                 }
             },
             AppMsg::NewNode(node_type_light) => {
-                self.app_state.app_graph.add_new_node(node_type_light);
+                let node = self.app_state.app_graph.create_new_node(node_type_light);
+                let node_c = NodeC::new(&node);
+                self.nodes_c.insert(node.id, node_c);
+                self.app_state.app_graph.insert_node(node);
             }
             AppMsg::DeleteNode(id) => {
                 if let Some(mut node) = self.app_state.app_graph.remove_node(id) {
@@ -452,6 +473,7 @@ impl cosmic::Application for Ui {
                     }
                 }
 
+                self.nodes_c.remove(&id);
                 self.app_state.app_graph.sanitize_inputs()
             }
             AppMsg::Ui(ui_msg) => match ui_msg {
@@ -473,7 +495,7 @@ impl cosmic::Application for Ui {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let content = items_view(&app_graph.nodes, &app_state.hardware);
+        let content = items_view(&app_graph.nodes, &self.nodes_c, &app_state.hardware);
 
         let floating_button = Column::new()
             .push(Space::new(0.0, Length::Fill))
@@ -489,7 +511,7 @@ impl cosmic::Application for Ui {
     fn header_center(&self) -> Vec<Element<Self::Message>> {
         headers::header_center(
             &self.app_state.dir_manager,
-            &self.cache.current_config,
+            &self.current_config_cached,
             self.choose_config_expanded,
         )
     }

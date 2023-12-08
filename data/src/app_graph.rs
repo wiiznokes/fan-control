@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use hardware::Hardware;
 
-use crate::config::linear::Linear;
-use crate::config::target::Target;
 use crate::config::Config;
 use crate::config::{control::Control, fan::Fan, temp::Temp};
 
@@ -24,7 +22,7 @@ pub struct AppGraph {
 impl AppGraph {
     fn new() -> Self {
         Self {
-            nodes: HashMap::new(),
+            nodes: Nodes::new(),
             id_generator: IdGenerator::new(),
             root_nodes: Vec::new(),
         }
@@ -167,7 +165,7 @@ impl AppGraph {
         find_unused_name(&self.nodes, &default_name, 1)
     }
 
-    pub fn add_new_node(&mut self, node_type_light: NodeTypeLight) {
+    pub fn create_new_node(&mut self, node_type_light: NodeTypeLight) -> Node {
         let mut node_type = match node_type_light {
             NodeTypeLight::Control => NodeType::Control(Default::default()),
             NodeTypeLight::Fan => NodeType::Fan(Default::default()),
@@ -175,23 +173,14 @@ impl AppGraph {
             NodeTypeLight::CustomTemp => NodeType::CustomTemp(Default::default()),
             NodeTypeLight::Graph => NodeType::Graph(Default::default()),
             NodeTypeLight::Flat => NodeType::Flat(Default::default()),
-            NodeTypeLight::Linear => {
-                let linear = Linear::default();
-                let cache = linear.cache();
-                NodeType::Linear(linear, cache)
-            }
-            NodeTypeLight::Target => {
-                let target = Target::default();
-                let cache = target.cache();
-                NodeType::Target(target, cache)
-            }
+            NodeTypeLight::Linear => NodeType::Linear(Default::default()),
+            NodeTypeLight::Target => NodeType::Target(Default::default()),
         };
 
         let new_name = self.generate_default_name(node_type_light);
         node_type.set_name(&new_name);
 
-        let node = Node::new(&mut self.id_generator, node_type, &self.nodes);
-        self.nodes.insert(node.id, node);
+        Node::new(&mut self.id_generator, node_type, &self.nodes)
     }
 
     pub fn sanitize_inputs(&mut self) {
