@@ -52,7 +52,7 @@ clean-lhm:
 
 
 temp:
-	clear && cargo run -- -p ./.config -c tes
+	clear && cargo run -- -p ./.test
 
 run-lhm:
 	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release

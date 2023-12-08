@@ -410,20 +410,16 @@ impl cosmic::Application for Ui {
                     }
                 }
             }
-            AppMsg::RemoveConfig(name) => {
-                self.choose_config_expanded = false;
-
-                match dir_manager.remove_config(name) {
-                    Ok(is_current_config) => {
-                        if is_current_config {
-                            self.current_config_cached.clear();
-                        }
-                    }
-                    Err(e) => {
-                        error!("can't remove config: {:?}", e);
+            AppMsg::RemoveConfig(name) => match dir_manager.remove_config(name) {
+                Ok(is_current_config) => {
+                    if is_current_config {
+                        self.current_config_cached.clear();
                     }
                 }
-            }
+                Err(e) => {
+                    error!("can't remove config: {:?}", e);
+                }
+            },
             AppMsg::CreateConfig(new_name) => {
                 let config = Config::from_app_graph(&self.app_state.app_graph);
 
