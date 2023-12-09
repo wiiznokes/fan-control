@@ -212,7 +212,7 @@ fn custom_temp_view<'a>(
         .iter()
         .map(|i| {
             Row::new()
-                .push(Text::new(i.1.clone()))
+                .push(Text::new(i.1.clone()).width(Length::Fixed(50.0)))
                 .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
                     icon_button("close/20")

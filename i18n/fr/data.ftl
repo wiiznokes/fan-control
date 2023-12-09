@@ -3,7 +3,6 @@ average = Moyenne
 max = Max
 min = Min
 
-
 default_control = Control
 default_fan = Ventilateur
 default_temp = Temp
@@ -16,3 +15,8 @@ default_target = Cible
 system_theme = Système
 dark_theme = Sombre
 light_theme = Clair
+
+value_celsius = { $value } °C
+value_percentage = { $value } %
+value_rpm = { $value } RPM
+no_value = Aucune valeur

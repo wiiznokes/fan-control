@@ -3,6 +3,7 @@ delete = Supprimer
 settings = Paramètre
 name = Nom
 value = Valeur
+theme = Thème
 temp_selection = Temp selection
 min_temp = min temp
 min_speed = min speed
@@ -13,7 +14,6 @@ idle_temp = idle temp
 idle_speed = idle speed
 load_temp = load temp
 load_speed = load speed
-
 
 # Add item description
 add_item = Ajouter un item
@@ -35,9 +35,6 @@ add_target = Prendre 5 variables :
     - une valeur de capteur
     Si le capteur > température de déclenchement, la vitesse de déclenchement est définie
     jusqu'à ce que ce capteur < température idéale
-
-# Item
-fan = Ventilateur
 
 # Configuration
 config_name = Nom de la configuration

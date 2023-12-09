@@ -1,4 +1,3 @@
-theme = "Light"
-unit = "Celsius"
+theme = "System"
 update_delay = 1500
-current_config = "fake"
+current_config = "lin"

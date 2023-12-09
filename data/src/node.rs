@@ -163,13 +163,13 @@ impl Node {
     }
 
     pub fn value_text(&self, kind: &ValueKind) -> String {
-        match &self.value {
-            Some(value) => match kind {
-                ValueKind::Celsius => format!("{} °C", value),
-                ValueKind::Porcentage => format!("{} %", value),
-                ValueKind::RPM => format!("{} RPM", value),
+        match self.value {
+            Some(val) => match kind {
+                ValueKind::Celsius => fl!("value_celsius", value = val),
+                ValueKind::Porcentage => fl!("value_percentage", value = val),
+                ValueKind::RPM => fl!("value_rpm", value = val),
             },
-            None => "No value".into(),
+            None => fl!("no_value"),
         }
     }
 

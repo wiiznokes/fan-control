@@ -16,7 +16,7 @@ pub fn settings_drawer(show: bool, dir_manager: &DirManager) -> Option<Element<'
 
     let settings_context = widget::settings::view_column(vec![widget::settings::view_section("")
         .add(
-            widget::settings::item::builder("Theme").control(PickList::new(
+            widget::settings::item::builder(fl!("theme")).control(PickList::new(
                 themes,
                 Some(dir_manager.settings().theme),
                 move |theme| AppMsg::Settings(SettingsMsg::ChangeTheme(theme)),

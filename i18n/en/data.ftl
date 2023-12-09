@@ -15,3 +15,8 @@ default_target = Target
 system_theme = System
 dark_theme = Dark
 light_theme = Light
+
+value_celsius = { $value } °C
+value_percentage = { $value } %
+value_rpm = { $value } RPM
+no_value = No value
