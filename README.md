@@ -1,7 +1,7 @@
 # fan-control
 
 [![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
-![ci_status](https://github.com/wiiznokes/light_enum/actions/workflows/test.yml/badge.svg)
+![ci_status](https://github.com/wiiznokes/fan-control/actions/workflows/test.yml/badge.svg)
 
 
 # Features
