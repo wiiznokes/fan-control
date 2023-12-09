@@ -13,7 +13,6 @@
     - [ ] CI for packaging
 - [ ] impl UI graph behavior
 - [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))
-- [ ] i18n support (add all string to ftl files)
 
 ## Missing piece from Iced/Libcosmic (Alpha software)
 

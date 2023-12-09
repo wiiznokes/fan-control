@@ -1,6 +1,19 @@
-
 none = None
 delete = Delete
+settings = Settings
+name = Name
+value = Value
+temp_selection = Temp selection
+min_temp = min temp
+min_speed = min speed
+max_temp = max temp
+max_speed = max speed
+
+idle_temp = idle temp
+idle_speed = idle speed
+load_temp = load temp
+load_speed = load speed
+
 
 # Add item description
 add_item = Add an item

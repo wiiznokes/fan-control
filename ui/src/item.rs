@@ -86,12 +86,12 @@ fn item_view<'a>(
 ) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
-    let mut name = TextInput::new("name", &node_c.name)
+    let mut name = TextInput::new(fl!("name"), &node_c.name)
         .on_input(|s| AppMsg::Rename(node.id, s))
         .width(Length::Fill);
 
     if node_c.is_error_name {
-        name = name.error("this name is already beeing use");
+        name = name.error("This name is already beeing use");
     }
 
     fn action_line<'a>(action: String, message: AppMsg) -> Element<'a, AppMsg> {
@@ -225,7 +225,7 @@ fn custom_temp_view<'a>(
 
     let content = vec![
         pick_kind,
-        pick_input(node, nodes, &Some("Choose Temp".into()), false, |pick| {
+        pick_input(node, nodes, &Some(fl!("temp_selection")), false, |pick| {
             ModifNodeMsg::AddInput(pick).to_app(node.id)
         }),
         Column::with_children(inputs).into(),
@@ -289,7 +289,7 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         }),
         Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
-            "min temp",
+            fl!("min_temp"),
             &linear.min_temp,
             &linear_c.min_temp,
             InputLineUnit::Celcius,
@@ -298,7 +298,7 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         )
         .map(|m| m.to_app(node.id)),
         input_line(
-            "min speed",
+            fl!("min_speed"),
             &linear.min_speed,
             &linear_c.min_speed,
             InputLineUnit::Porcentage,
@@ -307,7 +307,7 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         )
         .map(|m| m.to_app(node.id)),
         input_line(
-            "max temp",
+            fl!("max_temp"),
             &linear.max_temp,
             &linear_c.max_temp,
             InputLineUnit::Celcius,
@@ -316,7 +316,7 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         )
         .map(|m| m.to_app(node.id)),
         input_line(
-            "max speed",
+            fl!("max_speed"),
             &linear.max_speed,
             &linear_c.max_speed,
             InputLineUnit::Porcentage,
@@ -344,7 +344,7 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         }),
         Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
-            "idle temp",
+            fl!("idle_temp"),
             &target.idle_temp,
             &target_c.idle_temp,
             InputLineUnit::Celcius,
@@ -353,7 +353,7 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         )
         .map(|m| m.to_app(node.id)),
         input_line(
-            "idle speed",
+            fl!("idle_speed"),
             &target.idle_speed,
             &target_c.idle_speed,
             InputLineUnit::Porcentage,
@@ -362,7 +362,7 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         )
         .map(|m| m.to_app(node.id)),
         input_line(
-            "load temp",
+            fl!("load_temp"),
             &target.load_temp,
             &target_c.load_temp,
             InputLineUnit::Celcius,
@@ -371,7 +371,7 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         )
         .map(|m| m.to_app(node.id)),
         input_line(
-            "load speed",
+            fl!("load_speed"),
             &target.load_speed,
             &target_c.load_speed,
             InputLineUnit::Porcentage,

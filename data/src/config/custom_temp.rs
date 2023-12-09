@@ -58,9 +58,9 @@ impl ToNode for CustomTemp {
 impl ToString for CustomTempKind {
     fn to_string(&self) -> String {
         match self {
-            CustomTempKind::Average => "Average".into(),
-            CustomTempKind::Max => "Max".into(),
-            CustomTempKind::Min => "Min".into(),
+            CustomTempKind::Average => fl!("average"),
+            CustomTempKind::Max => fl!("max"),
+            CustomTempKind::Min => fl!("min"),
         }
     }
 }

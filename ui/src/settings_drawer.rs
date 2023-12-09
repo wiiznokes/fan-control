@@ -4,7 +4,6 @@ use cosmic::{
     Element,
 };
 use data::{dir_manager::DirManager, settings::AppTheme};
-use strum::IntoEnumIterator;
 
 use crate::message::{AppMsg, SettingsMsg};
 
@@ -13,7 +12,7 @@ pub fn settings_drawer(show: bool, dir_manager: &DirManager) -> Option<Element<'
         return None;
     }
 
-    let themes: Vec<_> = AppTheme::iter().collect();
+    let themes = AppTheme::VALUES.to_vec();
 
     let settings_context = widget::settings::view_column(vec![widget::settings::view_section("")
         .add(

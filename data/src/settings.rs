@@ -1,5 +1,4 @@
-use strum::Display;
-use strum::EnumIter;
+use light_enum::Values;
 
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +14,7 @@ pub struct Settings {
     pub current_config: Option<String>,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, Default, EnumIter, Display)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, Default, Values)]
 pub enum AppTheme {
     #[default]
     System,
@@ -42,6 +41,16 @@ impl Settings {
         match &self.current_config {
             Some(current_config) => current_config,
             None => "",
+        }
+    }
+}
+
+impl ToString for AppTheme {
+    fn to_string(&self) -> String {
+        match self {
+            AppTheme::System => fl!("system_theme"),
+            AppTheme::Dark => fl!("dark_theme"),
+            AppTheme::Light => fl!("light_theme"),
         }
     }
 }

@@ -322,7 +322,7 @@ impl cosmic::Application for Ui {
                 ToogleMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
                 ToogleMsg::Settings => {
                     self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title("Settings".into());
+                    self.set_context_title(fl!("settings"));
                 }
                 ToogleMsg::ChooseConfig(expanded) => {
                     self.choose_config_expanded = expanded;

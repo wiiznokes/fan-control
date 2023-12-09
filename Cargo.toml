@@ -52,4 +52,4 @@ i18n-embed = { version = "0.14", features = ["fluent-system", "desktop-requester
 rust-embed = "8.0"
 i18n-embed-fl = "0.7"
 lazy_static = "1.4"
-strum = { version = "0.25", features = ["derive"] }
+# strum = { version = "0.25", features = ["derive"] }

@@ -1,19 +1,15 @@
-//#![feature(return_position_impl_trait_in_trait)]
-//#![feature(type_alias_impl_trait)]
-#![allow(dead_code)]
-//#![allow(clippy::match_like_matches_macro)]
-
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+pub mod localize;
+
+pub mod app_graph;
+pub mod boilerplate;
 pub mod cli;
 pub mod config;
 pub mod dir_manager;
 pub mod id;
-#[macro_use]
-pub mod localize;
-pub mod app_graph;
-pub mod boilerplate;
 mod name_sorter;
 pub mod node;
 pub mod serde_helper;

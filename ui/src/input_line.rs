@@ -34,7 +34,7 @@ pub enum InputLineUnit {
 }
 
 pub fn input_line<'a, V, F>(
-    info: &'a str,
+    info: String,
     value: &'a V,
     cached_value: &'a str,
     unit: InputLineUnit,
@@ -66,7 +66,7 @@ where
         None
     };
 
-    let mut input = TextInput::new("value", cached_value)
+    let mut input = TextInput::new(fl!("value"), cached_value)
         .on_input(move |s| {
             let final_value = match <Option<V> as MyFrom<_>>::from(&s) {
                 Some(value_not_tested) => match range.contains(&value_not_tested) {
