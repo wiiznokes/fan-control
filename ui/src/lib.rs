@@ -293,7 +293,7 @@ impl cosmic::Application for Ui {
                         }
 
                         self.nodes_c.remove(&id);
-                        self.app_state.app_graph.sanitize_inputs()
+                        self.app_state.app_graph.sanitize_inputs(false)
                     }
                 }
 
@@ -305,12 +305,15 @@ impl cosmic::Application for Ui {
             }
 
             AppMsg::Settings(settings_msg) => match settings_msg {
-                SettingsMsg::ChangeTheme(theme) => {
+                SettingsMsg::Theme(theme) => {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
                     });
                     return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
                 }
+                SettingsMsg::UpdateDelay(update_delay) => dir_manager.update_settings(|settings| {
+                    settings.update_delay = update_delay;
+                }),
             },
             AppMsg::NewNode(node_type_light) => {
                 let node = self.app_state.app_graph.create_new_node(node_type_light);

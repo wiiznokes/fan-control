@@ -183,10 +183,10 @@ impl AppGraph {
         Node::new(&mut self.id_generator, node_type, &self.nodes)
     }
 
-    pub fn sanitize_inputs(&mut self) {
+    pub fn sanitize_inputs(&mut self, log: bool) {
         let mut sanitizes = Vec::new();
         for node in self.nodes.values() {
-            sanitizes.push(sanitize_inputs(node, &self.nodes));
+            sanitizes.push(sanitize_inputs(node, &self.nodes, log));
         }
 
         for inputs in sanitizes {

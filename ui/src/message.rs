@@ -29,7 +29,8 @@ pub enum ConfigMsg {
 
 #[derive(Debug, Clone)]
 pub enum SettingsMsg {
-    ChangeTheme(AppTheme),
+    Theme(AppTheme),
+    UpdateDelay(u64),
 }
 
 #[derive(Debug, Clone)]

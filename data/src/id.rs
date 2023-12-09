@@ -11,7 +11,7 @@ impl IdGenerator {
     }
 
     pub fn new_id(&mut self) -> Id {
-        self.prec_id += 1;
+        self.prec_id = self.prec_id.checked_add(1).expect("overflow of id");
 
         self.prec_id
     }

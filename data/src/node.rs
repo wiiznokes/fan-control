@@ -66,7 +66,7 @@ pub enum ToRemove {
     Specific(Vec<String>),
 }
 
-pub fn sanitize_inputs(node: &Node, nodes: &Nodes) -> Sanitize {
+pub fn sanitize_inputs(node: &Node, nodes: &Nodes, log: bool) -> Sanitize {
     let mut sanitize = Sanitize::new(node.id);
 
     match node.node_type.max_input() {
@@ -107,7 +107,9 @@ pub fn sanitize_inputs(node: &Node, nodes: &Nodes) -> Sanitize {
                 }
             }
             None => {
-                warn!("can't find node {}", name);
+                if log {
+                    warn!("can't find node {}", name);
+                }
             }
         }
     }
@@ -139,7 +141,7 @@ impl Node {
             value: None,
         };
 
-        let sanitize = sanitize_inputs(&node, nodes);
+        let sanitize = sanitize_inputs(&node, nodes, true);
         node.set_inputs(sanitize);
         node
     }
