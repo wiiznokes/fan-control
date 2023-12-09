@@ -53,7 +53,7 @@ pub fn header_center<'a>(
 
     let mut name = TextInput::new(fl!("config_name"), current_config)
         .on_input(|name| ConfigMsg::Rename(name).into())
-        .width(Length::Fixed(150.0));
+        .width(Length::Fixed(180.0));
 
     if !dir_manager
         .config_names

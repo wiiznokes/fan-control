@@ -36,7 +36,7 @@ impl CustomTemp {
 
         let value = match self.kind {
             CustomTempKind::Min => *values.iter().min().unwrap(),
-            CustomTempKind::Max => *values.iter().min().unwrap(),
+            CustomTempKind::Max => *values.iter().max().unwrap(),
             CustomTempKind::Average => values.iter().sum::<i32>() / values.len() as i32,
         };
         Ok(value)

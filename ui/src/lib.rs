@@ -83,6 +83,9 @@ impl cosmic::Application for Ui {
             .current_config_text()
             .to_owned();
 
+        let command =
+            cosmic::app::command::set_theme(to_cosmic_theme(&flags.dir_manager.settings().theme));
+
         let ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
             app_state: flags,
@@ -91,7 +94,7 @@ impl cosmic::Application for Ui {
             choose_config_expanded: false,
             current_config_cached,
         };
-        (ui_state, Command::none())
+        (ui_state, command)
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
