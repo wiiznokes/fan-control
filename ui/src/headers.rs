@@ -88,12 +88,11 @@ pub fn header_center<'a>(
         .push(expand_icon)
         .align_items(Alignment::Center);
 
-    let overlay = Container::new(Column::with_children(configs).align_items(Alignment::Center))
+    let overlay = Container::new(Column::with_children(configs).align_items(Alignment::Start))
         .style(theme::Container::Dropdown);
 
-    let choose_config = drop_down::DropDown::new(underlay, overlay)
-        .expanded(expanded)
-        .on_dismiss(Some(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(false))))
+    let choose_config = drop_down::DropDown::new(underlay, overlay, expanded)
+        .on_dismiss(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(false)))
         .into();
 
     elems.push(choose_config);
@@ -120,7 +119,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
     if optional_name.is_some() {
         elements.push(
             icon_button("delete_forever/24")
-                .on_press(ConfigMsg::Remove(name).into())
+                .on_press(ConfigMsg::Delete(name).into())
                 .into(),
         );
     }

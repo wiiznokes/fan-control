@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use cosmic::{
     iced::{self, keyboard, touch},
     iced_core::{widget::OperationOutputWrapper, Size, Vector},
@@ -12,6 +14,8 @@ use iced_widget::core::{
     Clipboard, Element, Event, Layout, Length, Point, Rectangle, Shell, Widget,
 };
 
+use super::{alignment::Alignment, offset::Offset};
+
 pub struct DropDown<'a, Message, Renderer = iced::Renderer>
 where
     Message: Clone,
@@ -20,6 +24,10 @@ where
     underlay: Element<'a, Message, Renderer>,
     overlay: Element<'a, Message, Renderer>,
     on_dismiss: Option<Message>,
+    width: Option<Length>,
+    height: Length,
+    alignment: Alignment,
+    offset: Offset,
     expanded: bool,
 }
 
@@ -28,7 +36,7 @@ where
     Message: Clone,
     Renderer: core::Renderer,
 {
-    pub fn new<U, B>(underlay: U, overlay: B) -> Self
+    pub fn new<U, B>(underlay: U, overlay: B, expanded: bool) -> Self
     where
         U: Into<Element<'a, Message, Renderer>>,
         B: Into<Element<'a, Message, Renderer>>,
@@ -36,9 +44,33 @@ where
         DropDown {
             underlay: underlay.into(),
             overlay: overlay.into(),
-            expanded: false,
+            expanded,
             on_dismiss: None,
+            width: None,
+            height: Length::Shrink,
+            alignment: Alignment::Bottom,
+            offset: Offset::from(5.0),
         }
+    }
+
+    pub fn width(mut self, width: impl Into<Length>) -> Self {
+        self.width = Some(width.into());
+        self
+    }
+
+    pub fn height(mut self, height: impl Into<Length>) -> Self {
+        self.height = height.into();
+        self
+    }
+
+    pub fn alignment(mut self, alignment: impl Into<Alignment>) -> Self {
+        self.alignment = alignment.into();
+        self
+    }
+
+    pub fn offset(mut self, offset: impl Into<Offset>) -> Self {
+        self.offset = offset.into();
+        self
     }
 }
 
@@ -48,14 +80,8 @@ where
     Renderer: core::Renderer,
 {
     #[must_use]
-    pub fn expanded(mut self, expanded: bool) -> Self {
-        self.expanded = expanded;
-        self
-    }
-
-    #[must_use]
-    pub fn on_dismiss(mut self, message: Option<Message>) -> Self {
-        self.on_dismiss = message;
+    pub fn on_dismiss(mut self, message: Message) -> Self {
+        self.on_dismiss = Some(message);
         self
     }
 }
@@ -181,7 +207,11 @@ where
                 &mut state.children[1],
                 &mut self.overlay,
                 &self.on_dismiss,
-                bounds,
+                &self.width,
+                &self.height,
+                &self.alignment,
+                &self.offset,
+                layout.bounds(),
             )),
         ))
     }
@@ -204,6 +234,10 @@ where
     state: &'b mut Tree,
     element: &'b mut Element<'a, Message, Renderer>,
     on_dismiss: &'b Option<Message>,
+    width: &'b Option<Length>,
+    height: &'b Length,
+    alignment: &'b Alignment,
+    offset: &'b Offset,
     underlay_bounds: Rectangle,
 }
 
@@ -216,6 +250,10 @@ where
         state: &'b mut Tree,
         element: &'b mut Element<'a, Message, Renderer>,
         on_dismiss: &'b Option<Message>,
+        width: &'b Option<Length>,
+        height: &'b Length,
+        alignment: &'b Alignment,
+        offset: &'b Offset,
         underlay_bounds: Rectangle,
     ) -> Self {
         DropDownOverlay {
@@ -223,6 +261,10 @@ where
             element,
             on_dismiss,
             underlay_bounds,
+            width,
+            alignment,
+            offset,
+            height,
         }
     }
 }
@@ -237,27 +279,55 @@ where
         &mut self,
         renderer: &Renderer,
         bounds: Size,
-        _position: Point,
+        position: Point,
         _translation: Vector,
     ) -> Node {
-        let limits = Limits::new(
-            Size::ZERO,
-            Size {
-                width: self.underlay_bounds.width,
-                height: bounds.height,
-            },
-        );
+        let limits = Limits::new(Size::ZERO, bounds)
+            .width(
+                self.width
+                    .unwrap_or(Length::Fixed(self.underlay_bounds.width)),
+            )
+            .height(*self.height);
 
         let mut node = self
             .element
             .as_widget()
             .layout(self.state, renderer, &limits);
 
-        let mut position = self.underlay_bounds.position();
-
-        let offset = 5.0;
-
-        position.y += self.underlay_bounds.height + offset;
+        let position = match self.alignment {
+            Alignment::TopStart => Point::new(
+                position.x - node.bounds().width - self.offset.x,
+                position.y - node.bounds().height + self.underlay_bounds.height - self.offset.y,
+            ),
+            Alignment::Top => Point::new(
+                position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
+                position.y - node.bounds().height - self.offset.y,
+            ),
+            Alignment::TopEnd => Point::new(
+                position.x + self.underlay_bounds.width + self.offset.x,
+                position.y - node.bounds().height + self.underlay_bounds.height - self.offset.y,
+            ),
+            Alignment::End => Point::new(
+                position.x + self.underlay_bounds.width + self.offset.x,
+                position.y + self.underlay_bounds.height / 2.0 - node.bounds().height / 2.0,
+            ),
+            Alignment::BottomEnd => Point::new(
+                position.x + self.underlay_bounds.width + self.offset.x,
+                position.y + self.offset.y,
+            ),
+            Alignment::Bottom => Point::new(
+                position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
+                position.y + self.underlay_bounds.height + self.offset.y,
+            ),
+            Alignment::BottomStart => Point::new(
+                position.x - node.bounds().width - self.offset.x,
+                position.y + self.offset.y,
+            ),
+            Alignment::Start => Point::new(
+                position.x - node.bounds().width - self.offset.x,
+                position.y + self.underlay_bounds.height / 2.0 - node.bounds().height / 2.0,
+            ),
+        };
 
         node.move_to(position);
 

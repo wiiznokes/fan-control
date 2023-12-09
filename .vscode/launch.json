@@ -22,7 +22,7 @@
             },
             "args": [
                 "-p",
-                "./.test"
+                "./.test",
             ],
             "cwd": "${workspaceFolder}"
         },
@@ -44,7 +44,9 @@
             },
             "args": [
                 "-p",
-                "./.test"
+                "./.test",
+                "-c",
+                "test"
             ],
             "cwd": "${workspaceFolder}"
         },

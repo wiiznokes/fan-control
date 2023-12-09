@@ -50,9 +50,8 @@ clean-lhm:
 
 # Temp
 
-
 temp:
-	clear && cargo run -- -p ./.test
+	clear && cargo run --features fake_hardware -- -p ./.test -c test
 
 run-lhm:
 	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release

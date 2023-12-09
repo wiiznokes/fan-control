@@ -2,9 +2,9 @@ use cosmic::{
     iced_core::{Alignment, Length, Padding},
     iced_widget::{
         scrollable::{Direction, Properties},
-        PickList, Scrollable, Toggler,
+        Button, PickList, Scrollable, Toggler,
     },
-    style,
+    style, theme,
     widget::{Column, Container, Row, Slider, Space, Text, TextInput},
     Element,
 };
@@ -17,7 +17,10 @@ use hardware::Hardware;
 
 use crate::{
     input_line::{input_line, InputLineUnit},
-    message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg},
+    message::{
+        AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
+    },
+    my_widgets::{self, drop_down::DropDown, offset::Offset},
     node_cache::{NodeC, NodeTypeC, NodesC},
     pick::{pick_hardware, pick_input, Pick},
     utils::{icon_button, icon_path_for_node_type, my_icon},
@@ -91,15 +94,35 @@ fn item_view<'a>(
         name = name.error("this name is already beeing use");
     }
 
-    // todo: context menu
-    let delete_button =
-        icon_button("delete_forever/24").on_press(ModifNodeMsg::Delete.to_app(node.id));
+    fn action_line<'a>(action: String, message: AppMsg) -> Element<'a, AppMsg> {
+        Button::new(Text::new(action))
+            .on_press(message)
+            .width(Length::Fill)
+            .into()
+    }
+
+    let overlay = Container::new(Column::new().push(action_line(
+        fl!("delete"),
+        ModifNodeMsg::Delete.to_app(node.id),
+    )))
+    .style(theme::Container::Dropdown);
+
+    let context_menu = DropDown::new(
+        icon_button("more_vert/24")
+            .on_press(ToogleMsg::NodeContextMenu(node.id, !node_c.context_menu_expanded).into()),
+        overlay,
+        node_c.context_menu_expanded,
+    )
+    .on_dismiss(ToogleMsg::NodeContextMenu(node.id, false).into())
+    .width(130.0)
+    .alignment(my_widgets::alignment::Alignment::BottomEnd)
+    .offset(Offset::new(5.0, 0.0));
 
     let top = Row::new()
         .push(item_icon)
         .push(Space::new(5.0, 0.0))
         .push(name)
-        .push(delete_button)
+        .push(context_menu)
         .align_items(Alignment::Center);
 
     let content = Column::new()

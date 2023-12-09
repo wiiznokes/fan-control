@@ -33,12 +33,13 @@ use crate::add_node::add_node_button_view;
 #[macro_use]
 extern crate log;
 
-mod input_line;
-mod item;
 #[macro_use]
 pub mod localize;
+
 mod add_node;
 mod headers;
+mod input_line;
+mod item;
 mod message;
 mod my_widgets;
 mod node_cache;
@@ -363,7 +364,7 @@ impl cosmic::Application for Ui {
                         }
                     }
                 }
-                ConfigMsg::Remove(name) => match dir_manager.remove_config(name) {
+                ConfigMsg::Delete(name) => match dir_manager.remove_config(name) {
                     Ok(is_current_config) => {
                         if is_current_config {
                             self.current_config_cached.clear();

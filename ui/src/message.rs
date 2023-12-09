@@ -14,7 +14,7 @@ pub enum AppMsg {
 
     Toggle(ToogleMsg),
 
-    // require app_grap sanitizing
+    // require app_graph sanitizing
     ModifNode(Id, ModifNodeMsg),
 }
 
@@ -24,7 +24,7 @@ pub enum ConfigMsg {
     Rename(String),
     Save,
     Change(Option<String>),
-    Remove(String),
+    Delete(String),
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +95,11 @@ impl From<SettingsMsg> for AppMsg {
 impl From<ConfigMsg> for AppMsg {
     fn from(value: ConfigMsg) -> Self {
         AppMsg::Config(value)
+    }
+}
+impl From<ToogleMsg> for AppMsg {
+    fn from(value: ToogleMsg) -> Self {
+        AppMsg::Toggle(value)
     }
 }
 

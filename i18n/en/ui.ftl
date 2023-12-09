@@ -1,6 +1,8 @@
-fan = Fan
+
 none = None
-config_name = Configuration name
+delete = Delete
+
+# Add item description
 add_item = Add an item
 add_fan = Monitor a fan sensor
 add_temp = Monitor a temp sensor
@@ -20,3 +22,10 @@ add_target = Take 5 variables:
     - a sensor value
     If the sensor > trigger temperature, trigger speed is set
     until this sensor is < ideal temperature
+
+
+# Item
+fan = Fan
+
+# Config
+config_name = Configuration name
