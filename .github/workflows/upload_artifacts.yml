@@ -1,46 +1,71 @@
-name: 'Upload artifacts'
+name: Release
+
 on:
   workflow_dispatch:
-permissions:
-  contents: write
-jobs:
-  upload_linux_artifact:
-    runs-on: "ubuntu-latest"
-    steps:
-      - uses: hecrj/setup-rust-action@v1
-        with:
-          rust-version: stable
-      - uses: actions/checkout@master
+    inputs:
+      tag_name:
+        description: "Tag name"
+        required: false
+        default: nightly
+        type: string
+  workflow_call:
+    inputs:
+      tag_name:
+        description: "Tag name"
+        required: true
+        type: string
 
-      - name: Make libsensors
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    runs-on: windows-latest
+  
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build lhm
+        run: make lhm
+
+      - name: Fetch dependencies
+        run: cargo fetch --locked
+
+      - name: Build
+        run: cargo build --frozen --profile release-lto
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: fan-control.exe
+          path: |
+            ./target/release/fan-control.exe
+
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build libsensors
         run: make libsensors
 
-      - name: Build release
-        run: cargo build --release
-        
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: fan-control
-          path: target/release/fan-control
-          
-  # TODO: experiment cross compile: linux -> win
-  upload_windows_artifact:
-    runs-on: "windows-latest"
-    steps:
-      - uses: hecrj/setup-rust-action@v1
-        with:
-          rust-version: stable
-      - uses: actions/checkout@master
+      - name: Fetch dependencies
+        run: cargo fetch --locked
 
-      - name: Make lhm
-        run: make lmh
+      - name: Build
+        run: cargo build --frozen --profile release-lto
 
-      - name: Build release
-        run: cargo build --release
+      - name: Package deb
+        run: make package-deb
 
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v3.1.2
+      - uses: actions/upload-artifact@v3
         with:
-          name: fan-control
-          path: target/release/fan-control
+          name: fan-control.deb
+          path: |
+            ./target/release/bundle/deb/fan-control*.deb

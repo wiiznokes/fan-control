@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Rust on ${{ matrix.os }}
+    if: github.event.pull_request.draft == false
+    needs: [fmt, clippy]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build libsensors on Ubuntu
+        if: startsWith(matrix.os, 'ubuntu')
+        run: make libsensors
+      
+      - name: Build lhm on Windows
+        if: startsWith(matrix.os, 'windows')
+        run: make lhm
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Fetch dependencies
+        run: cargo fetch --locked
+
+      - name: Build
+        run: cargo build --frozen
+
+      - name: Run tests
+        run: make test
+
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Run rustfmt
+        run: cargo fmt --all --check
+
+  clippy:
+    name: Clippy on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Fetch dependencies
+        run: cargo fetch --locked
+
+      - name: Run clippy
+        run: cargo clippy --all
+
+  lhm-fmt:
+    name: Lhm fmt
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Run rustfmt
+        run: make fix-lhm
