@@ -165,7 +165,6 @@ impl Node {
     pub fn value_text(&self, kind: &ValueKind) -> String {
         match &self.value {
             Some(value) => match kind {
-                ValueKind::Fahrenheit => todo!(),
                 ValueKind::Celsius => format!("{} °C", value),
                 ValueKind::Porcentage => format!("{} %", value),
                 ValueKind::RPM => format!("{} RPM", value),
@@ -180,7 +179,6 @@ impl Node {
 }
 
 pub enum ValueKind {
-    Fahrenheit,
     Celsius,
     Porcentage,
     RPM,

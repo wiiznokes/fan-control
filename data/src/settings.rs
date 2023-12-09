@@ -8,21 +8,11 @@ pub struct Settings {
     #[serde(default)]
     pub theme: AppTheme,
 
-    #[serde(default)]
-    pub unit: Unit,
-
     #[serde(default = "default_update_delay")]
     pub update_delay: u64,
 
     #[serde(default)]
     pub current_config: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub enum Unit {
-    #[default]
-    Celsius,
-    Fahrenheit,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, Default, EnumIter, Display)]
@@ -37,7 +27,6 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             theme: Default::default(),
-            unit: Default::default(),
             update_delay: default_update_delay(),
             current_config: Default::default(),
         }
