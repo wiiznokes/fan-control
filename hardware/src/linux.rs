@@ -10,10 +10,6 @@ use ouroboros::self_referencing;
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
 // https://www.kernel.org/doc/html/next/hwmon/nct6775.html
 
-// todo: cache PWM_ENABLE value before setting manual mode
-// so we can use it instead of this hardcored value
-static DEFAULT_PWM_ENABLE: i32 = 5;
-
 #[self_referencing]
 pub struct LinuxBridge {
     lib: LMSensors,
@@ -73,16 +69,16 @@ impl HardwareBridge for LinuxBridge {
     }
 
     fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        let value = if value == 0 {
-            DEFAULT_PWM_ENABLE
-        } else {
-            value
-        };
-
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    if let Err(e) = pwm_refs.enable.set_raw_value(value.into()) {
+                    let value = if value == 0 {
+                        pwm_refs.default_enable_cached
+                    } else {
+                        value.into()
+                    };
+
+                    if let Err(e) = pwm_refs.enable.set_raw_value(value) {
                         return Err(HardwareError::LmSensors(format!(
                             "can't set mode {} to a pwm: {:?}",
                             value, e
@@ -152,6 +148,7 @@ enum InternalSubFeatureRef<'a> {
 struct PwmRefs<'a> {
     io: SubFeatureRef<'a>,
     enable: SubFeatureRef<'a>,
+    default_enable_cached: f64,
 }
 struct SensorRefs<'a> {
     io: SubFeatureRef<'a>,
@@ -159,7 +156,7 @@ struct SensorRefs<'a> {
 
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
-        if let Err(e) = self.enable.set_raw_value(DEFAULT_PWM_ENABLE.into()) {
+        if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
             error!("can't set auto to a pwn in drop function: {:?}", e)
         }
     }
@@ -235,12 +232,21 @@ fn generate_hardware<'a>(
                             continue;
                         };
 
+                        let enable_cached = match sub_feature_ref_enable.raw_value() {
+                            Ok(value) => value,
+                            Err(e) => {
+                                error!("can't read value of pwm {}", e);
+                                continue;
+                            }
+                        };
+
                         if let Some((id, name, info)) =
                             generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref_io)
                         {
                             let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
                                 io: sub_feature_ref_io,
                                 enable: sub_feature_ref_enable,
+                                default_enable_cached: enable_cached,
                             });
 
                             sensors.push(sensor);
