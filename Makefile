@@ -1,7 +1,3 @@
-
-fake:
-	cargo run --features fake_hardware -- -p ./.config -c fake
-
 ## Build Libs
 	
 libsensors:
@@ -15,6 +11,9 @@ lhm:
 
 package-deb:
 	cargo bundle --release --format deb 
+
+package-msi:
+	cargo bundle --release --format msi 
 
 ## Test
 
@@ -30,9 +29,6 @@ test:
 
 ## Clean
 
-clean:
-	cargo clean
-
 clean-libsensors:
 	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../target/libsensors_build ETCDIR=./../../target/libsensors_build/etc
 
@@ -41,33 +37,33 @@ clean-lhm:
 
 
 
-
-
 .PHONY: clean-libsensors libsensors
 
 
 
 
-# Temp
+# Handy
+
+fake:
+	cargo run --features fake_hardware -- -p ./.config -c fake
 
 temp:
-	clear && cargo run --features fake_hardware -- -p ./.test -c test
-
-run-lhm:
-	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release
-
+	cargo run --features fake_hardware -- -p ./.temp
 
 git-cache:
 	git rm -rf --cached .
 	git add .
 
+run-lhm:
+	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release
 
 expand:
 	cargo expand
 
 
-conf:
-	cargo run -- -p ./.config
+
+
+# Debug
 
 deb: package-deb
 	sudo apt remove fan-control -y

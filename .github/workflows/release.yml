@@ -3,55 +3,46 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for release"
-        required: false
-        default: nightly
-        type: string
-  push:
-    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
-
+      is_nightly:
+        description: "Is nightly"
+        required: true
+        default: true
+        type: boolean
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CARGO_TERM_COLOR: always
 
 jobs:
-  tagname:
-    runs-on: ubuntu-latest
-    steps:
-      - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
-
-      - if: github.event_name == 'push'
-        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-  
-  upload_artifacts:
-    #needs: tagname
+  upload-artifacts:
     uses: ./.github/workflows/upload_artifacts.yml
-    with:
-      tag_name: env.TAG_NAME
-
+  
   publish:
-    if: github.event_name != 'pull_request'
-    needs: upload_artifacts
+    needs: upload-artifacts
     runs-on: ubuntu-latest
+
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     permissions:
       contents: write
+
     steps:
-      
-      - uses: actions/download-artifact@v3
-
-      - run: TAG_NAME=${{ env.TAG_NAME }}
-
-      # todo: create tag
-      - if: github.event_name == 'workflow_dispatch'
-        run: echo nothing
-
-      - name: Publish release
-        env:
-          DEBUG: api
+      - uses: actions/checkout@v4
+      - run: |
+          echo "PKG_VERSION=$(cargo pkgid | grep -oP '@\K\d+\.\d+\.\d+')" >> $GITHUB_ENV
+          gh release delete nightly --yes || true
+          git push origin :nightly || true
+      - if: ${{ github.event.inputs.is_nightly  == 'true' }}
         run: |
-          gh release create $TAG_NAME $PRERELEASE --title "$TAG_NAME" --target $GITHUB_SHA ./fan-control.exe ./fan-control*.deb
+          echo "TAG_NAME=nightly" >> $GITHUB_ENV
+          echo "PRERELEASE=--prerelease" >> $GITHUB_ENV
+      - if: ${{ github.event.inputs.is_nightly == 'false' }}
+        run: |
+          echo "TAG_NAME=v${{ env.PKG_VERSION }}" >> $GITHUB_ENV
+
+      - uses: actions/download-artifact@v3
+      
+      - name: Publish release
+        run: |
+          gh release create ${{ env.TAG_NAME }} ${{ env.PRERELEASE }} --title "${{ env.TAG_NAME }}" --generate-notes ./fan-control*/*

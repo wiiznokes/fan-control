@@ -1,9 +1,10 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
@@ -16,9 +17,8 @@ env:
 
 jobs:
   build:
-    name: Rust on ${{ matrix.os }}
+    name: Rust tests on ${{ matrix.os }}
     if: github.event.pull_request.draft == false
-    needs: [fmt, clippy]
     strategy:
       fail-fast: false
       matrix:
@@ -26,40 +26,37 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
         run: make libsensors
-      
       - name: Build lhm on Windows
         if: startsWith(matrix.os, 'windows')
         run: make lhm
-
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
-        
       - name: Fetch dependencies
         run: cargo fetch --locked
-
       - name: Build
         run: cargo build --frozen
-
       - name: Run tests
         run: make test
 
   fmt:
     name: Rustfmt
+    if: github.event.pull_request.draft == false
+    strategy:
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
       - name: Run rustfmt
         run: cargo fmt --all --check
 
   clippy:
     name: Clippy on ${{ matrix.os }}
+    if: github.event.pull_request.draft == false
     strategy:
       fail-fast: false
       matrix:
@@ -67,23 +64,25 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
+      - name: Build libsensors on Ubuntu
+        if: startsWith(matrix.os, 'ubuntu')
+        run: make libsensors
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
-        
       - name: Fetch dependencies
         run: cargo fetch --locked
-
       - name: Run clippy
         run: cargo clippy --all
 
   lhm-fmt:
     name: Lhm fmt
+    if: github.event.pull_request.draft == false
+    strategy:
+      fail-fast: false
     runs-on: windows-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
       - name: Run rustfmt
         run: make fix-lhm

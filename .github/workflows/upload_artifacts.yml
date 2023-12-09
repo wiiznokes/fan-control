@@ -1,71 +1,37 @@
-name: Release
+name: Upload Artifacts
 
 on:
   workflow_dispatch:
-    inputs:
-      tag_name:
-        description: "Tag name"
-        required: false
-        default: nightly
-        type: string
   workflow_call:
-    inputs:
-      tag_name:
-        description: "Tag name"
-        required: true
-        type: string
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  windows:
-    runs-on: windows-latest
-  
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Build lhm
-        run: make lhm
-
-      - name: Fetch dependencies
-        run: cargo fetch --locked
-
-      - name: Build
-        run: cargo build --frozen --profile release-lto
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: fan-control.exe
-          path: |
-            ./target/release/fan-control.exe
-
   linux:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v4
       - name: Build libsensors
         run: make libsensors
-
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
       - name: Fetch dependencies
         run: cargo fetch --locked
-
       - name: Build
-        run: cargo build --frozen --profile release-lto
+        run: cargo build --frozen --release
 
+      - name: Install cargo-bundle
+        run: cargo install cargo-bundle
       - name: Package deb
         run: make package-deb
 
+      - run: |
+          cp ./target/release/bundle/deb/fan-control*.deb .
+          echo "ARTIFACT_NAME=$(basename ./fan-control*.deb)" >> $GITHUB_ENV
+     
       - uses: actions/upload-artifact@v3
         with:
-          name: fan-control.deb
+          name: ${{ env.ARTIFACT_NAME }}
           path: |
-            ./target/release/bundle/deb/fan-control*.deb
+            ./${{ env.ARTIFACT_NAME }}
