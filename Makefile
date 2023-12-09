@@ -65,13 +65,13 @@ expand:
 
 # Debug
 
-deb: package-deb
-	sudo apt remove fan-control -y
+debi: package-deb
+	sudo apt remove fan-control -y || true
 	sudo apt install ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
 	dpkg-deb -c ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
 
-deb-i:
+debinfo:
 	dpkg-query -s fan-control
 
-deb-l:
+debl:
 	dpkg-query -L fan-control

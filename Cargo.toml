@@ -11,7 +11,7 @@ exclude = ["/.*", "/Makefile", "LICENCE"]
 [package.metadata.bundle]
 identifier = "com.wiiznokes.fan-control"
 icon = ["ressource/app_icon.ico", "ressource/app_icon.png"]
-#resources = ["ressource"]
+resources = ["ressource/icons"]
 category = "Utility"
 
 [workspace]
