@@ -6,7 +6,7 @@ target/
 
 # custom
 
-.test/
+temp/
 .idea/
 .vscode/*
 !.vscode/launch.json
@@ -16,3 +16,5 @@ obj/
 .config/hardware.toml
 /scripts/*
 !scripts/icons.py
+build/
+bundle/
