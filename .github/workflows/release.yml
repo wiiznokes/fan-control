@@ -28,11 +28,17 @@ jobs:
       contents: write
 
     steps:
+      - uses: actions/download-artifact@v3
       - uses: actions/checkout@v4
       - run: |
+          # get the package version from Cargo.toml
           echo "PKG_VERSION=$(cargo pkgid | grep -oP '@\K\d+\.\d+\.\d+')" >> $GITHUB_ENV
+
+          # delete nightly release
           gh release delete nightly --yes || true
-          git push origin :nightly || true
+          git tag -d nightly || true
+          git push origin --tags
+
       - if: ${{ github.event.inputs.is_nightly  == 'true' }}
         run: |
           echo "TAG_NAME=nightly" >> $GITHUB_ENV
@@ -40,9 +46,13 @@ jobs:
       - if: ${{ github.event.inputs.is_nightly == 'false' }}
         run: |
           echo "TAG_NAME=v${{ env.PKG_VERSION }}" >> $GITHUB_ENV
-
-      - uses: actions/download-artifact@v3
       
       - name: Publish release
         run: |
-          gh release create ${{ env.TAG_NAME }} ${{ env.PRERELEASE }} --title "${{ env.TAG_NAME }}" --generate-notes ./fan-control*/*
+          git tag ${{ env.TAG_NAME }}
+          git push origin --tags
+
+          # https://cli.github.com/manual/gh_release_create
+          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --verify-tag \
+            ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
+            ./fan-control*/*
