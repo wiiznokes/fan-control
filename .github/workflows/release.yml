@@ -32,7 +32,7 @@ jobs:
         with:
           # https://github.com/actions/checkout/issues/1471
           fetch-tags: false
-          
+      # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v3
 
       - run: |
@@ -45,17 +45,20 @@ jobs:
 
       - if: ${{ github.event.inputs.is_nightly  == 'true' }}
         run: |
+          # setup options for nightly
           echo "TAG_NAME=nightly" >> $GITHUB_ENV
           echo "PRERELEASE=--prerelease" >> $GITHUB_ENV
       - if: ${{ github.event.inputs.is_nightly == 'false' }}
         run: |
+          # setup options for a new release
           echo "TAG_NAME=v${{ env.PKG_VERSION }}" >> $GITHUB_ENV
       
       - name: Publish release
         run: |
           git tag ${{ env.TAG_NAME }}
           git push origin --tags
-          ls -l
-          ls -l ./fan-control*/*
+
           # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --target $GITHUB_SHA --verify-tag ${{ env.PRERELEASE }} --generate-notes ./fan-control*/*
+          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" \
+            --verify-tag ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
+            ./fan-control*/*
