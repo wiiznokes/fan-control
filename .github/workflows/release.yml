@@ -54,7 +54,7 @@ jobs:
         run: |
           git tag ${{ env.TAG_NAME }}
           git push origin --tags
-
+          sleep 10
           # https://cli.github.com/manual/gh_release_create
           gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --verify-tag \
             ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
