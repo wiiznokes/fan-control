@@ -37,6 +37,7 @@ jobs:
           # delete nightly release
           gh release delete nightly --yes || true
           git config --get branch.$(git symbolic-ref --short HEAD).remote
+          git tag
           git tag -d nightly || true
           git push origin --tags
 
