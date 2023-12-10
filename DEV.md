@@ -4,7 +4,7 @@
 - [ ] End to End testing
 - [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
     - [ ] Msi
-    - [ ] Deb
+    - [x] Deb
     - [ ] ARM support
     - [ ] RPM (not yet available)
     - [ ] EXE (not yet available)
@@ -19,3 +19,9 @@
 - Text ellapcing
 - rendering multiple layers
 - windows icons (close/maximize)
+
+## Todo/upgradable parts
+- add cargo-bundle a way to localize ressource
+- add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
+- return error from the windows server
+- merge if CI succeed
