@@ -28,9 +28,9 @@ const CHECK_RESPONSE: &str = "fan-control-ok";
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> (Hardware, HardwareBridgeT) {
         #[cfg(test)]
-        let path = "./../target/lhm/LibreHardwareMonitorWrapper";
+        let path = "./../ressource/windows/build/LibreHardwareMonitorWrapper";
         #[cfg(not(test))]
-        let path = "./target/lhm/LibreHardwareMonitorWrapper";
+        let path = "./ressource/windows/build/LibreHardwareMonitorWrapper";
 
         let handle = process::Command::new(path).spawn().unwrap();
 

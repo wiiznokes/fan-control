@@ -10,7 +10,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <OutputPath>.\..\..\target\lhm</OutputPath>
+        <OutputPath>.\..\..\ressource\windows\build</OutputPath>
     </PropertyGroup>
 
     <ItemGroup>

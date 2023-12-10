@@ -24,14 +24,12 @@ jobs:
       - name: Install cargo-bundle
         run: cargo install cargo-bundle
       - name: Package deb
-        run: make package-deb
-
-      - run: |
-          cp ./target/release/bundle/deb/fan-control*.deb .
-          echo "ARTIFACT_NAME=$(basename ./fan-control*.deb)" >> $GITHUB_ENV
+        run: |
+          make package-deb
+          echo "ARTIFACT_NAME=$(basename ./bundle/fan-control*.deb)" >> $GITHUB_ENV
      
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: |
-            ./${{ env.ARTIFACT_NAME }}
+            ./bundle/${{ env.ARTIFACT_NAME }}
