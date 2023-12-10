@@ -13,11 +13,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  upload-artifacts:
-    uses: ./.github/workflows/upload_artifacts.yml
+ # upload-artifacts:
+    #uses: ./.github/workflows/upload_artifacts.yml
   
   publish:
-    needs: upload-artifacts
+    #needs: upload-artifacts
     runs-on: ubuntu-latest
 
     env:
@@ -36,6 +36,7 @@ jobs:
 
           # delete nightly release
           gh release delete nightly --yes || true
+          git config --get branch.$(git symbolic-ref --short HEAD).remote
           git tag -d nightly || true
           git push origin --tags
 
@@ -55,4 +56,4 @@ jobs:
           # https://cli.github.com/manual/gh_release_create
           gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --verify-tag \
             ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
-            ./fan-control*/*
+            #./fan-control*/*
