@@ -31,7 +31,10 @@ jobs:
       - uses: actions/download-artifact@v3
       - uses: actions/checkout@v4
         with:
+          # https://github.com/actions/checkout/issues/1471
+          fetch-depth: 0
           fetch-tags: true
+
       - run: |
           # get the package version from Cargo.toml
           echo "PKG_VERSION=$(cargo pkgid | grep -oP '@\K\d+\.\d+\.\d+')" >> $GITHUB_ENV
