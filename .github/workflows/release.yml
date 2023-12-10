@@ -56,6 +56,4 @@ jobs:
           git push origin --tags
 
           # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --verify-tag\
-            ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA\
-            ./fan-control*/*
+          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --verify-tag ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA ./fan-control*/*
