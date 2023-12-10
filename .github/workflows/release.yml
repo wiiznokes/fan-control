@@ -30,6 +30,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
       - run: |
           # get the package version from Cargo.toml
           echo "PKG_VERSION=$(cargo pkgid | grep -oP '@\K\d+\.\d+\.\d+')" >> $GITHUB_ENV
