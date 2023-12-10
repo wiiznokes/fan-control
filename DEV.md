@@ -1,6 +1,4 @@
-
 ## Steps
-
 - [ ] End to End testing
 - [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
     - [ ] Msi
@@ -15,7 +13,6 @@
 - [ ] tray icon support (not yet available on [Iced](https://whimsical.com/roadmap-iced-7vhq6R35Lp3TmYH4WeYwLM))
 
 ## Missing piece from Iced/Libcosmic (Alpha software)
-
 - Text ellapcing
 - rendering multiple layers
 - windows icons (close/maximize)
