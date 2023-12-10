@@ -28,11 +28,12 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/download-artifact@v3
       - uses: actions/checkout@v4
         with:
           # https://github.com/actions/checkout/issues/1471
           fetch-tags: false
+          
+      - uses: actions/download-artifact@v3
 
       - run: |
           # get the package version from Cargo.toml
@@ -54,6 +55,7 @@ jobs:
         run: |
           git tag ${{ env.TAG_NAME }}
           git push origin --tags
-
+          ls -l
+          ls -l ./fan-control*/*
           # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --verify-tag ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA ./fan-control*/*
+          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" --target $GITHUB_SHA --verify-tag ${{ env.PRERELEASE }} --generate-notes ./fan-control*/*
