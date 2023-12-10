@@ -24,3 +24,4 @@
 - add cargo-bundle a way to localize ressource
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
+- merge if CI succeed
