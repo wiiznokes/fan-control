@@ -40,7 +40,7 @@ jobs:
 
           # delete nightly release
           gh release delete nightly --yes || true
-          git push --delete origin nightly
+          git push --delete origin nightly || true
 
       - if: ${{ github.event.inputs.is_nightly  == 'true' }}
         run: |
