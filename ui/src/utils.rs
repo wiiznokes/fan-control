@@ -7,7 +7,12 @@ use cosmic::{
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
-static RESSOURCE_PATH: &str = "./ressource/icons/";
+static RESSOURCE_PATH: &str = if cfg!(PACKAGE_TYPE = "DEB") {
+    "/usr/lib/fan-control/ressource/icons/"
+} else {
+    "./ressource/icons/"
+};
+
 static EXTENSION: &str = "px.svg";
 
 static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));

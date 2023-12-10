@@ -1,3 +1,8 @@
+## Env
+
+package-deb: export PACKAGE_TYPE=DEB
+
+
 ## Build Libs
 	
 libsensors:
@@ -42,7 +47,7 @@ clean-lhm:
 
 
 
-# Handy
+## Handy
 
 fake:
 	cargo run --features fake_hardware -- -p ./.config -c fake
@@ -63,13 +68,13 @@ expand:
 
 
 
-# Debug
+## Debug
 
 debi: package-deb
 	sudo apt remove fan-control -y || true
 	sudo apt install ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
-	dpkg-deb -c ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
-
+	# dpkg-deb -c ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
+	fan-control
 debinfo:
 	dpkg-query -s fan-control
 
