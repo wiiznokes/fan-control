@@ -77,7 +77,7 @@ debinfo:
 	dpkg-query -s fan-control
 
 debl:
-	dpkg-query -L fan-control
+	dpkg-query -L fan-control | grep -v /usr/lib/fan-control/ressource/
 
 package-msi:
 	cargo bundle --release --format msi 
