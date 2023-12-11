@@ -37,6 +37,7 @@ clap.workspace = true
 log.workspace = true
 env_logger.workspace = true
 hardware.workspace = true
+crossterm = "0.27.0"
 
 [dev-dependencies]
 

@@ -13,4 +13,6 @@ pub struct Args {
         id = "existing config to use, within config_dir_path"
     )]
     pub config_name: Option<String>,
+    #[arg(long = "cli", default_value_t = false)]
+    pub cli: bool,
 }

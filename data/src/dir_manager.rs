@@ -32,7 +32,7 @@ pub struct ConfigNames {
 }
 
 impl DirManager {
-    pub fn new(args: Args) -> DirManager {
+    pub fn new(args: &Args) -> DirManager {
         fn default_config_dir_path() -> PathBuf {
             ProjectDirs::from(QUALIFIER, ORG, APP)
                 .unwrap()
@@ -40,13 +40,13 @@ impl DirManager {
                 .to_path_buf()
         }
 
-        let config_dir_path = match args.config_dir_path {
+        let config_dir_path = match &args.config_dir_path {
             Some(config_dir_path) => {
                 if !config_dir_path.is_dir() {
                     error!("{} is not a directory", config_dir_path.display());
                     default_config_dir_path()
                 } else {
-                    config_dir_path
+                    config_dir_path.clone()
                 }
             }
             None => default_config_dir_path(),
@@ -62,8 +62,8 @@ impl DirManager {
 
         let config_names = ConfigNames::new(&config_dir_path);
 
-        if let Some(config_name) = args.config_name {
-            let config_name = remove_toml_ext(&config_name).to_owned();
+        if let Some(config_name) = &args.config_name {
+            let config_name = remove_toml_ext(config_name).to_owned();
             settings.current_config = if config_names.contains(&config_name) {
                 Some(config_name)
             } else {
