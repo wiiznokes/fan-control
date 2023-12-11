@@ -1,6 +1,6 @@
 ## Steps
 - [ ] End to End testing
-- [ ] package multiple format with [cargo-bundle](https://github.com/burtonageo/cargo-bundle)
+- [ ] package multiple format with [cargo-packager](https://github.com/crabnebula-dev/cargo-packager)
     - [ ] Msi
     - [x] Deb
     - [ ] ARM support
@@ -18,7 +18,7 @@
 - windows icons (close/maximize)
 
 ## Todo/upgradable parts
-- add cargo-bundle a way to localize ressource
+- add cargo-packager a way to localize ressource
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
 - merge if CI succeed

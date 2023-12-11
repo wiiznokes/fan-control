@@ -8,9 +8,11 @@ description = "Control your fans with different behaviors"
 repository = "https://github.com/wiiznokes/fan-control/"
 exclude = ["/.*", "/Makefile", "LICENCE"]
 
-[package.metadata.bundle]
+[package.metadata.packager]
+before-packaging-command = "cargo build --release"
 identifier = "com.wiiznokes.fan-control"
-icon = ["ressource/app_icon/*"]
+# todo: import all the dir
+icons = ["ressource/app_icon/app_icon48.png"]
 resources = ["ressource/icons"]
 category = "Utility"
 
