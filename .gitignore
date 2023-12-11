@@ -6,6 +6,7 @@ target/
 
 # custom
 
+.test/
 temp/
 .idea/
 .vscode/*

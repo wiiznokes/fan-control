@@ -22,3 +22,14 @@
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
 - merge if CI succeed
+- serialize graph like that:
+    ```toml
+    [[Graph]]
+    name = "Graph"
+    input = "max"
+    cood = [ 
+        { temp = 50, percent = 30 },
+        { temp = 50, percent = 30 },
+        { temp = 50, percent = 30 },
+    ]
+    ```
