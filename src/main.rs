@@ -2,8 +2,6 @@ use clap::Parser;
 use data::{app_graph::AppGraph, cli::Args, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge};
 
-use ui::run_ui;
-
 #[allow(unused_imports)]
 #[macro_use]
 extern crate log;
@@ -48,6 +46,6 @@ fn main() {
 
     match args.cli {
         true => cli::run_cli(app_state),
-        false => run_ui(app_state).unwrap(),
+        false => ui::run_ui(app_state).unwrap(),
     };
 }
