@@ -14,9 +14,9 @@ lhm:
 ## Packaging
 
 package-deb:
-	cargo bundle --release --format deb
-	mkdir -p bundle
-	cp ./target/release/bundle/deb/fan-control*.deb ./bundle/
+	cargo packager --release --formats deb
+	mkdir -p packages
+	cp ./target/release/fan-control*.deb ./packages/
 
 ## Test
 
@@ -68,16 +68,20 @@ expand:
 
 ## Debug
 
-debi: package-deb
-	sudo apt remove fan-control -y || true
-	sudo apt install ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
-	# dpkg-deb -c ./target/release/bundle/deb/fan-control_0.1.0_amd64.deb
-	fan-control
+debll:
+	dpkg-deb -c ./packages/fan-control_0.1.0_amd64.deb
+
+debi: package-deb debll
+	sudo apt-get remove fan-control -y || true > /dev/null
+	sudo apt-get install ./packages/fan-control_0.1.0_amd64.deb > /dev/null
+	#fan-control
+
 debinfo:
 	dpkg-query -s fan-control
 
 debl:
-	dpkg-query -L fan-control
+	dpkg-query -L fan-control | grep -v /usr/lib/fan-control/ressource/
 
 package-msi:
-	cargo bundle --release --format msi 
+	cargo bundle --release --format msi
+

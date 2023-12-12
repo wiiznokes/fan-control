@@ -26,10 +26,10 @@ jobs:
       - name: Package deb
         run: |
           make package-deb
-          echo "ARTIFACT_NAME=$(basename ./bundle/fan-control*.deb)" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=$(basename ./packages/fan-control*.deb)" >> $GITHUB_ENV
      
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: |
-            ./bundle/${{ env.ARTIFACT_NAME }}
+            ./packages/${{ env.ARTIFACT_NAME }}

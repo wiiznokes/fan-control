@@ -1,8 +1,6 @@
 use clap::Parser;
-use data::{app_graph::AppGraph, cli::Args, dir_manager::DirManager, update::Update, AppState};
+use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge};
-
-use ui::run_ui;
 
 #[allow(unused_imports)]
 #[macro_use]
@@ -11,6 +9,8 @@ extern crate log;
 #[cfg(all(test, feature = "fake_hardware"))]
 mod integrated_test;
 
+mod cli;
+
 fn main() {
     env_logger::init();
     ui::localize::localize();
@@ -18,7 +18,7 @@ fn main() {
 
     let args = Args::parse();
 
-    let dir_manager = DirManager::new(args);
+    let dir_manager = DirManager::new(&args);
 
     #[cfg(feature = "fake_hardware")]
     let (hardware, bridge) = hardware::fake_hardware::FakeHardwareBridge::generate_hardware();
@@ -44,5 +44,8 @@ fn main() {
         update: Update::new(),
     };
 
-    run_ui(app_state).unwrap();
+    match args.cli {
+        true => cli::run_cli(app_state),
+        false => ui::run_ui(app_state).unwrap(),
+    };
 }

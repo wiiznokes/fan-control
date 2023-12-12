@@ -18,4 +18,5 @@ obj/
 /scripts/*
 !scripts/icons.py
 build/
-bundle/
+/bundle/
+/packages/

@@ -3,7 +3,7 @@ use std::thread;
 use std::time::Duration;
 
 use data::app_graph::AppGraph;
-use data::cli::Args;
+use data::args::Args;
 use data::dir_manager::DirManager;
 
 use data::{update::Update, AppState};
@@ -16,9 +16,10 @@ fn test_config() {
     let args = Args {
         config_dir_path: Some(PathBuf::from("./.config")),
         config_name: Some("fake".into()),
+        ..Default::default()
     };
 
-    let dir_manager = DirManager::new(args);
+    let dir_manager = DirManager::new(&args);
 
     let (hardware, bridge) = fake_hardware::FakeHardwareBridge::generate_hardware();
 

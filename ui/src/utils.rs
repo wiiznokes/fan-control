@@ -8,7 +8,7 @@ use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
 static RESSOURCE_PATH: &str = if cfg!(PACKAGE_TYPE = "DEB") {
-    "/usr/lib/fan-control/ressource/icons/"
+    "/usr/lib/fan-control/icons/"
 } else {
     "./ressource/icons/"
 };
