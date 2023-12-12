@@ -8,6 +8,7 @@ target/
 
 .test/
 temp/
+.test/
 .idea/
 .vscode/*
 !.vscode/launch.json

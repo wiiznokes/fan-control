@@ -7,7 +7,7 @@ use directories::ProjectDirs;
 use hardware::Hardware;
 
 use crate::{
-    cli::Args, config::Config, name_sorter, serde_helper, settings::Settings, utils::RemoveElem,
+    args::Args, config::Config, name_sorter, serde_helper, settings::Settings, utils::RemoveElem,
 };
 
 use self::toml::{add_toml_ext, remove_toml_ext};

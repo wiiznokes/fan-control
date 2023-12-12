@@ -1,5 +1,5 @@
 use clap::Parser;
-use data::{app_graph::AppGraph, cli::Args, dir_manager::DirManager, update::Update, AppState};
+use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge};
 
 #[allow(unused_imports)]

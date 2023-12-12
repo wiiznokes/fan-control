@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[clap(author = "wiiznokes", version, about = "fan control app", long_about = None)]
 pub struct Args {
     #[arg(short = 'p', long = "path", id = "path to the config directory")]
