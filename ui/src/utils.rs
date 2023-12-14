@@ -7,8 +7,10 @@ use cosmic::{
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
-static RESSOURCE_PATH: &str = if cfg!(PACKAGE_TYPE = "DEB") {
+static RESSOURCE_PATH: &str = if cfg!(CARGO_PACKAGER_FORMAT = "Deb") {
     "/usr/lib/fan-control/icons/"
+} else if cfg!(CARGO_PACKAGER_FORMAT = "Nsis") {
+    ""  
 } else {
     "./ressource/icons/"
 };

@@ -1,6 +1,6 @@
 ## Env
 
-package-deb: export CARGO_PACKAGER_FORMAT=Deb
+#package-deb: export PACKAGE_TYPE=DEB
 
 ## Build Libs
 	
