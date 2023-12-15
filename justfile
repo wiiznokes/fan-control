@@ -1,7 +1,3 @@
-## Env
-
-#package-deb: export PACKAGE_TYPE=DEB
-
 ## Build Libs
 	
 libsensors:
@@ -69,12 +65,12 @@ expand:
 ## Debug
 
 debll:
-	dpkg-deb -c ./packages/fan-control_0.1.0_amd64.deb
+	dpkg-deb -c ./packages/fan-control*.deb | grep -v usr/lib/fan-control/icons/
 
 debi: package-deb debll
 	sudo apt-get remove fan-control -y || true > /dev/null
 	sudo apt-get install ./packages/fan-control_0.1.0_amd64.deb > /dev/null
-	#fan-control
+	fan-control
 
 debinfo:
 	dpkg-query -s fan-control
