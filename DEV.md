@@ -22,6 +22,7 @@
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
 - stop windows server with a command
+- use thiserror or anyhow
 - serialize graph like that:
     ```toml
     [[Graph]]

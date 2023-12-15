@@ -15,8 +15,10 @@ use crate::{
 
 use cargo_packager_resource_resolver as resource_resolver;
 
+use self::packet::{Command, Packet, I32};
+
 pub struct WindowsBridge {
-    pub stream: TcpStream,
+    stream: TcpStream,
 }
 
 const IP: &str = "127.0.0.1";
@@ -73,29 +75,17 @@ impl HardwareBridge for WindowsBridge {
     }
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
-        let command: Packet = Command::GetValue.into();
-        self.stream.write_all(&command).unwrap();
+        self.send(Command::GetValue);
+        self.send(I32(*internal_index));
 
-        let index: Packet = From::from(I32(*internal_index));
-        self.stream.write_all(&index).unwrap();
-
-        let mut buf: Packet = [0u8; 4];
-        self.stream.read_exact(&mut buf).unwrap();
-
-        let i32 = I32::from(buf);
-        Ok(i32.0)
+        let value = self.read::<I32<i32>>();
+        Ok(value.0)
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        debug!("send command: {:?} with value {}", Command::SetValue, value);
-        let command: Packet = Command::SetValue.into();
-        self.stream.write_all(&command).unwrap();
-
-        let index: Packet = From::from(I32(*internal_index));
-        self.stream.write_all(&index).unwrap();
-
-        let value: Packet = From::from(I32(value));
-        self.stream.write_all(&value).unwrap();
+        self.send(Command::SetValue);
+        self.send(I32(*internal_index));
+        self.send(I32(value));
         Ok(())
     }
 
@@ -105,20 +95,13 @@ impl HardwareBridge for WindowsBridge {
             return Ok(());
         }
 
-        debug!("send command: {:?}", Command::SetAuto);
-        let command: Packet = Command::SetAuto.into();
-        self.stream.write_all(&command).unwrap();
-
-        let index: Packet = From::from(I32(*internal_index));
-        self.stream.write_all(&index).unwrap();
-
-        // todo: take a result
+        self.send(Command::SetAuto);
+        self.send(I32(*internal_index));
         Ok(())
     }
 
     fn update(&mut self) -> Result<(), HardwareError> {
-        let command: Packet = Command::Update.into();
-        self.stream.write_all(&command).unwrap();
+        self.send(Command::Update);
         Ok(())
     }
 }
@@ -172,73 +155,6 @@ fn try_connect() -> TcpStream {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-enum HardwareType {
-    Control = 1,
-    Fan = 2,
-    Temp = 3,
-}
-
-#[derive(Debug, Clone)]
-#[repr(i32)]
-enum Command {
-    SetAuto = 1,
-    SetValue = 2,
-    GetValue = 3,
-    Shutdown = 4,
-    Update = 5,
-}
-
-impl From<Command> for [u8; 4] {
-    #[inline]
-    fn from(command: Command) -> Self {
-        let command_value = command as u32;
-        if is_little_endian() {
-            command_value.to_le_bytes()
-        } else {
-            command_value.to_be_bytes()
-        }
-    }
-}
-
-type Packet = [u8; 4];
-
-struct I32<T>(T);
-
-impl From<[u8; 4]> for I32<i32> {
-    #[inline]
-    fn from(bytes: [u8; 4]) -> Self {
-        if is_little_endian() {
-            I32(i32::from_le_bytes(bytes))
-        } else {
-            I32(i32::from_be_bytes(bytes))
-        }
-    }
-}
-
-impl From<I32<usize>> for [u8; 4] {
-    #[inline]
-    fn from(number: I32<usize>) -> Self {
-        let index = number.0 as i32;
-        if is_little_endian() {
-            index.to_le_bytes()
-        } else {
-            index.to_be_bytes()
-        }
-    }
-}
-
-impl From<I32<i32>> for [u8; 4] {
-    #[inline]
-    fn from(number: I32<i32>) -> Self {
-        if is_little_endian() {
-            number.0.to_le_bytes()
-        } else {
-            number.0.to_be_bytes()
-        }
-    }
-}
-
-#[derive(Deserialize, Debug, Clone)]
 struct BaseHardware {
     #[serde(rename = "Id")]
     id: String,
@@ -260,16 +176,101 @@ struct InternalControl {
     index: usize,
 }
 
-#[inline]
-fn is_little_endian() -> bool {
-    let test_value: u16 = 1;
-    let test_ptr: *const u16 = &test_value;
+impl WindowsBridge {
+    fn send(&mut self, command: impl Into<Packet>) {
+        let packet: Packet = command.into();
+        self.stream.write_all(&packet).unwrap();
+    }
 
-    // Read the first byte of the u16 through the pointer
-    let byte = unsafe { *test_ptr as u8 };
+    fn read<T>(&mut self) -> T
+    where
+        T: From<Packet>,
+    {
+        let mut buf: Packet = [0u8; 4];
+        self.stream.read_exact(&mut buf).unwrap();
+        buf.into()
+    }
+}
 
-    // If the byte is 1, the system is little-endian; otherwise, it's big-endian
-    byte == 1
+#[derive(Deserialize, Debug, Clone)]
+enum HardwareType {
+    Control = 1,
+    Fan = 2,
+    Temp = 3,
+}
+
+mod packet {
+    #[derive(Debug, Clone)]
+    #[repr(i32)]
+    pub enum Command {
+        SetAuto = 1,
+        SetValue = 2,
+        GetValue = 3,
+        Shutdown = 4,
+        Update = 5,
+    }
+
+    pub struct I32<T>(pub T);
+
+    pub type Packet = [u8; 4];
+
+    impl From<Command> for [u8; 4] {
+        #[inline]
+        fn from(command: Command) -> Self {
+            let command_value = command as u32;
+            if is_little_endian() {
+                command_value.to_le_bytes()
+            } else {
+                command_value.to_be_bytes()
+            }
+        }
+    }
+
+    impl From<[u8; 4]> for I32<i32> {
+        #[inline]
+        fn from(bytes: [u8; 4]) -> Self {
+            if is_little_endian() {
+                I32(i32::from_le_bytes(bytes))
+            } else {
+                I32(i32::from_be_bytes(bytes))
+            }
+        }
+    }
+
+    impl From<I32<usize>> for [u8; 4] {
+        #[inline]
+        fn from(number: I32<usize>) -> Self {
+            let index = number.0 as i32;
+            if is_little_endian() {
+                index.to_le_bytes()
+            } else {
+                index.to_be_bytes()
+            }
+        }
+    }
+
+    impl From<I32<i32>> for [u8; 4] {
+        #[inline]
+        fn from(number: I32<i32>) -> Self {
+            if is_little_endian() {
+                number.0.to_le_bytes()
+            } else {
+                number.0.to_be_bytes()
+            }
+        }
+    }
+
+    #[inline]
+    fn is_little_endian() -> bool {
+        let test_value: u16 = 1;
+        let test_ptr: *const u16 = &test_value;
+
+        // Read the first byte of the u16 through the pointer
+        let byte = unsafe { *test_ptr as u8 };
+
+        // If the byte is 1, the system is little-endian; otherwise, it's big-endian
+        byte == 1
+    }
 }
 
 #[cfg(test)]
