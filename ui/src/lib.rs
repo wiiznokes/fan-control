@@ -17,7 +17,7 @@ use node_cache::{NodeC, NodeTypeC, NodesC};
 use crate::settings_drawer::settings_drawer;
 
 use cosmic::{
-    app::{Command, Core},
+    app::{command, Command, Core},
     executor,
     iced::{self, time},
     iced_core::Length,
@@ -83,8 +83,10 @@ impl cosmic::Application for Ui {
             .current_config_text()
             .to_owned();
 
-        let command =
-            cosmic::app::command::set_theme(to_cosmic_theme(&flags.dir_manager.settings().theme));
+        let commands = Command::batch([
+            command::set_theme(to_cosmic_theme(&flags.dir_manager.settings().theme)),
+            command::message(cosmic::app::Message::App(AppMsg::Tick)),
+        ]);
 
         let ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
@@ -94,7 +96,7 @@ impl cosmic::Application for Ui {
             choose_config_expanded: false,
             current_config_cached,
         };
-        (ui_state, command)
+        (ui_state, commands)
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
