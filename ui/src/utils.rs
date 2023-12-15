@@ -7,13 +7,13 @@ use cosmic::{
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
-static RESSOURCE_PATH: &str = if cfg!(CARGO_PACKAGER_FORMAT = "Deb") {
-    "/usr/lib/fan-control/icons/"
-} else if cfg!(CARGO_PACKAGER_FORMAT = "Nsis") {
-    ""  
-} else {
-    "./ressource/icons/"
-};
+use cargo_packager_resource_resolver as resource_resolver;
+
+static RESSOURCE_PATH: Lazy<PathBuf> = Lazy::new(|| {
+    resource_resolver::resource_dir_with_suffix("resource")
+        .unwrap()
+        .join("icons/")
+});
 
 static EXTENSION: &str = "px.svg";
 
@@ -34,12 +34,12 @@ pub fn my_icon(name: &str) -> Icon {
 fn get_handle_icon(name: &str) -> Handle {
     unsafe {
         BUF.clear();
-        BUF.insert_str(0, RESSOURCE_PATH);
-        BUF.insert_str(BUF.len(), name);
-        BUF.insert_str(BUF.len(), EXTENSION);
+        BUF.insert_str(0, name);
+        BUF.insert_str(BUF.chars().count(), EXTENSION);
     };
 
-    cosmic::widget::icon::from_path(PathBuf::from(unsafe { BUF.as_str() }))
+    let path = RESSOURCE_PATH.join(unsafe { BUF.as_str() });
+    cosmic::widget::icon::from_path(path)
 }
 
 pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {

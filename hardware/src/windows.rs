@@ -13,6 +13,8 @@ use crate::{
     ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
 };
 
+use cargo_packager_resource_resolver as resource_resolver;
+
 pub struct WindowsBridge {
     pub stream: TcpStream,
 }
@@ -27,12 +29,11 @@ const CHECK_RESPONSE: &str = "fan-control-ok";
 
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> (Hardware, HardwareBridgeT) {
-        #[cfg(test)]
-        let path = "./../ressource/windows/build/LibreHardwareMonitorWrapper";
-        #[cfg(not(test))]
-        let path = "./ressource/windows/build/LibreHardwareMonitorWrapper";
+        let exe_path = resource_resolver::resource_dir_with_suffix("resource")
+            .unwrap()
+            .join("windows/build/LibreHardwareMonitorWrapper");
 
-        let handle = process::Command::new(path).spawn().unwrap();
+        let handle = process::Command::new(exe_path).spawn().unwrap();
 
         let mut hardware = Hardware::default();
 

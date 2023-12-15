@@ -45,11 +45,6 @@ clean-lhm:
 
 
 
-.PHONY: clean-libsensors libsensors
-
-
-
-
 ## Handy
 
 fake:

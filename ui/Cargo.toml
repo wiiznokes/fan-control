@@ -13,8 +13,9 @@ i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 lazy_static.workspace = true
-once_cell = "1.18"
-
+# todo: maybe use lazy static instead
+once_cell.workspace = true
+cargo-packager-resource-resolver.workspace = true
 [dependencies.libcosmic]
 #git = "https://github.com/wiiznokes/libcosmic"
 git = "https://github.com/pop-os/libcosmic"
