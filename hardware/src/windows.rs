@@ -104,6 +104,11 @@ impl HardwareBridge for WindowsBridge {
         self.send(Command::Update);
         Ok(())
     }
+
+    fn shutdown(&mut self) -> Result<(), HardwareError> {
+        self.send(Command::Shutdown);
+        Ok(())
+    }
 }
 
 fn try_connect() -> TcpStream {

@@ -23,6 +23,8 @@
 - return error from the windows server
 - stop windows server with a command
 - use thiserror or anyhow
+- get app_state back when we close the ui
+- pop up when closing
 - serialize graph like that:
     ```toml
     [[Graph]]

@@ -46,6 +46,10 @@ pub fn run_cli(mut app_state: AppState) {
             }
         }
     }
+    
+    if let Err(e) = app_state.bridge.shutdown() {
+        error!("{:?}", e);
+    }
 }
 
 enum UserAction {

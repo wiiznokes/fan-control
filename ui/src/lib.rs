@@ -484,6 +484,17 @@ impl cosmic::Application for Ui {
 
         //cosmic::iced_futures::Subscription::none()
     }
+
+    fn on_app_exit(&mut self) {
+        if let Err(e) = self.app_state.bridge.shutdown() {
+            error!("{:?}", e);
+        }
+    }
+
+    fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
+        // todo pop up. Need to use settings to not close auto
+        return None;
+    }
 }
 
 fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
