@@ -18,7 +18,7 @@ cargo-packager-resource-resolver.workspace = true
 [dependencies.libcosmic]
 #git = "https://github.com/wiiznokes/libcosmic"
 git = "https://github.com/pop-os/libcosmic"
-rev = "77e9a160c4c8e2d04e48970598e256691f991171"
+rev = "d53f693a3715fdd79481d75652cbf74286f4f387"
 #branch = "master"
 default-features = false
 features = [
