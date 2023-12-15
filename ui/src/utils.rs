@@ -11,7 +11,7 @@ use cargo_packager_resource_resolver as resource_resolver;
 
 static RESSOURCE_PATH: Lazy<PathBuf> = Lazy::new(|| {
     resource_resolver::resource_dir_with_suffix("resource")
-        .unwrap()
+        .unwrap_or(PathBuf::from(""))
         .join("icons/")
 });
 

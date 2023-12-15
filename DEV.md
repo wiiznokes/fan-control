@@ -21,7 +21,8 @@
 - add cargo-packager a way to localize ressource
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
-- merge if CI succeed
+- update value directly when entering the app
+- stop windows server with a command
 - serialize graph like that:
     ```toml
     [[Graph]]

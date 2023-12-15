@@ -36,11 +36,11 @@ impl HardwareBridge for LinuxBridge {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
                     Ok(value) => Ok((value / 2.55) as i32),
-                    Err(e) => Err(HardwareError::LmSensors(format!("{}", e))),
+                    Err(e) => Err(HardwareError::LmSensors(format!("{}, pwm", e))),
                 },
                 InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
                     Ok(value) => Ok(value as i32),
-                    Err(e) => Err(HardwareError::LmSensors(format!("{}", e))),
+                    Err(e) => Err(HardwareError::LmSensors(format!("{}, sensor", e))),
                 },
             },
             None => Err(HardwareError::InternalIndexNotFound),
