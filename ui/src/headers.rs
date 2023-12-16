@@ -98,8 +98,7 @@ pub fn header_center<'a>(
 
     elems.push(choose_config);
 
-    let mut create_button = icon_button("add/40")
-        .tooltip(fl!("create_config"));
+    let mut create_button = icon_button("add/40").tooltip(fl!("create_config"));
 
     if dir_manager.config_names.is_valid_create(current_config) {
         create_button = create_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());
