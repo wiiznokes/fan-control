@@ -21,13 +21,13 @@ jobs:
         run: just libsensors
       - name: Package deb
         run: just package-deb
-          
-      - run: echo "ARTIFACT_NAME=$(basename ./packages/fan-control*.deb)" >> $GITHUB_ENV
+      
+      - run: ARTIFACT_NAME=$(basename ./packages/fan-control*.deb)
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: $ARTIFACT_NAME
           path: |
-            ./packages/${{ env.ARTIFACT_NAME }}
+            ./packages/$ARTIFACT_NAME
 
   windows:
     runs-on: windows-latest
@@ -43,9 +43,12 @@ jobs:
       - name: Package nsis
         run: just package-nsis
 
-      - run: echo "ARTIFACT_NAME=$(basename ./packages/fan-control*-setup.exe)" >> $GITHUB_ENV
+      - run: |
+          ls -l ./packages/
+          echo basename ./packages/fan-control*-setup.exe
+      - run: ARTIFACT_NAME=$(basename ./packages/fan-control*-setup.exe)
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: $ARTIFACT_NAME
           path: |
-            ./packages/${{ env.ARTIFACT_NAME }}
+            ./packages/$ARTIFACT_NAME
