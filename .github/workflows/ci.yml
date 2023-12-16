@@ -27,13 +27,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
-      - if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          cargo install just
-      - if: startsWith(matrix.os, 'windows')
-        run: |
-          winget install Casey.Just
 
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
@@ -52,8 +47,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Run rustfmt
         run: cargo fmt --all --check
 
@@ -68,13 +62,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
-      - if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          cargo install just
-      - if: startsWith(matrix.os, 'windows')
-        run: |
-          winget install Casey.Just
           
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
@@ -91,7 +80,5 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          winget install Casey.Just
-      - name: Run rustfmt
-        run: just fix-lhm
+      - name: Dotnet format
+        run: dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj

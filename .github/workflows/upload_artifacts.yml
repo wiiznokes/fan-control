@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
       - run: |
-          cargo install just
           cargo install --git https://github.com/wiiznokes/cargo-packager.git --branch ressource-resolver cargo-packager
 
       - name: Build libsensors
@@ -33,9 +33,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
       - run: |
-          winget install Casey.Just
           cargo install --git https://github.com/wiiznokes/cargo-packager.git --branch ressource-resolver cargo-packager
 
       - name: Build lhm
