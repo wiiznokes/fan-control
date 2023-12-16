@@ -38,6 +38,7 @@ pub fn header_center<'a>(
     let mut elems = Vec::new();
 
     let mut save_button = icon_button("save/40")
+        .tooltip(fl!("save_config"))
         .height(ICON_LENGHT)
         .width(ICON_LENGHT);
 
@@ -97,13 +98,14 @@ pub fn header_center<'a>(
 
     elems.push(choose_config);
 
-    let mut new_button = icon_button("add/40");
+    let mut create_button = icon_button("add/40")
+        .tooltip(fl!("create_config"));
 
     if dir_manager.config_names.is_valid_create(current_config) {
-        new_button = new_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());
+        create_button = create_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());
     }
 
-    elems.push(new_button.into());
+    elems.push(create_button.into());
 
     elems
 }
@@ -120,6 +122,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
         elements.push(
             icon_button("delete_forever/24")
                 .on_press(ConfigMsg::Delete(name).into())
+                .tooltip(fl!("delete_config"))
                 .into(),
         );
     }
