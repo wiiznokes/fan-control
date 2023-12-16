@@ -24,7 +24,7 @@ deb:
 
 nsis:
 	cargo packager --release --formats nsis
-	mkdir -p packages
+	New-Item -Path .\packages -ItemType Directory -Force > $null
 	cp ./target/release/fan-control*-setup.exe ./packages/
 
 ###################  Test
