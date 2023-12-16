@@ -494,7 +494,7 @@ impl cosmic::Application for Ui {
 
     fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
         // todo pop up. Need to use settings to not close auto
-        return None;
+        None
     }
 }
 
