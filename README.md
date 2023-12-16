@@ -9,6 +9,8 @@
 - Control fans based on custom behaviors
 - Save configuration
 - Multiplatform (Linux/Windows)
+  
+![fan-control](https://github.com/wiiznokes/fan-control/assets/78230769/cdc30753-4186-47a1-ba49-11af3868380f)
 
 ## Installation
 #### Linux
