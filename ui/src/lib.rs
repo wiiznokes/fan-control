@@ -362,6 +362,7 @@ impl cosmic::Application for Ui {
                                 self.current_config_cached = config_name;
                                 self.app_state.app_graph =
                                     AppGraph::from_config(config, &self.app_state.hardware);
+                                self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
                             }
                             None => {
                                 self.current_config_cached.clear();
