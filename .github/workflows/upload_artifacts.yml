@@ -44,6 +44,10 @@ jobs:
         run: just package-nsis
 
       - run: echo "ARTIFACT_NAME=$(basename ./packages/fan-control*-setup.exe)" >> $GITHUB_ENV
+      - run: |
+          ls -l ./packages
+          basename ./packages/fan-control*-setup.exe
+          echo ${{ env.ARTIFACT_NAME }}
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
