@@ -1,5 +1,3 @@
-# fan-control
-
 # Features
 - Display sensors data on real time
 - Control fans based on custom behaviors
@@ -7,7 +5,6 @@
 - Multiplatform (Linux/Windows)
   
 ![fan-control](https://github.com/wiiznokes/fan-control/assets/78230769/cdc30753-4186-47a1-ba49-11af3868380f)
-
 
 # Usage
 - You can add items with the buttons on the right of the app.
