@@ -59,7 +59,9 @@ once_cell = "1.18"
 #cargo-packager-resource-resolver ={ path = "../cargo-packager/crates/resource-resolver/" }
 
 [workspace.dependencies.cargo-packager-resource-resolver]
-path = "../cargo-packager/crates/resource-resolver/"
+git = "https://github.com/wiiznokes/cargo-packager.git"
+branch = "ressource-resolver"
+#path = "../cargo-packager/crates/resource-resolver/"
 #package = "resource-resolver"
 
 # strum = { version = "0.25", features = ["derive"] }
