@@ -111,8 +111,8 @@ impl cosmic::Application for Ui {
                 );
             }
 
-            AppMsg::ModifNode(id, change_config) => {
-                match change_config {
+            AppMsg::ModifNode(id, modif_node_msg) => {
+                match modif_node_msg {
                     ModifNodeMsg::ChangeHardware(pick) => {
                         let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
                         let hardware = &self.app_state.hardware;
@@ -363,6 +363,11 @@ impl cosmic::Application for Ui {
                                 self.app_state.app_graph =
                                     AppGraph::from_config(config, &self.app_state.hardware);
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
+                                self.app_state.update.all(
+                                    &mut self.app_state.app_graph.nodes,
+                                    &self.app_state.app_graph.root_nodes,
+                                    &mut self.app_state.bridge,
+                                );
                             }
                             None => {
                                 self.current_config_cached.clear();

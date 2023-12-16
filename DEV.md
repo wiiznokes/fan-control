@@ -40,3 +40,4 @@
         { temp = 50, percent = 30 },
     ]
     ```
+- make a similar crate of https://github.com/mxre/winres, but with no dependencies. This will add an icon to .exe on Windows

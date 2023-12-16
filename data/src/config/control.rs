@@ -78,7 +78,6 @@ impl Control {
             None => return Err(UpdateError::NodeIsInvalid),
         };
 
-        self.active = active;
         self.is_active_set = active;
         debug!("mode succefuly set to {}", self.is_active_set);
         Ok(())
