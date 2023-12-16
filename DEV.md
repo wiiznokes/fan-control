@@ -6,6 +6,7 @@
     - [ ] ARM support
     - [ ] RPM (not yet available)
     - [ ] EXE (not yet available)
+    - [x] NSIS
     - [ ] Flatpak (not yet available)
     - [ ] Snap (not yet available)
     - [x] CI for packaging
