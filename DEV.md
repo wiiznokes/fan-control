@@ -21,6 +21,7 @@
 - add cargo-packager a way to localize ressource
 - add app icon on windows (nsis)
 - add resource folder only for nsis
+- execute as admin by default: nsis
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
 - stop windows server with a command: implemented but could be improved with taking app state back
