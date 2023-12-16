@@ -8,12 +8,12 @@ Also, the project use [just](https://github.com/casey/just) as a command runner.
 ```shell
 sudo apt install make bison flex clang -y
 just libsensors
-cargo run --release # or just package-deb for building a deb package
+cargo run --release # or just deb for building a deb package
 ```
 ### Windows
 1. install [dotnet 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 2. run these commands
     ```shell
     just lhm
-    cargo run --release # or just package-nsis 
+    cargo run --release # or just nsis 
     ```

@@ -17,12 +17,12 @@ lhm:
 
 ###################  Packaging
 
-package-deb:
+deb:
 	cargo packager --release --formats deb
 	mkdir -p packages
 	cp ./target/release/fan-control*.deb ./packages/
 
-package-nsis:
+nsis:
 	cargo packager --release --formats nsis
 	mkdir -p packages
 	cp ./target/release/fan-control*-setup.exe ./packages/
@@ -36,8 +36,10 @@ test:
 
 fix:
 	cargo clippy --all --fix --allow-dirty --allow-staged
+
 fmt:
 	cargo fmt --all
+	
 fmt-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
 
@@ -84,7 +86,7 @@ expand:
 debll:
 	dpkg-deb -c ./packages/fan-control*.deb | grep -v usr/lib/fan-control/icons/
 
-debi: package-deb debll
+debi: deb debll
 	sudo apt-get remove fan-control -y || true > /dev/null
 	sudo apt-get install ./packages/fan-control_0.1.0_amd64.deb > /dev/null
 	fan-control
