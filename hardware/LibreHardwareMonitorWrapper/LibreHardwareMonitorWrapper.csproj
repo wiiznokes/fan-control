@@ -10,7 +10,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <OutputPath>.\..\..\ressource\windows\build</OutputPath>
+        <OutputPath>.\..\..\resource\windows\build</OutputPath>
     </PropertyGroup>
 
     <ItemGroup>

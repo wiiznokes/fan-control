@@ -1,9 +1,13 @@
-## Env
+set windows-powershell := true
 
-package-deb: export PACKAGE_TYPE=DEB
+all:
+	cargo run --release
 
-## Build Libs
+# call before pull request
+pull: test fix fmt
 	
+###################  Build Libs
+
 libsensors:
 	git submodule update --init hardware/libsensors
 	make -C ./hardware/libsensors/ install PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc
@@ -11,26 +15,35 @@ libsensors:
 lhm:
 	dotnet build ./hardware/LibreHardwareMonitorWrapper/ -c Release
 
-## Packaging
+###################  Packaging
 
-package-deb:
+deb:
 	cargo packager --release --formats deb
 	mkdir -p packages
 	cp ./target/release/fan-control*.deb ./packages/
 
-## Test
+nsis:
+	cargo packager --release --formats nsis
+	mkdir -p packages
+	cp ./target/release/fan-control*-setup.exe ./packages/
 
-fix:
-	cargo clippy --all --fix --allow-dirty --allow-staged
-	cargo fmt --all
-
-fix-lhm:
-	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
+###################  Test
 
 test:
 	cargo test --all --all-features
 
-## Clean
+###################  Format
+
+fix:
+	cargo clippy --all --fix --allow-dirty --allow-staged
+
+fmt:
+	cargo fmt --all
+	
+fmt-lhm:
+	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
+
+###################  Clean
 
 clean-libsensors:
 	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc
@@ -40,12 +53,14 @@ clean-lhm:
 
 
 
-.PHONY: clean-libsensors libsensors
 
 
 
 
-## Handy
+
+
+
+###################  Handy
 
 fake:
 	cargo run --features fake_hardware -- -p ./.config -c fake
@@ -69,12 +84,12 @@ expand:
 ## Debug
 
 debll:
-	dpkg-deb -c ./packages/fan-control_0.1.0_amd64.deb
+	dpkg-deb -c ./packages/fan-control*.deb | grep -v usr/lib/fan-control/icons/
 
-debi: package-deb debll
+debi: deb debll
 	sudo apt-get remove fan-control -y || true > /dev/null
 	sudo apt-get install ./packages/fan-control_0.1.0_amd64.deb > /dev/null
-	#fan-control
+	fan-control
 
 debinfo:
 	dpkg-query -s fan-control

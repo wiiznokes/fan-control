@@ -9,11 +9,11 @@ repository = "https://github.com/wiiznokes/fan-control/"
 exclude = ["/.*", "/Makefile", "LICENCE"]
 
 [package.metadata.packager]
-before-packaging-command = "cargo build --release"
+before-each-package-command = "cargo build --release"
 identifier = "com.wiiznokes.fan-control"
 # todo: import all the dir
-icons = ["ressource/app_icon/app_icon48.png"]
-resources = ["ressource/icons"]
+icons = ["resource/app_icon/*"]
+resources = ["resource/icons", "resource/windows"]
 category = "Utility"
 
 [workspace]
@@ -55,4 +55,13 @@ i18n-embed = { version = "0.14", features = ["fluent-system", "desktop-requester
 rust-embed = "8.0"
 i18n-embed-fl = "0.7"
 lazy_static = "1.4"
+once_cell = "1.18"
+#cargo-packager-resource-resolver ={ path = "../cargo-packager/crates/resource-resolver/" }
+
+[workspace.dependencies.cargo-packager-resource-resolver]
+git = "https://github.com/wiiznokes/cargo-packager.git"
+branch = "ressource-resolver"
+#path = "../cargo-packager/crates/resource-resolver/"
+#package = "resource-resolver"
+
 # strum = { version = "0.25", features = ["derive"] }

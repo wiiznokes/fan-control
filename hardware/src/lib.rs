@@ -39,6 +39,11 @@ pub trait HardwareBridge {
     fn update(&mut self) -> Result<(), HardwareError> {
         Ok(())
     }
+
+    // use on Windows to shutdown the server properly
+    fn shutdown(&mut self) -> Result<(), HardwareError> {
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

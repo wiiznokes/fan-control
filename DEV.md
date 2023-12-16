@@ -6,6 +6,7 @@
     - [ ] ARM support
     - [ ] RPM (not yet available)
     - [ ] EXE (not yet available)
+    - [x] NSIS
     - [ ] Flatpak (not yet available)
     - [ ] Snap (not yet available)
     - [x] CI for packaging
@@ -19,9 +20,15 @@
 
 ## Todo/upgradable parts
 - add cargo-packager a way to localize ressource
+- add app icon on windows (nsis)
+- add resource folder only for nsis
+- execute as admin by default: nsis
 - add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
-- merge if CI succeed
+- stop windows server with a command: implemented but could be improved with taking app state back
+- use thiserror or anyhow
+- get app_state back when we close the ui
+- pop up when closing
 - serialize graph like that:
     ```toml
     [[Graph]]

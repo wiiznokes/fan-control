@@ -26,22 +26,19 @@ jobs:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@just
+      - uses: Swatinem/rust-cache@v2
+
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
-        run: make libsensors
+        run: just libsensors
       - name: Build lhm on Windows
         if: startsWith(matrix.os, 'windows')
-        run: make lhm
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-      - name: Fetch dependencies
-        run: cargo fetch --locked
-      - name: Build
-        run: cargo build --frozen
+        run: just lhm
+
       - name: Run tests
-        run: make test
+        run: just test
 
   fmt:
     name: Rustfmt
@@ -50,8 +47,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Run rustfmt
         run: cargo fmt --all --check
 
@@ -65,15 +61,14 @@ jobs:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@just
+      - uses: Swatinem/rust-cache@v2
+          
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
-        run: make libsensors
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-      - name: Fetch dependencies
-        run: cargo fetch --locked
+        run: just libsensors
+
       - name: Run clippy
         run: cargo clippy --all
 
@@ -84,7 +79,6 @@ jobs:
       fail-fast: false
     runs-on: windows-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-      - name: Run rustfmt
-        run: make fix-lhm
+      - uses: actions/checkout@v4
+      - name: Dotnet format
+        run: dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
