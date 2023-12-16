@@ -1,3 +1,8 @@
+set windows-powershell := true
+
+all:
+	cargo build --release
+	
 ## Build Libs
 	
 libsensors:

@@ -1,7 +1,9 @@
 # Build
 
+You will need [rust](https://www.rust-lang.org/tools/install)
 ### Linux
 ```
+cargo install just
 sudo apt install make bison flex clang -y
 make libsensors
 cargo run --release
