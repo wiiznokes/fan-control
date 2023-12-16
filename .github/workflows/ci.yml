@@ -91,5 +91,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          winget install Casey.Just
       - name: Run rustfmt
         run: just fix-lhm
