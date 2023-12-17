@@ -10,7 +10,7 @@ use std::{
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, TempH, Value};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, Mode, TempH, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
@@ -284,9 +284,12 @@ impl HardwareBridge for WindowsBridge {
         Ok(())
     }
 
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
-        if value != 0 {
-            debug!("try to set {}, whitch is unecessary on Windows", value);
+    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
+        if mode == &Mode::Manual {
+            debug!(
+                "try to set {}, whitch is unecessary on Windows",
+                Mode::Manual
+            );
             return Ok(());
         }
 
