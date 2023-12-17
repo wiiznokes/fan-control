@@ -114,7 +114,7 @@ impl cosmic::Application for Ui {
             AppMsg::ModifNode(id, modif_node_msg) => {
                 match modif_node_msg {
                     ModifNodeMsg::ChangeHardware(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let node = self.app_state.app_graph.get_mut(&id);
                         let hardware = &self.app_state.hardware;
 
                         match &mut node.node_type {
@@ -158,7 +158,7 @@ impl cosmic::Application for Ui {
                         }
                     }
                     ModifNodeMsg::ReplaceInput(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let node = self.app_state.app_graph.get_mut(&id);
                         node.inputs.clear();
 
                         if let Some(id_name) = pick.to_couple() {
@@ -174,7 +174,7 @@ impl cosmic::Application for Ui {
                         }
                     }
                     ModifNodeMsg::AddInput(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let node = self.app_state.app_graph.get_mut(&id);
                         node.inputs.push(pick.to_couple().unwrap());
 
                         match &mut node.node_type {
@@ -183,7 +183,7 @@ impl cosmic::Application for Ui {
                         }
                     }
                     ModifNodeMsg::RemoveInput(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                        let node = self.app_state.app_graph.get_mut(&id);
 
                         node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
 

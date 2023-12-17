@@ -194,4 +194,12 @@ impl AppGraph {
             node.set_inputs(inputs);
         }
     }
+
+    pub fn get(&self, k: &Id) -> & Node {
+        self.nodes.get(k).expect(&format!("can't find {} in nodes", k))
+    }
+
+    pub fn get_mut(&mut self, k: &Id) -> &mut Node {
+        self.nodes.get_mut(k).expect(&format!("can't find {} in nodes", k))
+    }
 }

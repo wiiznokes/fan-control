@@ -4913,6 +4913,7 @@ version = "0.1.0"
 dependencies = [
  "cargo-packager-resource-resolver",
  "data",
+ "derive_more",
  "hardware",
  "i18n-embed",
  "i18n-embed-fl",

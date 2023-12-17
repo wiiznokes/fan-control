@@ -11,7 +11,7 @@ use cosmic::{
 use data::{
     app_graph::Nodes,
     config::custom_temp::CustomTempKind,
-    node::{Node, NodeType, NodeTypeLight, ValueKind},
+    node::{Node, NodeTypeLight, ValueKind},
 };
 use hardware::Hardware;
 
@@ -21,7 +21,7 @@ use crate::{
         AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
-    node_cache::{NodeC, NodeTypeC, NodesC},
+    node_cache::{NodeC, NodesC},
     pick::{pick_hardware, pick_input, Pick},
     utils::{icon_button, icon_path_for_node_type, my_icon},
 };
@@ -144,9 +144,7 @@ fn control_view<'a>(
     nodes: &'a Nodes,
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
-    let NodeType::Control(control) = &node.node_type else {
-        panic!()
-    };
+    let control = node.node_type.unwrap_control_ref();
 
     let content = vec![
         pick_hardware(node, &hardware.controls, true).map(|m| m.to_app(node.id)),
@@ -232,9 +230,7 @@ fn custom_temp_view<'a>(
 }
 
 fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
-    let NodeType::Flat(flat) = &node.node_type else {
-        panic!()
-    };
+    let flat = node.node_type.unwrap_flat_ref();
 
     let mut sub_button = icon_button("remove/24");
     if flat.value > 0 {
@@ -271,13 +267,9 @@ fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
 }
 
 fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Linear(linear) = &node.node_type else {
-        panic!()
-    };
 
-    let NodeTypeC::Linear(linear_c) = &node_c.node_type_c else {
-        panic!()
-    };
+    let linear = node.node_type.unwrap_linear_ref();
+    let linear_c = node_c.node_type_c.unwrap_linear_ref();
 
     let content = vec![
         pick_input(node, nodes, &linear.input, true, |pick| {
@@ -326,13 +318,9 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
 }
 
 fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Target(target) = &node.node_type else {
-        panic!()
-    };
-
-    let NodeTypeC::Target(target_c) = &node_c.node_type_c else {
-        panic!()
-    };
+    
+    let target = node.node_type.unwrap_target_ref();
+    let target_c = node_c.node_type_c.unwrap_target_ref();
 
     let content = vec![
         pick_input(node, nodes, &target.input, true, |pick| {
