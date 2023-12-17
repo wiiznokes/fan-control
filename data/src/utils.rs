@@ -146,17 +146,33 @@ pub mod hardware {
         }
     }
 
+    /// Return hardware info about `hardware_id` and a vec of
+    /// availlable hardware
     pub fn availlable_hardware<'a, H: 'a>(
         hardware_id: &'a Option<String>,
         hardwares: &'a [Rc<H>],
         one_ref: bool,
-    ) -> Vec<MyOption<HardwareInfo>>
+    ) -> (MyOption<HardwareInfo>, Vec<MyOption<HardwareInfo>>)
     where
         H: HardwareInfoTrait,
     {
+        let mut selected_hardware_info: MyOption<HardwareInfo> = MyOption::None;
+
         let mut hardware_options: Vec<_> = hardwares
             .iter()
             .filter_map(|h| {
+                let is_equal = match hardware_id {
+                    Some(hardware_id) => {
+                        if hardware_id == h.id() {
+                            selected_hardware_info = MyOption::Some(h.into());
+                            true
+                        } else {
+                            false
+                        } 
+                    }
+                    None => false,
+                };
+
                 if one_ref {
                     // we leverage rc to know if this specific hardware
                     // is already in use by one node
@@ -165,15 +181,11 @@ pub mod hardware {
                     }
                 }
 
-                match hardware_id {
-                    Some(node_hardware_id) => {
-                        if node_hardware_id == h.id() {
-                            None
-                        } else {
-                            Some(MyOption::Some(h.into()))
-                        }
-                    }
-                    None => Some(MyOption::Some(h.into())),
+                // we only add if hardware_id != h
+                if !is_equal {
+                    Some(MyOption::Some(h.into()))
+                } else {
+                    None
                 }
             })
             .collect();
@@ -182,6 +194,6 @@ pub mod hardware {
             hardware_options.insert(0, MyOption::None);
         }
 
-        hardware_options
+        (selected_hardware_info, hardware_options)
     }
 }

@@ -149,10 +149,10 @@ where
     H: HardwareInfoTrait,
 {
     let hardware_id = node.hardware_id().clone();
-    let input_hardware =
+    let (selected_hardware_info, input_hardware) =
         data::utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
 
-    PickList::new(input_hardware, Some(hardware_id.into()), |hardware_info| {
+    PickList::new(input_hardware, Some(selected_hardware_info), |hardware_info| {
         let message_content = match hardware_info {
             MyOption::Some(hardware_info) => Some(hardware_info.id),
             MyOption::None => None,
