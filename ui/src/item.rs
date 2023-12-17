@@ -190,11 +190,7 @@ fn custom_temp_view<'a>(
     node_c: &'a NodeC,
     nodes: &'a Nodes,
 ) -> Element<'a, AppMsg> {
-    let _custom_temp = node.to_custom_temp();
-    let NodeType::CustomTemp(custom_temp) = &node.node_type else {
-        panic!()
-    };
-
+    let custom_temp = node.node_type.unwrap_custom_temp_ref();
     let kind_options = CustomTempKind::VALUES
         .iter()
         .filter(|k| &custom_temp.kind != *k)
