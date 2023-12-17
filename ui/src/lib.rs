@@ -38,6 +38,7 @@ pub mod localize;
 
 mod add_node;
 mod headers;
+mod icon;
 mod input_line;
 mod item;
 mod message;

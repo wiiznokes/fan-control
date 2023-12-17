@@ -2,7 +2,7 @@ use cosmic::{iced_widget::Column, widget::IconButton, Element};
 use data::node::NodeTypeLight;
 
 use crate::{
-    utils::{icon_button, icon_path_for_node_type},
+    icon::{icon_button, icon_path_for_node_type},
     AppMsg, ToogleMsg,
 };
 

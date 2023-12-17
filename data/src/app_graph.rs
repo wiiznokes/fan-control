@@ -6,8 +6,8 @@ use crate::config::Config;
 use crate::config::{control::Control, fan::Fan, temp::Temp};
 
 use crate::id::{Id, IdGenerator};
-use crate::node::{self, Input, Node, NodeType, NodeTypeLight, ToNode};
-use crate::utils::{MyOption, RemoveElem};
+use crate::node::{self, Node, NodeType, NodeTypeLight, ToNode};
+use crate::utils::RemoveElem;
 
 pub type Nodes = HashMap<Id, Node>;
 pub type RootNodes = Vec<Id>;
@@ -205,64 +205,5 @@ impl AppGraph {
         self.nodes
             .get_mut(k)
             .unwrap_or_else(|| panic!("can't find {} in nodes", k))
-    }
-
-    /// Return an iter of all inputs availlable for this node, minus his inputs
-    pub fn availlable_inputs<'a>(
-        nodes: &'a Nodes,
-        node: &'a Node,
-    ) -> impl Iterator<Item = Input> + 'a {
-        nodes
-            .values()
-            .filter(|n| {
-                node.node_type
-                    .allowed_dep()
-                    .contains(&n.node_type.to_light())
-                    && !node
-                        .inputs
-                        .iter()
-                        .map(|i| i.id)
-                        .collect::<Vec<_>>()
-                        .contains(&n.id)
-            })
-            .map(|n| Input {
-                id: n.id,
-                name: n.name().clone(),
-            })
-    }
-
-    pub fn optional_availlable_inputs<'a>(
-        nodes: &'a Nodes,
-        node: &'a Node,
-        add_node: bool,
-    ) -> Vec<MyOption<Input>> {
-        let mut vec: Vec<MyOption<Input>> = if add_node {
-            vec![MyOption::None]
-        } else {
-            Vec::new()
-        };
-
-        let values = nodes
-            .values()
-            .filter(|n| {
-                node.node_type
-                    .allowed_dep()
-                    .contains(&n.node_type.to_light())
-                    && !node
-                        .inputs
-                        .iter()
-                        .map(|i| i.id)
-                        .collect::<Vec<_>>()
-                        .contains(&n.id)
-            })
-            .map(|n| {
-                MyOption::Some(Input {
-                    id: n.id,
-                    name: n.name().clone(),
-                })
-            });
-
-        vec.extend(values);
-        vec
     }
 }

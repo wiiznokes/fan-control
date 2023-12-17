@@ -11,21 +11,21 @@ use cosmic::{
     Element,
 };
 use data::{
-    app_graph::{AppGraph, Nodes},
+    app_graph::{Nodes},
     config::custom_temp::CustomTempKind,
     node::{Input, Node, NodeTypeLight, ValueKind},
-    utils::MyOption,
 };
 use hardware::{Hardware, HardwareInfoTrait};
 
 use crate::{
+    icon::{icon_button, icon_path_for_node_type, my_icon},
     input_line::{input_line, InputLineUnit},
     message::{
         AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
     node_cache::{NodeC, NodesC},
-    utils::{icon_button, icon_path_for_node_type, my_icon},
+    utils::{self, MyOption},
 };
 
 pub fn items_view<'a>(
@@ -150,7 +150,7 @@ where
 {
     let hardware_id = node.hardware_id().clone();
     let (selected_hardware_info, input_hardware) =
-        data::utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
+        utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
 
     PickList::new(
         input_hardware,
@@ -176,7 +176,8 @@ fn control_view<'a>(
 ) -> Element<'a, AppMsg> {
     let control = node.node_type.unwrap_control_ref();
 
-    let input_options = AppGraph::optional_availlable_inputs(nodes, node, control.input.is_some());
+    let input_options =
+        utils::input::optional_availlable_inputs(nodes, node, control.input.is_some());
     let current_input: MyOption<Input> = control.input.clone().into();
 
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
@@ -254,7 +255,7 @@ fn custom_temp_view<'a>(
         })
         .collect();
 
-    let input_options: Vec<Input> = AppGraph::availlable_inputs(nodes, node).collect();
+    let input_options: Vec<Input> = utils::input::availlable_inputs(nodes, node).collect();
 
     let current_input = Input {
         id: Default::default(),
@@ -318,7 +319,8 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
     let linear = node.node_type.unwrap_linear_ref();
     let linear_c = node_c.node_type_c.unwrap_linear_ref();
 
-    let input_options = AppGraph::optional_availlable_inputs(nodes, node, linear.input.is_some());
+    let input_options =
+        utils::input::optional_availlable_inputs(nodes, node, linear.input.is_some());
     let current_input: MyOption<Input> = linear.input.clone().into();
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
         ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
@@ -374,7 +376,8 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
     let target = node.node_type.unwrap_target_ref();
     let target_c = node_c.node_type_c.unwrap_target_ref();
 
-    let input_options = AppGraph::optional_availlable_inputs(nodes, node, target.input.is_some());
+    let input_options =
+        utils::input::optional_availlable_inputs(nodes, node, target.input.is_some());
     let current_input: MyOption<Input> = target.input.clone().into();
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
         ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
