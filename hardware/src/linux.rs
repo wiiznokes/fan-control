@@ -128,7 +128,7 @@ fn generate_hardware<'a>(
                                 hardware.fans.push(fan_h.into());
                             }
                             Err(e) => {
-                                error!("can't generate hardware metadata for fan: {:?}", e);
+                                error!("can't generate hardware metadata for fan: {}", e);
                             }
                         }
                     }
@@ -155,7 +155,7 @@ fn generate_hardware<'a>(
                                 hardware.temps.push(temp_h.into());
                             }
                             Err(e) => {
-                                error!("can't generate hardware metadata for temp: {:?}", e);
+                                error!("can't generate hardware metadata for temp: {}", e);
                             }
                         }
                     }
@@ -197,7 +197,7 @@ fn generate_hardware<'a>(
                                 hardware.controls.push(control_h.into());
                             }
                             Err(e) => {
-                                error!("can't generate hardware metadata for control: {:?}", e);
+                                error!("can't generate hardware metadata for control: {}", e);
                             }
                         }
                     }
@@ -296,7 +296,7 @@ impl HardwareBridge for LinuxBridge {
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
         if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
-            error!("can't set auto to a pwn in drop function: {:?}", e)
+            error!("can't set auto to a pwn in his drop function: {}", e)
         }
     }
 }

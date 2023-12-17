@@ -1,6 +1,6 @@
 use std::vec;
 
-use derive_more::Unwrap;
+use derive_more::{Display, Unwrap};
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
@@ -46,7 +46,7 @@ pub struct Node {
     pub value: Option<Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Display)]
 pub enum NbInput {
     Zero,
     One,
@@ -93,8 +93,10 @@ pub fn sanitize_inputs(node: &Node, nodes: &Nodes, log: bool) -> Sanitize {
         }
         NbInput::One => {
             if node.inputs.len() > 1 || node.node_type.get_inputs().len() > 1 {
-                eprintln!(
-                    "{:?}: number of dep allowed == {:?}",
+                // todo: remove this debug print
+                error!(
+                    "sanitize_inputs {}: {:?} number of dep != {}",
+                    node.name(),
                     node.node_type.to_light(),
                     node.node_type.max_input()
                 );
@@ -117,16 +119,17 @@ pub fn sanitize_inputs(node: &Node, nodes: &Nodes, log: bool) -> Sanitize {
                     }
                     false => {
                         warn!(
-                            "incompatible node type: {:?} on {}",
+                            "sanitize_inputs {}: dep {} have an unauthorized node type: {:?}",
+                            node.name(),
+                            name,
                             n.node_type.to_light(),
-                            name
                         );
                     }
                 }
             }
             None => {
                 if log {
-                    warn!("can't find node {}", name);
+                    warn!("sanitize_inputs {}: can't find node {}", node.name(), name);
                 }
             }
         }

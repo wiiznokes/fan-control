@@ -39,3 +39,4 @@
     ]
     ```
 - make a similar crate of https://github.com/mxre/winres, but with no dependencies. This will add an icon to .exe on Windows
+- light enum feature in derive_more crate

@@ -362,7 +362,7 @@ mod test {
                     format!("{} = {}", name, value)
                 }
                 Err(e) => {
-                    format!("error for {}: {:?}", name, e)
+                    format!("error for {}: {}", name, e)
                 }
             },
             "get_value",

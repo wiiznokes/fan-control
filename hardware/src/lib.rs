@@ -23,7 +23,7 @@ pub enum HardwareError {
     InternalIndexNotFound,
     #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
     #[error(transparent)]
-    Linux(linux::LinuxError),
+    Linux(#[from] linux::LinuxError),
     #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
     #[error(transparent)]
     Windows(#[from] windows::WindowsError),

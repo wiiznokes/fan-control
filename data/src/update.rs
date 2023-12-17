@@ -51,7 +51,7 @@ impl Update {
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
             if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
-                error!("{}", e);
+                error!("can't update node: {}", e);
             }
         }
         Ok(())
@@ -78,13 +78,13 @@ impl Update {
                             }
                             Err(e) => {
                                 node.value.take();
-                                error!("{}", e);
+                                error!("can't get value of a root node: {}", e);
                             }
                         }
                     }
                 }
                 None => {
-                    error!("{}", UpdateError::NodeNotFound);
+                    error!("root node: {}", UpdateError::NodeNotFound);
                 }
             }
         }
@@ -142,7 +142,7 @@ impl Update {
         let mut updated = HashSet::new();
         for id in ids {
             if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge) {
-                error!("{}", e);
+                error!("can't update node: {}", e);
             }
         }
         Ok(())
@@ -161,7 +161,10 @@ impl Update {
             };
             if let NodeType::Control(control) = &mut node.node_type {
                 if let Err(e) = control.set_mode(false, bridge) {
-                    error!("{:?}", e);
+                    error!(
+                        "can't set control to auto in set_all_control_to_auto function: {}",
+                        e
+                    );
                 }
             }
         }
@@ -181,7 +184,10 @@ impl Update {
                 };
                 if let NodeType::Control(control) = &mut node.node_type {
                     if let Err(e) = control.set_mode(false, bridge) {
-                        error!("{}", e);
+                        error!(
+                            "can't set unactive in set_invalid_controls_to_auto function: {}",
+                            e
+                        );
                     }
                 }
             }
@@ -286,7 +292,6 @@ impl Node {
                 Ok(())
             }
             Err(e) => {
-                error!("{:?}", e);
                 self.value = None;
                 Err(e)
             }

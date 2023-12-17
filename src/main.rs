@@ -63,6 +63,6 @@ fn try_run() -> Result<()> {
 
 fn main() {
     if let Err(e) = try_run() {
-        error!("{:?}", e);
+        error!("{}", e);
     }
 }

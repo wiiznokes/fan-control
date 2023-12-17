@@ -50,7 +50,7 @@ pub fn run_cli(mut app_state: AppState) {
     }
 
     if let Err(e) = app_state.bridge.shutdown() {
-        error!("{:?}", e);
+        error!("shutdown hardware: {}", e);
     }
 }
 
@@ -70,7 +70,7 @@ fn start_listening(tx: Sender<UserAction>) {
                 _ => {}
             },
             Err(e) => {
-                eprintln!("{:?}", e);
+                eprintln!("can't read keyboard: {}", e);
             }
         }
     });

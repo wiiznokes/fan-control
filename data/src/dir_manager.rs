@@ -146,7 +146,7 @@ impl DirManager {
 
         let previous_path = self.config_file_path(previous_name);
         if let Err(e) = fs::remove_file(previous_path) {
-            warn!("{:?}", e);
+            warn!("can't remove file while saving config: {}", e);
         }
 
         let new_path = self.config_file_path(new_name);

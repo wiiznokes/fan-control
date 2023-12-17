@@ -475,7 +475,7 @@ impl cosmic::Application for Ui {
 
     fn on_app_exit(&mut self) {
         if let Err(e) = self.app_state.bridge.shutdown() {
-            error!("{:?}", e);
+            error!("shutdown hardware: {}", e);
         }
     }
 
