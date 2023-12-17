@@ -55,7 +55,7 @@ fn try_run() -> Result<()> {
 
     match args.cli {
         true => cli::run_cli(app_state),
-        false => ui::run_ui(app_state).unwrap(),
+        false => ui::run_ui(app_state),
     };
 
     Ok(())

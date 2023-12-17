@@ -68,6 +68,9 @@ fake:
 temp:
 	cargo run --features fake_hardware -- -p ./temp
 
+conf:
+	cargo run -- -p ./.config
+
 git-cache:
 	git rm -rf --cached .
 	git add .

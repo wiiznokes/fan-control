@@ -19,14 +19,12 @@
 - windows icons (close/maximize)
 
 ## Todo/upgradable parts
-- add cargo-packager a way to localize ressource
+- add cargo-packager a way to localize ressource: done but not merged
 - add app icon on windows (nsis)
 - add resource folder only for nsis
 - execute as admin by default: nsis
-- add macro support for set/get pattern, and to easy pick up of value in a Hashmap / Wrapper-enum
 - return error from the windows server
 - stop windows server with a command: implemented but could be improved with taking app state back
-- use thiserror or anyhow
 - get app_state back when we close the ui
 - pop up when closing
 - serialize graph like that:

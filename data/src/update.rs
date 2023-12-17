@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use hardware::{HardwareBridgeT, HardwareError, Value};
+use hardware::{HardwareBridgeT, Value};
+use thiserror::Error;
 
 use crate::{
     app_graph::{Nodes, RootNodes},
@@ -8,15 +9,23 @@ use crate::{
     node::{Node, NodeType},
 };
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum UpdateError {
+    #[error("Node was not found")]
     NodeNotFound,
+    #[error("Value was none")]
     ValueIsNone,
+    #[error("Node was invalid")]
     NodeIsInvalid,
-    Hardware(HardwareError),
+    #[error("No input data")]
     NoInputData,
+    #[error("Can't set mode")]
     CantSetMode,
+    #[error(transparent)]
+    Hardware(#[from] hardware::HardwareError),
 }
+
+type Result<T> = std::result::Result<T, UpdateError>;
 
 pub struct Update {}
 
@@ -36,25 +45,25 @@ impl Update {
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
-    ) {
-        if let Err(e) = bridge.update() {
-            error!("{:?}", e);
-            return;
-        }
+    ) -> Result<()> {
+        bridge.update()?;
 
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
             if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
-                error!("{:?}", e);
+                error!("{}", e);
             }
         }
+        Ok(())
     }
 
-    pub fn all(&mut self, nodes: &mut Nodes, root_nodes: &RootNodes, bridge: &mut HardwareBridgeT) {
-        if let Err(e) = bridge.update() {
-            error!("{:?}", e);
-            return;
-        }
+    pub fn all(
+        &mut self,
+        nodes: &mut Nodes,
+        root_nodes: &RootNodes,
+        bridge: &mut HardwareBridgeT,
+    ) -> Result<()> {
+        bridge.update()?;
 
         for id in root_nodes {
             match nodes.get_mut(id) {
@@ -69,13 +78,13 @@ impl Update {
                             }
                             Err(e) => {
                                 node.value.take();
-                                error!("{:?}", e);
+                                error!("{}", e);
                             }
                         }
                     }
                 }
                 None => {
-                    error!("{:?}", UpdateError::NodeNotFound);
+                    error!("{}", UpdateError::NodeNotFound);
                 }
             }
         }
@@ -133,9 +142,10 @@ impl Update {
         let mut updated = HashSet::new();
         for id in ids {
             if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge) {
-                error!("{:?}", e);
+                error!("{}", e);
             }
         }
+        Ok(())
     }
 
     pub fn set_all_control_to_auto(
@@ -171,7 +181,7 @@ impl Update {
                 };
                 if let NodeType::Control(control) = &mut node.node_type {
                     if let Err(e) = control.set_mode(false, bridge) {
-                        error!("{:?}", e);
+                        error!("{}", e);
                     }
                 }
             }
@@ -200,7 +210,7 @@ impl Update {
         node_id: &Id,
         updated: &mut HashSet<Id>,
         bridge: &mut HardwareBridgeT,
-    ) -> Result<Option<Value>, UpdateError> {
+    ) -> Result<Option<Value>> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
                 Some(node) => Ok(node.value),
@@ -257,7 +267,7 @@ impl Node {
         &mut self,
         input_values: &Vec<Value>,
         bridge: &mut HardwareBridgeT,
-    ) -> Result<(), UpdateError> {
+    ) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => control.set_value(input_values[0], bridge),
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
