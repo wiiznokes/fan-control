@@ -1,12 +1,22 @@
-[package]
-name = "fan-control"
+[workspace]
+members = ["data", "hardware", "ui"]
+resolver = "2"
+
+[workspace.package]
 authors = ["wiiznokes <wiiznokes2@gmail.com>"]
-version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Control your fans with different behaviors"
 repository = "https://github.com/wiiznokes/fan-control/"
-exclude = ["/.*", "/Makefile", "LICENCE"]
+
+[package]
+name = "fan-control"
+version = "0.1.0"
+description = "Control your fans with different behaviors"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude = ["/.*", "/justfile", "LICENCE"]
 
 [package.metadata.packager]
 before-each-package-command = "cargo build --release"
@@ -15,18 +25,9 @@ icons = ["resource/app_icon/*"]
 resources = ["resource/icons", "resource/windows"]
 category = "Utility"
 
-[workspace]
-members = [
-    "data",
-    "hardware",
-    "ui",
-]
-
 
 [features]
-fake_hardware = [
-    "hardware/fake_hardware"
-]
+fake_hardware = ["hardware/fake_hardware"]
 
 
 [dependencies]
@@ -51,13 +52,18 @@ serde_json = "1.0"
 toml = "0.8"
 env_logger = "0.10"
 log = "0.4"
-i18n-embed = { version = "0.14", features = ["fluent-system", "desktop-requester"] }
+i18n-embed = { version = "0.14", features = [
+    "fluent-system",
+    "desktop-requester",
+] }
 rust-embed = "8.0"
 i18n-embed-fl = "0.7"
 lazy_static = "1.4"
 once_cell = "1.18"
 thiserror = "1.0"
-derive_more = { version = "1.0.0-beta.6", default-features = false, features = ["unwrap"] }
+derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
+    "unwrap",
+] }
 # strum = { version = "0.25", features = ["derive"] }
 
 [workspace.dependencies.cargo-packager-resource-resolver]

@@ -1,7 +1,11 @@
 [package]
 name = "ui"
 version = "0.1.0"
-edition = "2021"
+description = "Ui implementation of fan-control"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 
 [dependencies]
@@ -28,5 +32,5 @@ features = [
     "smol",
     #"wayland",
     "wgpu",
-    "winit"
+    "winit",
 ]

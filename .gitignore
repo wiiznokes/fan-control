@@ -20,3 +20,4 @@ obj/
 build/
 /bundle/
 /packages/
+/app

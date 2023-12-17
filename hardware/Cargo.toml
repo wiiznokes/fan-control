@@ -1,7 +1,11 @@
 [package]
 name = "hardware"
 version = "0.1.0"
-edition = "2021"
+description = "hardware abstraction used by fan-control"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [features]
 fake_hardware = ["rand"]
@@ -12,7 +16,7 @@ thiserror.workspace = true
 log.workspace = true
 serde.workspace = true
 ouroboros = "0.18"
-rand = {version = "0.8", optional = true}
+rand = { version = "0.8", optional = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
