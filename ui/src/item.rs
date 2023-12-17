@@ -152,14 +152,18 @@ where
     let (selected_hardware_info, input_hardware) =
         data::utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
 
-    PickList::new(input_hardware, Some(selected_hardware_info), |hardware_info| {
-        let message_content = match hardware_info {
-            MyOption::Some(hardware_info) => Some(hardware_info.id),
-            MyOption::None => None,
-        };
+    PickList::new(
+        input_hardware,
+        Some(selected_hardware_info),
+        |hardware_info| {
+            let message_content = match hardware_info {
+                MyOption::Some(hardware_info) => Some(hardware_info.id),
+                MyOption::None => None,
+            };
 
-        ModifNodeMsg::ChangeHardware(message_content).to_app(node.id)
-    })
+            ModifNodeMsg::ChangeHardware(message_content).to_app(node.id)
+        },
+    )
     .width(Length::Fill)
     .into()
 }

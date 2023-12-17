@@ -168,7 +168,7 @@ pub mod hardware {
                             true
                         } else {
                             false
-                        } 
+                        }
                     }
                     None => false,
                 };
