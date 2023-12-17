@@ -29,11 +29,13 @@ pub fn run_cli(mut app_state: AppState) {
     display_info(app_state.dir_manager.settings(), current_config);
 
     loop {
-        app_state.update.optimized(
+        if let Err(e) = app_state.update.optimized(
             &mut app_state.app_graph.nodes,
             &app_state.app_graph.root_nodes,
             &mut app_state.bridge,
-        );
+        ) {
+            error!("{}", e);
+        }
 
         let duration = Duration::from_millis(app_state.dir_manager.settings().update_delay);
 

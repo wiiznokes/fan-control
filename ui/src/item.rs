@@ -11,7 +11,7 @@ use cosmic::{
     Element,
 };
 use data::{
-    app_graph::{Nodes},
+    app_graph::Nodes,
     config::custom_temp::CustomTempKind,
     node::{Input, Node, NodeTypeLight, ValueKind},
 };

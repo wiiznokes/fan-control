@@ -6,18 +6,16 @@ use std::{
 use directories::ProjectDirs;
 use hardware::Hardware;
 
-use crate::{
-    args::Args, config::Config, name_sorter, serde_helper, settings::Settings, utils::RemoveElem,
-};
+use thiserror::Error;
 
-use self::toml::{add_toml_ext, remove_toml_ext};
+use crate::{args::Args, config::Config, name_sorter, settings::Settings, utils::RemoveElem};
 
-static QUALIFIER: &str = "com";
-static ORG: &str = "wiiznokes";
-static APP: &str = "fan-control";
+use self::helper::{deserialize, serialize};
 
-static SETTINGS_FILENAME: &str = "settings.toml";
-static HARDWARE_FILENAME: &str = "hardware.toml";
+#[derive(Debug)]
+pub struct ConfigNames {
+    pub data: Vec<String>,
+}
 
 #[derive(Debug)]
 pub struct DirManager {
@@ -26,14 +24,32 @@ pub struct DirManager {
     settings: Settings,
 }
 
-#[derive(Debug)]
-pub struct ConfigNames {
-    pub data: Vec<String>,
+#[derive(Error, Debug)]
+pub enum ConfigError {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    TomlDeserialization(#[from] toml::de::Error),
+    #[error(transparent)]
+    TomlSerialization(#[from] toml::ser::Error),
+    #[error("can't serialize config: {0}")]
+    ConfigSerialization(toml::ser::Error),
+    #[error("There is no name")]
+    NoName,
 }
+
+type Result<T> = std::result::Result<T, ConfigError>;
+
+static SETTINGS_FILENAME: &str = "settings.toml";
+static HARDWARE_FILENAME: &str = "hardware.toml";
 
 impl DirManager {
     pub fn new(args: &Args) -> DirManager {
         fn default_config_dir_path() -> PathBuf {
+            static QUALIFIER: &str = "com";
+            static ORG: &str = "wiiznokes";
+            static APP: &str = "fan-control";
+
             ProjectDirs::from(QUALIFIER, ORG, APP)
                 .unwrap()
                 .config_dir()
@@ -63,7 +79,7 @@ impl DirManager {
         let config_names = ConfigNames::new(&config_dir_path);
 
         if let Some(config_name) = &args.config_name {
-            let config_name = remove_toml_ext(config_name).to_owned();
+            let config_name = helper::remove_toml_extension(config_name).to_owned();
             settings.current_config = if config_names.contains(&config_name) {
                 Some(config_name)
             } else {
@@ -88,7 +104,8 @@ impl DirManager {
     }
 
     fn config_file_path(&self, name: &str) -> PathBuf {
-        self.config_dir_path.join(add_toml_ext(name).into_owned())
+        self.config_dir_path
+            .join(helper::add_toml_extension(name).into_owned())
     }
 
     pub fn settings(&self) -> &Settings {
@@ -98,37 +115,35 @@ impl DirManager {
     pub fn update_settings(&mut self, mut f: impl FnMut(&mut Settings)) {
         f(&mut self.settings);
 
-        if let Err(e) = serde_helper::serialize(&self.settings_file_path(), &self.settings()) {
+        if let Err(e) = serialize(&self.settings_file_path(), &self.settings()) {
             error!("{e}");
         }
     }
 
     pub fn get_config(&self) -> Option<Config> {
         match &self.settings().current_config {
-            Some(config_name) => {
-                match serde_helper::deserialize::<Config>(&self.config_file_path(config_name)) {
-                    Ok(config) => Some(config),
-                    Err(e) => {
-                        warn!("{:?}", e);
-                        None
-                    }
+            Some(config_name) => match deserialize::<Config>(&self.config_file_path(config_name)) {
+                Ok(config) => Some(config),
+                Err(e) => {
+                    warn!("{}", e);
+                    None
                 }
-            }
+            },
             None => None,
         }
     }
 
     pub fn serialize_hardware(&self, hardware: &Hardware) {
-        if let Err(e) = serde_helper::serialize(&self.hardware_file_path(), hardware) {
+        if let Err(e) = serialize(&self.hardware_file_path(), hardware) {
             warn!("{}", e);
         }
     }
 }
 
 impl DirManager {
-    pub fn save_config(&mut self, new_name: &str, config: &Config) -> Result<(), String> {
+    pub fn save_config(&mut self, new_name: &str, config: &Config) -> Result<()> {
         let Some(previous_name) = &self.settings().current_config else {
-            return Err("can't save config: no name".to_string());
+            return Err(ConfigError::NoName);
         };
 
         let previous_path = self.config_file_path(previous_name);
@@ -138,7 +153,7 @@ impl DirManager {
 
         let new_path = self.config_file_path(new_name);
 
-        serde_helper::serialize(&new_path, config)?;
+        serialize(&new_path, config)?;
 
         self.config_names.remove(&previous_name.clone());
         self.config_names.add(new_name);
@@ -150,14 +165,15 @@ impl DirManager {
         Ok(())
     }
 
+    /// Return the config and her name
     pub fn change_config(
         &mut self,
         new_config_name: Option<String>,
-    ) -> Result<Option<(String, Config)>, String> {
+    ) -> Result<Option<(String, Config)>> {
         match new_config_name {
             Some(new_config_name) => {
                 let new_config_path = self.config_file_path(&new_config_name);
-                let config = serde_helper::deserialize::<Config>(&new_config_path)?;
+                let config = deserialize::<Config>(&new_config_path)?;
                 self.update_settings(|settings| {
                     settings.current_config = Some(new_config_name.to_owned());
                 });
@@ -173,7 +189,7 @@ impl DirManager {
     }
 
     /// return true if it's the current config whitch has been removed
-    pub fn remove_config(&mut self, config_name: String) -> Result<bool, String> {
+    pub fn remove_config(&mut self, config_name: String) -> Result<bool> {
         self.config_names.remove(&config_name);
 
         let config_path = self.config_file_path(&config_name);
@@ -192,13 +208,9 @@ impl DirManager {
         Ok(false)
     }
 
-    pub fn create_config(
-        &mut self,
-        new_config_name: &str,
-        new_config: &Config,
-    ) -> Result<(), String> {
+    pub fn create_config(&mut self, new_config_name: &str, new_config: &Config) -> Result<()> {
         let new_path = self.config_file_path(new_config_name);
-        serde_helper::serialize(&new_path, new_config)?;
+        serialize(&new_path, new_config)?;
 
         self.config_names.add(new_config_name);
         self.update_settings(|settings| {
@@ -214,17 +226,15 @@ fn init_settings(config_dir_path: &Path) -> Settings {
 
     if !settings_file_path.exists() {
         let default_settings = Settings::default();
-
-        if let Err(e) = serde_helper::serialize(&settings_file_path, &default_settings) {
-            error!("{e}");
+        if let Err(e) = serialize(&settings_file_path, &default_settings) {
+            error!("{}", e);
         }
-
         default_settings
     } else {
-        match serde_helper::deserialize(&settings_file_path) {
+        match deserialize(&settings_file_path) {
             Ok(t) => t,
             Err(e) => {
-                error!("{:?}", e);
+                error!("{}", e);
                 Settings::default()
             }
         }
@@ -258,12 +268,13 @@ impl ConfigNames {
                 continue;
             }
 
-            if let Err(e) = serde_helper::deserialize::<Config>(&file.path()) {
+            if let Err(e) = deserialize::<Config>(&file.path()) {
                 warn!("error while deserialize conifg in config dir: {}", e);
                 continue;
             }
 
-            let file_name = remove_toml_ext(&file.file_name().to_string_lossy()).to_owned();
+            let file_name =
+                helper::remove_toml_extension(&file.file_name().to_string_lossy()).to_owned();
             config_names.data.push(file_name);
         }
 
@@ -275,14 +286,14 @@ impl ConfigNames {
     }
 
     fn remove(&mut self, name: &str) {
-        let name = remove_toml_ext(name);
+        let name = helper::remove_toml_extension(name);
         if self.data.remove_elem(|e| e == name).is_none() {
             warn!("no element to remove")
         }
     }
 
     fn add(&mut self, name: &str) {
-        let name = remove_toml_ext(name).to_owned();
+        let name = helper::remove_toml_extension(name).to_owned();
         name_sorter::add_sorted(&mut self.data, name);
     }
 
@@ -290,12 +301,12 @@ impl ConfigNames {
         if name.trim() != name || name.is_empty() {
             return false;
         }
-        let name = remove_toml_ext(name).to_owned();
+        let name = helper::remove_toml_extension(name).to_owned();
         !self.data.contains(&name)
     }
 
     pub fn contains(&self, name: &str) -> bool {
-        let name = remove_toml_ext(name).to_owned();
+        let name = helper::remove_toml_extension(name).to_owned();
         self.data.contains(&name)
     }
 
@@ -304,7 +315,7 @@ impl ConfigNames {
     }
 
     pub fn index_of(&self, name: &str) -> Option<usize> {
-        let name = remove_toml_ext(name).to_owned();
+        let name = helper::remove_toml_extension(name).to_owned();
         self.data.iter().position(|n| n == &name)
     }
 
@@ -312,11 +323,11 @@ impl ConfigNames {
         if new_name.trim() != new_name || new_name.is_empty() {
             return false;
         }
-        let new_name = remove_toml_ext(new_name);
+        let new_name = helper::remove_toml_extension(new_name);
 
         let is_same_name = match previous_name {
             Some(previous_name) => {
-                let previous_name = remove_toml_ext(previous_name);
+                let previous_name = helper::remove_toml_extension(previous_name);
                 previous_name == new_name
             }
             None => false,
@@ -337,12 +348,14 @@ impl ConfigNames {
     }
 }
 
-mod toml {
-    use std::borrow::Cow;
+mod helper {
+    use std::{borrow::Cow, fs, path::Path};
+
+    use serde::{de::DeserializeOwned, Serialize};
 
     static TOML_EXT: &str = ".toml";
 
-    pub fn add_toml_ext(input: &str) -> Cow<'_, str> {
+    pub fn add_toml_extension(input: &str) -> Cow<'_, str> {
         if !input.ends_with(TOML_EXT) {
             let val = format!("{}{}", input, TOML_EXT);
             Cow::Owned(val)
@@ -351,11 +364,23 @@ mod toml {
         }
     }
 
-    pub fn remove_toml_ext(str: &str) -> &str {
+    pub fn remove_toml_extension(str: &str) -> &str {
         if let Some(str) = str.strip_suffix(TOML_EXT) {
             str
         } else {
             str
         }
+    }
+
+    pub fn deserialize<T: DeserializeOwned>(path: &Path) -> super::Result<T> {
+        let str = fs::read_to_string(path)?;
+        let t = toml::from_str(&str)?;
+        Ok(t)
+    }
+
+    pub fn serialize<T: Serialize>(path: &Path, rust_struct: &T) -> super::Result<()> {
+        let str = toml::to_string_pretty(rust_struct)?;
+        fs::write(path, str)?;
+        Ok(())
     }
 }

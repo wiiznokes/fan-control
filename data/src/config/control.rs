@@ -53,10 +53,10 @@ impl Control {
         }
 
         match &self.control_h {
-            Some(control_h) => bridge
-                .set_value(&control_h.internal_index, value)
-                .map(|_| value)
-                .map_err(UpdateError::Hardware),
+            Some(control_h) => {
+                bridge.set_value(&control_h.internal_index, value)?;
+                Ok(value)
+            }
             None => Err(UpdateError::NodeIsInvalid),
         }
     }
@@ -72,9 +72,7 @@ impl Control {
         }
 
         match &self.control_h {
-            Some(control_h) => bridge
-                .set_mode(&control_h.internal_index, active as i32)
-                .map_err(UpdateError::Hardware)?,
+            Some(control_h) => bridge.set_mode(&control_h.internal_index, active as i32)?,
             None => return Err(UpdateError::NodeIsInvalid),
         };
 

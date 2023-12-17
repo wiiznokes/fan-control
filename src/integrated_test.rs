@@ -36,11 +36,14 @@ fn test_config() {
     };
 
     for _ in 0..20 {
-        app_state.update.optimized(
-            &mut app_state.app_graph.nodes,
-            &app_state.app_graph.root_nodes,
-            &mut app_state.bridge,
-        );
+        app_state
+            .update
+            .optimized(
+                &mut app_state.app_graph.nodes,
+                &app_state.app_graph.root_nodes,
+                &mut app_state.bridge,
+            )
+            .unwrap();
         debug!("\n");
         thread::sleep(Duration::from_millis(50));
     }
