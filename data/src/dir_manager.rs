@@ -32,8 +32,6 @@ pub enum ConfigError {
     TomlDeserialization(#[from] toml::de::Error),
     #[error(transparent)]
     TomlSerialization(#[from] toml::ser::Error),
-    #[error("can't serialize config: {0}")]
-    ConfigSerialization(toml::ser::Error),
     #[error("There is no name")]
     NoName,
 }
@@ -194,7 +192,7 @@ impl DirManager {
 
         let config_path = self.config_file_path(&config_name);
         if let Err(e) = fs::remove_file(config_path) {
-            warn!("{:?}", e);
+            warn!("{}", e);
         }
 
         if let Some(current_config) = &self.settings().current_config {
@@ -227,14 +225,14 @@ fn init_settings(config_dir_path: &Path) -> Settings {
     if !settings_file_path.exists() {
         let default_settings = Settings::default();
         if let Err(e) = serialize(&settings_file_path, &default_settings) {
-            error!("{}", e);
+            error!("can't init settings: {}", e);
         }
         default_settings
     } else {
         match deserialize(&settings_file_path) {
             Ok(t) => t,
             Err(e) => {
-                error!("{}", e);
+                error!("can't deserialize settings at init: {}", e);
                 Settings::default()
             }
         }
@@ -269,7 +267,7 @@ impl ConfigNames {
             }
 
             if let Err(e) = deserialize::<Config>(&file.path()) {
-                warn!("error while deserialize conifg in config dir: {}", e);
+                warn!("can't deserialize potential config: {}", e);
                 continue;
             }
 

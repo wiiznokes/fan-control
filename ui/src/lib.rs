@@ -47,10 +47,12 @@ mod node_cache;
 mod settings_drawer;
 mod utils;
 
-pub fn run_ui(app_state: AppState) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run_ui(app_state: AppState) {
     let settings = cosmic::app::Settings::default();
-    cosmic::app::run::<Ui>(settings, app_state)?;
-    Ok(())
+    if let Err(e) = cosmic::app::run::<Ui>(settings, app_state) {
+        error!("error while running ui: {}", e);
+        panic!()
+    }
 }
 pub struct Ui {
     core: Core,
@@ -323,7 +325,7 @@ impl cosmic::Application for Ui {
                     let config = Config::from_app_graph(&self.app_state.app_graph);
 
                     if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
-                        error!("{}", e);
+                        error!("can't save config: {}", e);
                     };
                 }
                 ConfigMsg::Change(selected) => {
@@ -346,7 +348,7 @@ impl cosmic::Application for Ui {
                                     &self.app_state.app_graph.root_nodes,
                                     &mut self.app_state.bridge,
                                 ) {
-                                    error!("{}", e);
+                                    error!("can't update after config change: {}", e);
                                 }
                             }
                             None => {
@@ -365,7 +367,7 @@ impl cosmic::Application for Ui {
                         }
                     }
                     Err(e) => {
-                        error!("can't remove config: {}", e);
+                        error!("can't delete config: {}", e);
                     }
                 },
                 ConfigMsg::Create(new_name) => {

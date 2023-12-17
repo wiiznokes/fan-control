@@ -1,4 +1,4 @@
 [[CustomTemp]]
-namee = "CPU"
+name = "CPU"
 kind = "Average"
 inputs = []
