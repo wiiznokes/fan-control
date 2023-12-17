@@ -1548,6 +1548,7 @@ dependencies = [
  "env_logger",
  "hardware",
  "log",
+ "thiserror",
  "ui",
 ]
 
@@ -2127,6 +2128,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]
