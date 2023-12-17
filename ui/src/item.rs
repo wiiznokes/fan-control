@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use cosmic::{
     iced_core::{Alignment, Length, Padding},
     iced_widget::{
@@ -11,11 +13,10 @@ use cosmic::{
 use data::{
     app_graph::{AppGraph, Nodes},
     config::custom_temp::CustomTempKind,
-    id::Id,
     node::{Input, Node, NodeTypeLight, ValueKind},
     utils::MyOption,
 };
-use hardware::Hardware;
+use hardware::{Hardware, HardwareInfoTrait};
 
 use crate::{
     input_line::{input_line, InputLineUnit},
@@ -24,7 +25,6 @@ use crate::{
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
     node_cache::{NodeC, NodesC},
-    pick::pick_hardware,
     utils::{icon_button, icon_path_for_node_type, my_icon},
 };
 
@@ -140,6 +140,30 @@ fn item_view<'a>(
         .into()
 }
 
+fn pick_hardware<'a, H>(
+    node: &'a Node,
+    hardwares: &'a [Rc<H>],
+    one_ref: bool,
+) -> Element<'a, AppMsg>
+where
+    H: HardwareInfoTrait,
+{
+    let hardware_id = node.hardware_id().clone();
+    let input_hardware =
+        data::utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
+
+    PickList::new(input_hardware, Some(hardware_id.into()), |hardware_info| {
+        let message_content = match hardware_info {
+            MyOption::Some(hardware_info) => Some(hardware_info.id),
+            MyOption::None => None,
+        };
+
+        ModifNodeMsg::ChangeHardware(message_content).to_app(node.id)
+    })
+    .width(Length::Fill)
+    .into()
+}
+
 fn control_view<'a>(
     node: &'a Node,
     node_c: &'a NodeC,
@@ -149,16 +173,16 @@ fn control_view<'a>(
     let control = node.node_type.unwrap_control_ref();
 
     let input_options = AppGraph::optional_availlable_inputs(nodes, node, control.input.is_some());
-    let current_input: MyOption<Input<Id>> = control.input.clone().into();
+    let current_input: MyOption<Input> = control.input.clone().into();
 
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
-        ModifNodeMsg::ReplaceInput(input).to_app(node.id)
+        ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
     })
     .width(Length::Fill)
     .into();
 
     let content = vec![
-        pick_hardware(node, &hardware.controls, true).map(|m| m.to_app(node.id)),
+        pick_hardware(node, &hardware.controls, true),
         pick_input,
         Row::new()
             .push(Text::new(node.value_text(&ValueKind::Porcentage)))
@@ -176,7 +200,7 @@ fn control_view<'a>(
 
 fn temp_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        pick_hardware(node, &hardware.temps, false).map(|m| m.to_app(node.id)),
+        pick_hardware(node, &hardware.temps, false),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
@@ -185,7 +209,7 @@ fn temp_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> E
 
 fn fan_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        pick_hardware(node, &hardware.fans, false).map(|m| m.to_app(node.id)),
+        pick_hardware(node, &hardware.fans, false),
         Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
@@ -226,7 +250,7 @@ fn custom_temp_view<'a>(
         })
         .collect();
 
-    let input_options: Vec<Input<Id>> = AppGraph::availlable_inputs(nodes, node).collect();
+    let input_options: Vec<Input> = AppGraph::availlable_inputs(nodes, node).collect();
 
     let current_input = Input {
         id: Default::default(),
@@ -291,9 +315,9 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
     let linear_c = node_c.node_type_c.unwrap_linear_ref();
 
     let input_options = AppGraph::optional_availlable_inputs(nodes, node, linear.input.is_some());
-    let current_input: MyOption<Input<Id>> = linear.input.clone().into();
+    let current_input: MyOption<Input> = linear.input.clone().into();
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
-        ModifNodeMsg::ReplaceInput(input).to_app(node.id)
+        ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
     })
     .width(Length::Fill)
     .into();
@@ -347,9 +371,9 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
     let target_c = node_c.node_type_c.unwrap_target_ref();
 
     let input_options = AppGraph::optional_availlable_inputs(nodes, node, target.input.is_some());
-    let current_input: MyOption<Input<Id>> = target.input.clone().into();
+    let current_input: MyOption<Input> = target.input.clone().into();
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
-        ModifNodeMsg::ReplaceInput(input).to_app(node.id)
+        ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
     })
     .width(Length::Fill)
     .into();

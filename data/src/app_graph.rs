@@ -211,7 +211,7 @@ impl AppGraph {
     pub fn availlable_inputs<'a>(
         nodes: &'a Nodes,
         node: &'a Node,
-    ) -> impl Iterator<Item = Input<Id>> + 'a {
+    ) -> impl Iterator<Item = Input> + 'a {
         nodes
             .values()
             .filter(|n| {
@@ -235,8 +235,8 @@ impl AppGraph {
         nodes: &'a Nodes,
         node: &'a Node,
         add_node: bool,
-    ) -> Vec<MyOption<Input<Id>>> {
-        let mut vec: Vec<MyOption<Input<Id>>> = if add_node {
+    ) -> Vec<MyOption<Input>> {
+        let mut vec: Vec<MyOption<Input>> = if add_node {
             vec![MyOption::None]
         } else {
             Vec::new()

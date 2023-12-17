@@ -3,10 +3,7 @@ use data::{
     id::Id,
     node::{Input, NodeTypeLight},
     settings::AppTheme,
-    utils::MyOption,
 };
-
-use crate::pick::Pick;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -50,10 +47,10 @@ pub enum ToogleMsg {
 #[derive(Debug, Clone)]
 pub enum ModifNodeMsg {
     Delete,
-    ChangeHardware(Pick<String>),
-    ReplaceInput(MyOption<Input<Id>>),
-    AddInput(Input<Id>),
-    RemoveInput(Input<Id>),
+    ChangeHardware(Option<String>),
+    ReplaceInput(Option<Input>),
+    AddInput(Input),
+    RemoveInput(Input),
 
     Control(ControlMsg),
     CustomTemp(CustomTempMsg),

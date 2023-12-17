@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+//#![allow(dead_code)]
 //#![allow(unused_imports)]
 use std::time::Duration;
 
@@ -7,7 +7,7 @@ use data::{
     config::Config,
     node::{validate_name, NodeType},
     settings::AppTheme,
-    utils::{MyOption, RemoveElem},
+    utils::RemoveElem,
     AppState,
 };
 use item::items_view;
@@ -43,7 +43,6 @@ mod item;
 mod message;
 mod my_widgets;
 mod node_cache;
-mod pick;
 mod settings_drawer;
 mod utils;
 
@@ -113,13 +112,13 @@ impl cosmic::Application for Ui {
 
             AppMsg::ModifNode(id, modif_node_msg) => {
                 match modif_node_msg {
-                    ModifNodeMsg::ChangeHardware(pick) => {
+                    ModifNodeMsg::ChangeHardware(hardware_id) => {
                         let node = self.app_state.app_graph.get_mut(&id);
                         let hardware = &self.app_state.hardware;
 
                         match &mut node.node_type {
                             NodeType::Control(i) => {
-                                i.hardware_id = pick.id();
+                                i.hardware_id = hardware_id;
                                 i.control_h = match &i.hardware_id {
                                     Some(hardware_id) => hardware
                                         .controls
@@ -131,7 +130,7 @@ impl cosmic::Application for Ui {
                                 }
                             }
                             NodeType::Fan(i) => {
-                                i.hardware_id = pick.id();
+                                i.hardware_id = hardware_id;
                                 i.fan_h = match &i.hardware_id {
                                     Some(hardware_id) => hardware
                                         .fans
@@ -143,7 +142,7 @@ impl cosmic::Application for Ui {
                                 }
                             }
                             NodeType::Temp(i) => {
-                                i.hardware_id = pick.id();
+                                i.hardware_id = hardware_id;
                                 i.temp_h = match &i.hardware_id {
                                     Some(hardware_id) => hardware
                                         .temps
@@ -161,13 +160,13 @@ impl cosmic::Application for Ui {
                         let node = self.app_state.app_graph.get_mut(&id);
                         node.inputs.clear();
 
-                        if let MyOption::Some(input) = &input {
+                        if let Some(input) = &input {
                             node.inputs.push(input.clone())
                         }
 
                         let optional_name = match input {
-                            MyOption::Some(input) => Some(input.name),
-                            MyOption::None => None,
+                            Some(input) => Some(input.name),
+                            None => None,
                         };
                         match &mut node.node_type {
                             NodeType::Control(i) => i.input = optional_name,

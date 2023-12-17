@@ -102,3 +102,51 @@ pub trait HardwareBridge {
         Ok(())
     }
 }
+
+pub trait HardwareInfoTrait {
+    fn name(&self) -> &String;
+    fn id(&self) -> &String;
+    fn info(&self) -> &String;
+}
+
+impl HardwareInfoTrait for ControlH {
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn id(&self) -> &String {
+        &self.hardware_id
+    }
+
+    fn info(&self) -> &String {
+        &self.info
+    }
+}
+
+impl HardwareInfoTrait for FanH {
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn id(&self) -> &String {
+        &self.hardware_id
+    }
+
+    fn info(&self) -> &String {
+        &self.info
+    }
+}
+
+impl HardwareInfoTrait for TempH {
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn id(&self) -> &String {
+        &self.hardware_id
+    }
+
+    fn info(&self) -> &String {
+        &self.info
+    }
+}

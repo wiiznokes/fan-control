@@ -27,12 +27,12 @@ pub enum NodeType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Input<I> {
-    pub id: I,
+pub struct Input {
+    pub id: Id,
     pub name: String,
 }
 
-impl<I> ToString for Input<I> {
+impl ToString for Input {
     fn to_string(&self) -> String {
         self.name.clone()
     }
@@ -42,7 +42,7 @@ impl<I> ToString for Input<I> {
 pub struct Node {
     pub id: Id,
     pub node_type: NodeType,
-    pub inputs: Vec<Input<Id>>,
+    pub inputs: Vec<Input>,
     pub value: Option<Value>,
 }
 
@@ -57,7 +57,7 @@ pub enum NbInput {
 pub struct Sanitize {
     pub id: Id,
     item: Vec<String>,
-    node: Vec<Input<Id>>,
+    node: Vec<Input>,
 }
 
 impl Sanitize {
