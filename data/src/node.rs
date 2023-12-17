@@ -141,7 +141,7 @@ impl Node {
             value: None,
         };
 
-        let sanitize = sanitize_inputs(&node, nodes, true);
+        let sanitize = self::sanitize_inputs(&node, nodes, true);
         node.set_inputs(sanitize);
         node
     }

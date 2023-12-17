@@ -6,7 +6,7 @@ use crate::config::Config;
 use crate::config::{control::Control, fan::Fan, temp::Temp};
 
 use crate::id::{Id, IdGenerator};
-use crate::node::{sanitize_inputs, Node, NodeType, NodeTypeLight, ToNode};
+use crate::node::{sanitize_inputs, Node, NodeType, NodeTypeLight, ToNode, self};
 use crate::utils::RemoveElem;
 
 pub type Nodes = HashMap<Id, Node>;
@@ -186,7 +186,7 @@ impl AppGraph {
     pub fn sanitize_inputs(&mut self, log: bool) {
         let mut sanitizes = Vec::new();
         for node in self.nodes.values() {
-            sanitizes.push(sanitize_inputs(node, &self.nodes, log));
+            sanitizes.push(node::sanitize_inputs(node, &self.nodes, log));
         }
 
         for inputs in sanitizes {
