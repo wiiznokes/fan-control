@@ -1,6 +1,9 @@
-use data::{config::custom_temp::CustomTempKind, id::Id, node::NodeTypeLight, settings::AppTheme};
-
-use crate::pick::Pick;
+use data::{
+    config::custom_temp::CustomTempKind,
+    id::Id,
+    node::{Input, NodeTypeLight},
+    settings::AppTheme,
+};
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -44,10 +47,10 @@ pub enum ToogleMsg {
 #[derive(Debug, Clone)]
 pub enum ModifNodeMsg {
     Delete,
-    ChangeHardware(Pick<String>),
-    ReplaceInput(Pick<Id>),
-    AddInput(Pick<Id>),
-    RemoveInput(Pick<Id>),
+    ChangeHardware(Option<String>),
+    ReplaceInput(Option<Input>),
+    AddInput(Input),
+    RemoveInput(Input),
 
     Control(ControlMsg),
     CustomTemp(CustomTempMsg),

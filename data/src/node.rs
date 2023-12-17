@@ -1,5 +1,6 @@
 use std::vec;
 
+use derive_more::Unwrap;
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
@@ -12,15 +13,8 @@ use crate::config::{
 
 use crate::id::{Id, IdGenerator};
 
-#[derive(Debug, Clone)]
-pub struct Node {
-    pub id: Id,
-    pub node_type: NodeType,
-    pub inputs: Vec<(Id, String)>,
-    pub value: Option<Value>,
-}
-
-#[derive(Debug, Clone, LightEnum)]
+#[derive(Debug, Clone, LightEnum, Unwrap)]
+#[unwrap(ref, ref_mut)]
 pub enum NodeType {
     Control(Control),
     Fan(Fan),
@@ -30,6 +24,26 @@ pub enum NodeType {
     Flat(Flat),
     Linear(Linear),
     Target(Target),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Input {
+    pub id: Id,
+    pub name: String,
+}
+
+impl ToString for Input {
+    fn to_string(&self) -> String {
+        self.name.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Node {
+    pub id: Id,
+    pub node_type: NodeType,
+    pub inputs: Vec<Input>,
+    pub value: Option<Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,7 +57,7 @@ pub enum NbInput {
 pub struct Sanitize {
     pub id: Id,
     item: Vec<String>,
-    node: Vec<(Id, String)>,
+    node: Vec<Input>,
 }
 
 impl Sanitize {
@@ -57,7 +71,11 @@ impl Sanitize {
 
     fn add(&mut self, id: Id, name: &str) {
         self.item.push(name.to_owned());
-        self.node.push((id, name.to_owned()));
+        let input = Input {
+            id,
+            name: name.to_owned(),
+        };
+        self.node.push(input);
     }
 }
 
@@ -141,7 +159,7 @@ impl Node {
             value: None,
         };
 
-        let sanitize = sanitize_inputs(&node, nodes, true);
+        let sanitize = self::sanitize_inputs(&node, nodes, true);
         node.set_inputs(sanitize);
         node
     }

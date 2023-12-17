@@ -7,8 +7,8 @@ use cosmic::{
 use data::{dir_manager::DirManager, settings::AppTheme};
 
 use crate::{
+    icon::icon_button,
     message::{AppMsg, SettingsMsg},
-    utils::icon_button,
 };
 
 pub fn settings_drawer(show: bool, dir_manager: &DirManager) -> Option<Element<'_, AppMsg>> {

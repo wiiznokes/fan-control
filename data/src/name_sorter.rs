@@ -54,8 +54,14 @@ impl Ord for Lexeme {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Default)]
 struct Lexemes(Vec<Lexeme>);
+
+impl Lexemes {
+    fn push(&mut self, value: Lexeme) {
+        self.0.push(value)
+    }
+}
 
 impl Ord for Lexemes {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -89,13 +95,15 @@ fn parse_to_lexemes(name: &str) -> Lexemes {
         }
     }
 
-    let mut lexemes = Vec::new();
+    let mut lexemes = Lexemes::default();
     let mut chars = name.chars();
 
-    let first_char = chars.next().unwrap();
-
-    let mut previous_state = State::from(&first_char);
-    let mut letters = first_char.to_string();
+    let (mut previous_state, mut letters) = match chars.next() {
+        Some(first_char) => (State::from(&first_char), first_char.to_string()),
+        None => {
+            return lexemes;
+        }
+    };
 
     for char in chars {
         let current_state = State::from(&char);
@@ -142,7 +150,7 @@ fn parse_to_lexemes(name: &str) -> Lexemes {
         }
     }
 
-    Lexemes(lexemes)
+    lexemes
 }
 
 impl PartialOrd for Lexemes {

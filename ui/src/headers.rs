@@ -8,9 +8,9 @@ use cosmic::{
 use data::dir_manager::DirManager;
 
 use crate::{
+    icon::{expand_icon, icon_button, my_icon},
     message::ConfigMsg,
     my_widgets::drop_down,
-    utils::{expand_icon, icon_button, my_icon},
     AppMsg, ToogleMsg,
 };
 

@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+//#![allow(dead_code)]
 //#![allow(unused_imports)]
 use std::time::Duration;
 
@@ -38,12 +38,12 @@ pub mod localize;
 
 mod add_node;
 mod headers;
+mod icon;
 mod input_line;
 mod item;
 mod message;
 mod my_widgets;
 mod node_cache;
-mod pick;
 mod settings_drawer;
 mod utils;
 
@@ -113,13 +113,13 @@ impl cosmic::Application for Ui {
 
             AppMsg::ModifNode(id, modif_node_msg) => {
                 match modif_node_msg {
-                    ModifNodeMsg::ChangeHardware(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                    ModifNodeMsg::ChangeHardware(hardware_id) => {
+                        let node = self.app_state.app_graph.get_mut(&id);
                         let hardware = &self.app_state.hardware;
 
                         match &mut node.node_type {
                             NodeType::Control(i) => {
-                                i.hardware_id = pick.id();
+                                i.hardware_id = hardware_id;
                                 i.control_h = match &i.hardware_id {
                                     Some(hardware_id) => hardware
                                         .controls
@@ -131,7 +131,7 @@ impl cosmic::Application for Ui {
                                 }
                             }
                             NodeType::Fan(i) => {
-                                i.hardware_id = pick.id();
+                                i.hardware_id = hardware_id;
                                 i.fan_h = match &i.hardware_id {
                                     Some(hardware_id) => hardware
                                         .fans
@@ -143,7 +143,7 @@ impl cosmic::Application for Ui {
                                 }
                             }
                             NodeType::Temp(i) => {
-                                i.hardware_id = pick.id();
+                                i.hardware_id = hardware_id;
                                 i.temp_h = match &i.hardware_id {
                                     Some(hardware_id) => hardware
                                         .temps
@@ -157,39 +157,43 @@ impl cosmic::Application for Ui {
                             _ => panic!("node have no hardware id"),
                         }
                     }
-                    ModifNodeMsg::ReplaceInput(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                    ModifNodeMsg::ReplaceInput(input) => {
+                        let node = self.app_state.app_graph.get_mut(&id);
                         node.inputs.clear();
 
-                        if let Some(id_name) = pick.to_couple() {
-                            node.inputs.push(id_name)
+                        if let Some(input) = &input {
+                            node.inputs.push(input.clone())
                         }
 
+                        let optional_name = match input {
+                            Some(input) => Some(input.name),
+                            None => None,
+                        };
                         match &mut node.node_type {
-                            NodeType::Control(i) => i.input = pick.name(),
-                            NodeType::Graph(i) => i.input = pick.name(),
-                            NodeType::Linear(i, ..) => i.input = pick.name(),
-                            NodeType::Target(i, ..) => i.input = pick.name(),
+                            NodeType::Control(i) => i.input = optional_name,
+                            NodeType::Graph(i) => i.input = optional_name,
+                            NodeType::Linear(i, ..) => i.input = optional_name,
+                            NodeType::Target(i, ..) => i.input = optional_name,
                             _ => panic!("node have not exactly one input"),
                         }
                     }
-                    ModifNodeMsg::AddInput(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                        node.inputs.push(pick.to_couple().unwrap());
+                    ModifNodeMsg::AddInput(input) => {
+                        let node = self.app_state.app_graph.get_mut(&id);
+                        node.inputs.push(input.clone());
 
                         match &mut node.node_type {
-                            NodeType::CustomTemp(i) => i.inputs.push(pick.name().unwrap()),
+                            NodeType::CustomTemp(i) => i.inputs.push(input.name),
                             _ => panic!("node have not multiple inputs"),
                         }
                     }
-                    ModifNodeMsg::RemoveInput(pick) => {
-                        let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
+                    ModifNodeMsg::RemoveInput(input) => {
+                        let node = self.app_state.app_graph.get_mut(&id);
 
-                        node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
+                        node.inputs.remove_elem(|i| i.id == input.id);
 
                         match &mut node.node_type {
                             NodeType::CustomTemp(i) => {
-                                i.inputs.remove_elem(|n| n == &pick.name().unwrap());
+                                i.inputs.remove_elem(|n| n == &input.name);
                             }
                             _ => panic!("node have not multiple inputs"),
                         }
@@ -424,9 +428,9 @@ impl cosmic::Application for Ui {
                         if let Some(node_input) = n
                             .inputs
                             .iter_mut()
-                            .find(|node_input| node_input.0 == node_id)
+                            .find(|node_input| node_input.id == node_id)
                         {
-                            node_input.1 = name.clone();
+                            node_input.name = name.clone();
                             let mut inputs = n.node_type.get_inputs();
 
                             match inputs.iter().position(|n| n == &previous_name) {

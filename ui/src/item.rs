@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use cosmic::{
     iced_core::{Alignment, Length, Padding},
     iced_widget::{
@@ -9,21 +11,21 @@ use cosmic::{
     Element,
 };
 use data::{
-    app_graph::Nodes,
+    app_graph::{Nodes},
     config::custom_temp::CustomTempKind,
-    node::{Node, NodeType, NodeTypeLight, ValueKind},
+    node::{Input, Node, NodeTypeLight, ValueKind},
 };
-use hardware::Hardware;
+use hardware::{Hardware, HardwareInfoTrait};
 
 use crate::{
+    icon::{icon_button, icon_path_for_node_type, my_icon},
     input_line::{input_line, InputLineUnit},
     message::{
         AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
-    node_cache::{NodeC, NodeTypeC, NodesC},
-    pick::{pick_hardware, pick_input, Pick},
-    utils::{icon_button, icon_path_for_node_type, my_icon},
+    node_cache::{NodeC, NodesC},
+    utils::{self, MyOption},
 };
 
 pub fn items_view<'a>(
@@ -138,21 +140,55 @@ fn item_view<'a>(
         .into()
 }
 
+fn pick_hardware<'a, H>(
+    node: &'a Node,
+    hardwares: &'a [Rc<H>],
+    one_ref: bool,
+) -> Element<'a, AppMsg>
+where
+    H: HardwareInfoTrait,
+{
+    let hardware_id = node.hardware_id().clone();
+    let (selected_hardware_info, input_hardware) =
+        utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
+
+    PickList::new(
+        input_hardware,
+        Some(selected_hardware_info),
+        |hardware_info| {
+            let message_content = match hardware_info {
+                MyOption::Some(hardware_info) => Some(hardware_info.id),
+                MyOption::None => None,
+            };
+
+            ModifNodeMsg::ChangeHardware(message_content).to_app(node.id)
+        },
+    )
+    .width(Length::Fill)
+    .into()
+}
+
 fn control_view<'a>(
     node: &'a Node,
     node_c: &'a NodeC,
     nodes: &'a Nodes,
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
-    let NodeType::Control(control) = &node.node_type else {
-        panic!()
-    };
+    let control = node.node_type.unwrap_control_ref();
+
+    let input_options =
+        utils::input::optional_availlable_inputs(nodes, node, control.input.is_some());
+    let current_input: MyOption<Input> = control.input.clone().into();
+
+    let pick_input = PickList::new(input_options, Some(current_input), |input| {
+        ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
+    })
+    .width(Length::Fill)
+    .into();
 
     let content = vec![
-        pick_hardware(node, &hardware.controls, true).map(|m| m.to_app(node.id)),
-        pick_input(node, nodes, &control.input, true, |pick| {
-            ModifNodeMsg::ReplaceInput(pick).to_app(node.id)
-        }),
+        pick_hardware(node, &hardware.controls, true),
+        pick_input,
         Row::new()
             .push(Text::new(node.value_text(&ValueKind::Porcentage)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
@@ -169,7 +205,7 @@ fn control_view<'a>(
 
 fn temp_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        pick_hardware(node, &hardware.temps, false).map(|m| m.to_app(node.id)),
+        pick_hardware(node, &hardware.temps, false),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
@@ -178,7 +214,7 @@ fn temp_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> E
 
 fn fan_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
-        pick_hardware(node, &hardware.fans, false).map(|m| m.to_app(node.id)),
+        pick_hardware(node, &hardware.fans, false),
         Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
@@ -190,11 +226,7 @@ fn custom_temp_view<'a>(
     node_c: &'a NodeC,
     nodes: &'a Nodes,
 ) -> Element<'a, AppMsg> {
-    let _custom_temp = node.to_custom_temp();
-    let NodeType::CustomTemp(custom_temp) = &node.node_type else {
-        panic!()
-    };
-
+    let custom_temp = node.node_type.unwrap_custom_temp_ref();
     let kind_options = CustomTempKind::VALUES
         .iter()
         .filter(|k| &custom_temp.kind != *k)
@@ -210,24 +242,35 @@ fn custom_temp_view<'a>(
     let inputs = node
         .inputs
         .iter()
-        .map(|i| {
+        .map(|input| {
             Row::new()
-                .push(Text::new(i.1.clone()).width(Length::Fixed(100.0)))
+                .push(Text::new(input.name.clone()).width(Length::Fixed(100.0)))
                 .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(
                     icon_button("close/20")
-                        .on_press(ModifNodeMsg::RemoveInput(Pick::new(&i.1, &i.0)).to_app(node.id)),
+                        .on_press(ModifNodeMsg::RemoveInput(input.clone()).to_app(node.id)),
                 )
                 .align_items(Alignment::Center)
                 .into()
         })
         .collect();
 
+    let input_options: Vec<Input> = utils::input::availlable_inputs(nodes, node).collect();
+
+    let current_input = Input {
+        id: Default::default(),
+        name: fl!("temp_selection"),
+    };
+
+    let pick_input = PickList::new(input_options, Some(current_input), |input| {
+        ModifNodeMsg::AddInput(input).to_app(node.id)
+    })
+    .width(Length::Fill)
+    .into();
+
     let content = vec![
         pick_kind,
-        pick_input(node, nodes, &Some(fl!("temp_selection")), false, |pick| {
-            ModifNodeMsg::AddInput(pick).to_app(node.id)
-        }),
+        pick_input,
         Column::with_children(inputs).into(),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
@@ -236,9 +279,7 @@ fn custom_temp_view<'a>(
 }
 
 fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
-    let NodeType::Flat(flat) = &node.node_type else {
-        panic!()
-    };
+    let flat = node.node_type.unwrap_flat_ref();
 
     let mut sub_button = icon_button("remove/24");
     if flat.value > 0 {
@@ -275,18 +316,20 @@ fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
 }
 
 fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Linear(linear) = &node.node_type else {
-        panic!()
-    };
+    let linear = node.node_type.unwrap_linear_ref();
+    let linear_c = node_c.node_type_c.unwrap_linear_ref();
 
-    let NodeTypeC::Linear(linear_c) = &node_c.node_type_c else {
-        panic!()
-    };
+    let input_options =
+        utils::input::optional_availlable_inputs(nodes, node, linear.input.is_some());
+    let current_input: MyOption<Input> = linear.input.clone().into();
+    let pick_input = PickList::new(input_options, Some(current_input), |input| {
+        ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
+    })
+    .width(Length::Fill)
+    .into();
 
     let content = vec![
-        pick_input(node, nodes, &linear.input, true, |pick| {
-            ModifNodeMsg::ReplaceInput(pick).to_app(node.id)
-        }),
+        pick_input,
         Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
             fl!("min_temp"),
@@ -330,18 +373,20 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
 }
 
 fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
-    let NodeType::Target(target) = &node.node_type else {
-        panic!()
-    };
+    let target = node.node_type.unwrap_target_ref();
+    let target_c = node_c.node_type_c.unwrap_target_ref();
 
-    let NodeTypeC::Target(target_c) = &node_c.node_type_c else {
-        panic!()
-    };
+    let input_options =
+        utils::input::optional_availlable_inputs(nodes, node, target.input.is_some());
+    let current_input: MyOption<Input> = target.input.clone().into();
+    let pick_input = PickList::new(input_options, Some(current_input), |input| {
+        ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
+    })
+    .width(Length::Fill)
+    .into();
 
     let content = vec![
-        pick_input(node, nodes, &target.input, true, |pick| {
-            ModifNodeMsg::ReplaceInput(pick).to_app(node.id)
-        }),
+        pick_input,
         Text::new(node.value_text(&ValueKind::Porcentage)).into(),
         input_line(
             fl!("idle_temp"),

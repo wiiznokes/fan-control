@@ -1,64 +1,218 @@
-use std::path::PathBuf;
-
-use cosmic::{
-    iced_core::Length,
-    widget::{self, icon::Handle, Icon, IconButton},
-};
-use data::node::NodeTypeLight;
-use once_cell::sync::Lazy;
-
-use cargo_packager_resource_resolver as resource_resolver;
-
-static RESSOURCE_PATH: Lazy<PathBuf> = Lazy::new(|| {
-    resource_resolver::resource_dir_with_suffix("resource")
-        .unwrap_or(PathBuf::from(""))
-        .join("icons/")
-});
-
-static EXTENSION: &str = "px.svg";
-
-static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));
-
-pub fn icon_button<M>(name: &str) -> widget::button::IconButton<M> {
-    cosmic::widget::button::icon(get_handle_icon(name))
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum MyOption<T>
+where
+    T: ToString,
+{
+    Some(T),
+    None,
 }
 
-static ICON_LENGHT: Length = Length::Fixed(25.0);
-
-pub fn my_icon(name: &str) -> Icon {
-    widget::icon::icon(get_handle_icon(name))
-        .height(ICON_LENGHT)
-        .width(ICON_LENGHT)
-}
-
-fn get_handle_icon(name: &str) -> Handle {
-    unsafe {
-        BUF.clear();
-        BUF.insert_str(0, name);
-        BUF.insert_str(BUF.chars().count(), EXTENSION);
-    };
-
-    let path = RESSOURCE_PATH.join(unsafe { BUF.as_str() });
-    cosmic::widget::icon::from_path(path)
-}
-
-pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {
-    match node_type {
-        NodeTypeLight::Control => "speed/24",
-        NodeTypeLight::Fan => "toys_fan/24",
-        NodeTypeLight::Temp => "thermometer/24",
-        NodeTypeLight::CustomTemp => "thermostat/24",
-        NodeTypeLight::Graph => "psychology/24",
-        NodeTypeLight::Flat => "horizontal_rule/24",
-        NodeTypeLight::Linear => "linear/24",
-        NodeTypeLight::Target => "my_location/24",
+impl<T> ToString for MyOption<T>
+where
+    T: ToString,
+{
+    fn to_string(&self) -> String {
+        match self {
+            MyOption::Some(t) => t.to_string(),
+            MyOption::None => fl!("none"),
+        }
     }
 }
 
-pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
-    if expanded {
-        icon_button("expand_less/24")
-    } else {
-        icon_button("expand_more/24")
+impl<T> From<MyOption<T>> for Option<T>
+where
+    T: ToString,
+{
+    fn from(value: MyOption<T>) -> Self {
+        match value {
+            MyOption::Some(value) => Some(value),
+            MyOption::None => None,
+        }
+    }
+}
+pub mod input {
+
+    use data::{
+        app_graph::Nodes,
+        id::Id,
+        node::{Input, Node},
+    };
+
+    use super::MyOption;
+
+    impl From<String> for MyOption<Input> {
+        fn from(value: String) -> Self {
+            MyOption::Some(Input {
+                id: Id::default(),
+                name: value,
+            })
+        }
+    }
+
+    impl From<Option<String>> for MyOption<Input> {
+        fn from(value: Option<String>) -> Self {
+            match value {
+                Some(value) => MyOption::Some(Input {
+                    id: Id::default(),
+                    name: value,
+                }),
+                None => MyOption::None,
+            }
+        }
+    }
+
+    /// Return an iter of all inputs availlable for this node, minus his inputs
+    pub fn availlable_inputs<'a>(
+        nodes: &'a Nodes,
+        node: &'a Node,
+    ) -> impl Iterator<Item = Input> + 'a {
+        nodes
+            .values()
+            .filter(|n| {
+                node.node_type
+                    .allowed_dep()
+                    .contains(&n.node_type.to_light())
+                    && !node
+                        .inputs
+                        .iter()
+                        .map(|i| i.id)
+                        .collect::<Vec<_>>()
+                        .contains(&n.id)
+            })
+            .map(|n| Input {
+                id: n.id,
+                name: n.name().clone(),
+            })
+    }
+
+    pub fn optional_availlable_inputs<'a>(
+        nodes: &'a Nodes,
+        node: &'a Node,
+        add_node: bool,
+    ) -> Vec<MyOption<Input>> {
+        let mut vec: Vec<MyOption<Input>> = if add_node {
+            vec![MyOption::None]
+        } else {
+            Vec::new()
+        };
+
+        let values = nodes
+            .values()
+            .filter(|n| {
+                node.node_type
+                    .allowed_dep()
+                    .contains(&n.node_type.to_light())
+                    && !node
+                        .inputs
+                        .iter()
+                        .map(|i| i.id)
+                        .collect::<Vec<_>>()
+                        .contains(&n.id)
+            })
+            .map(|n| {
+                MyOption::Some(Input {
+                    id: n.id,
+                    name: n.name().clone(),
+                })
+            });
+
+        vec.extend(values);
+        vec
+    }
+}
+
+pub mod hardware {
+
+    use std::rc::Rc;
+
+    use hardware::HardwareInfoTrait;
+
+    use super::MyOption;
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct HardwareInfo {
+        pub name: String,
+        pub id: String,
+        pub info: String,
+    }
+
+    impl From<Option<String>> for MyOption<HardwareInfo> {
+        fn from(value: Option<String>) -> Self {
+            match value {
+                Some(value) => Self::Some(HardwareInfo {
+                    name: value,
+                    id: Default::default(),
+                    info: Default::default(),
+                }),
+                None => Self::None,
+            }
+        }
+    }
+
+    impl<T: HardwareInfoTrait> From<&Rc<T>> for HardwareInfo {
+        fn from(value: &Rc<T>) -> Self {
+            HardwareInfo {
+                name: value.name().clone(),
+                id: value.id().clone(),
+                info: value.info().clone(),
+            }
+        }
+    }
+
+    impl ToString for HardwareInfo {
+        fn to_string(&self) -> String {
+            self.name.clone()
+        }
+    }
+
+    /// Return hardware info about `hardware_id` and a vec of
+    /// availlable hardware
+    pub fn availlable_hardware<'a, H: 'a>(
+        hardware_id: &'a Option<String>,
+        hardwares: &'a [Rc<H>],
+        one_ref: bool,
+    ) -> (MyOption<HardwareInfo>, Vec<MyOption<HardwareInfo>>)
+    where
+        H: HardwareInfoTrait,
+    {
+        let mut selected_hardware_info: MyOption<HardwareInfo> = MyOption::None;
+
+        let mut hardware_options: Vec<_> = hardwares
+            .iter()
+            .filter_map(|h| {
+                let is_equal = match hardware_id {
+                    Some(hardware_id) => {
+                        if hardware_id == h.id() {
+                            selected_hardware_info = MyOption::Some(h.into());
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    None => false,
+                };
+
+                if one_ref {
+                    // we leverage rc to know if this specific hardware
+                    // is already in use by one node
+                    if Rc::strong_count(h) > 1 {
+                        return None;
+                    }
+                }
+
+                // we only add if hardware_id != h
+                if !is_equal {
+                    Some(MyOption::Some(h.into()))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if hardware_id.is_some() {
+            hardware_options.insert(0, MyOption::None);
+        }
+
+        (selected_hardware_info, hardware_options)
     }
 }

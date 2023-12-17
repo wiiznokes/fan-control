@@ -6,7 +6,7 @@ use cosmic::{
     Element,
 };
 
-use crate::{utils::icon_button, ModifNodeMsg};
+use crate::{icon::icon_button, ModifNodeMsg};
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;

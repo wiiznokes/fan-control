@@ -4,6 +4,7 @@ use data::{
     id::Id,
     node::{Node, NodeType},
 };
+use derive_more::Unwrap;
 
 pub struct NodesC {
     data: HashMap<Id, NodeC>,
@@ -17,7 +18,8 @@ pub struct NodeC {
     pub node_type_c: NodeTypeC,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Unwrap)]
+#[unwrap(ref, ref_mut)]
 pub enum NodeTypeC {
     Control(ControlC),
     Fan(FanC),

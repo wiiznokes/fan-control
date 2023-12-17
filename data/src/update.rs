@@ -187,8 +187,8 @@ impl Update {
             return false;
         };
 
-        for (id, _) in &node.inputs {
-            if !Self::validate_rec(nodes, id) {
+        for input in &node.inputs {
+            if !Self::validate_rec(nodes, &input.id) {
                 return false;
             }
         }
@@ -221,7 +221,7 @@ impl Update {
                 }
                 return Ok(None);
             }
-            input_ids = node.inputs.iter().map(|i| i.0).collect();
+            input_ids = node.inputs.iter().map(|i| i.id).collect();
         }
 
         let mut input_values = Vec::new();
