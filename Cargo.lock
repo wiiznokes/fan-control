@@ -2155,6 +2155,7 @@ name = "hardware"
 version = "0.1.0"
 dependencies = [
  "cargo-packager-resource-resolver",
+ "derive_more",
  "lm-sensors",
  "log",
  "ouroboros 0.18.1",

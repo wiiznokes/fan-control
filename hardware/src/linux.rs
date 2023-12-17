@@ -4,12 +4,15 @@ use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
 use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
+    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, Mode, TempH, Value,
 };
 use ouroboros::self_referencing;
 
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
 // https://www.kernel.org/doc/html/next/hwmon/nct6775.html
+
+static DEFAULT_PWM_ENABLE: f64 = 5.0;
+static MANUAL_MODE: f64 = 1.0;
 
 #[self_referencing]
 pub struct LinuxBridge {
@@ -172,7 +175,13 @@ fn generate_hardware<'a>(
                         };
 
                         let enable_cached = match sub_feature_ref_enable.raw_value() {
-                            Ok(value) => value,
+                            Ok(value) => {
+                                if value == MANUAL_MODE {
+                                    DEFAULT_PWM_ENABLE
+                                } else {
+                                    value
+                                }
+                            }
                             Err(e) => {
                                 error!("can't read value of pwm {}", e);
                                 continue;
@@ -266,14 +275,14 @@ impl HardwareBridge for LinuxBridge {
         })
     }
 
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
         self.with_sensors(|sensors| match sensors.get(*internal_index) {
             Some(sensor) => match sensor {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    let value = if value == 0 {
-                        pwm_refs.default_enable_cached
-                    } else {
-                        value.into()
+                    let value = match mode {
+                        Mode::Auto => pwm_refs.default_enable_cached,
+                        Mode::Manual => MANUAL_MODE,
+                        Mode::Specific(value) => value.to_owned().into(),
                     };
 
                     if let Err(e) = pwm_refs.enable.set_raw_value(value) {

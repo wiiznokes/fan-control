@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{ControlH, Hardware, HardwareBridgeT, Value};
+use hardware::{ControlH, Hardware, HardwareBridgeT, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -22,7 +22,7 @@ pub struct Control {
     pub control_h: Option<Rc<ControlH>>,
 
     #[serde(skip)]
-    pub is_active_set: bool,
+    pub mode_set: Option<Mode>,
 }
 
 impl Control {
@@ -39,7 +39,7 @@ impl Control {
             input,
             active,
             control_h,
-            is_active_set: false,
+            mode_set: None,
         }
     }
 
@@ -48,8 +48,8 @@ impl Control {
         value: Value,
         bridge: &mut HardwareBridgeT,
     ) -> Result<Value, UpdateError> {
-        if !self.is_active_set {
-            self.set_mode(true, bridge)?;
+        if self.mode_set != Some(Mode::Manual) {
+            self.set_mode(Mode::Manual, bridge)?;
         }
 
         match &self.control_h {
@@ -63,21 +63,23 @@ impl Control {
 
     pub fn set_mode(
         &mut self,
-        active: bool,
+        mode: Mode,
         bridge: &mut HardwareBridgeT,
     ) -> Result<(), UpdateError> {
-        if self.is_active_set == active {
-            debug!("mode already set: is_active_set = {}", self.is_active_set);
-            return Ok(());
+        if let Some(mode_set) = &self.mode_set {
+            if mode_set == &mode {
+                debug!("mode already set: {}", mode);
+                return Ok(());
+            }
         }
 
         match &self.control_h {
-            Some(control_h) => bridge.set_mode(&control_h.internal_index, active as i32)?,
+            Some(control_h) => bridge.set_mode(&control_h.internal_index, &mode)?,
             None => return Err(UpdateError::NodeIsInvalid),
         };
 
-        self.is_active_set = active;
-        debug!("mode succefuly set to {}", self.is_active_set);
+        debug!("mode succefuly set to {}", mode);
+        self.mode_set = Some(mode);
         Ok(())
     }
 
