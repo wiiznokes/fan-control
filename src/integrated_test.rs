@@ -21,7 +21,7 @@ fn test_config() {
 
     let dir_manager = DirManager::new(&args);
 
-    let (hardware, bridge) = fake_hardware::FakeHardwareBridge::generate_hardware();
+    let (hardware, bridge) = fake_hardware::FakeHardwareBridge::generate_hardware().unwrap();
 
     let config = dir_manager.get_config().unwrap();
 

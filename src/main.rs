@@ -1,6 +1,7 @@
 use clap::Parser;
 use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge};
+use thiserror::Error;
 
 #[allow(unused_imports)]
 #[macro_use]
@@ -11,7 +12,15 @@ mod integrated_test;
 
 mod cli;
 
-fn main() {
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error(transparent)]
+    Hardware(#[from] hardware::HardwareError),
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+fn try_run() -> Result<()> {
     env_logger::init();
     ui::localize::localize();
     data::localize::localize();
@@ -21,13 +30,13 @@ fn main() {
     let dir_manager = DirManager::new(&args);
 
     #[cfg(feature = "fake_hardware")]
-    let (hardware, bridge) = hardware::fake_hardware::FakeHardwareBridge::generate_hardware();
+    let (hardware, bridge) = hardware::fake_hardware::FakeHardwareBridge::generate_hardware()?;
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
-    let (hardware, bridge) = hardware::linux::LinuxBridge::generate_hardware();
+    let (hardware, bridge) = hardware::linux::LinuxBridge::generate_hardware()?;
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
-    let (hardware, bridge) = hardware::windows::WindowsBridge::generate_hardware();
+    let (hardware, bridge) = hardware::windows::WindowsBridge::generate_hardware()?;
 
     dir_manager.serialize_hardware(&hardware);
 
@@ -48,4 +57,12 @@ fn main() {
         true => cli::run_cli(app_state),
         false => ui::run_ui(app_state).unwrap(),
     };
+
+    Ok(())
+}
+
+fn main() {
+    if let Err(e) = try_run() {
+        error!("{:?}", e);
+    }
 }

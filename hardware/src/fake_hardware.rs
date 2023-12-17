@@ -2,9 +2,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
-};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, TempH, Value};
 
 pub struct FakeHardwareBridge {}
 
@@ -19,7 +17,7 @@ static FAN_INTERNAL_INDEX: usize = 1;
 static CONTROL_INTERNAL_INDEX: usize = 2;
 
 impl HardwareBridge for FakeHardwareBridge {
-    fn generate_hardware() -> (Hardware, HardwareBridgeT) {
+    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
         let mut hardware = Hardware::default();
 
         let temp1 = TempH {
@@ -62,15 +60,15 @@ impl HardwareBridge for FakeHardwareBridge {
         };
         hardware.controls.push(control2.into());
 
-        (hardware, Box::new(Self {}))
+        Ok((hardware, Box::new(Self {})))
     }
 
-    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
+    fn get_value(&mut self, _internal_index: &usize) -> crate::Result<Value> {
         let nb = rand::thread_rng().gen_range(30..80);
         Ok(nb)
     }
 
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
         if internal_index != &CONTROL_INTERNAL_INDEX {
             panic!("set value to hardware != Control")
         }
@@ -78,7 +76,7 @@ impl HardwareBridge for FakeHardwareBridge {
         return Ok(());
     }
 
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
         if internal_index != &CONTROL_INTERNAL_INDEX {
             panic!("set mode to hardware != Control")
         }

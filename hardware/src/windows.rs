@@ -1,5 +1,5 @@
 use std::{
-    io::{BufRead, BufReader, Read, Write},
+    io::{self, BufRead, BufReader, Read, Write},
     net::TcpStream,
     process,
     rc::Rc,
@@ -8,130 +8,69 @@ use std::{
 };
 
 use serde::Deserialize;
+use thiserror::Error;
 
-use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
-};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, TempH, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
 use self::packet::{Command, Packet, I32};
 
 pub struct WindowsBridge {
+    process_handle: std::process::Child,
     stream: TcpStream,
 }
 
-const IP: &str = "127.0.0.1";
-const DEFAULT_PORT: u16 = 55555;
-// need to have different values because
-// i think we can write the TcpSteam and
-// then read what we write
-const CHECK: &str = "fan-control-check";
-const CHECK_RESPONSE: &str = "fan-control-ok";
-
-impl HardwareBridge for WindowsBridge {
-    fn generate_hardware() -> (Hardware, HardwareBridgeT) {
-        let exe_path = resource_resolver::resource_dir_with_suffix("resource")
-            .unwrap()
-            .join("windows/build/LibreHardwareMonitorWrapper");
-
-        let handle = process::Command::new(exe_path).spawn().unwrap();
-
-        let mut hardware = Hardware::default();
-
-        let stream = try_connect();
-
-        let mut data = String::new();
-        let mut buf_reader = BufReader::new(&stream);
-        buf_reader.read_line(&mut data).unwrap();
-        let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data).unwrap();
-
-        for base_hardware in base_hardware_list {
-            match base_hardware.hardware_type {
-                HardwareType::Control => hardware.controls.push(Rc::new(ControlH {
-                    name: base_hardware.name,
-                    hardware_id: base_hardware.id,
-                    info: String::new(),
-                    internal_index: base_hardware.index,
-                })),
-                HardwareType::Fan => hardware.fans.push(Rc::new(FanH {
-                    name: base_hardware.name,
-                    hardware_id: base_hardware.id,
-                    info: String::new(),
-                    internal_index: base_hardware.index,
-                })),
-                HardwareType::Temp => hardware.temps.push(Rc::new(TempH {
-                    name: base_hardware.name,
-                    hardware_id: base_hardware.id,
-                    info: String::new(),
-                    internal_index: base_hardware.index,
-                })),
-            }
-        }
-
-        let windows_bridge = WindowsBridge { stream };
-
-        (hardware, Box::new(windows_bridge))
-    }
-
-    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
-        self.send(Command::GetValue);
-        self.send(I32(*internal_index));
-
-        let value = self.read::<I32<i32>>();
-        Ok(value.0)
-    }
-
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        self.send(Command::SetValue);
-        self.send(I32(*internal_index));
-        self.send(I32(value));
-        Ok(())
-    }
-
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        if value != 0 {
-            debug!("try to set {}, whitch is unecessary on Windows", value);
-            return Ok(());
-        }
-
-        self.send(Command::SetAuto);
-        self.send(I32(*internal_index));
-        Ok(())
-    }
-
-    fn update(&mut self) -> Result<(), HardwareError> {
-        self.send(Command::Update);
-        Ok(())
-    }
-
-    fn shutdown(&mut self) -> Result<(), HardwareError> {
-        self.send(Command::Shutdown);
-        Ok(())
-    }
+#[derive(Error, Debug)]
+pub enum WindowsError {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error("No connection was found")]
+    NoConnectionFound,
+    #[error(transparent)]
+    Resource(#[from] resource_resolver::error::Error),
+    #[error("Failed to parse hardware struct: {0}")]
+    JSONConfigParseError(#[from] serde_json::Error),
 }
 
-fn try_connect() -> TcpStream {
+type Result<T> = std::result::Result<T, WindowsError>;
+
+fn spawn_windows_server() -> Result<std::process::Child> {
+    let exe_path = resource_resolver::resource_dir_with_suffix("resource")?
+        .join("windows/build/LibreHardwareMonitorWrapper");
+    let handle = process::Command::new(exe_path).spawn()?;
+    Ok(handle)
+}
+
+fn try_connect() -> Result<TcpStream> {
+    const IP: &str = "127.0.0.1";
+    const DEFAULT_PORT: u16 = 55555;
+    // need to have different values because
+    // i think we can write the TcpSteam and
+    // then read what we write
+    const CHECK: &str = "fan-control-check";
+    const CHECK_RESPONSE: &str = "fan-control-ok";
+
     for i in 0..10 {
         for port in DEFAULT_PORT..65535 {
             match TcpStream::connect((IP, port)) {
                 Ok(mut stream) => {
                     let write_buf = CHECK.as_bytes();
 
-                    if let Err(e) = stream.write_all(write_buf) {
+                    if let Err(_e) = stream.write_all(write_buf) {
                         continue;
                     }
 
                     let Ok(prev_timeout) = stream.read_timeout() else {
                         continue;
                     };
-                    if let Err(e) = stream.set_read_timeout(Some(Duration::from_millis(10))) {
+                    if let Err(_e) = stream.set_read_timeout(Some(Duration::from_millis(10))) {
                         continue;
                     }
 
                     let mut read_buf = [0u8; CHECK_RESPONSE.len()];
 
-                    if let Err(e) = stream.read_exact(&mut read_buf) {
+                    if let Err(_e) = stream.read_exact(&mut read_buf) {
                         continue;
                     }
 
@@ -143,12 +82,10 @@ fn try_connect() -> TcpStream {
                         continue;
                     }
 
-                    if let Err(e) = stream.set_read_timeout(prev_timeout) {
-                        panic!("can't reset read timeout")
-                    }
+                    stream.set_read_timeout(prev_timeout)?;
 
                     info!("check passed for {}:{}!", IP, port);
-                    return stream;
+                    return Ok(stream);
                 }
                 Err(_) => continue,
             }
@@ -156,52 +93,61 @@ fn try_connect() -> TcpStream {
         thread::sleep(Duration::from_millis(50 * i))
     }
 
-    panic!("can't find connection")
+    Err(WindowsError::NoConnectionFound)
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct BaseHardware {
-    #[serde(rename = "Id")]
-    id: String,
-    #[serde(rename = "Name")]
-    name: String,
-    #[serde(rename = "Index")]
-    index: usize,
-    #[serde(rename = "Type")]
-    hardware_type: HardwareType,
-}
+fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
+    let mut hardware = Hardware::default();
 
-#[derive(Debug)]
-struct InternalSensor {
-    index: usize,
-}
+    let mut data = String::new();
+    let mut buf_reader = BufReader::new(stream);
+    buf_reader.read_line(&mut data)?;
 
-#[derive(Debug)]
-struct InternalControl {
-    index: usize,
-}
-
-impl WindowsBridge {
-    fn send(&mut self, command: impl Into<Packet>) {
-        let packet: Packet = command.into();
-        self.stream.write_all(&packet).unwrap();
+    #[derive(Deserialize)]
+    enum HardwareType {
+        Control = 1,
+        Fan = 2,
+        Temp = 3,
     }
 
-    fn read<T>(&mut self) -> T
-    where
-        T: From<Packet>,
-    {
-        let mut buf: Packet = [0u8; 4];
-        self.stream.read_exact(&mut buf).unwrap();
-        buf.into()
+    #[derive(Deserialize)]
+    struct BaseHardware {
+        #[serde(rename = "Id")]
+        id: String,
+        #[serde(rename = "Name")]
+        name: String,
+        #[serde(rename = "Index")]
+        index: usize,
+        #[serde(rename = "Type")]
+        hardware_type: HardwareType,
     }
-}
 
-#[derive(Deserialize, Debug, Clone)]
-enum HardwareType {
-    Control = 1,
-    Fan = 2,
-    Temp = 3,
+    let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data)?;
+
+    for base_hardware in base_hardware_list {
+        match base_hardware.hardware_type {
+            HardwareType::Control => hardware.controls.push(Rc::new(ControlH {
+                name: base_hardware.name,
+                hardware_id: base_hardware.id,
+                info: String::new(),
+                internal_index: base_hardware.index,
+            })),
+            HardwareType::Fan => hardware.fans.push(Rc::new(FanH {
+                name: base_hardware.name,
+                hardware_id: base_hardware.id,
+                info: String::new(),
+                internal_index: base_hardware.index,
+            })),
+            HardwareType::Temp => hardware.temps.push(Rc::new(TempH {
+                name: base_hardware.name,
+                hardware_id: base_hardware.id,
+                info: String::new(),
+                internal_index: base_hardware.index,
+            })),
+        }
+    }
+
+    Ok(hardware)
 }
 
 mod packet {
@@ -278,6 +224,88 @@ mod packet {
     }
 }
 
+impl WindowsBridge {
+    fn send(&mut self, command: impl Into<Packet>) -> Result<()> {
+        let packet: Packet = command.into();
+        self.stream.write_all(&packet)?;
+        Ok(())
+    }
+
+    fn read<T>(&mut self) -> Result<T>
+    where
+        T: From<Packet>,
+    {
+        let mut buf: Packet = [0u8; 4];
+        self.stream.read_exact(&mut buf)?;
+        Ok(buf.into())
+    }
+
+    fn close_and_wait_server(&mut self) -> Result<()> {
+        self.send(Command::Shutdown)?;
+        let status = self.process_handle.wait()?;
+        if !status.success() {
+            let io_error = io::Error::new(
+                io::ErrorKind::InvalidData,
+                "the windows server terminated with an error",
+            );
+            return Err(WindowsError::Io(io_error));
+        }
+        Ok(())
+    }
+}
+
+impl HardwareBridge for WindowsBridge {
+    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
+        let process_handle = spawn_windows_server()?;
+        let stream = try_connect()?;
+
+        let hardware = read_hardware(&stream)?;
+
+        let windows_bridge = WindowsBridge {
+            process_handle,
+            stream,
+        };
+
+        Ok((hardware, Box::new(windows_bridge)))
+    }
+
+    fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
+        self.send(Command::GetValue)?;
+        self.send(I32(*internal_index))?;
+
+        let value = self.read::<I32<i32>>()?;
+        Ok(value.0)
+    }
+
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+        self.send(Command::SetValue)?;
+        self.send(I32(*internal_index))?;
+        self.send(I32(value))?;
+        Ok(())
+    }
+
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+        if value != 0 {
+            debug!("try to set {}, whitch is unecessary on Windows", value);
+            return Ok(());
+        }
+
+        self.send(Command::SetAuto)?;
+        self.send(I32(*internal_index))?;
+        Ok(())
+    }
+
+    fn update(&mut self) -> crate::Result<()> {
+        self.send(Command::Update)?;
+        Ok(())
+    }
+
+    fn shutdown(&mut self) -> crate::Result<()> {
+        self.close_and_wait_server()?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
@@ -290,7 +318,7 @@ mod test {
     #[test]
     fn test_time() {
         let now = Instant::now();
-        let (hardware, mut bridge) = WindowsBridge::generate_hardware();
+        let (hardware, mut bridge) = WindowsBridge::generate_hardware().unwrap();
         println!("generation took {} millis", now.elapsed().as_millis());
 
         for _ in 0..5 {

@@ -8,6 +8,7 @@ fake_hardware = ["rand"]
 
 
 [dependencies]
+thiserror.workspace = true
 log.workspace = true
 serde.workspace = true
 ouroboros = "0.18"

@@ -8,7 +8,7 @@ use crate::{
     node::{Node, NodeType},
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub enum UpdateError {
     NodeNotFound,
     ValueIsNone,
