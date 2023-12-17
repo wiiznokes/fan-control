@@ -10,6 +10,7 @@ use data::{
     utils::RemoveElem,
     AppState,
 };
+use hardware::Mode;
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
@@ -268,7 +269,7 @@ impl cosmic::Application for Ui {
                             Some(mut node) => {
                                 if let NodeType::Control(control) = &mut node.node_type {
                                     if let Err(e) =
-                                        control.set_mode(false, &mut self.app_state.bridge)
+                                        control.set_mode(Mode::Auto, &mut self.app_state.bridge)
                                     {
                                         error!("can't set unactive when removing a control: {}", e);
                                     }

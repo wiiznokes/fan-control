@@ -17,6 +17,7 @@ log.workspace = true
 serde.workspace = true
 ouroboros = "0.18"
 rand = { version = "0.8", optional = true }
+derive_more.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }

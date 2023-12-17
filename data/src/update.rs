@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use hardware::{HardwareBridgeT, Value};
+use hardware::{HardwareBridgeT, Mode, Value};
 use thiserror::Error;
 
 use crate::{
@@ -156,13 +156,13 @@ impl Update {
     ) {
         for node_id in root_nodes {
             let Some(node) = nodes.get_mut(node_id) else {
-                warn!("node not found in set_all_control_to_auto function");
+                warn!("node not found in set_all_control_to_auto fn");
                 continue;
             };
             if let NodeType::Control(control) = &mut node.node_type {
-                if let Err(e) = control.set_mode(false, bridge) {
+                if let Err(e) = control.set_mode(Mode::Auto, bridge) {
                     error!(
-                        "can't set control to auto in set_all_control_to_auto function: {}",
+                        "can't set control to auto in set_all_control_to_auto fn: {}",
                         e
                     );
                 }
@@ -183,9 +183,9 @@ impl Update {
                     continue;
                 };
                 if let NodeType::Control(control) = &mut node.node_type {
-                    if let Err(e) = control.set_mode(false, bridge) {
+                    if let Err(e) = control.set_mode(Mode::Auto, bridge) {
                         error!(
-                            "can't set unactive in set_invalid_controls_to_auto function: {}",
+                            "can't set control to auto in set_invalid_controls_to_auto fn: {}",
                             e
                         );
                     }

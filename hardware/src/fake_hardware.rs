@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, TempH, Value};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, Mode, TempH, Value};
 
 pub struct FakeHardwareBridge {}
 
@@ -76,11 +76,11 @@ impl HardwareBridge for FakeHardwareBridge {
         return Ok(());
     }
 
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
         if internal_index != &CONTROL_INTERNAL_INDEX {
             panic!("set mode to hardware != Control")
         }
-        debug!("set mode {}", value);
+        debug!("set mode {}", mode);
         return Ok(());
     }
 }

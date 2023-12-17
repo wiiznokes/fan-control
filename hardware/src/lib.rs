@@ -1,6 +1,7 @@
 //#![allow(dead_code)]
 //#![allow(unused_variables)]
 
+use derive_more::Display;
 use serde::Serialize;
 use std::{fmt::Debug, rc::Rc};
 use thiserror::Error;
@@ -81,6 +82,14 @@ pub struct TempH {
 
 pub type Value = i32;
 pub type HardwareBridgeT = Box<dyn HardwareBridge>;
+
+#[derive(Debug, Clone, PartialEq, Eq, Display)]
+pub enum Mode {
+    Auto,
+    Manual,
+    Specific(Value),
+}
+
 pub trait HardwareBridge {
     fn generate_hardware() -> Result<(Hardware, HardwareBridgeT)>
     where
@@ -88,7 +97,11 @@ pub trait HardwareBridge {
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<()>;
+
+    /// Set the mode
+    /// - automatic: value = 0
+    /// - manual: value = 1
+    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> Result<()>;
 
     // use on Windows, because we update all sensors in one function, so
     // we don't want to update at each call, instead, we call this function
