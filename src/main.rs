@@ -20,7 +20,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-fn start() -> Result<()> {
+fn try_run() -> Result<()> {
     env_logger::init();
     ui::localize::localize();
     data::localize::localize();
@@ -33,7 +33,7 @@ fn start() -> Result<()> {
     let (hardware, bridge) = hardware::fake_hardware::FakeHardwareBridge::generate_hardware()?;
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
-    let (hardware, bridge) = hardware::linux::LinuxBridge::generate_hardware();
+    let (hardware, bridge) = hardware::linux::LinuxBridge::generate_hardware()?;
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
     let (hardware, bridge) = hardware::windows::WindowsBridge::generate_hardware()?;
@@ -62,6 +62,7 @@ fn start() -> Result<()> {
 }
 
 fn main() {
-    // todo
-    start().unwrap()
+    if let Err(e) = try_run() {
+        error!("{:?}", e);
+    }
 }

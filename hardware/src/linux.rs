@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
+use thiserror::Error;
 
 use crate::{
     ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, TempH, Value,
@@ -18,132 +19,22 @@ pub struct LinuxBridge {
     sensors: Vec<InternalSubFeatureRef<'this>>,
 }
 
-impl HardwareBridge for LinuxBridge {
-    fn generate_hardware() -> (Hardware, HardwareBridgeT) {
-        let mut hardware = Hardware::default();
-
-        let bridge = LinuxBridgeBuilder {
-            lib: lm_sensors::Initializer::default().initialize().unwrap(),
-            sensors_builder: |lib: &LMSensors| generate_hardware(lib, &mut hardware),
-        }
-        .build();
-
-        (hardware, Box::new(bridge))
-    }
-
-    fn get_value(&mut self, internal_index: &usize) -> Result<Value, HardwareError> {
-        self.with_sensors(|sensors| match sensors.get(*internal_index) {
-            Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
-                    Ok(value) => Ok((value / 2.55) as i32),
-                    Err(e) => Err(HardwareError::LmSensors(format!("{}, pwm", e))),
-                },
-                InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
-                    Ok(value) => Ok(value as i32),
-                    Err(e) => Err(HardwareError::LmSensors(format!("{}, sensor", e))),
-                },
-            },
-            None => Err(HardwareError::InternalIndexNotFound),
-        })
-    }
-
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        self.with_sensors(|sensors| match sensors.get(*internal_index) {
-            Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    let value = value as f64 * 2.55;
-                    if let Err(e) = pwm_refs.io.set_raw_value(value) {
-                        return Err(HardwareError::LmSensors(format!(
-                            "can't set value {} to a pwm: {:?}",
-                            value, e
-                        )));
-                    }
-                    Ok(())
-                }
-                InternalSubFeatureRef::Sensor(_) => {
-                    panic!("can't set the value of a sensor");
-                }
-            },
-            None => Err(HardwareError::InternalIndexNotFound),
-        })
-    }
-
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<(), HardwareError> {
-        self.with_sensors(|sensors| match sensors.get(*internal_index) {
-            Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    let value = if value == 0 {
-                        pwm_refs.default_enable_cached
-                    } else {
-                        value.into()
-                    };
-
-                    if let Err(e) = pwm_refs.enable.set_raw_value(value) {
-                        return Err(HardwareError::LmSensors(format!(
-                            "can't set mode {} to a pwm: {:?}",
-                            value, e
-                        )));
-                    }
-                    Ok(())
-                }
-                InternalSubFeatureRef::Sensor(_) => {
-                    panic!("can't set mode of a sensor");
-                }
-            },
-            None => Err(HardwareError::InternalIndexNotFound),
-        })
-    }
+#[derive(Error, Debug)]
+pub enum LinuxError {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error("No connection was found")]
+    NoConnectionFound,
+    #[error("{0}: {1}")]
+    LmSensors(String, lm_sensors::errors::Error),
+    #[error(transparent)]
+    LmSensorsRaw(#[from] lm_sensors::errors::Error),
+    #[error("Wrong hardware type: {0} for the operation {1}")]
+    WrongHardware(String, String),
+    #[error("Invalid data: {0}")]
+    InvalidData(String),
 }
-
-fn generate_id_name_info(
-    chip_ref: &ChipRef,
-    feature_ref: &FeatureRef,
-    sub_feature_ref: &SubFeatureRef,
-) -> Option<(String, String, String)> {
-    let Some(chip_path) = chip_ref.path() else {
-        return None;
-    };
-
-    let bus = chip_ref.bus();
-
-    let Ok(label) = feature_ref.label() else {
-        return None;
-    };
-
-    let Ok(chip_name) = chip_ref.name() else {
-        return None;
-    };
-
-    let Some(Ok(sub_feature_name)) = sub_feature_ref.name() else {
-        return None;
-    };
-
-    let id = format!("{}-{}", chip_name, sub_feature_name);
-    let name: String = format!("{} {}", label, chip_name);
-    let info = format!(
-        "chip path: {}\nchip name: {}\nbus: {}\nlabel: {}\nfeature: {}",
-        chip_path.display(),
-        chip_name,
-        bus,
-        label,
-        sub_feature_name
-    );
-
-    Some((id, name, info))
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum SubFeatureType {
-    PwmIo,
-    PwmEnable,
-    Fan,
-    Temp,
-}
-
-enum InternalSubFeatureRef<'a> {
-    Pwm(PwmRefs<'a>),
-    Sensor(SensorRefs<'a>),
-}
+type Result<T> = std::result::Result<T, LinuxError>;
 
 struct PwmRefs<'a> {
     io: SubFeatureRef<'a>,
@@ -154,18 +45,60 @@ struct SensorRefs<'a> {
     io: SubFeatureRef<'a>,
 }
 
-impl Drop for PwmRefs<'_> {
-    fn drop(&mut self) {
-        if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
-            error!("can't set auto to a pwn in drop function: {:?}", e)
-        }
-    }
+enum InternalSubFeatureRef<'a> {
+    Pwm(PwmRefs<'a>),
+    Sensor(SensorRefs<'a>),
 }
 
 fn generate_hardware<'a>(
     lib: &'a LMSensors,
     hardware: &mut Hardware,
 ) -> Vec<InternalSubFeatureRef<'a>> {
+    struct HardwareMetadata {
+        id: String,
+        name: String,
+        info: String,
+    }
+
+    impl HardwareMetadata {
+        fn new(
+            chip_ref: &ChipRef,
+            feature_ref: &FeatureRef,
+            sub_feature_ref: &SubFeatureRef,
+        ) -> Result<Self> {
+            let Some(chip_path) = chip_ref.path() else {
+                return Err(LinuxError::InvalidData("chip path is none".to_owned()));
+            };
+
+            let bus = chip_ref.bus();
+
+            let label = feature_ref.label()?;
+            let chip_name = chip_ref.name()?;
+
+            let sub_feature_name = match sub_feature_ref.name() {
+                Some(sub_feature_name) => sub_feature_name?,
+                None => {
+                    return Err(LinuxError::InvalidData(
+                        "sub feature name is none".to_owned(),
+                    ));
+                }
+            };
+
+            Ok(Self {
+                id: format!("{}-{}-{}", label, chip_name, sub_feature_name),
+                name: format!("{} {}", label, chip_name),
+                info: format!(
+                    "chip path: {}\nchip name: {}\nbus: {}\nlabel: {}\nfeature: {}",
+                    chip_path.display(),
+                    chip_name,
+                    bus,
+                    label,
+                    sub_feature_name
+                ),
+            })
+        }
+    }
+
     let mut sensors = Vec::new();
 
     for chip_ref in lib.chip_iter(None) {
@@ -179,21 +112,24 @@ fn generate_hardware<'a>(
                             continue;
                         };
 
-                        if let Some((id, name, info)) =
-                            generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref)
-                        {
-                            let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
-                                io: sub_feature_ref,
-                            });
-                            sensors.push(sensor);
+                        match HardwareMetadata::new(&chip_ref, &feature_ref, &sub_feature_ref) {
+                            Ok(metadata) => {
+                                let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
+                                    io: sub_feature_ref,
+                                });
+                                sensors.push(sensor);
 
-                            let fan_h = FanH {
-                                name,
-                                hardware_id: id,
-                                info,
-                                internal_index: sensors.len() - 1,
-                            };
-                            hardware.fans.push(fan_h.into());
+                                let fan_h = FanH {
+                                    name: metadata.name,
+                                    hardware_id: metadata.id,
+                                    info: metadata.info,
+                                    internal_index: sensors.len() - 1,
+                                };
+                                hardware.fans.push(fan_h.into());
+                            }
+                            Err(e) => {
+                                error!("can't generate hardware metadata for fan: {:?}", e);
+                            }
                         }
                     }
                     feature::Kind::Temperature => {
@@ -203,21 +139,24 @@ fn generate_hardware<'a>(
                             continue;
                         };
 
-                        if let Some((id, name, info)) =
-                            generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref)
-                        {
-                            let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
-                                io: sub_feature_ref,
-                            });
-                            sensors.push(sensor);
+                        match HardwareMetadata::new(&chip_ref, &feature_ref, &sub_feature_ref) {
+                            Ok(metadata) => {
+                                let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
+                                    io: sub_feature_ref,
+                                });
+                                sensors.push(sensor);
 
-                            let temp_h = TempH {
-                                name,
-                                hardware_id: id,
-                                info,
-                                internal_index: sensors.len() - 1,
-                            };
-                            hardware.temps.push(temp_h.into());
+                                let temp_h = TempH {
+                                    name: metadata.name,
+                                    hardware_id: metadata.id,
+                                    info: metadata.info,
+                                    internal_index: sensors.len() - 1,
+                                };
+                                hardware.temps.push(temp_h.into());
+                            }
+                            Err(e) => {
+                                error!("can't generate hardware metadata for temp: {:?}", e);
+                            }
                         }
                     }
                     feature::Kind::Pwm => {
@@ -240,24 +179,26 @@ fn generate_hardware<'a>(
                             }
                         };
 
-                        if let Some((id, name, info)) =
-                            generate_id_name_info(&chip_ref, &feature_ref, &sub_feature_ref_io)
-                        {
-                            let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
-                                io: sub_feature_ref_io,
-                                enable: sub_feature_ref_enable,
-                                default_enable_cached: enable_cached,
-                            });
+                        match HardwareMetadata::new(&chip_ref, &feature_ref, &sub_feature_ref_io) {
+                            Ok(metadata) => {
+                                let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
+                                    io: sub_feature_ref_io,
+                                    enable: sub_feature_ref_enable,
+                                    default_enable_cached: enable_cached,
+                                });
+                                sensors.push(sensor);
 
-                            sensors.push(sensor);
-
-                            let control_h = ControlH {
-                                name,
-                                hardware_id: id,
-                                info,
-                                internal_index: sensors.len() - 1,
-                            };
-                            hardware.controls.push(control_h.into());
+                                let control_h = ControlH {
+                                    name: metadata.name,
+                                    hardware_id: metadata.id,
+                                    info: metadata.info,
+                                    internal_index: sensors.len() - 1,
+                                };
+                                hardware.controls.push(control_h.into());
+                            }
+                            Err(e) => {
+                                error!("can't generate hardware metadata for control: {:?}", e);
+                            }
                         }
                     }
                     _ => continue,
@@ -267,4 +208,95 @@ fn generate_hardware<'a>(
         }
     }
     sensors
+}
+
+impl HardwareBridge for LinuxBridge {
+    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
+        let mut hardware = Hardware::default();
+
+        let bridge = LinuxBridgeBuilder {
+            lib: lm_sensors::Initializer::default().initialize().unwrap(),
+            sensors_builder: |lib: &LMSensors| generate_hardware(lib, &mut hardware),
+        }
+        .build();
+
+        Ok((hardware, Box::new(bridge)))
+    }
+
+    fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
+                    Ok(value) => Ok((value / 2.55) as i32),
+                    Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
+                        "pwm".to_owned(),
+                        e,
+                    ))),
+                },
+                InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
+                    Ok(value) => Ok(value as i32),
+                    Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
+                        "sensor".to_owned(),
+                        e,
+                    ))),
+                },
+            },
+            None => Err(HardwareError::InternalIndexNotFound),
+        })
+    }
+
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => {
+                    let value = value as f64 * 2.55;
+                    if let Err(e) = pwm_refs.io.set_raw_value(value) {
+                        let explication = format!("can't set value {} to a pwm", value);
+                        let e = LinuxError::LmSensors(explication, e);
+                        return Err(HardwareError::Linux(e));
+                    }
+                    Ok(())
+                }
+                InternalSubFeatureRef::Sensor(_) => {
+                    let e = LinuxError::WrongHardware("sensor".to_owned(), "set value".to_owned());
+                    Err(HardwareError::Linux(e))
+                }
+            },
+            None => Err(HardwareError::InternalIndexNotFound),
+        })
+    }
+
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+        self.with_sensors(|sensors| match sensors.get(*internal_index) {
+            Some(sensor) => match sensor {
+                InternalSubFeatureRef::Pwm(pwm_refs) => {
+                    let value = if value == 0 {
+                        pwm_refs.default_enable_cached
+                    } else {
+                        value.into()
+                    };
+
+                    if let Err(e) = pwm_refs.enable.set_raw_value(value) {
+                        let explication = format!("can't set mode {} to a pwm", value);
+                        let e = LinuxError::LmSensors(explication, e);
+                        return Err(HardwareError::Linux(e));
+                    }
+                    Ok(())
+                }
+                InternalSubFeatureRef::Sensor(_) => {
+                    let e = LinuxError::WrongHardware("sensor".to_owned(), "set mode".to_owned());
+                    Err(HardwareError::Linux(e))
+                }
+            },
+            None => Err(HardwareError::InternalIndexNotFound),
+        })
+    }
+}
+
+impl Drop for PwmRefs<'_> {
+    fn drop(&mut self) {
+        if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
+            error!("can't set auto to a pwn in drop function: {:?}", e)
+        }
+    }
 }

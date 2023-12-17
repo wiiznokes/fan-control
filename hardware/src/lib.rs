@@ -23,7 +23,7 @@ pub enum HardwareError {
     InternalIndexNotFound,
     #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
     #[error(transparent)]
-    LmSensors(String),
+    Linux(linux::LinuxError),
     #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
     #[error(transparent)]
     Windows(#[from] windows::WindowsError),
@@ -31,28 +31,14 @@ pub enum HardwareError {
 
 type Result<T> = std::result::Result<T, HardwareError>;
 
-pub type Value = i32;
-pub type HardwareBridgeT = Box<dyn HardwareBridge>;
-pub trait HardwareBridge {
-    fn generate_hardware() -> Result<(Hardware, HardwareBridgeT)>
-    where
-        Self: Sized;
-
-    fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;
-    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<()>;
-
-    // use on Windows, because we update all sensors in one function, so
-    // we don't want to update at each call, instead, we call this function
-    // one time in each update iteration
-    fn update(&mut self) -> Result<()> {
-        Ok(())
-    }
-
-    // use on Windows to shutdown the server properly
-    fn shutdown(&mut self) -> Result<()> {
-        Ok(())
-    }
+#[derive(Serialize, Debug, Clone, Default)]
+pub struct Hardware {
+    #[serde(default, rename = "Control")]
+    pub controls: Vec<Rc<ControlH>>,
+    #[serde(default, rename = "Fan")]
+    pub fans: Vec<Rc<FanH>>,
+    #[serde(default, rename = "Temp")]
+    pub temps: Vec<Rc<TempH>>,
 }
 
 #[derive(Serialize, Debug)]
@@ -93,12 +79,26 @@ pub struct TempH {
     pub internal_index: usize,
 }
 
-#[derive(Serialize, Debug, Clone, Default)]
-pub struct Hardware {
-    #[serde(default, rename = "Control")]
-    pub controls: Vec<Rc<ControlH>>,
-    #[serde(default, rename = "Fan")]
-    pub fans: Vec<Rc<FanH>>,
-    #[serde(default, rename = "Temp")]
-    pub temps: Vec<Rc<TempH>>,
+pub type Value = i32;
+pub type HardwareBridgeT = Box<dyn HardwareBridge>;
+pub trait HardwareBridge {
+    fn generate_hardware() -> Result<(Hardware, HardwareBridgeT)>
+    where
+        Self: Sized;
+
+    fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
+    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;
+    fn set_mode(&mut self, internal_index: &usize, value: Value) -> Result<()>;
+
+    // use on Windows, because we update all sensors in one function, so
+    // we don't want to update at each call, instead, we call this function
+    // one time in each update iteration
+    fn update(&mut self) -> Result<()> {
+        Ok(())
+    }
+
+    // use on Windows to shutdown the server properly
+    fn shutdown(&mut self) -> Result<()> {
+        Ok(())
+    }
 }
