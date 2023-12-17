@@ -6,7 +6,7 @@ use crate::config::Config;
 use crate::config::{control::Control, fan::Fan, temp::Temp};
 
 use crate::id::{Id, IdGenerator};
-use crate::node::{sanitize_inputs, Node, NodeType, NodeTypeLight, ToNode, self};
+use crate::node::{Node, NodeType, NodeTypeLight, ToNode, self};
 use crate::utils::RemoveElem;
 
 pub type Nodes = HashMap<Id, Node>;

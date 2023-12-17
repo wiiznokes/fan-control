@@ -19,6 +19,7 @@ i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 lazy_static.workspace = true
+derive_more.workspace = true
 
 [dev-dependencies]
 serial_test = "2.0"

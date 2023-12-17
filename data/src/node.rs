@@ -2,6 +2,7 @@ use std::vec;
 
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
+use derive_more::Unwrap;
 
 use crate::app_graph::Nodes;
 
@@ -20,7 +21,8 @@ pub struct Node {
     pub value: Option<Value>,
 }
 
-#[derive(Debug, Clone, LightEnum)]
+#[derive(Debug, Clone, LightEnum, Unwrap)]
+#[unwrap(ref, ref_mut)]
 pub enum NodeType {
     Control(Control),
     Fan(Fan),

@@ -57,6 +57,7 @@ i18n-embed-fl = "0.7"
 lazy_static = "1.4"
 once_cell = "1.18"
 thiserror = "1.0"
+derive_more = { version = "1.0.0-beta.6", default-features = false, features = ["unwrap"] }
 # strum = { version = "0.25", features = ["derive"] }
 
 [workspace.dependencies.cargo-packager-resource-resolver]
