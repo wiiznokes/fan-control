@@ -2,21 +2,17 @@ use std::rc::Rc;
 
 use crate::{
     fl,
-    message::{AppMsg, ModifNodeMsg},
+    message::{ModifNodeMsg},
 };
 use cosmic::{iced_core::Length, iced_widget::PickList, Element};
-use data::{app_graph::Nodes, id::Id, node::Node};
+use data::{
+    node::{Input, Node},
+};
 use hardware::{ControlH, FanH, TempH};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct IdName<I> {
-    pub id: I,
-    pub name: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Pick<I> {
-    Some(IdName<I>),
+    Some(Input<I>),
     None,
 }
 
@@ -25,7 +21,7 @@ impl<I> Pick<I> {
     where
         I: Clone,
     {
-        Pick::Some(IdName {
+        Pick::Some(Input {
             name: name.to_string(),
             id: id.clone(),
         })
@@ -34,7 +30,7 @@ impl<I> Pick<I> {
     pub fn name(&self) -> Option<String> {
         match self {
             Pick::None => None,
-            Pick::Some(IdName { name, .. }) => Some(name.clone()),
+            Pick::Some(Input { name, .. }) => Some(name.clone()),
         }
     }
 
@@ -44,16 +40,17 @@ impl<I> Pick<I> {
     {
         match self {
             Pick::None => None,
-            Pick::Some(IdName { id, .. }) => Some(id.clone()),
+            Pick::Some(Input { id, .. }) => Some(id.clone()),
         }
     }
 
+    /// generate a default id
     pub fn display_only(optionnal_name: &Option<String>) -> Option<Self>
     where
         I: Default,
     {
         let pick = match optionnal_name {
-            Some(name) => Self::Some(IdName {
+            Some(name) => Self::Some(Input {
                 name: name.clone(),
                 id: I::default(),
             }),
@@ -61,57 +58,15 @@ impl<I> Pick<I> {
         };
         Some(pick)
     }
-
-    pub fn to_couple(&self) -> Option<(I, String)>
-    where
-        I: Clone,
-    {
-        match self {
-            Pick::Some(IdName { id, name }) => Some((id.clone(), name.clone())),
-            Pick::None => None,
-        }
-    }
 }
 
 impl<I> ToString for Pick<I> {
     fn to_string(&self) -> String {
         match &self {
-            Pick::Some(IdName { name, .. }) => name.clone(),
+            Pick::Some(Input { name, .. }) => name.clone(),
             Pick::None => fl!("none"),
         }
     }
-}
-
-pub fn pick_input<'a>(
-    node: &'a Node,
-    nodes: &'a Nodes,
-    current_input: &Option<String>,
-    add_none: bool,
-    map_pick: impl Fn(Pick<Id>) -> AppMsg + 'a,
-) -> Element<'a, AppMsg> {
-    let mut input_options = nodes
-        .values()
-        .filter(|n| {
-            node.node_type
-                .allowed_dep()
-                .contains(&n.node_type.to_light())
-                && !node
-                    .inputs
-                    .iter()
-                    .map(|i| i.0)
-                    .collect::<Vec<_>>()
-                    .contains(&n.id)
-        })
-        .map(|n| Pick::new(n.name(), &n.id))
-        .collect::<Vec<_>>();
-
-    if add_none && current_input.is_some() {
-        input_options.insert(0, Pick::None);
-    }
-
-    PickList::new(input_options, Pick::display_only(current_input), map_pick)
-        .width(Length::Fill)
-        .into()
 }
 
 pub fn pick_hardware<'a, P: 'a>(

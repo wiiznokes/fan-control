@@ -1,8 +1,8 @@
 use std::vec;
 
+use derive_more::Unwrap;
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
-use derive_more::Unwrap;
 
 use crate::app_graph::Nodes;
 
@@ -12,14 +12,6 @@ use crate::config::{
 };
 
 use crate::id::{Id, IdGenerator};
-
-#[derive(Debug, Clone)]
-pub struct Node {
-    pub id: Id,
-    pub node_type: NodeType,
-    pub inputs: Vec<(Id, String)>,
-    pub value: Option<Value>,
-}
 
 #[derive(Debug, Clone, LightEnum, Unwrap)]
 #[unwrap(ref, ref_mut)]
@@ -35,6 +27,26 @@ pub enum NodeType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Input<I> {
+    pub id: I,
+    pub name: String,
+}
+
+impl<I> ToString for Input<I> {
+    fn to_string(&self) -> String {
+        self.name.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Node {
+    pub id: Id,
+    pub node_type: NodeType,
+    pub inputs: Vec<Input<Id>>,
+    pub value: Option<Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NbInput {
     Zero,
     One,
@@ -45,7 +57,7 @@ pub enum NbInput {
 pub struct Sanitize {
     pub id: Id,
     item: Vec<String>,
-    node: Vec<(Id, String)>,
+    node: Vec<Input<Id>>,
 }
 
 impl Sanitize {
@@ -59,7 +71,11 @@ impl Sanitize {
 
     fn add(&mut self, id: Id, name: &str) {
         self.item.push(name.to_owned());
-        self.node.push((id, name.to_owned()));
+        let input = Input {
+            id,
+            name: name.to_owned(),
+        };
+        self.node.push(input);
     }
 }
 

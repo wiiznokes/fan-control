@@ -6,8 +6,8 @@ use crate::config::Config;
 use crate::config::{control::Control, fan::Fan, temp::Temp};
 
 use crate::id::{Id, IdGenerator};
-use crate::node::{Node, NodeType, NodeTypeLight, ToNode, self};
-use crate::utils::RemoveElem;
+use crate::node::{self, Input, Node, NodeType, NodeTypeLight, ToNode};
+use crate::utils::{MyOption, RemoveElem};
 
 pub type Nodes = HashMap<Id, Node>;
 pub type RootNodes = Vec<Id>;
@@ -195,11 +195,74 @@ impl AppGraph {
         }
     }
 
-    pub fn get(&self, k: &Id) -> & Node {
-        self.nodes.get(k).expect(&format!("can't find {} in nodes", k))
+    pub fn get(&self, k: &Id) -> &Node {
+        self.nodes
+            .get(k)
+            .unwrap_or_else(|| panic!("can't find {} in nodes", k))
     }
 
     pub fn get_mut(&mut self, k: &Id) -> &mut Node {
-        self.nodes.get_mut(k).expect(&format!("can't find {} in nodes", k))
+        self.nodes
+            .get_mut(k)
+            .unwrap_or_else(|| panic!("can't find {} in nodes", k))
+    }
+
+    /// Return an iter of all inputs availlable for this node, minus his inputs
+    pub fn availlable_inputs<'a>(
+        nodes: &'a Nodes,
+        node: &'a Node,
+    ) -> impl Iterator<Item = Input<Id>> + 'a {
+        nodes
+            .values()
+            .filter(|n| {
+                node.node_type
+                    .allowed_dep()
+                    .contains(&n.node_type.to_light())
+                    && !node
+                        .inputs
+                        .iter()
+                        .map(|i| i.id)
+                        .collect::<Vec<_>>()
+                        .contains(&n.id)
+            })
+            .map(|n| Input {
+                id: n.id,
+                name: n.name().clone(),
+            })
+    }
+
+    pub fn optional_availlable_inputs<'a>(
+        nodes: &'a Nodes,
+        node: &'a Node,
+        add_node: bool,
+    ) -> Vec<MyOption<Input<Id>>> {
+        let mut vec: Vec<MyOption<Input<Id>>> = if add_node {
+            vec![MyOption::None]
+        } else {
+            Vec::new()
+        };
+
+        let values = nodes
+            .values()
+            .filter(|n| {
+                node.node_type
+                    .allowed_dep()
+                    .contains(&n.node_type.to_light())
+                    && !node
+                        .inputs
+                        .iter()
+                        .map(|i| i.id)
+                        .collect::<Vec<_>>()
+                        .contains(&n.id)
+            })
+            .map(|n| {
+                MyOption::Some(Input {
+                    id: n.id,
+                    name: n.name().clone(),
+                })
+            });
+
+        vec.extend(values);
+        vec
     }
 }

@@ -7,7 +7,7 @@ use data::{
     config::Config,
     node::{validate_name, NodeType},
     settings::AppTheme,
-    utils::RemoveElem,
+    utils::{MyOption, RemoveElem},
     AppState,
 };
 use item::items_view;
@@ -157,39 +157,43 @@ impl cosmic::Application for Ui {
                             _ => panic!("node have no hardware id"),
                         }
                     }
-                    ModifNodeMsg::ReplaceInput(pick) => {
+                    ModifNodeMsg::ReplaceInput(input) => {
                         let node = self.app_state.app_graph.get_mut(&id);
                         node.inputs.clear();
 
-                        if let Some(id_name) = pick.to_couple() {
-                            node.inputs.push(id_name)
+                        if let MyOption::Some(input) = &input {
+                            node.inputs.push(input.clone())
                         }
 
+                        let optional_name = match input {
+                            MyOption::Some(input) => Some(input.name),
+                            MyOption::None => None,
+                        };
                         match &mut node.node_type {
-                            NodeType::Control(i) => i.input = pick.name(),
-                            NodeType::Graph(i) => i.input = pick.name(),
-                            NodeType::Linear(i, ..) => i.input = pick.name(),
-                            NodeType::Target(i, ..) => i.input = pick.name(),
+                            NodeType::Control(i) => i.input = optional_name,
+                            NodeType::Graph(i) => i.input = optional_name,
+                            NodeType::Linear(i, ..) => i.input = optional_name,
+                            NodeType::Target(i, ..) => i.input = optional_name,
                             _ => panic!("node have not exactly one input"),
                         }
                     }
-                    ModifNodeMsg::AddInput(pick) => {
+                    ModifNodeMsg::AddInput(input) => {
                         let node = self.app_state.app_graph.get_mut(&id);
-                        node.inputs.push(pick.to_couple().unwrap());
+                        node.inputs.push(input.clone());
 
                         match &mut node.node_type {
-                            NodeType::CustomTemp(i) => i.inputs.push(pick.name().unwrap()),
+                            NodeType::CustomTemp(i) => i.inputs.push(input.name),
                             _ => panic!("node have not multiple inputs"),
                         }
                     }
-                    ModifNodeMsg::RemoveInput(pick) => {
+                    ModifNodeMsg::RemoveInput(input) => {
                         let node = self.app_state.app_graph.get_mut(&id);
 
-                        node.inputs.remove_elem(|i| i.0 == pick.id().unwrap());
+                        node.inputs.remove_elem(|i| i.id == input.id);
 
                         match &mut node.node_type {
                             NodeType::CustomTemp(i) => {
-                                i.inputs.remove_elem(|n| n == &pick.name().unwrap());
+                                i.inputs.remove_elem(|n| n == &input.name);
                             }
                             _ => panic!("node have not multiple inputs"),
                         }
@@ -424,9 +428,9 @@ impl cosmic::Application for Ui {
                         if let Some(node_input) = n
                             .inputs
                             .iter_mut()
-                            .find(|node_input| node_input.0 == node_id)
+                            .find(|node_input| node_input.id == node_id)
                         {
-                            node_input.1 = name.clone();
+                            node_input.name = name.clone();
                             let mut inputs = n.node_type.get_inputs();
 
                             match inputs.iter().position(|n| n == &previous_name) {

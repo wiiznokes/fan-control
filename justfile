@@ -4,7 +4,7 @@ all:
 	cargo run --release
 
 # call before pull request
-pull: test fix fmt
+pull: fmt fix test
 	
 ###################  Build Libs
 

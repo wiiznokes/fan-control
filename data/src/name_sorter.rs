@@ -99,14 +99,12 @@ fn parse_to_lexemes(name: &str) -> Lexemes {
     let mut chars = name.chars();
 
     let (mut previous_state, mut letters) = match chars.next() {
-        Some(first_char) => {
-            (State::from(&first_char), first_char.to_string())
-        },
+        Some(first_char) => (State::from(&first_char), first_char.to_string()),
         None => {
             return lexemes;
         }
     };
-    
+
     for char in chars {
         let current_state = State::from(&char);
         match previous_state {

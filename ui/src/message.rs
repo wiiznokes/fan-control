@@ -1,4 +1,10 @@
-use data::{config::custom_temp::CustomTempKind, id::Id, node::NodeTypeLight, settings::AppTheme};
+use data::{
+    config::custom_temp::CustomTempKind,
+    id::Id,
+    node::{Input, NodeTypeLight},
+    settings::AppTheme,
+    utils::MyOption,
+};
 
 use crate::pick::Pick;
 
@@ -45,9 +51,9 @@ pub enum ToogleMsg {
 pub enum ModifNodeMsg {
     Delete,
     ChangeHardware(Pick<String>),
-    ReplaceInput(Pick<Id>),
-    AddInput(Pick<Id>),
-    RemoveInput(Pick<Id>),
+    ReplaceInput(MyOption<Input<Id>>),
+    AddInput(Input<Id>),
+    RemoveInput(Input<Id>),
 
     Control(ControlMsg),
     CustomTemp(CustomTempMsg),
