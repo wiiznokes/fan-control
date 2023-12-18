@@ -69,27 +69,7 @@ public class HardwareResearcher : IVisitor
         var nbFan = 0;
         var nbTemp = 0;
         var nbTot = 0;
-
         var hardwareList = new List<BaseHardware>();
-
-        var hardwareArray = _mComputer.Hardware;
-        foreach (var hardware in hardwareArray)
-        {
-            var sensorArray = hardware.Sensors;
-            foreach (var sensor in sensorArray) AddHardware(sensor);
-
-            var subHardwareArray = hardware.SubHardware;
-            foreach (var subHardware in subHardwareArray)
-            {
-                var subSensorArray = subHardware.Sensors;
-                foreach (var subSensor in subSensorArray) AddHardware(subSensor);
-            }
-        }
-
-        Log.LogD("nbControl: " + nbControl);
-        Log.LogD("nbFan: " + nbFan);
-        Log.LogD("nbTemp: " + nbTemp);
-        return hardwareList;
 
         void AddHardware(ISensor sensor)
         {
@@ -122,6 +102,25 @@ public class HardwareResearcher : IVisitor
 
             nbTot += 1;
         }
+
+        var hardwareArray = _mComputer.Hardware;
+        foreach (var hardware in hardwareArray)
+        {
+            var sensorArray = hardware.Sensors;
+            foreach (var sensor in sensorArray) AddHardware(sensor);
+
+            var subHardwareArray = hardware.SubHardware;
+            foreach (var subHardware in subHardwareArray)
+            {
+                var subSensorArray = subHardware.Sensors;
+                foreach (var subSensor in subSensorArray) AddHardware(subSensor);
+            }
+        }
+
+        Log.LogD("nbControl: " + nbControl);
+        Log.LogD("nbFan: " + nbFan);
+        Log.LogD("nbTemp: " + nbTemp);
+        return hardwareList;
     }
 
     public void Update()
