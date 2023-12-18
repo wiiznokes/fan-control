@@ -37,23 +37,25 @@ jobs:
           fetch-tags: false
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v3
-
-      - run: |
+      
+      - name: Prepare release on Github
+        run: |
           # get the package version from Cargo.toml
           echo "PKG_VERSION=$(cargo pkgid | grep -oP '@\K\d+\.\d+\.\d+')" >> $GITHUB_ENV
 
           # delete nightly release
           gh release delete nightly --yes || true
           git push --delete origin nightly || true
-
-      - if: ${{ github.event.inputs.is_nightly  == 'true' }}
+      
+      # in case is_nightly is not defined
+      - if: ${{ (github.event.inputs.is_nightly  == 'true') || (github.event.inputs.is_nightly  == '') }}
+        name: Setup options for nightly
         run: |
-          # setup options for nightly
           echo "TAG_NAME=nightly" >> $GITHUB_ENV
           echo "PRERELEASE=--prerelease" >> $GITHUB_ENV
       - if: ${{ github.event.inputs.is_nightly == 'false' }}
+        name: Setup options for a new release
         run: |
-          # setup options for a new release
           echo "TAG_NAME=v${{ env.PKG_VERSION }}" >> $GITHUB_ENV
       
       - name: Publish release
