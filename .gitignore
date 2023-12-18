@@ -1,23 +1,26 @@
+# Project
+hardware.toml
+.test/
+temp/
+/packages/
+
 # Rust
 debug/
 target/
 **/*.rs.bk
 *.pdb
 
-# custom
-
-.test/
-temp/
+# IDE
 .idea/
 .vscode/*
 !.vscode/launch.json
 !.vscode/settings.json
+
+# CSharp
 bin/
 obj/
-.config/hardware.toml
-/scripts/*
-!scripts/icons.py
+/app/
+net7.0/
+
+# Lmsensors
 build/
-/bundle/
-/packages/
-/app

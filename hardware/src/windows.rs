@@ -1,8 +1,6 @@
 use std::{
-    env,
     io::{self, BufRead, BufReader, Read, Write},
     net::TcpStream,
-    os::windows::process::CommandExt,
     process::{self},
     rc::Rc,
     thread,
@@ -40,23 +38,36 @@ pub enum WindowsError {
 type Result<T> = std::result::Result<T, WindowsError>;
 
 fn spawn_windows_server() -> Result<std::process::Child> {
-    let resource_suffix = "resource";
-    let resource_path = match resource_resolver::resource_dir_with_suffix(resource_suffix) {
-        Ok(resource_path) => resource_path,
-        Err(e) => {
-            error!("can't find resource_path: {e}, fall back to current dir");
-            (env::current_dir()?).join(resource_suffix)
+    let resource_path = {
+        let resource_suffix = "resource";
+        #[cfg(test)]
+        {
+            std::path::PathBuf::from(format!("../{resource_suffix}"))
+        }
+        #[cfg(not(test))]
+        {
+            match resource_resolver::resource_dir_with_suffix(resource_suffix) {
+                Ok(resource_path) => resource_path,
+                Err(e) => {
+                    error!("can't find resource_path: {e}, fall back to current dir");
+                    (std::env::current_dir()?).join(resource_suffix)
+                }
+            }
         }
     };
     let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");
 
     let mut command = process::Command::new(exe_path);
 
-    let command = command
+    #[cfg(not(test))]
+    let command = {
+        use std::os::windows::process::CommandExt;
+
         // https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
         // because of this line, we loose the ability to see logs of the child process
         // with the benefit of no console poping
-        .creation_flags(0x08000000);
+        command.creation_flags(0x08000000)
+    };
 
     match command.spawn() {
         Ok(handle) => Ok(handle),
