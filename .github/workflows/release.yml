@@ -3,12 +3,12 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - dev
   workflow_dispatch:
     inputs:
       is_nightly:
         description: "Is nightly"
-        required: false
+        required: true
         default: true
         type: boolean
 env:
