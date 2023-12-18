@@ -8,7 +8,7 @@ on:
     inputs:
       is_nightly:
         description: "Is nightly"
-        required: true
+        required: false
         default: true
         type: boolean
 env:
