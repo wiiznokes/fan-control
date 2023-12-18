@@ -1,3 +1,6 @@
+// to not launch a console on Windows
+#![windows_subsystem = "windows"]
+
 use clap::Parser;
 use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge};
