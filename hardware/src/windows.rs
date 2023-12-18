@@ -3,7 +3,6 @@ use std::{
     io::{self, BufRead, BufReader, Read, Write},
     net::TcpStream,
     os::windows::process::CommandExt,
-    path::PathBuf,
     process::{self},
     rc::Rc,
     thread,
@@ -46,7 +45,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         Ok(resource_path) => resource_path,
         Err(e) => {
             error!("can't find resource_path: {e}, fall back to current dir");
-            PathBuf::from(env::current_dir()?).join(resource_suffix)
+            (env::current_dir()?).join(resource_suffix)
         }
     };
     let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");
