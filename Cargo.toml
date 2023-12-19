@@ -25,6 +25,8 @@ icons = ["resource/app_icon/*"]
 resources = ["resource/icons", "resource/windows"]
 category = "Utility"
 
+[package.metadata.packager.windows]
+allow_downgrades = true
 
 [features]
 fake_hardware = ["hardware/fake_hardware"]
