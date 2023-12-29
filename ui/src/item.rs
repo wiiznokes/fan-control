@@ -40,16 +40,16 @@ pub fn items_view<'a>(
 
     for node in nodes.values() {
         let node_c = nodes_c.get(&node.id);
+        let content = item_view(node, node_c, nodes, hardware);
 
         match node.node_type.to_light() {
-            NodeTypeLight::Control => controls.push(control_view(node, node_c, nodes, hardware)),
-            NodeTypeLight::Fan => fans.push(fan_view(node, node_c, hardware)),
-            NodeTypeLight::Temp => temps.push(temp_view(node, node_c, hardware)),
-            NodeTypeLight::CustomTemp => temps.push(custom_temp_view(node, node_c, nodes)),
+            NodeTypeLight::Control => controls.push(content),
+            NodeTypeLight::Fan => fans.push(content),
+            NodeTypeLight::Temp | NodeTypeLight::CustomTemp => temps.push(content),
             NodeTypeLight::Graph => {}
-            NodeTypeLight::Flat => behaviors.push(flat_view(node, node_c)),
-            NodeTypeLight::Linear => behaviors.push(linear_view(node, node_c, nodes)),
-            NodeTypeLight::Target => behaviors.push(target_view(node, node_c, nodes)),
+            NodeTypeLight::Flat | NodeTypeLight::Linear | NodeTypeLight::Target => {
+                behaviors.push(content)
+            }
         }
     }
 
@@ -84,7 +84,8 @@ fn list_view(elements: Vec<Element<AppMsg>>) -> Element<AppMsg> {
 fn item_view<'a>(
     node: &'a Node,
     node_c: &'a NodeC,
-    bottom: impl Into<Element<'a, AppMsg>>,
+    nodes: &'a Nodes,
+    hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
@@ -127,9 +128,20 @@ fn item_view<'a>(
         .push(context_menu)
         .align_items(Alignment::Center);
 
+    let node_specific_content = match node.node_type.to_light() {
+        NodeTypeLight::Control => control_view(node, nodes, hardware),
+        NodeTypeLight::Fan => fan_view(node, hardware),
+        NodeTypeLight::Temp => temp_view(node, hardware),
+        NodeTypeLight::CustomTemp => custom_temp_view(node, nodes),
+        NodeTypeLight::Graph => todo!(),
+        NodeTypeLight::Flat => flat_view(node),
+        NodeTypeLight::Linear => linear_view(node, node_c, nodes),
+        NodeTypeLight::Target => target_view(node, node_c, nodes),
+    };
+
     let content = Column::new()
         .push(top)
-        .push(bottom)
+        .push(node_specific_content)
         .align_items(Alignment::Center)
         .spacing(5);
 
@@ -170,7 +182,6 @@ where
 
 fn control_view<'a>(
     node: &'a Node,
-    node_c: &'a NodeC,
     nodes: &'a Nodes,
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
@@ -200,32 +211,28 @@ fn control_view<'a>(
             .into(),
     ];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
 
-fn temp_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+fn temp_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.temps, false),
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
 
-fn fan_view<'a>(node: &'a Node, node_c: &'a NodeC, hardware: &'a Hardware) -> Element<'a, AppMsg> {
+fn fan_view<'a>(node: &'a Node, hardware: &'a Hardware) -> Element<'a, AppMsg> {
     let content = vec![
         pick_hardware(node, &hardware.fans, false),
         Text::new(node.value_text(&ValueKind::RPM)).into(),
     ];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
 
-fn custom_temp_view<'a>(
-    node: &'a Node,
-    node_c: &'a NodeC,
-    nodes: &'a Nodes,
-) -> Element<'a, AppMsg> {
+fn custom_temp_view<'a>(node: &'a Node, nodes: &'a Nodes) -> Element<'a, AppMsg> {
     let custom_temp = node.node_type.unwrap_custom_temp_ref();
     let kind_options = CustomTempKind::VALUES
         .iter()
@@ -275,10 +282,10 @@ fn custom_temp_view<'a>(
         Text::new(node.value_text(&ValueKind::Celsius)).into(),
     ];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
 
-fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
+fn flat_view<'a>(node: &'a Node) -> Element<'a, AppMsg> {
     let flat = node.node_type.unwrap_flat_ref();
 
     let mut sub_button = icon_button("remove/24");
@@ -312,7 +319,7 @@ fn flat_view<'a>(node: &'a Node, node_c: &'a NodeC) -> Element<'a, AppMsg> {
 
     let content = vec![buttons, slider];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
 
 fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
@@ -369,7 +376,7 @@ fn linear_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         .map(|m| m.to_app(node.id)),
     ];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
 
 fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Element<'a, AppMsg> {
@@ -426,5 +433,5 @@ fn target_view<'a>(node: &'a Node, node_c: &'a NodeC, nodes: &'a Nodes) -> Eleme
         .map(|m| m.to_app(node.id)),
     ];
 
-    item_view(node, node_c, Column::with_children(content))
+    Column::with_children(content).into()
 }
