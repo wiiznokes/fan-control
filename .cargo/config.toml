@@ -2,7 +2,7 @@
 LMSENSORS_STATIC = "1"
 LMSENSORS_INCLUDE_DIR = { value = "build/libsensors/include", relative = true }
 LMSENSORS_LIB_DIR = { value = "build/libsensors/lib", relative = true }
-RUST_LOG = "fan_control=debug,ui=debug,data=debug,hardware=debug"
+RUST_LOG = "fan_control=info,ui=info,data=info,hardware=info"
 RUST_BACKTRACE = "full"
 
 [build]

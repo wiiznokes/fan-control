@@ -60,14 +60,20 @@ fn spawn_windows_server() -> Result<std::process::Child> {
     };
 
     let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");
+
     let mut command = process::Command::new(exe_path);
-    if cfg!(not(debug_assertions)) {
+
+    if !log_enabled!(log::Level::Info) {
         use std::os::windows::process::CommandExt;
 
         // https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
         // because of this line, we loose the ability to see logs of the child process
         // with the benefit of no console poping
         command.creation_flags(0x08000000);
+    }
+
+    if log_enabled!(log::Level::Debug) {
+        command.arg("--log");
     }
 
     match command.spawn() {
@@ -192,6 +198,7 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
         }
     }
 
+    info!("hardware succefully received");
     Ok(hardware)
 }
 
@@ -307,7 +314,6 @@ impl HardwareBridge for WindowsBridge {
         let stream = try_connect()?;
 
         let hardware = read_hardware(&stream)?;
-        info!("hardware received");
 
         let windows_bridge = WindowsBridge {
             process_handle,

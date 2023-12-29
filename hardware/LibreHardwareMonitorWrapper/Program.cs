@@ -1,5 +1,11 @@
 ﻿using LibreHardwareMonitorWrapper;
 
+
+if (args.Contains("--log"))
+{
+    Logger.ShowDebug = true;
+}
+
 var connectTask = Task.Run(() => new Server());
 
 var hardwareManager = new HardwareManager();
