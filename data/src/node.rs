@@ -79,11 +79,6 @@ impl Sanitize {
     }
 }
 
-pub enum ToRemove {
-    All,
-    Specific(Vec<String>),
-}
-
 pub fn sanitize_inputs(node: &Node, nodes: &Nodes, log: bool) -> Sanitize {
     let mut sanitize = Sanitize::new(node.id);
 
