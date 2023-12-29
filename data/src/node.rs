@@ -262,7 +262,7 @@ impl NodeType {
 
     pub fn set_inputs(&mut self, inputs: Vec<String>) {
         match self {
-            NodeType::Control(i) => match inputs.get(0) {
+            NodeType::Control(i) => match inputs.first() {
                 Some(input) => {
                     let _ = i.input.insert(input.clone());
                 }
@@ -273,7 +273,7 @@ impl NodeType {
             NodeType::CustomTemp(i) => {
                 i.inputs = inputs;
             }
-            NodeType::Graph(i) => match inputs.get(0) {
+            NodeType::Graph(i) => match inputs.first() {
                 Some(input) => {
                     let _ = i.input.insert(input.clone());
                 }
@@ -281,7 +281,7 @@ impl NodeType {
                     i.input.take();
                 }
             },
-            NodeType::Linear(i, ..) => match inputs.get(0) {
+            NodeType::Linear(i, ..) => match inputs.first() {
                 Some(input) => {
                     let _ = i.input.insert(input.clone());
                 }
@@ -289,7 +289,7 @@ impl NodeType {
                     i.input.take();
                 }
             },
-            NodeType::Target(i, ..) => match inputs.get(0) {
+            NodeType::Target(i, ..) => match inputs.first() {
                 Some(input) => {
                     let _ = i.input.insert(input.clone());
                 }

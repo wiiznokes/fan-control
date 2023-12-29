@@ -42,3 +42,7 @@ config_name = Configuration name
 save_config = Save/Replace configuration
 delete_config = Delete configuration
 create_config = Create configuration
+
+# Error
+already_used_error = This name is already being use
+invalid_value_error = this value is invalid

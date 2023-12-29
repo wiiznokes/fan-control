@@ -1,5 +1,6 @@
-// to not launch a console on Windows
-#![windows_subsystem = "windows"]
+// to not launch a console on Windows, only in release
+// because it blocks all logs, from C# AND Rust
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
 use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};

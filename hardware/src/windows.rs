@@ -14,7 +14,7 @@ use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, Mode, Tem
 
 use cargo_packager_resource_resolver as resource_resolver;
 
-use self::packet::{Command, Packet, I32};
+use self::packet::{command::Command, i32::I32, Packet};
 
 pub struct WindowsBridge {
     process_handle: std::process::Child,
@@ -23,8 +23,8 @@ pub struct WindowsBridge {
 
 #[derive(Error, Debug)]
 pub enum WindowsError {
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
+    #[error("{0}: {1}")]
+    Io(String, std::io::Error),
     #[error("can't spawn the windows server {0}")]
     SpawnServer(std::io::Error),
     #[error("No connection was found")]
@@ -50,24 +50,25 @@ fn spawn_windows_server() -> Result<std::process::Child> {
                 Ok(resource_path) => resource_path,
                 Err(e) => {
                     error!("can't find resource_path: {e}, fall back to current dir");
-                    (std::env::current_dir()?).join(resource_suffix)
+                    match std::env::current_dir() {
+                        Ok(current_dir) => current_dir.join(resource_suffix),
+                        Err(e) => return Err(WindowsError::SpawnServer(e)),
+                    }
                 }
             }
         }
     };
+
     let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");
-
     let mut command = process::Command::new(exe_path);
-
-    #[cfg(not(test))]
-    let command = {
+    if cfg!(debug_assertions) {
         use std::os::windows::process::CommandExt;
 
         // https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
         // because of this line, we loose the ability to see logs of the child process
         // with the benefit of no console poping
-        command.creation_flags(0x08000000)
-    };
+        command.creation_flags(0x08000000);
+    }
 
     match command.spawn() {
         Ok(handle) => Ok(handle),
@@ -115,7 +116,12 @@ fn try_connect() -> Result<TcpStream> {
                         continue;
                     }
 
-                    stream.set_read_timeout(prev_timeout)?;
+                    if let Err(e) = stream.set_read_timeout(prev_timeout) {
+                        return Err(WindowsError::Io(
+                            "Can't set read timeout back".to_string(),
+                            e,
+                        ));
+                    }
 
                     info!("check passed for {}:{}!", IP, port);
                     return Ok(stream);
@@ -134,7 +140,13 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
 
     let mut data = String::new();
     let mut buf_reader = BufReader::new(stream);
-    buf_reader.read_line(&mut data)?;
+
+    if let Err(e) = buf_reader.read_line(&mut data) {
+        return Err(WindowsError::Io(
+            "Can't read hardware data from socket".to_string(),
+            e,
+        ));
+    }
 
     #[derive(Deserialize)]
     enum HardwareType {
@@ -184,83 +196,68 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
 }
 
 mod packet {
-    #[derive(Debug, Clone)]
-    #[repr(i32)]
-    pub enum Command {
-        SetAuto = 1,
-        SetValue = 2,
-        GetValue = 3,
-        Shutdown = 4,
-        Update = 5,
-    }
 
-    pub struct I32<T>(pub T);
+    pub struct Packet(pub [u8; 4]);
 
-    pub type Packet = [u8; 4];
+    pub mod command {
+        use super::Packet;
 
-    impl From<Command> for [u8; 4] {
-        #[inline]
-        fn from(command: Command) -> Self {
-            let command_value = command as u32;
-            if is_little_endian() {
-                command_value.to_le_bytes()
-            } else {
-                command_value.to_be_bytes()
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        #[repr(i32)]
+        pub enum Command {
+            SetAuto = 1,
+            SetValue = 2,
+            GetValue = 3,
+            Shutdown = 4,
+            Update = 5,
+        }
+
+        impl From<Command> for Packet {
+            #[inline]
+            fn from(command: Command) -> Self {
+                let bytes = (command as i32).to_ne_bytes();
+                Packet(bytes)
             }
         }
     }
 
-    impl From<[u8; 4]> for I32<i32> {
-        #[inline]
-        fn from(bytes: [u8; 4]) -> Self {
-            if is_little_endian() {
-                I32(i32::from_le_bytes(bytes))
-            } else {
-                I32(i32::from_be_bytes(bytes))
+    pub mod i32 {
+        use super::Packet;
+
+        pub struct I32(pub i32);
+
+        impl From<I32> for Packet {
+            #[inline]
+            fn from(number: I32) -> Self {
+                let bytes = number.0.to_ne_bytes();
+                Packet(bytes)
             }
         }
-    }
 
-    impl From<I32<usize>> for [u8; 4] {
-        #[inline]
-        fn from(number: I32<usize>) -> Self {
-            let index = number.0 as i32;
-            if is_little_endian() {
-                index.to_le_bytes()
-            } else {
-                index.to_be_bytes()
+        impl From<Packet> for I32 {
+            #[inline]
+            fn from(packet: Packet) -> Self {
+                let number = i32::from_ne_bytes(packet.0);
+                I32(number)
             }
         }
-    }
 
-    impl From<I32<i32>> for [u8; 4] {
-        #[inline]
-        fn from(number: I32<i32>) -> Self {
-            if is_little_endian() {
-                number.0.to_le_bytes()
-            } else {
-                number.0.to_be_bytes()
+        impl From<&usize> for I32 {
+            fn from(value: &usize) -> Self {
+                let value: i32 = (*value).try_into().expect("can't convert usize to i32");
+                I32(value)
             }
         }
-    }
-
-    #[inline]
-    fn is_little_endian() -> bool {
-        let test_value: u16 = 1;
-        let test_ptr: *const u16 = &test_value;
-
-        // Read the first byte of the u16 through the pointer
-        let byte = unsafe { *test_ptr as u8 };
-
-        // If the byte is 1, the system is little-endian; otherwise, it's big-endian
-        byte == 1
     }
 }
 
 impl WindowsBridge {
-    fn send(&mut self, command: impl Into<Packet>) -> Result<()> {
-        let packet: Packet = command.into();
-        self.stream.write_all(&packet)?;
+    fn send(&mut self, packet: impl Into<Packet>) -> Result<()> {
+        let packet: Packet = packet.into();
+        if let Err(e) = self.stream.write_all(&packet.0) {
+            return Err(WindowsError::Io("can't send packet".to_string(), e));
+        }
+
         Ok(())
     }
 
@@ -268,21 +265,38 @@ impl WindowsBridge {
     where
         T: From<Packet>,
     {
-        let mut buf: Packet = [0u8; 4];
-        self.stream.read_exact(&mut buf)?;
+        let mut buf: Packet = Packet([0u8; 4]);
+        if let Err(e) = self.stream.read_exact(&mut buf.0) {
+            return Err(WindowsError::Io("can't read command".into(), e));
+        }
+
         Ok(buf.into())
     }
 
     fn close_and_wait_server(&mut self) -> Result<()> {
         self.send(Command::Shutdown)?;
-        let status = self.process_handle.wait()?;
-        if !status.success() {
-            let io_error = io::Error::new(
-                io::ErrorKind::InvalidData,
-                "the windows server terminated with an error",
-            );
-            return Err(WindowsError::Io(io_error));
-        }
+
+        match self.process_handle.wait() {
+            Ok(status) => {
+                if !status.success() {
+                    let io_error = io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("exit status: {:?}", status.code()),
+                    );
+                    return Err(WindowsError::Io(
+                        "Wrong Windows server exit status".into(),
+                        io_error,
+                    ));
+                }
+            }
+            Err(e) => {
+                return Err(WindowsError::Io(
+                    "can't wait for the server to finish".into(),
+                    e,
+                ))
+            }
+        };
+
         Ok(())
     }
 }
@@ -290,9 +304,11 @@ impl WindowsBridge {
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
         let process_handle = spawn_windows_server()?;
+        info!("server launched");
         let stream = try_connect()?;
 
         let hardware = read_hardware(&stream)?;
+        info!("hardware received");
 
         let windows_bridge = WindowsBridge {
             process_handle,
@@ -304,15 +320,15 @@ impl HardwareBridge for WindowsBridge {
 
     fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
         self.send(Command::GetValue)?;
-        self.send(I32(*internal_index))?;
+        self.send(I32::from(internal_index))?;
 
-        let value = self.read::<I32<i32>>()?;
+        let value = self.read::<I32>()?;
         Ok(value.0)
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
         self.send(Command::SetValue)?;
-        self.send(I32(*internal_index))?;
+        self.send(I32::from(internal_index))?;
         self.send(I32(value))?;
         Ok(())
     }
@@ -327,7 +343,7 @@ impl HardwareBridge for WindowsBridge {
         }
 
         self.send(Command::SetAuto)?;
-        self.send(I32(*internal_index))?;
+        self.send(I32::from(internal_index))?;
         Ok(())
     }
 

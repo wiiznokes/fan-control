@@ -27,6 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
 
@@ -48,6 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: rustup update
       - name: Run rustfmt
         run: cargo fmt --all --check
 
@@ -62,6 +64,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
           

@@ -93,7 +93,7 @@ fn item_view<'a>(
         .width(Length::Fill);
 
     if node_c.is_error_name {
-        name = name.error("This name is already beeing use");
+        name = name.error("This name is already being use");
     }
 
     fn action_line<'a>(action: String, message: AppMsg) -> Element<'a, AppMsg> {
