@@ -61,7 +61,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
 
     let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");
     let mut command = process::Command::new(exe_path);
-    if cfg!(debug_assertions) {
+    if cfg!(not(debug_assertions)) {
         use std::os::windows::process::CommandExt;
 
         // https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
@@ -304,7 +304,6 @@ impl WindowsBridge {
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
         let process_handle = spawn_windows_server()?;
-        info!("server launched");
         let stream = try_connect()?;
 
         let hardware = read_hardware(&stream)?;
