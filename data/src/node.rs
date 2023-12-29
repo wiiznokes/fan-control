@@ -56,8 +56,8 @@ pub enum NbInput {
 #[derive(Debug, Clone)]
 pub struct Sanitize {
     pub id: Id,
-    item: Vec<String>,
     node: Vec<Input>,
+    item: Vec<String>,
 }
 
 impl Sanitize {
