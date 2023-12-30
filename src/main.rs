@@ -30,9 +30,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-fn try_run() -> Result<()> {
-    let args = Args::parse();
-
+fn setup_logs(args: &Args) {
     let mut env_logger_builder = env_logger::builder();
 
     if args.info {
@@ -61,6 +59,11 @@ fn try_run() -> Result<()> {
     }
 
     env_logger_builder.format_timestamp(None).init();
+}
+
+fn try_run() -> Result<()> {
+    let args = Args::parse();
+    setup_logs(&args);
 
     ui::localize::localize();
     data::localize::localize();
@@ -75,6 +78,8 @@ fn try_run() -> Result<()> {
 
     #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
     let (hardware, bridge) = hardware::windows::WindowsBridge::generate_hardware()?;
+
+    debug!("sensors found: {:?}", hardware);
 
     dir_manager.serialize_hardware(&hardware);
 

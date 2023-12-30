@@ -25,7 +25,7 @@ pub struct WindowsBridge {
 pub enum WindowsError {
     #[error("{0}: {1}")]
     Io(String, std::io::Error),
-    #[error("can't spawn the windows server {0}")]
+    #[error("Can't spawn the windows server: {0}")]
     SpawnServer(std::io::Error),
     #[error("No connection was found")]
     NoConnectionFound,
@@ -49,7 +49,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
             match resource_resolver::resource_dir_with_suffix(resource_suffix) {
                 Ok(resource_path) => resource_path,
                 Err(e) => {
-                    error!("can't find resource_path: {e}, fall back to current dir");
+                    error!("Can't find resource path: {e}. Fall back to current dir.");
                     match std::env::current_dir() {
                         Ok(current_dir) => current_dir.join(resource_suffix),
                         Err(e) => return Err(WindowsError::SpawnServer(e)),
@@ -125,13 +125,10 @@ fn try_connect() -> Result<TcpStream> {
                     }
 
                     if let Err(e) = stream.set_read_timeout(prev_timeout) {
-                        return Err(WindowsError::Io(
-                            "Can't set read timeout back".to_string(),
-                            e,
-                        ));
+                        return Err(WindowsError::Io("can't set read timeout back".into(), e));
                     }
 
-                    info!("check passed for {}:{}!", IP, port);
+                    info!("Check passed for {}:{}.", IP, port);
                     return Ok(stream);
                 }
                 Err(_) => continue,
@@ -151,7 +148,7 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
 
     if let Err(e) = buf_reader.read_line(&mut data) {
         return Err(WindowsError::Io(
-            "Can't read hardware data from socket".to_string(),
+            "can't read hardware data from socket".into(),
             e,
         ));
     }
@@ -200,7 +197,7 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
         }
     }
 
-    info!("hardware succefully received");
+    info!("Hardware was succefully received.");
     Ok(hardware)
 }
 
@@ -253,7 +250,7 @@ mod packet {
 
         impl From<&usize> for I32 {
             fn from(value: &usize) -> Self {
-                let value: i32 = (*value).try_into().expect("can't convert usize to i32");
+                let value: i32 = (*value).try_into().expect("Can't convert usize to i32.");
                 I32(value)
             }
         }
@@ -264,7 +261,7 @@ impl WindowsBridge {
     fn send(&mut self, packet: impl Into<Packet>) -> Result<()> {
         let packet: Packet = packet.into();
         if let Err(e) = self.stream.write_all(&packet.0) {
-            return Err(WindowsError::Io("can't send packet".to_string(), e));
+            return Err(WindowsError::Io("can't send packet".into(), e));
         }
 
         Ok(())
@@ -293,7 +290,7 @@ impl WindowsBridge {
                         format!("exit status: {:?}", status.code()),
                     );
                     return Err(WindowsError::Io(
-                        "Wrong Windows server exit status".into(),
+                        "wrong Windows server exit status".into(),
                         io_error,
                     ));
                 }
@@ -343,8 +340,8 @@ impl HardwareBridge for WindowsBridge {
     fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
         if mode == &Mode::Manual {
             debug!(
-                "try to set {}, whitch is unecessary on Windows",
-                Mode::Manual
+                "An attempt was made to set the mode to manual, which is not necessary under Windows. Internal index: {}",
+                internal_index
             );
             return Ok(());
         }

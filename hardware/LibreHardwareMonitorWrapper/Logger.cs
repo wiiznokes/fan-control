@@ -30,6 +30,7 @@ public static class Logger
 
     public static void LogToFile(string filePath)
     {
+        File.WriteAllText(filePath, "");
         _filePath = filePath;
     }
 

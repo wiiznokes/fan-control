@@ -97,20 +97,16 @@ pub trait HardwareBridge {
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;
-
-    /// Set the mode
-    /// - automatic: value = 0
-    /// - manual: value = 1
     fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> Result<()>;
 
-    // use on Windows, because we update all sensors in one function, so
-    // we don't want to update at each call, instead, we call this function
-    // one time in each update iteration
+    /// Used on Windows, because we update all sensors in one function, so
+    /// we don't want to update at each call, instead, we call this function
+    /// one time in each update iteration.
     fn update(&mut self) -> Result<()> {
         Ok(())
     }
 
-    // use on Windows to shutdown the server properly
+    /// Used on Windows to shutdown the server properly.
     fn shutdown(&mut self) -> Result<()> {
         Ok(())
     }
