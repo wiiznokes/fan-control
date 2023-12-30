@@ -2,15 +2,33 @@
 using Microsoft.Win32;
 
 
-Logger.LogToFile = true;
+try
+{
+    var maybeLogFilePath = Environment.GetEnvironmentVariable("FAN_CONTROL_LOG_FILE");
+    if (maybeLogFilePath != null)
+    {
+        var logFileNameWithoutExtension = Path.GetFileNameWithoutExtension(maybeLogFilePath);
+        var logFileName = logFileNameWithoutExtension + "-lhm.txt";
 
+        var lhmLogFilePath = Path.Combine(Path.GetDirectoryName(maybeLogFilePath) ?? throw new InvalidOperationException(), logFileName);
+
+        Logger.LogToFile(lhmLogFilePath);
+    }
+}
+catch (Exception)
+{
+    // ignored
+}
+
+
+if (args.Contains("--log=debug"))
+{
+    Logger.LogLevel = LogLevel.Debug;
+}
+else
 if (args.Contains("--log=info"))
 {
     Logger.LogLevel = LogLevel.Info;
-}
-else if (args.Contains("--log=debug"))
-{
-    Logger.LogLevel = LogLevel.Debug;
 }
 
 var connectTask = Task.Run(() => new Server());

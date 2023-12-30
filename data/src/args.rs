@@ -15,4 +15,10 @@ pub struct Args {
     pub config_name: Option<String>,
     #[arg(long = "cli", default_value_t = false)]
     pub cli: bool,
+    #[arg(long = "debug", default_value_t = false)]
+    pub debug: bool,
+    #[arg(long = "info", default_value_t = false)]
+    pub info: bool,
+    #[arg(long = "log")]
+    pub log_file: Option<PathBuf>,
 }

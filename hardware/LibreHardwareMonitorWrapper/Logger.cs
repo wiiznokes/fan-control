@@ -7,7 +7,7 @@ internal static class LogLevelManager
         return level switch
         {
             LogLevel.Debug => "DEBUG",
-            LogLevel.Info => "INFO",
+            LogLevel.Info => "INFO ",
             LogLevel.Error => "ERROR",
             _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
         };
@@ -24,10 +24,14 @@ public enum LogLevel
 public static class Logger
 {
     public static LogLevel LogLevel { private get; set; } = LogLevel.Error;
-    public static bool LogToFile { private get; set; }
 
-    private const string FilePath = "./lhm-wrapper-log.txt";
 
+    private static string? _filePath;
+
+    public static void LogToFile(string filePath)
+    {
+        _filePath = filePath;
+    }
 
     public static void Debug(string str)
     {
@@ -52,8 +56,10 @@ public static class Logger
 
     private static void Write(LogLevel level, string log)
     {
-        var finalLog = "[" + LogLevelManager.ToString(level) + " LHM] " + log;
-        if (LogToFile) File.AppendAllText(FilePath, finalLog + Environment.NewLine);
+        var currentTime = DateTime.Now;
+        var currentTimeString = currentTime.ToString("HH:mm:ss");
+        var finalLog = "[" + LogLevelManager.ToString(level) + " LHM " + currentTimeString + "] " + log;
+        if (_filePath != null) File.AppendAllText(_filePath, finalLog + Environment.NewLine);
         Console.WriteLine(finalLog);
     }
 }

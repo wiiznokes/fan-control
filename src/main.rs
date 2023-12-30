@@ -2,9 +2,12 @@
 // because it blocks all logs, from C# AND Rust
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::{env, fs};
+
 use clap::Parser;
 use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge};
+use log::LevelFilter;
 use thiserror::Error;
 
 #[allow(unused_imports)]
@@ -28,11 +31,39 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 fn try_run() -> Result<()> {
-    env_logger::builder().format_timestamp(None).init();
+    let args = Args::parse();
+
+    let mut env_logger_builder = env_logger::builder();
+
+    if args.info {
+        env_logger_builder.filter_level(LevelFilter::Info);
+    };
+
+    if args.debug {
+        env_logger_builder.filter_level(LevelFilter::Debug);
+    };
+
+    if let Some(log_file_path) = &args.log_file {
+        env::set_var("FAN_CONTROL_LOG_FILE", log_file_path);
+        match fs::File::create(log_file_path) {
+            Ok(log_file) => {
+                if let Err(e) = log_file.set_len(0) {
+                    warn!("can't clear the content of log file: {e}");
+                };
+
+                let pipe = env_logger::Target::Pipe(Box::new(log_file));
+                env_logger_builder.target(pipe);
+            }
+            Err(e) => {
+                error!("can't create/open log file: {e}");
+            }
+        };
+    }
+
+    env_logger_builder.format_timestamp(None).init();
+
     ui::localize::localize();
     data::localize::localize();
-
-    let args = Args::parse();
 
     let dir_manager = DirManager::new(&args);
 
