@@ -2,7 +2,13 @@
 using Microsoft.Win32;
 
 
-Logger.LogToFile = true;
+try
+{
+    var maybeLogFilePath = Environment.GetEnvironmentVariable("FAN_CONTROL_LOG_FILE");
+    if (maybeLogFilePath != null)
+    {
+        var logFileNameWithoutExtension = Path.GetFileNameWithoutExtension(maybeLogFilePath);
+        var logFileName = logFileNameWithoutExtension + "-lhm.txt";
 
 HardwareManager hardwareManager = null!;
 Server server = null!;
