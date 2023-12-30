@@ -223,8 +223,17 @@ impl HardwareBridge for LinuxBridge {
     fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
         let mut hardware = Hardware::default();
 
+        let lib = match lm_sensors::Initializer::default().initialize() {
+            Ok(lib) => lib,
+            Err(e) => {
+                return Err(HardwareError::Linux(LinuxError::LmSensors(
+                    "failed to init libsensor".into(),
+                    e,
+                )))
+            }
+        };
         let bridge = LinuxBridgeBuilder {
-            lib: lm_sensors::Initializer::default().initialize().unwrap(),
+            lib,
             sensors_builder: |lib: &LMSensors| generate_hardware(lib, &mut hardware),
         }
         .build();

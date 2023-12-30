@@ -33,32 +33,24 @@ public class Control : BaseHardware
         return 100;
     }
 
-    public bool SetSpeed(int value)
+    public void SetSpeed(int value)
     {
-        if (_mSensor.Control != null)
-        {
-            _mSensor.Control.SetSoftware(value);
-            _isSetSpeed = true;
-        }
-        else
-        {
-            return false;
-        }
+        _mSensor.Control.SetSoftware(value);
+        _isSetSpeed = true;
 
-        Log.LogD("set control: " + Name + " = " + value);
-        return true;
+        Logger.Debug("set control: " + Name + " = " + value);
     }
 
-    public bool SetAuto()
+    public void SetAuto()
     {
-        if (_mSensor.Control == null) return false;
-
         if (_isSetSpeed == false)
-            return true;
+        {
+            Logger.Debug("control already set to auto: " + Name);
+            return;
+        }
 
         _mSensor.Control.SetDefault();
         _isSetSpeed = false;
-        Log.LogD("set control to auto: " + Name);
-        return true;
+        Logger.Debug("set control to auto: " + Name);
     }
 }

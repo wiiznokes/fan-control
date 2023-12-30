@@ -390,12 +390,12 @@ impl cosmic::Application for Ui {
             AppMsg::Rename(id, name) => {
                 let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
-                let node = self.app_state.app_graph.nodes.get_mut(&id).unwrap();
-                let nodec = self.nodes_c.get_mut(&id);
+                let node = self.app_state.app_graph.get_mut(&id);
+                let node_c = self.nodes_c.get_mut(&id);
 
-                nodec.name = name.clone();
+                node_c.name = name.clone();
                 if name_is_valid {
-                    nodec.is_error_name = false;
+                    node_c.is_error_name = false;
                     let previous_name = node.name().clone();
                     node.node_type.set_name(&name);
 
@@ -424,7 +424,7 @@ impl cosmic::Application for Ui {
                         }
                     }
                 } else {
-                    nodec.is_error_name = true;
+                    node_c.is_error_name = true;
                 }
             }
         }

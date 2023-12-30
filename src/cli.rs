@@ -2,8 +2,8 @@
 // no blocking read timeout for now
 
 use std::{
-    sync::mpsc::{self, Sender},
-    thread,
+    sync::mpsc::{self, RecvTimeoutError, Sender},
+    thread::{self},
     time::Duration,
 };
 
@@ -39,12 +39,21 @@ pub fn run_cli(mut app_state: AppState) {
 
         let duration = Duration::from_millis(app_state.dir_manager.settings().update_delay);
 
-        if let Ok(action) = rx.recv_timeout(duration) {
-            match action {
+        match rx.recv_timeout(duration) {
+            Ok(action) => match action {
                 UserAction::Quit => {
                     println!("quit requested");
                     break;
                 }
+            },
+
+            Err(RecvTimeoutError::Disconnected) => {
+                error!("can't listen action from user");
+                break;
+            }
+
+            Err(RecvTimeoutError::Timeout) => {
+                // new update cycle
             }
         }
     }
@@ -60,17 +69,22 @@ enum UserAction {
 
 #[allow(clippy::single_match)]
 fn start_listening(tx: Sender<UserAction>) {
-    let _join = thread::spawn(move || loop {
+    let _handle = thread::spawn(move || loop {
         match event::read() {
             Ok(event) => match event {
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('q'),
                     ..
-                }) => tx.send(UserAction::Quit).unwrap(),
+                }) => {
+                    if let Err(e) = tx.send(UserAction::Quit) {
+                        error!("can't send user action to app: {e}");
+                        break;
+                    }
+                }
                 _ => {}
             },
             Err(e) => {
-                eprintln!("can't read keyboard: {}", e);
+                error!("can't read keyboard: {}", e);
             }
         }
     });

@@ -1,5 +1,6 @@
-// to not launch a console on Windows
-#![windows_subsystem = "windows"]
+// to not launch a console on Windows, only in release
+// because it blocks all logs, from C# AND Rust
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
 use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
@@ -11,6 +12,9 @@ use thiserror::Error;
 extern crate log;
 
 #[cfg(all(test, feature = "fake_hardware"))]
+mod fake_integrated_test;
+
+#[cfg(test)]
 mod integrated_test;
 
 mod cli;
@@ -24,7 +28,7 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 fn try_run() -> Result<()> {
-    env_logger::init();
+    env_logger::builder().format_timestamp(None).init();
     ui::localize::localize();
     data::localize::localize();
 

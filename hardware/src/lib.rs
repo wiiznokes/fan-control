@@ -9,10 +9,10 @@ use thiserror::Error;
 #[macro_use]
 extern crate log;
 
-#[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+#[cfg(target_os = "linux")]
 pub mod linux;
 
-#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+#[cfg(target_os = "windows")]
 pub mod windows;
 
 #[cfg(feature = "fake_hardware")]
@@ -22,10 +22,10 @@ pub mod fake_hardware;
 pub enum HardwareError {
     #[error("Internal index not found")]
     InternalIndexNotFound,
-    #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+    #[cfg(target_os = "linux")]
     #[error(transparent)]
     Linux(#[from] linux::LinuxError),
-    #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+    #[cfg(target_os = "windows")]
     #[error(transparent)]
     Windows(#[from] windows::WindowsError),
 }

@@ -36,10 +36,10 @@ public class Server
 
         var stream = new NetworkStream(_client);
         var bytes = Encoding.UTF8.GetBytes(jsonText);
-        Log.LogD("Sending hardware");
+        Logger.Debug("Sending hardware");
         stream.Write(bytes);
         stream.Close();
-        Log.LogD("Hardware send");
+        Logger.Debug("Hardware send");
     }
 
     public void WaitForCommand(HardwareManager hardwareManager)
@@ -106,7 +106,7 @@ public class Server
         {
             var bytesRead = _client.Receive(_buffer);
             if (bytesRead == 4) return BitConverter.ToInt32(_buffer, 0);
-            Log.LogE("byte read = " + bytesRead);
+            Logger.Error("byte read = " + bytesRead);
             return -1;
         }
         catch (Exception e)
@@ -130,16 +130,16 @@ public class Server
             }
             catch (SocketException e)
             {
-                Log.LogE("SelectPort: port " + p + " invalid, " + e.Message);
+                Logger.Error("SelectPort: port " + p + " invalid, " + e.Message);
                 continue;
             }
             catch (ObjectDisposedException e)
             {
-                Log.LogE("SelectPort: listener has been disposed " + e.Message);
+                Logger.Error("SelectPort: listener has been disposed " + e.Message);
                 break;
             }
 
-            Log.LogD("Server Started on " + Address + ":" + p);
+            Logger.Info("Server Started on " + Address + ":" + p);
             return p;
         }
 
@@ -164,7 +164,7 @@ public class Server
 
         client.Send(Encoding.UTF8.GetBytes(CheckResponse));
 
-        Log.LogD("Client accepted!");
+        Logger.Info("Client accepted!");
         return client;
     }
 
@@ -174,6 +174,6 @@ public class Server
         _client.Close();
         _listener.Dispose();
         _listener.Close();
-        Log.LogD("Shutdown server");
+        Logger.Info("Shutdown server");
     }
 }

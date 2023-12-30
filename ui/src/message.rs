@@ -17,7 +17,7 @@ pub enum AppMsg {
 
     Toggle(ToogleMsg),
 
-    // require app_graph sanitizing
+    // can invalidate control
     ModifNode(Id, ModifNodeMsg),
 }
 

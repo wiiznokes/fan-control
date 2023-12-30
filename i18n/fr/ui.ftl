@@ -11,7 +11,6 @@ min_temp = min temp
 min_speed = min speed
 max_temp = max temp
 max_speed = max speed
-
 idle_temp = idle temp
 idle_speed = idle speed
 load_temp = load temp
@@ -38,8 +37,12 @@ add_target = Prendre 5 variables :
     Si le capteur > température de déclenchement, la vitesse de déclenchement est définie
     jusqu'à ce que ce capteur < température idéale
 
-# Configuration
+# Config
 config_name = Nom de la configuration
 save_config = Enregistrer/Remplacer la configuration
 delete_config = Supprimer la configuration
 create_config = Créer une configuration
+
+# Error
+already_used_error = Ce nom est déjà utilisé
+invalid_value_error = Cette valeur est invalide

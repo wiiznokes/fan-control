@@ -22,11 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #os: [ ubuntu-latest, windows-latest ]
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
+        #os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
 
@@ -48,8 +49,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: rustup update
       - name: Run rustfmt
-        run: cargo fmt --all --check
+        run: cargo fmt --all --check --verbose
 
   clippy:
     name: Clippy on ${{ matrix.os }}
@@ -57,11 +59,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #os: [ ubuntu-latest, windows-latest ]
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
+        #os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
           
@@ -70,7 +73,7 @@ jobs:
         run: just libsensors
 
       - name: Run clippy
-        run: cargo clippy --all
+        run: cargo clippy --workspace --all-features
 
   lhm-fmt:
     name: Lhm fmt

@@ -56,7 +56,7 @@ public class HardwareResearcher : IVisitor
         _mComputer.Close();
         _isStarted = false;
 
-        Log.LogD("Shutdown Lhm");
+        Logger.Debug("Shutdown Lhm");
     }
 
 
@@ -117,9 +117,7 @@ public class HardwareResearcher : IVisitor
             }
         }
 
-        Log.LogD("nbControl: " + nbControl);
-        Log.LogD("nbFan: " + nbFan);
-        Log.LogD("nbTemp: " + nbTemp);
+        Logger.Info("Control: " + nbControl + ", Fans: " + nbFan + ", Temps: " + nbTemp);
         return hardwareList;
     }
 

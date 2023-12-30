@@ -60,7 +60,8 @@ pub fn header_center<'a>(
         .config_names
         .is_valid_name(&settings.current_config, current_config)
     {
-        name = name.error("this name is already beeing use");
+        //let error_text = fl!("already_used_error");
+        name = name.error("This name is already being use");
     }
 
     let mut configs = Vec::new();

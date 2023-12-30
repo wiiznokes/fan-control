@@ -16,7 +16,7 @@ pub fn compare_names(name1: &str, name2: &str) -> Ordering {
 #[derive(Debug, Clone, Eq, PartialEq)]
 enum Lexeme {
     String(String),
-    Number(i32),
+    Number(u64),
     Special(String),
 }
 
@@ -119,7 +119,14 @@ fn parse_to_lexemes(name: &str) -> Lexemes {
             State::Number => match current_state {
                 State::Number => {}
                 State::Special | State::String => {
-                    lexemes.push(Lexeme::Number(letters.parse::<i32>().unwrap()));
+                    let number = match letters.parse::<u64>() {
+                        Ok(number) => number,
+                        Err(e) => {
+                            debug!("failed to parse number: {}", e);
+                            u64::MAX
+                        }
+                    };
+                    lexemes.push(Lexeme::Number(number));
                     letters.clear();
                     previous_state = current_state;
                 }
@@ -143,7 +150,14 @@ fn parse_to_lexemes(name: &str) -> Lexemes {
             lexemes.push(Lexeme::String(letters));
         }
         State::Number => {
-            lexemes.push(Lexeme::Number(letters.parse::<i32>().unwrap()));
+            let number = match letters.parse::<u64>() {
+                Ok(number) => number,
+                Err(e) => {
+                    debug!("failed to parse number: {}", e);
+                    u64::MAX
+                }
+            };
+            lexemes.push(Lexeme::Number(number));
         }
         State::Special => {
             lexemes.push(Lexeme::Special(letters));

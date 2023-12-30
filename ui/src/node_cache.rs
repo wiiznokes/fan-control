@@ -76,12 +76,16 @@ impl NodesC {
         Self { data }
     }
 
-    pub fn get_mut(&mut self, id: &Id) -> &mut NodeC {
-        self.data.get_mut(id).unwrap()
+    pub fn get(&self, id: &Id) -> &NodeC {
+        self.data
+            .get(id)
+            .unwrap_or_else(|| panic!("can't find node cache {id} as ref"))
     }
 
-    pub fn get(&self, id: &Id) -> &NodeC {
-        self.data.get(id).unwrap()
+    pub fn get_mut(&mut self, id: &Id) -> &mut NodeC {
+        self.data
+            .get_mut(id)
+            .unwrap_or_else(|| panic!("can't find node cache {id} as ref mut"))
     }
 
     pub fn insert(&mut self, id: Id, node_c: NodeC) {

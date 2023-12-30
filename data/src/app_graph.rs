@@ -185,25 +185,26 @@ impl AppGraph {
 
     pub fn sanitize_inputs(&mut self, log: bool) {
         let mut sanitizes = Vec::new();
+
         for node in self.nodes.values() {
             sanitizes.push(node::sanitize_inputs(node, &self.nodes, log));
         }
 
         for inputs in sanitizes {
-            let node = self.nodes.get_mut(&inputs.id).unwrap();
+            let node = self.get_mut(&inputs.id);
             node.set_inputs(inputs);
         }
     }
 
-    pub fn get(&self, k: &Id) -> &Node {
+    pub fn get(&self, id: &Id) -> &Node {
         self.nodes
-            .get(k)
-            .unwrap_or_else(|| panic!("can't find {} in nodes", k))
+            .get(id)
+            .unwrap_or_else(|| panic!("can't find node {id} as ref in nodes"))
     }
 
-    pub fn get_mut(&mut self, k: &Id) -> &mut Node {
+    pub fn get_mut(&mut self, id: &Id) -> &mut Node {
         self.nodes
-            .get_mut(k)
-            .unwrap_or_else(|| panic!("can't find {} in nodes", k))
+            .get_mut(id)
+            .unwrap_or_else(|| panic!("can't find node {id} as ref mut in nodes"))
     }
 }

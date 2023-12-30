@@ -26,5 +26,6 @@ lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pw
 [target.'cfg(target_os = "windows")'.dependencies]
 serde_json.workspace = true
 cargo-packager-resource-resolver.workspace = true
+#num_enum = "0.7"
 
 [dev-dependencies]
