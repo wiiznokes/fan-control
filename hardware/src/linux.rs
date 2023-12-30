@@ -224,6 +224,7 @@ impl HardwareBridge for LinuxBridge {
         let mut hardware = Hardware::default();
 
         let bridge = LinuxBridgeBuilder {
+            // todo: remove this unwrap
             lib: lm_sensors::Initializer::default().initialize().unwrap(),
             sensors_builder: |lib: &LMSensors| generate_hardware(lib, &mut hardware),
         }

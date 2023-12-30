@@ -30,15 +30,24 @@ impl CustomTemp {
     }
 
     pub fn update(&self, values: &Vec<Value>) -> Result<Value, UpdateError> {
-        if values.is_empty() {
-            return Err(UpdateError::NoInputData);
-        }
-
         let value = match self.kind {
-            CustomTempKind::Min => *values.iter().min().unwrap(),
-            CustomTempKind::Max => *values.iter().max().unwrap(),
-            CustomTempKind::Average => values.iter().sum::<i32>() / values.len() as i32,
+            CustomTempKind::Min => match values.iter().min() {
+                Some(min) => *min,
+                None => return Err(UpdateError::NoInputData),
+            },
+            CustomTempKind::Max => match values.iter().max() {
+                Some(max) => *max,
+                None => return Err(UpdateError::NoInputData),
+            },
+            CustomTempKind::Average => {
+                if values.is_empty() {
+                    return Err(UpdateError::NoInputData);
+                }
+
+                values.iter().sum::<i32>() / (values.len() as i32)
+            }
         };
+
         Ok(value)
     }
 }
