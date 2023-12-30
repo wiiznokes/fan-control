@@ -57,7 +57,7 @@ impl Control {
                 bridge.set_value(&control_h.internal_index, value)?;
                 Ok(value)
             }
-            None => Err(UpdateError::NodeIsInvalid),
+            None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
         }
     }
 
@@ -75,7 +75,7 @@ impl Control {
 
         match &self.control_h {
             Some(control_h) => bridge.set_mode(&control_h.internal_index, &mode)?,
-            None => return Err(UpdateError::NodeIsInvalid),
+            None => return Err(UpdateError::NodeIsInvalid(self.name.clone())),
         };
 
         info!("Mode {} succefuly set for {}.", mode, self.name);
@@ -88,7 +88,7 @@ impl Control {
             Some(control_h) => bridge
                 .get_value(&control_h.internal_index)
                 .map_err(UpdateError::Hardware),
-            None => Err(UpdateError::NodeIsInvalid),
+            None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
         }
     }
 }

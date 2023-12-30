@@ -80,7 +80,7 @@ public class Server
                     hardwareManager.Update();
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(command), command, null);
             }
         }
     }
@@ -159,12 +159,12 @@ public class Server
         var str = Encoding.UTF8.GetString(readBuf);
         if (str != Check)
         {
-            throw new Exception("invalid client. Check : " + str + "byte received: " + res);
+            throw new Exception("Invalid client. Check : " + str + "byte received: " + res);
         }
 
         client.Send(Encoding.UTF8.GetBytes(CheckResponse));
 
-        Logger.Info("Client accepted!");
+        Logger.Info("Client accepted.");
         return client;
     }
 
@@ -174,6 +174,6 @@ public class Server
         _client.Close();
         _listener.Dispose();
         _listener.Close();
-        Logger.Info("Shutdown server");
+        Logger.Info("Shutdown server.");
     }
 }

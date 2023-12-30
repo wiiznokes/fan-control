@@ -11,12 +11,12 @@ use crate::{
 
 #[derive(Error, Debug)]
 pub enum UpdateError {
-    #[error("Node was not found")]
-    NodeNotFound,
+    #[error("Node id \"{0}\" was not found")]
+    NodeNotFound(Id),
     #[error("Value was none")]
     ValueIsNone,
-    #[error("Node was invalid")]
-    NodeIsInvalid,
+    #[error("Node {0} was invalid")]
+    NodeIsInvalid(String),
     #[error("No input data")]
     NoInputData,
     #[error("Can't set mode")]
@@ -40,6 +40,7 @@ impl Update {
         Self {}
     }
 
+    // todo: remember what nodes are valid
     pub fn optimized(
         &mut self,
         nodes: &mut Nodes,
@@ -84,7 +85,7 @@ impl Update {
                     }
                 }
                 None => {
-                    error!("root node: {}", UpdateError::NodeNotFound);
+                    error!("root node: {}", UpdateError::NodeNotFound(*id));
                 }
             }
         }
@@ -148,21 +149,33 @@ impl Update {
         Ok(())
     }
 
-    pub fn set_all_control_to_auto(
+    fn set_node_to_auto(
+        &mut self,
+        nodes: &mut Nodes,
+        node_id: &Id,
+        bridge: &mut HardwareBridgeT,
+    ) -> Result<()> {
+        let Some(node) = nodes.get_mut(node_id) else {
+            return Err(UpdateError::NodeNotFound(*node_id));
+        };
+
+        match &mut node.node_type {
+            NodeType::Control(control) => control.set_mode(Mode::Auto, bridge),
+            _ => Err(UpdateError::NodeIsInvalid(node.name().to_owned())),
+        }
+    }
+
+    pub fn set_valid_controls_to_auto(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridgeT,
     ) {
         for node_id in root_nodes {
-            let Some(node) = nodes.get_mut(node_id) else {
-                warn!("node not found in set_all_control_to_auto fn");
-                continue;
-            };
-            if let NodeType::Control(control) = &mut node.node_type {
-                if let Err(e) = control.set_mode(Mode::Auto, bridge) {
+            if Self::validate_rec(nodes, node_id) {
+                if let Err(e) = self.set_node_to_auto(nodes, node_id, bridge) {
                     error!(
-                        "can't set control to auto in set_all_control_to_auto fn: {}",
+                        "Can't set control to auto in set_valid_controls_to_auto fn: {}",
                         e
                     );
                 }
@@ -178,17 +191,11 @@ impl Update {
     ) {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
-                let Some(node) = nodes.get_mut(node_id) else {
-                    warn!("node not found in set_invalid_controls_to_auto function");
-                    continue;
-                };
-                if let NodeType::Control(control) = &mut node.node_type {
-                    if let Err(e) = control.set_mode(Mode::Auto, bridge) {
-                        error!(
-                            "can't set control to auto in set_invalid_controls_to_auto fn: {}",
-                            e
-                        );
-                    }
+                if let Err(e) = self.set_node_to_auto(nodes, node_id, bridge) {
+                    error!(
+                        "Can't set control to auto in set_invalid_controls_to_auto fn: {}",
+                        e
+                    );
                 }
             }
         }
@@ -220,14 +227,14 @@ impl Update {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
                 Some(node) => Ok(node.value),
-                None => Err(UpdateError::NodeNotFound),
+                None => Err(UpdateError::NodeNotFound(*node_id)),
             };
         }
 
         let input_ids: Vec<Id>;
         {
             let Some(node) = nodes.get_mut(node_id) else {
-                return Err(UpdateError::NodeNotFound);
+                return Err(UpdateError::NodeNotFound(*node_id));
             };
             updated.insert(node.id);
 
@@ -252,14 +259,14 @@ impl Update {
                             }
                             Ok(None)
                         }
-                        None => Err(UpdateError::NodeNotFound),
+                        None => Err(UpdateError::NodeNotFound(*node_id)),
                     }
                 }
             }
         }
 
         let Some(node) = nodes.get_mut(node_id) else {
-            return Err(UpdateError::NodeNotFound);
+            return Err(UpdateError::NodeNotFound(*node_id));
         };
 
         node.update(&input_values, bridge)?;
@@ -275,7 +282,15 @@ impl Node {
         bridge: &mut HardwareBridgeT,
     ) -> Result<()> {
         let value = match &mut self.node_type {
-            crate::node::NodeType::Control(control) => control.set_value(input_values[0], bridge),
+            crate::node::NodeType::Control(control) => {
+                let input_value = input_values[0];
+                if self.value == Some(input_value) {
+                    debug!("Control {} already set to {}", control.name, input_value);
+                    Ok(input_value)
+                } else {
+                    control.set_value(input_value, bridge)
+                }
+            }
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
             crate::node::NodeType::Temp(temp) => temp.get_value(bridge),
             crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),
