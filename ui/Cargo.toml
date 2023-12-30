@@ -2,10 +2,13 @@
 name = "ui"
 version = "0.1.0"
 description = "Ui implementation of fan-control"
+rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+homepage.workspace = true
 repository.workspace = true
+keywords.workspace = true
 
 
 [dependencies]

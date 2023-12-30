@@ -6,17 +6,25 @@ resolver = "2"
 authors = ["wiiznokes <wiiznokes2@gmail.com>"]
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/wiiznokes/fan-control/"
+homepage = "https://github.com/wiiznokes/fan-control/"
+repository = "https://github.com/wiiznokes/fan-control.git"
+rust-version = "1.75"
+keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
+
 
 [package]
 name = "fan-control"
 version = "0.1.0"
 description = "Control your fans with different behaviors"
+exclude = ["/.*", "justfile", "LICENCE"]
+categories = ["command-line-utilities"]
+rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+homepage.workspace = true
 repository.workspace = true
-exclude = ["/.*", "/justfile", "LICENCE"]
+keywords.workspace = true
 
 [package.metadata.packager]
 before-each-package-command = "cargo build --release"

@@ -2,10 +2,14 @@
 name = "hardware"
 version = "0.1.0"
 description = "hardware abstraction used by fan-control"
+categories = ["hardware-support"]
+rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+homepage.workspace = true
 repository.workspace = true
+keywords.workspace = true
 
 [features]
 fake_hardware = ["rand"]
