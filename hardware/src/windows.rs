@@ -274,7 +274,7 @@ impl WindowsBridge {
     {
         let mut buf: Packet = Packet([0u8; 4]);
         if let Err(e) = self.stream.read_exact(&mut buf.0) {
-            return Err(WindowsError::Io("can't read command".into(), e));
+            return Err(WindowsError::Io("can't read packet".into(), e));
         }
 
         Ok(buf.into())
