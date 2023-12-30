@@ -12,6 +12,9 @@ use thiserror::Error;
 extern crate log;
 
 #[cfg(all(test, feature = "fake_hardware"))]
+mod fake_integrated_test;
+
+#[cfg(all(test, not(feature = "fake_hardware")))]
 mod integrated_test;
 
 mod cli;
