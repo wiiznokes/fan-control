@@ -1,22 +1,59 @@
 ﻿namespace LibreHardwareMonitorWrapper;
 
+internal static class LogLevelManager
+{
+    public static string ToString(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Debug => "DEBUG",
+            LogLevel.Info => "INFO",
+            LogLevel.Error => "ERROR",
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
+        };
+    }
+}
+
+public enum LogLevel
+{
+    Debug,
+    Info,
+    Error
+}
+
 public static class Logger
 {
-    public static bool ShowDebug { private get; set; }
+    public static LogLevel LogLevel { private get; set; } = LogLevel.Error;
+    public static bool LogToFile { private get; set; }
+
+    private const string FilePath = "./lhm-wrapper-log.txt";
 
 
     public static void Debug(string str)
     {
-        if (ShowDebug) Console.WriteLine("[DEBUG LHM] " + str);
+        if (LogLevel == LogLevel.Debug)
+        {
+            Write(LogLevel.Debug, str);
+        }
     }
 
     public static void Info(string str)
     {
-        if (ShowDebug) Console.WriteLine("[INFO LHM] " + str);
+        if (LogLevel is LogLevel.Info or LogLevel.Debug)
+        {
+            Write(LogLevel.Info, str);
+        }
     }
 
     public static void Error(string str)
     {
-        Console.Error.WriteLine("[ERROR LHM] " + str);
+        Write(LogLevel.Error, str);
+    }
+
+    private static void Write(LogLevel level, string log)
+    {
+        var finalLog = "[" + LogLevelManager.ToString(level) + " LHM] " + log;
+        if (LogToFile) File.AppendAllText(FilePath, finalLog + Environment.NewLine);
+        Console.WriteLine(finalLog);
     }
 }

@@ -72,8 +72,10 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         command.creation_flags(0x08000000);
     }
 
-    if log_enabled!(log::Level::Debug) {
-        command.arg("--log");
+    if log_enabled!(log::Level::Info) {
+        command.arg("--log=info");
+    } else if log_enabled!(log::Level::Debug) {
+        command.arg("--log=debug");
     }
 
     match command.spawn() {
