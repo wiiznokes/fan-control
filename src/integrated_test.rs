@@ -6,7 +6,7 @@ use std::path::PathBuf;
 pub fn init_test_logging() {
     let _ = env_logger::builder()
         .format_timestamp(None)
-        .is_test(true)
+        .is_test(false)
         .try_init();
 }
 
@@ -23,10 +23,14 @@ fn test_init() {
     let _dir_manager = DirManager::new(&args);
 
     #[cfg(target_os = "linux")]
-    let (hardware, bridge) = hardware::linux::LinuxBridge::generate_hardware().unwrap();
+    let (hardware, mut bridge) = hardware::linux::LinuxBridge::generate_hardware().unwrap();
 
     #[cfg(target_os = "windows")]
-    let (_hardware, mut bridge) = hardware::windows::WindowsBridge::generate_hardware().unwrap();
+    let (hardware, mut bridge) = hardware::windows::WindowsBridge::generate_hardware().unwrap();
+
+    info!("Controls: {}", hardware.controls.len());
+    info!("Fans: {}", hardware.fans.len());
+    info!("Temps: {}", hardware.temps.len());
 
     bridge.shutdown().unwrap();
 }
