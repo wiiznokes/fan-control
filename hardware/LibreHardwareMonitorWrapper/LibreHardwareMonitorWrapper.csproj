@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net7.0-windows</TargetFramework>
         <PlatformName>windows</PlatformName>
         <ImplicitUsings>enable</ImplicitUsings>

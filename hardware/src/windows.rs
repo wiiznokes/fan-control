@@ -80,7 +80,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         command.arg("--log=info");
     }
 
-    info!("Command to launch Windows server: {:?}.", command);
+    debug!("Command to launch Windows server: {:?}.", command);
 
     match command.spawn() {
         Ok(handle) => Ok(handle),
