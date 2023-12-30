@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 
 
+Logger.LogToFile = true;
 
 HardwareManager hardwareManager = null!;
 Server server = null!;
