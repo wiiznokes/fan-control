@@ -70,6 +70,8 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         // because of this line, we loose the ability to see logs of the child process
         // with the benefit of no console poping
         command.creation_flags(0x08000000);
+
+        info!("Output for Windows server will be discarded.");
     }
 
     if log_enabled!(log::Level::Debug) {
@@ -77,6 +79,8 @@ fn spawn_windows_server() -> Result<std::process::Child> {
     } else if log_enabled!(log::Level::Info) {
         command.arg("--log=info");
     }
+
+    info!("Command to launch Windows server: {:?}.", command);
 
     match command.spawn() {
         Ok(handle) => Ok(handle),

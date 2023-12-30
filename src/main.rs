@@ -58,7 +58,12 @@ fn setup_logs(args: &Args) {
         };
     }
 
-    env_logger_builder.format_timestamp(None).init();
+    if args.log_file.is_some() {
+        env_logger_builder.format_timestamp_secs();
+    } else {
+        env_logger_builder.format_timestamp(None);
+    }
+    env_logger_builder.init();
 }
 
 fn try_run() -> Result<()> {
