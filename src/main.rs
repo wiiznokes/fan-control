@@ -14,7 +14,7 @@ extern crate log;
 #[cfg(all(test, feature = "fake_hardware"))]
 mod fake_integrated_test;
 
-#[cfg(all(test, not(feature = "fake_hardware")))]
+#[cfg(test)]
 mod integrated_test;
 
 mod cli;
@@ -28,7 +28,7 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 fn try_run() -> Result<()> {
-    env_logger::init();
+    env_logger::builder().format_timestamp(None).init();
     ui::localize::localize();
     data::localize::localize();
 

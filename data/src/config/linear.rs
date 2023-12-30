@@ -82,11 +82,13 @@ impl Default for Linear {
 
 #[cfg(test)]
 mod test {
+    use crate::utils::init_test_logging;
+
     use super::Linear;
 
     #[test]
     fn test_update() {
-        let _ = env_logger::try_init();
+        init_test_logging();
 
         let linear = Linear {
             name: "Linear".into(),

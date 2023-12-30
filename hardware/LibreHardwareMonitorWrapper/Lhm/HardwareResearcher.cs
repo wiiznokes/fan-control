@@ -117,9 +117,7 @@ public class HardwareResearcher : IVisitor
             }
         }
 
-        Logger.Info("nbControl: " + nbControl);
-        Logger.Info("nbFan: " + nbFan);
-        Logger.Info("nbTemp: " + nbTemp);
+        Logger.Info("Control: " + nbControl + ", Fans: " + nbFan + ", Temps: " + nbTemp);
         return hardwareList;
     }
 

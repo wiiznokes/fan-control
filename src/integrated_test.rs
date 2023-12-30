@@ -3,9 +3,16 @@ use data::dir_manager::DirManager;
 use hardware::{self, HardwareBridge};
 use std::path::PathBuf;
 
+pub fn init_test_logging() {
+    let _ = env_logger::builder()
+        .format_timestamp(None)
+        .is_test(true)
+        .try_init();
+}
+
 #[test]
 fn test_init() {
-    env_logger::init();
+    init_test_logging();
 
     let args = Args {
         config_dir_path: Some(PathBuf::from("./.config")),

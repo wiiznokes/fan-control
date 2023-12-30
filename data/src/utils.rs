@@ -14,3 +14,11 @@ impl<T> RemoveElem<T> for Vec<T> {
             .map(|index| self.remove(index))
     }
 }
+
+#[cfg(test)]
+pub fn init_test_logging() {
+    let _ = env_logger::builder()
+        .format_timestamp(None)
+        .is_test(true)
+        .try_init();
+}

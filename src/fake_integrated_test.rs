@@ -2,16 +2,16 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
+use crate::integrated_test::init_test_logging;
 use data::app_graph::AppGraph;
 use data::args::Args;
 use data::dir_manager::DirManager;
-
 use data::{update::Update, AppState};
 use hardware::{fake_hardware, HardwareBridge};
 
 #[test]
 fn test_config() {
-    env_logger::init();
+    init_test_logging();
 
     let args = Args {
         config_dir_path: Some(PathBuf::from("./.config")),
