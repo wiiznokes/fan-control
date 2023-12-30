@@ -73,7 +73,7 @@ impl HardwareBridge for FakeHardwareBridge {
             panic!("set value to hardware != Control")
         }
         debug!("set value {}", value);
-        return Ok(());
+        Ok(())
     }
 
     fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
@@ -81,6 +81,6 @@ impl HardwareBridge for FakeHardwareBridge {
             panic!("set mode to hardware != Control")
         }
         debug!("set mode {}", mode);
-        return Ok(());
+        Ok(())
     }
 }

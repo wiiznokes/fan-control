@@ -4,7 +4,7 @@ all:
 	cargo run --release
 
 # call before pull request
-pull: fmt fix test
+pull: fix test
 	
 ###################  Build Libs
 
@@ -30,12 +30,12 @@ nsis:
 ###################  Test
 
 test:
-	cargo test --all --all-features
+	cargo test --workspace --all-features
 
 ###################  Format
 
-fix:
-	cargo clippy --all --fix --allow-dirty --allow-staged
+fix: fmt
+	cargo clippy --workspace --all-features --fix --allow-dirty --allow-staged
 
 fmt:
 	cargo fmt --all
