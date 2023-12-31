@@ -98,7 +98,7 @@ public class Server
             catch (SocketException e)
             {
                 Logger.Error("SelectPort: port " + p + " invalid, " + e);
-                break;
+                continue;
             }
             catch (ObjectDisposedException e)
             {
@@ -107,6 +107,7 @@ public class Server
             }
 
             Logger.Info("Server Started on " + Address + ":" + p);
+            return;
         }
 
         throw new ArgumentException("No valid port can be found for " + Address);
