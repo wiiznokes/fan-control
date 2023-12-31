@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{ControlH, Hardware, Mode, Value, HardwareBridge};
+use hardware::{ControlH, Hardware, HardwareBridge, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -83,7 +83,10 @@ impl Control {
         Ok(())
     }
 
-    pub fn get_value(&self, bridge: &mut (impl HardwareBridge + ?Sized)) -> Result<Value, UpdateError> {
+    pub fn get_value(
+        &self,
+        bridge: &mut (impl HardwareBridge + ?Sized),
+    ) -> Result<Value, UpdateError> {
         match &self.control_h {
             Some(control_h) => bridge
                 .get_value(&control_h.internal_index)

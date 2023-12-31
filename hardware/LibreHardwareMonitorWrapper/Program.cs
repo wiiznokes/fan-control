@@ -2,20 +2,11 @@
 using Microsoft.Win32;
 
 
-try
-{
-    var maybeLogFilePath = Environment.GetEnvironmentVariable("FAN_CONTROL_LOG_FILE");
-    if (maybeLogFilePath != null)
-    {
-        var logFileNameWithoutExtension = Path.GetFileNameWithoutExtension(maybeLogFilePath);
-        var logFileName = logFileNameWithoutExtension + "-lhm.txt";
-
 HardwareManager hardwareManager = null!;
-Server server = null!;
-
-var isServerStarted = false;
 var isHardwareManagerStarted = false;
 
+Server server = null!;
+var isServerStarted = false;
 
 TakeLocker shutDownTakeLocker = new();
 

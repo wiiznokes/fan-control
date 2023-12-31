@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use hardware::{ Mode, Value, HardwareBridge};
+use hardware::{HardwareBridge, Mode, Value};
 use thiserror::Error;
 
 use crate::{

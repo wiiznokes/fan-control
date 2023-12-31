@@ -20,7 +20,10 @@ pub struct Fan {
 }
 
 impl Fan {
-    pub fn get_value(&self, bridge: &mut (impl HardwareBridge + ?Sized)) -> Result<Value, UpdateError> {
+    pub fn get_value(
+        &self,
+        bridge: &mut (impl HardwareBridge + ?Sized),
+    ) -> Result<Value, UpdateError> {
         match &self.fan_h {
             Some(fan_h) => bridge
                 .get_value(&fan_h.internal_index)

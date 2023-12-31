@@ -60,8 +60,8 @@ public static class Logger
         var currentTime = DateTime.Now;
         var currentTimeString = currentTime.ToString("HH:mm:ss");
         var finalLog = "[" + LogLevelManager.ToString(level) + " LHM " + currentTimeString + "] " + log + ".";
-        
-        if (_filePath == null) 
+
+        if (_filePath == null)
             Console.WriteLine(finalLog);
         else
             File.AppendAllText(_filePath, finalLog + Environment.NewLine);
