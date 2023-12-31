@@ -16,17 +16,15 @@ pub mod update;
 pub mod utils;
 
 use crate::app_graph::AppGraph;
-use hardware::{Hardware, HardwareBridge, HardwareBridgeT};
+use hardware::{Hardware, HardwareBridge};
 use update::Update;
 
 use crate::dir_manager::DirManager;
 
-pub type BoxedHardwareBridge = Box<dyn HardwareBridge>;
-
 pub struct AppState {
     pub dir_manager: DirManager,
     pub hardware: Hardware,
-    pub bridge: HardwareBridgeT,
+    pub bridge: Box<dyn HardwareBridge>,
     pub app_graph: AppGraph,
     pub update: Update,
 }
