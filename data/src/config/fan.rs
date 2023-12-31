@@ -25,7 +25,7 @@ impl Fan {
             Some(fan_h) => bridge
                 .get_value(&fan_h.internal_index)
                 .map_err(UpdateError::Hardware),
-            None => Err(UpdateError::NodeIsInvalid),
+            None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
         }
     }
 }

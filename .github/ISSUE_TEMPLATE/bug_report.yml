@@ -35,6 +35,17 @@ body:
     attributes:
       label: Notes
       description: Provide any additional notes that might be helpful.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operative System
+      description: Which operative system are you using?
+      options:
+        - Windows
+        - Linux
+        - Both
+    validations:
+      required: false
   - type: textarea
     id: version
     attributes:

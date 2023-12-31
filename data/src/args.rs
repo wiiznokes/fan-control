@@ -1,18 +1,54 @@
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{Parser, ValueHint};
 
 #[derive(Parser, Debug, Default)]
 #[clap(author = "wiiznokes", version, about = "fan control app", long_about = None)]
 pub struct Args {
-    #[arg(short = 'p', long = "path", id = "path to the config directory")]
+    #[arg(
+        short = 'p',
+        long = "path",
+        value_hint = ValueHint::DirPath,
+        value_names = ["PATH"],
+        help = "Config directory"
+    )]
     pub config_dir_path: Option<PathBuf>,
+
     #[arg(
         short = 'c',
         long = "config",
-        id = "existing config to use, within config_dir_path"
+        value_hint = ValueHint::FilePath,
+        value_names = ["PATH"],
+        help = "Config file to use, within config directory"
     )]
     pub config_name: Option<String>,
-    #[arg(long = "cli", default_value_t = false)]
+
+    #[arg(
+        long = "cli",
+        default_value_t = false,
+        help = "Do not use the graphical interface"
+    )]
     pub cli: bool,
+
+    #[arg(
+        long = "debug",
+        default_value_t = false,
+        help = "Show debug level of logs"
+    )]
+    pub debug: bool,
+
+    #[arg(
+        long = "info",
+        default_value_t = false,
+        help = "Show info level of logs"
+    )]
+    pub info: bool,
+
+    #[arg(
+        long = "log",
+        value_hint = ValueHint::FilePath,
+        value_names = ["PATH"],
+        help = "Puts logs to a specific file. Usefull on Windows because logs cannot be displayed due to limitations"
+    )]
+    pub log_file: Option<PathBuf>,
 }

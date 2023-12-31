@@ -3,6 +3,7 @@ hardware.toml
 .test/
 temp/
 /packages/
+log*.txt
 
 # Rust
 debug/
@@ -21,6 +22,7 @@ bin/
 obj/
 /app/
 net7.0/
+LibreHardwareMonitorWrapper.sln.DotSettings.user
 
 # Lmsensors
 build/

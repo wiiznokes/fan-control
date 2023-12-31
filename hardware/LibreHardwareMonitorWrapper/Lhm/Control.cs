@@ -38,19 +38,19 @@ public class Control : BaseHardware
         _mSensor.Control.SetSoftware(value);
         _isSetSpeed = true;
 
-        Logger.Debug("set control: " + Name + " = " + value);
+        Logger.Debug("Set control: " + Name + " = " + value);
     }
 
     public void SetAuto()
     {
         if (_isSetSpeed == false)
         {
-            Logger.Debug("control already set to auto: " + Name);
+            Logger.Debug("Control already set to auto: " + Name);
             return;
         }
 
         _mSensor.Control.SetDefault();
         _isSetSpeed = false;
-        Logger.Debug("set control to auto: " + Name);
+        Logger.Debug("Set control to auto: " + Name);
     }
 }

@@ -57,7 +57,7 @@ impl Control {
                 bridge.set_value(&control_h.internal_index, value)?;
                 Ok(value)
             }
-            None => Err(UpdateError::NodeIsInvalid),
+            None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
         }
     }
 
@@ -68,17 +68,17 @@ impl Control {
     ) -> Result<(), UpdateError> {
         if let Some(mode_set) = &self.mode_set {
             if mode_set == &mode {
-                debug!("mode already set: {}", mode);
+                info!("Mode {} is already set for {}.", mode, self.name);
                 return Ok(());
             }
         }
 
         match &self.control_h {
             Some(control_h) => bridge.set_mode(&control_h.internal_index, &mode)?,
-            None => return Err(UpdateError::NodeIsInvalid),
+            None => return Err(UpdateError::NodeIsInvalid(self.name.clone())),
         };
 
-        debug!("mode succefuly set to {}", mode);
+        info!("Mode {} succefuly set for {}.", mode, self.name);
         self.mode_set = Some(mode);
         Ok(())
     }
@@ -88,7 +88,7 @@ impl Control {
             Some(control_h) => bridge
                 .get_value(&control_h.internal_index)
                 .map_err(UpdateError::Hardware),
-            None => Err(UpdateError::NodeIsInvalid),
+            None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
         }
     }
 }
@@ -118,7 +118,7 @@ impl ToNode for Control {
                 {
                     Some(control_h) => self.control_h = Some(control_h.clone()),
                     None => {
-                        warn!("Control to Node, hardware_id not found. {} from config not found. Fall back to no id", hardware_id);
+                        warn!("Control to Node, hardware id \"{}\" was not found for {}. Fall back: hardware not used.", hardware_id, self.name);
                         self.hardware_id.take();
                         self.control_h.take();
                     }
@@ -126,7 +126,10 @@ impl ToNode for Control {
             }
             None => {
                 if self.control_h.is_some() {
-                    warn!("Control to Node: inconsistent internal index");
+                    warn!(
+                        "Control to Node: inconsistent internal index for {}.",
+                        self.name
+                    );
                     self.control_h.take();
                 }
             }

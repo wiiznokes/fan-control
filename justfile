@@ -76,7 +76,7 @@ git-cache:
 	git add .
 
 run-lhm:
-	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release
+	dotnet run --project ./hardware/LibreHardwareMonitorWrapper/ -c Release --log=info
 
 expand:
 	cargo expand
