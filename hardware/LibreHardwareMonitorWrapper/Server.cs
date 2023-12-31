@@ -20,18 +20,17 @@ public class Server
     private const string Check = "fan-control-check";
     private const string CheckResponse = "fan-control-ok";
     private readonly Socket _client;
-    private readonly Socket _listener;
     private readonly byte[] _buffer = new byte[4];
     
     public Server()
     {
-        _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
-        StartServer();
-        _client = AcceptClient();
+        StartServer(listener);
+        _client = AcceptClient(listener);
         
-        //listener.Dispose();
-        //listener.Close();
+        listener.Dispose();
+        listener.Close();
     }
     
     
@@ -85,15 +84,15 @@ public class Server
 
     
 
-    private void StartServer()
+    private static void StartServer(Socket listener)
     {
         var p = DefaultPort;
         for (; p <= 65535; p++)
         {
             try
             {
-                _listener.Bind(new IPEndPoint(IPAddress.Parse(Address), p));
-                _listener.Listen(1);
+                listener.Bind(new IPEndPoint(IPAddress.Parse(Address), p));
+                listener.Listen(1);
             }
             catch (SocketException e)
             {
@@ -116,9 +115,9 @@ public class Server
 
 
     // return client
-    private Socket AcceptClient()
+    private static Socket AcceptClient(Socket listener)
     {
-        var client = _listener.Accept();
+        var client = listener.Accept();
         var checkBytes = Encoding.UTF8.GetBytes(Check);
         var readBuf = new byte[checkBytes.Length];
         var res = client.Receive(readBuf);
@@ -155,8 +154,6 @@ public class Server
     {
         _client.Dispose();
         _client.Close();
-        _listener.Dispose();
-        _listener.Close();
         
         Logger.Info("Shutdown server.");
     }

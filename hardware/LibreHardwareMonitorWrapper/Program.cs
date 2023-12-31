@@ -22,53 +22,7 @@ internal static class Program
             _hardwareManager.Stop();
     }
     
-    // return hardware struct to json
-    private static Task<string?> StartHardwareManager()
-    {
-        return Task.Run(() =>
-        {
-            try
-            {
-                _hardwareManager = new HardwareManager();
-                _isHardwareManagerStarted = true;
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Can't start hardware manager: " + e.Message);
-                return null;
-            }
-            
-            try
-            {
-                return _hardwareManager.ToJson();
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Can't serialize to json " + e.Message);
-                return null;
-            }
-        });
-    }
-    
-    private static Task StartServer(CancellationToken token)
-    {
-        
-        
-        return Task.Run(() =>
-        {
-            try
-            {
-                _server =  new Server();
-                _isServerStarted = true;
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Can't start server: " + e.Message);
-            }
-        }, token);
-    }
-    
-    private static async Task Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         SetupLog(args);
 
@@ -98,7 +52,7 @@ internal static class Program
                 Logger.Error("Cancel server task: " + e.Message);
             }
             ShutDown();
-            return;
+            return 1;
         }
 
 
@@ -111,7 +65,7 @@ internal static class Program
         {
             Logger.Error("Can't serialize hardware to json: " + e.Message);
             ShutDown();
-            return;
+            return 1;
         }
 
         try
@@ -122,14 +76,14 @@ internal static class Program
         {
             Logger.Error("Can't start server : " + e.Message);
             ShutDown();
-            return;
+            return 1;
         }
 
         if (!_isServerStarted || !_isHardwareManagerStarted)
         {
             Logger.Error("Weird state: server started: " + _isServerStarted + ", hardware manager started: " + _isHardwareManagerStarted);
             ShutDown();
-            return;
+            return 1;
         }
         
         try
@@ -140,7 +94,7 @@ internal static class Program
         {
             Logger.Error("can't send hardware to the app" + e.Message);
             ShutDown();
-            return;
+            return 1;
         }
    
         
@@ -165,10 +119,11 @@ internal static class Program
         {
             Logger.Error("can't wait for commands" + e.Message);
             ShutDown();
-            return;
+            return 1;
         }
         
         ShutDown();
+        return 0;
     }
     
     private static void SetupLog(string[] args)
