@@ -21,23 +21,23 @@ public class Server
     private const string CheckResponse = "fan-control-ok";
     private readonly Socket _client;
     private readonly byte[] _buffer = new byte[4];
-    
+
     public Server()
     {
         var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        
+
         StartServer(listener);
         _client = AcceptClient(listener);
-        
+
         listener.Dispose();
         listener.Close();
     }
-    
-    
+
+
 
     public void SendHardware(string jsonText)
     {
-        
+
         var bytes = Encoding.UTF8.GetBytes(jsonText);
         Logger.Debug("Sending hardware");
         block_send(bytes);
@@ -82,7 +82,7 @@ public class Server
         }
     }
 
-    
+
 
     private static void StartServer(Socket listener)
     {
@@ -133,7 +133,7 @@ public class Server
         Logger.Info("Client accepted.");
         return client;
     }
-    
+
     private void block_send(byte[] bytes)
     {
         var bytesSend = _client.Send(bytes);
@@ -146,15 +146,15 @@ public class Server
         var bytesRead = _client.Receive(_buffer);
         if (bytesRead != _buffer.Length)
             throw new InvalidDataException("byte read " + bytesRead + " != " + _buffer.Length);
-        
+
         return BitConverter.ToInt32(_buffer, 0);
     }
-    
+
     public void Shutdown()
     {
         _client.Dispose();
         _client.Close();
-        
+
         Logger.Info("Shutdown server.");
     }
 }

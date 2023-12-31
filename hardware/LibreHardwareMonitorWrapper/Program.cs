@@ -1,134 +1,155 @@
-﻿using Microsoft.Win32;
+﻿using LibreHardwareMonitorWrapper;
+using Microsoft.Win32;
 
-namespace LibreHardwareMonitorWrapper;
 
-internal static class Program
+
+HardwareManager hardwareManager = null!;
+Server server = null!;
+
+var isServerStarted = false;
+var isHardwareManagerStarted = false;
+
+ShutdownManager shutdownManager = new();
+
+
+SetupLog();
+
+
+Console.CancelKeyPress += (_, _) =>
 {
+    Logger.Info("On canceled process");
+    ShutDown();
+};
 
-    private static HardwareManager _hardwareManager = null!;
-    private static Server _server = null!;
+SystemEvents.SessionEnding += (_, _) =>
+{
+    Logger.Info("On disconnected session");
+    ShutDown();
+};
 
-    private static bool _isServerStarted;
-    private static bool _isHardwareManagerStarted;
-    
-    private static readonly ShutdownManager ShutdownManager = new();
 
-    private static void ShutDown()
+var connectCts = new CancellationTokenSource();
+var connectTask = Task.Run(() =>
+{
+    server = new Server();
+    isServerStarted = true;
+}, connectCts.Token);
+
+try
+{
+    hardwareManager = new HardwareManager();
+    isHardwareManagerStarted = true;
+}
+catch (Exception e)
+{
+    Logger.Error("Can't start hardware manager: " + e.Message);
+    try
     {
-        if (!ShutdownManager.SafeTakeShutdown()) return;
-        if (_isServerStarted)
-            _server.Shutdown();
-        if (_isHardwareManagerStarted)
-            _hardwareManager.Stop();
+        connectCts.Cancel();
+        await connectTask;
     }
-    
-    private static async Task<int> Main(string[] args)
+    catch (Exception)
     {
-        SetupLog(args);
-
-        
-        var connectCts = new CancellationTokenSource();
-        var connectTask = Task.Run(() =>
-        {
-            _server =  new Server();
-            _isServerStarted = true;
-        }, connectCts.Token);
-      
-        try
-        {
-            _hardwareManager = new HardwareManager();
-            _isHardwareManagerStarted = true;
-        }
-        catch (Exception e)
-        {
-            Logger.Error("Can't start hardware manager: " + e.Message);
-            try
-            {
-                connectCts.Cancel();
-                await connectTask;
-            }
-            catch (Exception)
-            {
-                Logger.Error("Cancel server task: " + e.Message);
-            }
-            ShutDown();
-            return 1;
-        }
-
-
-        string jsonText;
-        try
-        {
-            jsonText = _hardwareManager.ToJson();
-        }
-        catch (Exception e)
-        {
-            Logger.Error("Can't serialize hardware to json: " + e.Message);
-            ShutDown();
-            return 1;
-        }
-
-        try
-        {
-            await connectTask;
-        }
-        catch (Exception e)
-        {
-            Logger.Error("Can't start server : " + e.Message);
-            ShutDown();
-            return 1;
-        }
-
-        if (!_isServerStarted || !_isHardwareManagerStarted)
-        {
-            Logger.Error("Weird state: server started: " + _isServerStarted + ", hardware manager started: " + _isHardwareManagerStarted);
-            ShutDown();
-            return 1;
-        }
-        
-        try
-        {
-            _server.SendHardware(jsonText);
-        }
-        catch (Exception e)
-        {
-            Logger.Error("can't send hardware to the app" + e.Message);
-            ShutDown();
-            return 1;
-        }
-   
-        
-        Console.CancelKeyPress += (_, _) =>
-        {
-            Logger.Info("On canceled process");
-            ShutDown();
-        };
-        
-        SystemEvents.SessionEnding += (_, _) =>
-        {
-            Logger.Info("On disconnected session");
-            ShutDown();
-        };
-        
-        
-        try
-        {
-            _server.WaitForCommand(_hardwareManager);
-        }
-        catch (Exception e)
-        {
-            Logger.Error("can't wait for commands" + e.Message);
-            ShutDown();
-            return 1;
-        }
-        
-        ShutDown();
-        return 0;
+        Logger.Error("Cancel server task: " + e.Message);
     }
-    
-    private static void SetupLog(string[] args)
+    ShutDown();
+    return 1;
+}
+
+
+
+string jsonText;
+try
+{
+    jsonText = hardwareManager.ToJson();
+}
+catch (Exception e)
+{
+    Logger.Error("Can't serialize hardware to json: " + e.Message);
+    ShutDown();
+    return 1;
+}
+
+try
+{
+    await connectTask;
+}
+catch (Exception e)
+{
+    Logger.Error("Can't start server : " + e.Message);
+    ShutDown();
+    return 1;
+}
+
+if (!isServerStarted || !isHardwareManagerStarted)
+{
+    Logger.Error("Weird state: server started: " + isServerStarted + ", hardware manager started: " + isHardwareManagerStarted);
+    ShutDown();
+    return 1;
+}
+
+try
+{
+    server.SendHardware(jsonText);
+}
+catch (Exception e)
+{
+    Logger.Error("can't send hardware to the app" + e.Message);
+    ShutDown();
+    return 1;
+}
+
+try
+{
+    Logger.Info("start waiting for commands");
+    server.WaitForCommand(hardwareManager);
+}
+catch (Exception e)
+{
+    Logger.Error("can't wait for commands" + e.Message);
+    ShutDown();
+    return 1;
+}
+
+ShutDown();
+return 0;
+
+
+
+void ShutDown()
+{
+    if (!shutdownManager.SafeTakeShutdown()) return;
+
+    Logger.Debug("Shutdown");
+
+    if (isServerStarted)
+        server.Shutdown();
+
+    // because Console.CancelKeyPress use this function
+    // but this seems to works as expected
+    if (isHardwareManagerStarted)
+        hardwareManager.Stop();
+}
+
+
+void SetupLog()
+{
+    LogToFile();
+
+    if (args.Contains("--log=debug"))
     {
-        // should log to a file part
+        Logger.LogLevel = LogLevel.Debug;
+    }
+    else
+    if (args.Contains("--log=info"))
+    {
+        Logger.LogLevel = LogLevel.Info;
+    }
+
+    return;
+
+    void LogToFile()
+    {
         try
         {
             var maybeLogFilePath = Environment.GetEnvironmentVariable("FAN_CONTROL_LOG_FILE");
@@ -142,22 +163,8 @@ internal static class Program
         {
             // ignored
         }
-    
-        // level part
-        if (args.Contains("--log=debug"))
-        {
-            Logger.LogLevel = LogLevel.Debug;
-        }
-        else
-        if (args.Contains("--log=info"))
-        {
-            Logger.LogLevel = LogLevel.Info;
-        }
-    
     }
 }
-
-
 
 
 
@@ -172,9 +179,9 @@ internal class ShutdownManager
     {
         lock (_shutdownLock)
         {
-            if (_isShutdown) return true;
+            if (_isShutdown) return false;
             _isShutdown = true;
-            return false;
+            return true;
         }
     }
 }
