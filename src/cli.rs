@@ -32,7 +32,7 @@ pub fn run_cli(mut app_state: AppState) {
         if let Err(e) = app_state.update.optimized(
             &mut app_state.app_graph.nodes,
             &app_state.app_graph.root_nodes,
-            &mut app_state.bridge,
+            &mut *app_state.bridge,
         ) {
             error!("{}", e);
         }

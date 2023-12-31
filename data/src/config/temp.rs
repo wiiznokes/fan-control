@@ -21,7 +21,7 @@ pub struct Temp {
 }
 
 impl Temp {
-    pub fn get_value(&self, bridge: &mut impl HardwareBridge) -> Result<Value, UpdateError> {
+    pub fn get_value(&self, bridge: &mut (impl HardwareBridge + ?Sized)) -> Result<Value, UpdateError> {
         match &self.temp_h {
             Some(temp_h) => bridge
                 .get_value(&temp_h.internal_index)

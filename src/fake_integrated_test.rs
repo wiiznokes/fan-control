@@ -32,7 +32,7 @@ fn test_config() {
         hardware,
         app_graph,
         update: Update::new(),
-        bridge,
+        bridge: Box::new(bridge),
     };
 
     for _ in 0..20 {
@@ -41,7 +41,7 @@ fn test_config() {
             .optimized(
                 &mut app_state.app_graph.nodes,
                 &app_state.app_graph.root_nodes,
-                &mut app_state.bridge,
+                &mut *app_state.bridge,
             )
             .unwrap();
         debug!("\n");
