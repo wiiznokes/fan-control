@@ -31,7 +31,7 @@ public class HardwareManager
             HardwareType.Control => (hardware as Control)!.Value(),
             HardwareType.Fan => (hardware as Sensor)!.Value(),
             HardwareType.Temp => (hardware as Sensor)!.Value(),
-            _ => throw new ArgumentOutOfRangeException(hardware.Type.ToString())
+            _ => throw new ArgumentOutOfRangeException(nameof(hardware.Type), hardware.Type, "Unknown hardware type")
         };
     }
 

@@ -9,7 +9,7 @@ internal static class LogLevelManager
             LogLevel.Debug => "DEBUG",
             LogLevel.Info => "INFO ",
             LogLevel.Error => "ERROR",
-            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, "Unknown log level")
         };
     }
 }
