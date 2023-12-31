@@ -3,9 +3,7 @@ use std::fmt::Debug;
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
-use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareError, Mode, TempH, Value,
-};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, Mode, TempH, Value};
 use ouroboros::self_referencing;
 
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
@@ -220,7 +218,7 @@ fn generate_hardware<'a>(
 }
 
 impl HardwareBridge for LinuxBridge {
-    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridge)> {
+    fn generate_hardware() -> crate::Result<(Hardware, impl HardwareBridge)> {
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {
