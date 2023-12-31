@@ -4,7 +4,7 @@ use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
 use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, Mode, TempH, Value,
+    ControlH, FanH, Hardware, HardwareBridge, HardwareError, Mode, TempH, Value,
 };
 use ouroboros::self_referencing;
 
@@ -220,7 +220,7 @@ fn generate_hardware<'a>(
 }
 
 impl HardwareBridge for LinuxBridge {
-    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
+    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridge)> {
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {
@@ -238,7 +238,7 @@ impl HardwareBridge for LinuxBridge {
         }
         .build();
 
-        Ok((hardware, Box::new(bridge)))
+        Ok((hardware, bridge))
     }
 
     fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
