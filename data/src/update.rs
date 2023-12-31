@@ -45,7 +45,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) -> Result<()> {
         bridge.update()?;
 
@@ -62,7 +62,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) -> Result<()> {
         bridge.update()?;
 
@@ -153,7 +153,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         node_id: &Id,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) -> Result<()> {
         let Some(node) = nodes.get_mut(node_id) else {
             return Err(UpdateError::NodeNotFound(*node_id));
@@ -169,7 +169,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) {
         for node_id in root_nodes {
             if Self::validate_rec(nodes, node_id) {
@@ -187,7 +187,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
@@ -222,7 +222,7 @@ impl Update {
         nodes: &mut Nodes,
         node_id: &Id,
         updated: &mut HashSet<Id>,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) -> Result<Option<Value>> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
@@ -279,7 +279,7 @@ impl Node {
     pub fn update(
         &mut self,
         input_values: &Vec<Value>,
-        bridge: &mut impl HardwareBridge,
+        bridge: &mut (impl HardwareBridge + ?Sized),
     ) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {

@@ -110,7 +110,7 @@ impl cosmic::Application for Ui {
                 if let Err(e) = self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
-                    &mut self.app_state.bridge,
+                    &mut *self.app_state.bridge,
                 ) {
                     error!("{}", e);
                 }
@@ -269,7 +269,7 @@ impl cosmic::Application for Ui {
                             Some(mut node) => {
                                 if let NodeType::Control(control) = &mut node.node_type {
                                     if let Err(e) =
-                                        control.set_mode(Mode::Auto, &mut self.app_state.bridge)
+                                        control.set_mode(Mode::Auto, &mut *self.app_state.bridge)
                                     {
                                         error!("can't set unactive when removing a control: {}", e);
                                     }
@@ -286,7 +286,7 @@ impl cosmic::Application for Ui {
                 self.app_state.update.set_invalid_controls_to_auto(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
-                    &mut self.app_state.bridge,
+                    &mut *self.app_state.bridge,
                 );
             }
 
@@ -334,7 +334,7 @@ impl cosmic::Application for Ui {
                     self.app_state.update.set_valid_controls_to_auto(
                         &mut self.app_state.app_graph.nodes,
                         &self.app_state.app_graph.root_nodes,
-                        &mut self.app_state.bridge,
+                        &mut *self.app_state.bridge,
                     );
 
                     match dir_manager.change_config(selected) {
@@ -347,7 +347,7 @@ impl cosmic::Application for Ui {
                                 if let Err(e) = self.app_state.update.all(
                                     &mut self.app_state.app_graph.nodes,
                                     &self.app_state.app_graph.root_nodes,
-                                    &mut self.app_state.bridge,
+                                    &mut *self.app_state.bridge,
                                 ) {
                                     error!("can't update after config change: {}", e);
                                 }

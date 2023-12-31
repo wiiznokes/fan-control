@@ -96,7 +96,7 @@ fn try_run() -> Result<()> {
     let app_state = AppState {
         dir_manager,
         hardware,
-        bridge,
+        bridge: Box::new(bridge),
         app_graph,
         update: Update::new(),
     };
