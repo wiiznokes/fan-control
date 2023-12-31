@@ -81,7 +81,6 @@ pub struct TempH {
 }
 
 pub type Value = i32;
-pub type HardwareBridgeT = Box<dyn HardwareBridge>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Display)]
 pub enum Mode {
@@ -91,7 +90,7 @@ pub enum Mode {
 }
 
 pub trait HardwareBridge {
-    fn generate_hardware() -> Result<(Hardware, HardwareBridgeT)>
+    fn generate_hardware() -> Result<(Hardware, impl HardwareBridge)>
     where
         Self: Sized;
 
