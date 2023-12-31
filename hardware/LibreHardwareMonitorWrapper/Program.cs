@@ -9,7 +9,8 @@ Server server = null!;
 var isServerStarted = false;
 var isHardwareManagerStarted = false;
 
-ShutdownManager shutdownManager = new();
+
+TakeLocker shutDownTakeLocker = new();
 
 
 SetupLog();
@@ -118,14 +119,14 @@ return 0;
 
 void ShutDown()
 {
-    if (!shutdownManager.SafeTakeShutdown()) return;
+    if (!shutDownTakeLocker.SafeTake()) return;
 
     Logger.Debug("Shutdown");
 
     if (isServerStarted)
         server.Shutdown();
 
-    // because Console.CancelKeyPress use this function
+    // the warning is because Console.CancelKeyPress use this function
     // but this seems to works as expected
     if (isHardwareManagerStarted)
         hardwareManager.Stop();
@@ -162,26 +163,6 @@ void SetupLog()
         catch (Exception)
         {
             // ignored
-        }
-    }
-}
-
-
-
-
-
-internal class ShutdownManager
-{
-    private readonly object _shutdownLock = new();
-    private bool _isShutdown;
-
-    public bool SafeTakeShutdown()
-    {
-        lock (_shutdownLock)
-        {
-            if (_isShutdown) return false;
-            _isShutdown = true;
-            return true;
         }
     }
 }
