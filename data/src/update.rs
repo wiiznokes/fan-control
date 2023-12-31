@@ -284,12 +284,12 @@ impl Node {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {
                 let input_value = input_values[0];
-                if self.value == Some(input_value) {
+                return if self.value == Some(input_value) {
                     debug!("Control {} already set to {}", control.name, input_value);
-                    Ok(input_value)
+                    Ok(())
                 } else {
-                    control.set_value(input_value, bridge)
-                }
+                    control.set_value(input_value, bridge).map(|_| ())
+                };
             }
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
             crate::node::NodeType::Temp(temp) => temp.get_value(bridge),

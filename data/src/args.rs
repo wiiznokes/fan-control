@@ -33,14 +33,14 @@ pub struct Args {
     #[arg(
         long = "debug",
         default_value_t = false,
-        help = "Show debug level of logs"
+        help = "Access debug level logs"
     )]
     pub debug: bool,
 
     #[arg(
         long = "info",
         default_value_t = false,
-        help = "Show info level of logs"
+        help = "Access info level logs"
     )]
     pub info: bool,
 

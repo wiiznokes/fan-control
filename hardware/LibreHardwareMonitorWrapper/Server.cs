@@ -20,25 +20,27 @@ public class Server
     private const string Check = "fan-control-check";
     private const string CheckResponse = "fan-control-ok";
     private readonly Socket _client;
-    private readonly Socket _listener;
-    private readonly int _port;
     private readonly byte[] _buffer = new byte[4];
 
     public Server()
     {
-        _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        _port = StartServer();
-        _client = AcceptClient();
+        var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+        StartServer(listener);
+        _client = AcceptClient(listener);
+
+        listener.Dispose();
+        listener.Close();
     }
+
+
 
     public void SendHardware(string jsonText)
     {
 
-        var stream = new NetworkStream(_client);
         var bytes = Encoding.UTF8.GetBytes(jsonText);
         Logger.Debug("Sending hardware");
-        stream.Write(bytes);
-        stream.Close();
+        block_send(bytes);
         Logger.Debug("Hardware send");
     }
 
@@ -47,7 +49,6 @@ public class Server
         while (true)
         {
             var res = block_read();
-            if (res < 0) return;
 
             var command = (Command)res;
 
@@ -57,22 +58,18 @@ public class Server
             {
                 case Command.SetAuto:
                     index = block_read();
-                    if (index < 0) return;
                     hardwareManager.SetAuto(index);
                     break;
                 case Command.SetValue:
                     index = block_read();
-                    if (index < 0) return;
                     value = block_read();
-                    if (value < 0) return;
                     hardwareManager.SetValue(index, value);
                     break;
                 case Command.GetValue:
                     index = block_read();
-                    if (index < 0) return;
                     value = hardwareManager.GetValue(index);
                     var bytes = BitConverter.GetBytes(value);
-                    if (!block_send(bytes)) return;
+                    block_send(bytes);
                     break;
                 case Command.Shutdown:
                     return;
@@ -80,57 +77,26 @@ public class Server
                     hardwareManager.Update();
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(command), command, null);
+                    throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown command");
             }
         }
     }
 
-    private bool block_send(byte[] bytes)
-    {
-        try
-        {
-            var bytesSend = _client.Send(bytes);
-            return bytesSend != 0;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return false;
-        }
-    }
 
-    // return -1 if error
-    private int block_read()
-    {
-        try
-        {
-            var bytesRead = _client.Receive(_buffer);
-            if (bytesRead == 4) return BitConverter.ToInt32(_buffer, 0);
-            Logger.Error("byte read = " + bytesRead);
-            return -1;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return -1;
-        }
-    }
 
-    // return port
-    private int StartServer()
+    private static void StartServer(Socket listener)
     {
         var p = DefaultPort;
         for (; p <= 65535; p++)
         {
             try
             {
-                _listener.Bind(new IPEndPoint(IPAddress.Parse(Address), p));
-                _listener.Listen(1);
-
+                listener.Bind(new IPEndPoint(IPAddress.Parse(Address), p));
+                listener.Listen(1);
             }
             catch (SocketException e)
             {
-                Logger.Error("SelectPort: port " + p + " invalid, " + e.Message);
+                Logger.Error("SelectPort: port " + p + " invalid, " + e);
                 continue;
             }
             catch (ObjectDisposedException e)
@@ -140,7 +106,7 @@ public class Server
             }
 
             Logger.Info("Server Started on " + Address + ":" + p);
-            return p;
+            return;
         }
 
         throw new ArgumentException("No valid port can be found for " + Address);
@@ -149,9 +115,9 @@ public class Server
 
 
     // return client
-    private Socket AcceptClient()
+    private static Socket AcceptClient(Socket listener)
     {
-        var client = _listener.Accept();
+        var client = listener.Accept();
         var checkBytes = Encoding.UTF8.GetBytes(Check);
         var readBuf = new byte[checkBytes.Length];
         var res = client.Receive(readBuf);
@@ -168,12 +134,27 @@ public class Server
         return client;
     }
 
+    private void block_send(byte[] bytes)
+    {
+        var bytesSend = _client.Send(bytes);
+        if (bytesSend != bytes.Length)
+            throw new InvalidDataException("byte send " + bytesSend + " != byte to send " + bytes.Length);
+    }
+
+    private int block_read()
+    {
+        var bytesRead = _client.Receive(_buffer);
+        if (bytesRead != _buffer.Length)
+            throw new InvalidDataException("byte read " + bytesRead + " != " + _buffer.Length);
+
+        return BitConverter.ToInt32(_buffer, 0);
+    }
+
     public void Shutdown()
     {
         _client.Dispose();
         _client.Close();
-        _listener.Dispose();
-        _listener.Close();
+
         Logger.Info("Shutdown server.");
     }
 }
