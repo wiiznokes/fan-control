@@ -9,7 +9,7 @@ use std::{
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
 use data::{settings::Settings, AppState};
-use hardware::HardwareBridge;
+use hardware::HardwareBridgeT;
 
 pub fn run_cli(mut app_state: AppState) {
     let current_config = match &app_state.dir_manager.settings().current_config {

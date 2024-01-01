@@ -94,7 +94,7 @@ pub enum Mode {
 }
 
 #[enum_dispatch]
-pub enum HardwareBridgeT {
+pub enum HardwareBridge {
     #[cfg(target_os = "windows")]
     WindowsBridge,
 
@@ -105,7 +105,7 @@ pub enum HardwareBridgeT {
     FakeHardwareBridge,
 }
 
-impl HardwareBridgeT {
+impl HardwareBridge {
     pub fn new() -> Result<Self> {
         #[cfg(feature = "fake_hardware")]
         return Ok(Self::FakeHardwareBridge(FakeHardwareBridge::new()?));
@@ -118,8 +118,8 @@ impl HardwareBridgeT {
     }
 }
 
-#[enum_dispatch(HardwareBridgeT)]
-pub trait HardwareBridge {
+#[enum_dispatch(HardwareBridge)]
+pub trait HardwareBridgeT {
     fn hardware(&self) -> &Hardware;
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;

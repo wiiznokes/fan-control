@@ -5,7 +5,6 @@ extern crate log;
 pub mod localize;
 
 pub mod app_graph;
-pub mod args;
 pub mod config;
 pub mod dir_manager;
 pub mod id;
@@ -16,14 +15,14 @@ pub mod update;
 pub mod utils;
 
 use crate::app_graph::AppGraph;
-use hardware::HardwareBridgeT;
+use hardware::HardwareBridge;
 use update::Update;
 
 use crate::dir_manager::DirManager;
 
 pub struct AppState {
     pub dir_manager: DirManager,
-    pub bridge: HardwareBridgeT,
+    pub bridge: HardwareBridge,
     pub app_graph: AppGraph,
     pub update: Update,
 }

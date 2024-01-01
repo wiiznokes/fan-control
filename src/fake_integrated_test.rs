@@ -2,9 +2,9 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
+use crate::args::Args;
 use crate::integrated_test::init_test_logging;
 use data::app_graph::AppGraph;
-use data::args::Args;
 use data::dir_manager::DirManager;
 use data::{update::Update, AppState};
 use hardware::{HardwareBridge, HardwareBridgeT};
@@ -19,9 +19,9 @@ fn test_config() {
         ..Default::default()
     };
 
-    let dir_manager = DirManager::new(&args);
+    let dir_manager = DirManager::new(&args.config_dir_path, &args.config_name);
 
-    let bridge = HardwareBridgeT::new().unwrap();
+    let bridge = HardwareBridge::new().unwrap();
 
     let config = dir_manager.get_config().unwrap();
 

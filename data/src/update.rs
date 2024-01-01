@@ -46,7 +46,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridgeT,
+        bridge: &mut HardwareBridge,
     ) -> Result<()> {
         bridge.update()?;
 
@@ -63,7 +63,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridgeT,
+        bridge: &mut HardwareBridge,
     ) -> Result<()> {
         bridge.update()?;
 
@@ -154,7 +154,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         node_id: &Id,
-        bridge: &mut HardwareBridgeT,
+        bridge: &mut HardwareBridge,
     ) -> Result<()> {
         let Some(node) = nodes.get_mut(node_id) else {
             return Err(UpdateError::NodeNotFound(*node_id));
@@ -170,7 +170,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridgeT,
+        bridge: &mut HardwareBridge,
     ) {
         for node_id in root_nodes {
             if Self::validate_rec(nodes, node_id) {
@@ -188,7 +188,7 @@ impl Update {
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridgeT,
+        bridge: &mut HardwareBridge,
     ) {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
@@ -223,7 +223,7 @@ impl Update {
         nodes: &mut Nodes,
         node_id: &Id,
         updated: &mut HashSet<Id>,
-        bridge: &mut HardwareBridgeT,
+        bridge: &mut HardwareBridge,
     ) -> Result<Option<Value>> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
@@ -277,7 +277,7 @@ impl Update {
 }
 
 impl Node {
-    pub fn update(&mut self, input_values: &[Value], bridge: &mut HardwareBridgeT) -> Result<()> {
+    pub fn update(&mut self, input_values: &[Value], bridge: &mut HardwareBridge) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {
                 let input_value = input_values[0];

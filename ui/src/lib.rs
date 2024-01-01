@@ -10,7 +10,7 @@ use data::{
     utils::RemoveElem,
     AppState,
 };
-use hardware::{HardwareBridge, Mode};
+use hardware::{HardwareBridgeT, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
