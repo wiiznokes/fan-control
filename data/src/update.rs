@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use hardware::{HardwareBridgeT, Mode, Value};
+use hardware::{HardwareBridge, HardwareBridgeT, Mode, Value};
 use thiserror::Error;
 
 use crate::{
@@ -276,11 +276,7 @@ impl Update {
 }
 
 impl Node {
-    pub fn update(
-        &mut self,
-        input_values: &Vec<Value>,
-        bridge: &mut HardwareBridgeT,
-    ) -> Result<()> {
+    pub fn update(&mut self, input_values: &[Value], bridge: &mut HardwareBridgeT) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {
                 let input_value = input_values[0];

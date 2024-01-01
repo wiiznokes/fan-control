@@ -1,6 +1,6 @@
 use data::args::Args;
 use data::dir_manager::DirManager;
-use hardware::{self, HardwareBridge};
+use hardware::{self, HardwareBridge, HardwareBridgeT};
 use std::path::PathBuf;
 
 pub fn init_test_logging() {
@@ -22,11 +22,8 @@ fn test_init() {
 
     let _dir_manager = DirManager::new(&args);
 
-    #[cfg(target_os = "linux")]
-    let (hardware, mut bridge) = hardware::linux::LinuxBridge::generate_hardware().unwrap();
-
-    #[cfg(target_os = "windows")]
-    let (hardware, mut bridge) = hardware::windows::WindowsBridge::generate_hardware().unwrap();
+    let mut bridge = HardwareBridgeT::new().unwrap();
+    let hardware = bridge.generate_hardware().unwrap();
 
     info!("Controls: {}", hardware.controls.len());
     info!("Fans: {}", hardware.fans.len());
