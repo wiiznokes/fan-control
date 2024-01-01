@@ -1,4 +1,4 @@
-use hardware::{self, HardwareBridge, HardwareBridgeT};
+use hardware::{self, HardwareBridgeT, HardwareBridge};
 
 pub fn init_test_logging() {
     let _ = env_logger::builder()
@@ -11,7 +11,7 @@ pub fn init_test_logging() {
 fn test_init() {
     init_test_logging();
 
-    let mut bridge = HardwareBridgeT::new().unwrap();
+    let mut bridge = HardwareBridge::new().unwrap();
     let hardware = bridge.hardware();
 
     info!("Controls: {}", hardware.controls.len());

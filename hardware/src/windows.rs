@@ -10,7 +10,7 @@ use std::{
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, Mode, TempH, Value};
+use crate::{ControlH, FanH, Hardware, HardwareBridgeT, Mode, TempH, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
@@ -331,7 +331,7 @@ impl WindowsBridge {
     }
 }
 
-impl HardwareBridge for WindowsBridge {
+impl HardwareBridgeT for WindowsBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }
@@ -379,7 +379,7 @@ impl HardwareBridge for WindowsBridge {
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
-    use crate::{Hardware, HardwareBridge};
+    use crate::{Hardware, HardwareBridgeT};
     use std::{
         thread::sleep,
         time::{Duration, Instant},

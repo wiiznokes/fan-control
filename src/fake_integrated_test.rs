@@ -7,7 +7,7 @@ use crate::integrated_test::init_test_logging;
 use data::app_graph::AppGraph;
 use data::dir_manager::DirManager;
 use data::{update::Update, AppState};
-use hardware::{HardwareBridge, HardwareBridgeT};
+use hardware::{HardwareBridgeT, HardwareBridge};
 
 #[test]
 fn test_config() {
@@ -21,7 +21,7 @@ fn test_config() {
 
     let dir_manager = DirManager::new(&args.config_dir_path, &args.config_name);
 
-    let bridge = HardwareBridgeT::new().unwrap();
+    let bridge = HardwareBridge::new().unwrap();
 
     let config = dir_manager.get_config().unwrap();
 
