@@ -152,6 +152,6 @@ public class Server
         _client.Dispose();
         _client.Close();
 
-        Logger.Info("Shutdown server.");
+        Logger.Info("Shutdown server");
     }
 }
