@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use hardware::{HardwareBridgeT, HardwareBridge, Mode, Value};
+use hardware::{HardwareBridge, HardwareBridgeT, Mode, Value};
 
 use thiserror::Error;
 

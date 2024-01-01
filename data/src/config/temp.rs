@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{Hardware, HardwareBridgeT, HardwareBridge, TempH, Value};
+use hardware::{Hardware, HardwareBridge, HardwareBridgeT, TempH, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{

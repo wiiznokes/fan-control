@@ -6,7 +6,7 @@ use crate::{
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
-use hardware::{FanH, Hardware, HardwareBridgeT, HardwareBridge, Value};
+use hardware::{FanH, Hardware, HardwareBridge, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]

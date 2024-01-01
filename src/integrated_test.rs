@@ -1,4 +1,4 @@
-use hardware::{self, HardwareBridgeT, HardwareBridge};
+use hardware::{self, HardwareBridge, HardwareBridgeT};
 
 pub fn init_test_logging() {
     let _ = env_logger::builder()

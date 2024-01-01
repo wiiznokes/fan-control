@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{ControlH, Hardware, HardwareBridgeT, HardwareBridge, Mode, Value};
+use hardware::{ControlH, Hardware, HardwareBridge, HardwareBridgeT, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -61,11 +61,7 @@ impl Control {
         }
     }
 
-    pub fn set_mode(
-        &mut self,
-        mode: Mode,
-        bridge: &mut HardwareBridge,
-    ) -> Result<(), UpdateError> {
+    pub fn set_mode(&mut self, mode: Mode, bridge: &mut HardwareBridge) -> Result<(), UpdateError> {
         if let Some(mode_set) = &self.mode_set {
             if mode_set == &mode {
                 info!("Mode {} is already set for {}.", mode, self.name);

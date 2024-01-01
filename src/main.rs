@@ -7,7 +7,7 @@ use std::{env, fs};
 use args::Args;
 use clap::Parser;
 use data::{app_graph::AppGraph, dir_manager::DirManager, update::Update, AppState};
-use hardware::{self, HardwareBridgeT, HardwareBridge};
+use hardware::{self, HardwareBridge, HardwareBridgeT};
 use log::LevelFilter;
 use thiserror::Error;
 
