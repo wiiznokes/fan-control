@@ -215,6 +215,7 @@ mod packet {
         #[derive(Debug, Clone, PartialEq, Eq)]
         #[repr(i32)]
         pub enum Command {
+            GetHardware = 0,
             SetAuto = 1,
             SetValue = 2,
             GetValue = 3,
@@ -327,7 +328,7 @@ impl WindowsBridge {
 
 impl HardwareBridge for WindowsBridge {
     fn generate_hardware(&mut self) -> crate::Result<Hardware> {
-        // todo: send command for it.
+        self.send(Command::GetHardware)?;
         let hardware = read_hardware(&self.stream)?;
         Ok(hardware)
     }

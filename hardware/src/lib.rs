@@ -1,25 +1,27 @@
-//#![allow(dead_code)]
-//#![allow(unused_variables)]
-
 use derive_more::Display;
 use enum_dispatch::enum_dispatch;
-use fake_hardware::FakeHardwareBridge;
 use serde::Serialize;
 use std::{fmt::Debug, rc::Rc};
 use thiserror::Error;
-use windows::WindowsBridge;
 
 #[macro_use]
 extern crate log;
 
 #[cfg(target_os = "linux")]
 mod linux;
+#[cfg(target_os = "linux")]
+use linux::LinuxBridge;
 
 #[cfg(target_os = "windows")]
 mod windows;
+#[cfg(target_os = "windows")]
+use windows::WindowsBridge;
+
 
 #[cfg(feature = "fake_hardware")]
 mod fake_hardware;
+#[cfg(feature = "fake_hardware")]
+use fake_hardware::FakeHardwareBridge;
 
 #[derive(Error, Debug)]
 pub enum HardwareError {

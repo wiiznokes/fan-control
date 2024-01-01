@@ -53,7 +53,7 @@ public class HardwareManager
         _hardwareResearcher.Stop();
     }
 
-    public string ToJson()
+    public string HardwareListToJson()
     {
         var serializerOptions = new JsonSerializerOptions
         {
