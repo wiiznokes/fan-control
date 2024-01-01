@@ -57,20 +57,6 @@ catch (Exception e)
     return 1;
 }
 
-
-
-string jsonText;
-try
-{
-    jsonText = hardwareManager.ToJson();
-}
-catch (Exception e)
-{
-    Logger.Error("Can't serialize hardware to json: " + e.Message);
-    ShutDown();
-    return 1;
-}
-
 try
 {
     await connectTask;
@@ -89,21 +75,11 @@ if (!isServerStarted || !isHardwareManagerStarted)
     return 1;
 }
 
-try
-{
-    server.SendHardware(jsonText);
-}
-catch (Exception e)
-{
-    Logger.Error("can't send hardware to the app" + e.Message);
-    ShutDown();
-    return 1;
-}
 
 try
 {
     Logger.Info("start waiting for commands");
-    server.WaitForCommand(hardwareManager);
+    server.WaitAndHandleCommands(hardwareManager);
 }
 catch (Exception e)
 {

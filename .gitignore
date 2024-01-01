@@ -10,6 +10,7 @@ debug/
 target/
 **/*.rs.bk
 *.pdb
+rustc-ice*
 
 # IDE
 .idea/

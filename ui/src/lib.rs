@@ -5,12 +5,12 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    node::{validate_name, NodeType},
+    node::{validate_name, IsValid, NodeType},
     settings::AppTheme,
     utils::RemoveElem,
     AppState,
 };
-use hardware::Mode;
+use hardware::{HardwareBridge, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
@@ -120,13 +120,20 @@ impl cosmic::Application for Ui {
                 let node = self.app_state.app_graph.get_mut(&id);
                 match modif_node_msg {
                     ModifNodeMsg::ChangeHardware(hardware_id) => {
-                        let hardware = &self.app_state.hardware;
+                        let bridge = &mut self.app_state.bridge;
 
                         match &mut node.node_type {
                             NodeType::Control(i) => {
+                                if i.is_valid() {
+                                    if let Err(e) = i.set_mode(Mode::Auto, bridge) {
+                                        error!("Can't set control to auto when removing his hardware ref: {e}.");
+                                    }
+                                }
+
                                 i.hardware_id = hardware_id;
                                 i.control_h = match &i.hardware_id {
-                                    Some(hardware_id) => hardware
+                                    Some(hardware_id) => bridge
+                                        .hardware()
                                         .controls
                                         .iter()
                                         .find(|h| &h.hardware_id == hardware_id)
@@ -138,7 +145,8 @@ impl cosmic::Application for Ui {
                             NodeType::Fan(i) => {
                                 i.hardware_id = hardware_id;
                                 i.fan_h = match &i.hardware_id {
-                                    Some(hardware_id) => hardware
+                                    Some(hardware_id) => bridge
+                                        .hardware()
                                         .fans
                                         .iter()
                                         .find(|h| &h.hardware_id == hardware_id)
@@ -150,7 +158,8 @@ impl cosmic::Application for Ui {
                             NodeType::Temp(i) => {
                                 i.hardware_id = hardware_id;
                                 i.temp_h = match &i.hardware_id {
-                                    Some(hardware_id) => hardware
+                                    Some(hardware_id) => bridge
+                                        .hardware()
                                         .temps
                                         .iter()
                                         .find(|h| &h.hardware_id == hardware_id)
@@ -342,7 +351,7 @@ impl cosmic::Application for Ui {
                             Some((config_name, config)) => {
                                 self.current_config_cached = config_name;
                                 self.app_state.app_graph =
-                                    AppGraph::from_config(config, &self.app_state.hardware);
+                                    AppGraph::from_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
                                 if let Err(e) = self.app_state.update.all(
                                     &mut self.app_state.app_graph.nodes,
@@ -436,7 +445,7 @@ impl cosmic::Application for Ui {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let content = items_view(&app_graph.nodes, &self.nodes_c, &app_state.hardware);
+        let content = items_view(&app_graph.nodes, &self.nodes_c, app_state.bridge.hardware());
 
         let floating_button = Column::new()
             .push(Space::new(0.0, Length::Fill))

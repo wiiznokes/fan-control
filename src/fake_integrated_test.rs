@@ -7,7 +7,7 @@ use data::app_graph::AppGraph;
 use data::args::Args;
 use data::dir_manager::DirManager;
 use data::{update::Update, AppState};
-use hardware::{fake_hardware, HardwareBridge};
+use hardware::{HardwareBridge, HardwareBridgeT};
 
 #[test]
 fn test_config() {
@@ -21,15 +21,14 @@ fn test_config() {
 
     let dir_manager = DirManager::new(&args);
 
-    let (hardware, bridge) = fake_hardware::FakeHardwareBridge::generate_hardware().unwrap();
+    let bridge = HardwareBridgeT::new().unwrap();
 
     let config = dir_manager.get_config().unwrap();
 
-    let app_graph = AppGraph::from_config(config, &hardware);
+    let app_graph = AppGraph::from_config(config, bridge.hardware());
 
     let mut app_state = AppState {
         dir_manager,
-        hardware,
         app_graph,
         update: Update::new(),
         bridge,

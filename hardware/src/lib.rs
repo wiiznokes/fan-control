@@ -1,7 +1,5 @@
-//#![allow(dead_code)]
-//#![allow(unused_variables)]
-
 use derive_more::Display;
+use enum_dispatch::enum_dispatch;
 use serde::Serialize;
 use std::{fmt::Debug, rc::Rc};
 use thiserror::Error;
@@ -10,13 +8,19 @@ use thiserror::Error;
 extern crate log;
 
 #[cfg(target_os = "linux")]
-pub mod linux;
+mod linux;
+#[cfg(target_os = "linux")]
+use linux::LinuxBridge;
 
 #[cfg(target_os = "windows")]
-pub mod windows;
+mod windows;
+#[cfg(target_os = "windows")]
+use windows::WindowsBridge;
 
 #[cfg(feature = "fake_hardware")]
-pub mod fake_hardware;
+mod fake_hardware;
+#[cfg(feature = "fake_hardware")]
+use fake_hardware::FakeHardwareBridge;
 
 #[derive(Error, Debug)]
 pub enum HardwareError {
@@ -81,7 +85,6 @@ pub struct TempH {
 }
 
 pub type Value = i32;
-pub type HardwareBridgeT = Box<dyn HardwareBridge>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Display)]
 pub enum Mode {
@@ -90,10 +93,34 @@ pub enum Mode {
     Specific(Value),
 }
 
+#[enum_dispatch]
+pub enum HardwareBridgeT {
+    #[cfg(target_os = "windows")]
+    WindowsBridge,
+
+    #[cfg(target_os = "linux")]
+    LinuxBridge,
+
+    #[cfg(feature = "fake_hardware")]
+    FakeHardwareBridge,
+}
+
+impl HardwareBridgeT {
+    pub fn new() -> Result<Self> {
+        #[cfg(feature = "fake_hardware")]
+        return Ok(Self::FakeHardwareBridge(FakeHardwareBridge::new()?));
+
+        #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+        return Ok(Self::WindowsBridge(WindowsBridge::new()?));
+
+        #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+        return Ok(Self::LinuxBridge(LinuxBridge::new()?));
+    }
+}
+
+#[enum_dispatch(HardwareBridgeT)]
 pub trait HardwareBridge {
-    fn generate_hardware() -> Result<(Hardware, HardwareBridgeT)>
-    where
-        Self: Sized;
+    fn hardware(&self) -> &Hardware;
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;

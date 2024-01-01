@@ -6,7 +6,7 @@ use std::{env, fs};
 
 use clap::Parser;
 use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
-use hardware::{self, HardwareBridge};
+use hardware::{self, HardwareBridge, HardwareBridgeT};
 use log::LevelFilter;
 use thiserror::Error;
 
@@ -75,27 +75,20 @@ fn try_run() -> Result<()> {
 
     let dir_manager = DirManager::new(&args);
 
-    #[cfg(feature = "fake_hardware")]
-    let (hardware, bridge) = hardware::fake_hardware::FakeHardwareBridge::generate_hardware()?;
-
-    #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
-    let (hardware, bridge) = hardware::linux::LinuxBridge::generate_hardware()?;
-
-    #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
-    let (hardware, bridge) = hardware::windows::WindowsBridge::generate_hardware()?;
+    let bridge = HardwareBridgeT::new()?;
+    let hardware = bridge.hardware();
 
     debug!("sensors found: {:?}", hardware);
 
-    dir_manager.serialize_hardware(&hardware);
+    dir_manager.serialize_hardware(hardware);
 
     let app_graph = match dir_manager.get_config() {
-        Some(config) => AppGraph::from_config(config, &hardware),
-        None => AppGraph::default(&hardware),
+        Some(config) => AppGraph::from_config(config, hardware),
+        None => AppGraph::default(hardware),
     };
 
     let app_state = AppState {
         dir_manager,
-        hardware,
         bridge,
         app_graph,
         update: Update::new(),

@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use hardware::{HardwareBridgeT, Mode, Value};
+use hardware::{HardwareBridge, HardwareBridgeT, Mode, Value};
+
 use thiserror::Error;
 
 use crate::{
@@ -70,12 +71,12 @@ impl Update {
             match nodes.get_mut(id) {
                 Some(node) => {
                     if let NodeType::Control(control) = &node.node_type {
-                        if control.control_h.is_none() {
-                            continue;
-                        }
                         match control.get_value(bridge) {
                             Ok(value) => {
                                 node.value = Some(value);
+                            }
+                            Err(UpdateError::NodeIsInvalid(_)) => {
+                                node.value.take();
                             }
                             Err(e) => {
                                 node.value.take();
@@ -276,11 +277,7 @@ impl Update {
 }
 
 impl Node {
-    pub fn update(
-        &mut self,
-        input_values: &Vec<Value>,
-        bridge: &mut HardwareBridgeT,
-    ) -> Result<()> {
+    pub fn update(&mut self, input_values: &[Value], bridge: &mut HardwareBridgeT) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {
                 let input_value = input_values[0];

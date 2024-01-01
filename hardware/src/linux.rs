@@ -3,9 +3,7 @@ use std::fmt::Debug;
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
-use crate::{
-    ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, HardwareError, Mode, TempH, Value,
-};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareError, Mode, TempH, Value};
 use ouroboros::self_referencing;
 
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
@@ -15,11 +13,16 @@ static DEFAULT_PWM_ENABLE: f64 = 5.0;
 static MANUAL_MODE: f64 = 1.0;
 
 #[self_referencing]
-pub struct LinuxBridge {
+pub struct LinuxBridgeSelfRef {
     lib: LMSensors,
     #[borrows(lib)]
     #[not_covariant]
     sensors: Vec<InternalSubFeatureRef<'this>>,
+}
+
+pub struct LinuxBridge {
+    lm_sensor: LinuxBridgeSelfRef,
+    hardware: Hardware,
 }
 
 #[derive(Error, Debug)]
@@ -219,8 +222,8 @@ fn generate_hardware<'a>(
     sensors
 }
 
-impl HardwareBridge for LinuxBridge {
-    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
+impl LinuxBridge {
+    pub fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {
@@ -232,82 +235,98 @@ impl HardwareBridge for LinuxBridge {
                 )))
             }
         };
-        let bridge = LinuxBridgeBuilder {
+        let bridge = LinuxBridgeSelfRefBuilder {
             lib,
             sensors_builder: |lib: &LMSensors| generate_hardware(lib, &mut hardware),
         }
         .build();
 
-        Ok((hardware, Box::new(bridge)))
+        Ok(Self {
+            lm_sensor: bridge,
+            hardware,
+        })
+    }
+}
+
+impl HardwareBridge for LinuxBridge {
+    fn hardware(&self) -> &Hardware {
+        &self.hardware
     }
 
     fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
-        self.with_sensors(|sensors| match sensors.get(*internal_index) {
-            Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
-                    Ok(value) => Ok((value / 2.55) as i32),
-                    Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
-                        "pwm".to_owned(),
-                        e,
-                    ))),
+        self.lm_sensor
+            .with_sensors(|sensors| match sensors.get(*internal_index) {
+                Some(sensor) => match sensor {
+                    InternalSubFeatureRef::Pwm(pwm_refs) => match pwm_refs.io.raw_value() {
+                        Ok(value) => Ok((value / 2.55) as i32),
+                        Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
+                            "pwm".to_owned(),
+                            e,
+                        ))),
+                    },
+                    InternalSubFeatureRef::Sensor(sensor_refs) => {
+                        match sensor_refs.io.raw_value() {
+                            Ok(value) => Ok(value as i32),
+                            Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
+                                "sensor".to_owned(),
+                                e,
+                            ))),
+                        }
+                    }
                 },
-                InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
-                    Ok(value) => Ok(value as i32),
-                    Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
-                        "sensor".to_owned(),
-                        e,
-                    ))),
-                },
-            },
-            None => Err(HardwareError::InternalIndexNotFound),
-        })
+                None => Err(HardwareError::InternalIndexNotFound),
+            })
     }
 
     fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
-        self.with_sensors(|sensors| match sensors.get(*internal_index) {
-            Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    let value = value as f64 * 2.55;
-                    if let Err(e) = pwm_refs.io.set_raw_value(value) {
-                        let explication = format!("can't set value {} to a pwm", value);
-                        let e = LinuxError::LmSensors(explication, e);
-                        return Err(HardwareError::Linux(e));
+        self.lm_sensor
+            .with_sensors(|sensors| match sensors.get(*internal_index) {
+                Some(sensor) => match sensor {
+                    InternalSubFeatureRef::Pwm(pwm_refs) => {
+                        let value = value as f64 * 2.55;
+                        if let Err(e) = pwm_refs.io.set_raw_value(value) {
+                            let explication = format!("can't set value {} to a pwm", value);
+                            let e = LinuxError::LmSensors(explication, e);
+                            return Err(HardwareError::Linux(e));
+                        }
+                        Ok(())
                     }
-                    Ok(())
-                }
-                InternalSubFeatureRef::Sensor(_) => {
-                    let e = LinuxError::WrongHardware("sensor".to_owned(), "set value".to_owned());
-                    Err(HardwareError::Linux(e))
-                }
-            },
-            None => Err(HardwareError::InternalIndexNotFound),
-        })
+                    InternalSubFeatureRef::Sensor(_) => {
+                        let e =
+                            LinuxError::WrongHardware("sensor".to_owned(), "set value".to_owned());
+                        Err(HardwareError::Linux(e))
+                    }
+                },
+                None => Err(HardwareError::InternalIndexNotFound),
+            })
     }
 
     fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
-        self.with_sensors(|sensors| match sensors.get(*internal_index) {
-            Some(sensor) => match sensor {
-                InternalSubFeatureRef::Pwm(pwm_refs) => {
-                    let value = match mode {
-                        Mode::Auto => pwm_refs.default_enable_cached,
-                        Mode::Manual => MANUAL_MODE,
-                        Mode::Specific(value) => value.to_owned().into(),
-                    };
+        self.lm_sensor
+            .with_sensors(|sensors| match sensors.get(*internal_index) {
+                Some(sensor) => match sensor {
+                    InternalSubFeatureRef::Pwm(pwm_refs) => {
+                        let value = match mode {
+                            Mode::Auto => pwm_refs.default_enable_cached,
+                            Mode::Manual => MANUAL_MODE,
+                            Mode::Specific(value) => value.to_owned().into(),
+                        };
 
-                    if let Err(e) = pwm_refs.enable.set_raw_value(value) {
-                        let explication = format!("can't set mode {} to a pwm", value);
-                        let e = LinuxError::LmSensors(explication, e);
-                        return Err(HardwareError::Linux(e));
+                        if let Err(e) = pwm_refs.enable.set_raw_value(value) {
+                            let explication = format!("can't set mode {} to a pwm", value);
+                            let e = LinuxError::LmSensors(explication, e);
+                            return Err(HardwareError::Linux(e));
+                        }
+                        Ok(())
                     }
-                    Ok(())
-                }
-                InternalSubFeatureRef::Sensor(_) => {
-                    let e = LinuxError::WrongHardware("sensor".to_owned(), "set mode".to_owned());
-                    Err(HardwareError::Linux(e))
-                }
-            },
-            None => Err(HardwareError::InternalIndexNotFound),
-        })
+                    InternalSubFeatureRef::Sensor(_) => {
+                        let e =
+                            LinuxError::WrongHardware("sensor".to_owned(), "set mode".to_owned());
+                        Err(HardwareError::Linux(e))
+                    }
+                },
+                None => Err(HardwareError::InternalIndexNotFound),
+            })
     }
 }
 

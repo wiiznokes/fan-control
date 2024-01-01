@@ -84,4 +84,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Dotnet format
-        run: dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
+        run: dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj --verify-no-changes --verbosity detailed

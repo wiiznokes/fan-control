@@ -2,9 +2,11 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, Mode, TempH, Value};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, Mode, TempH, Value};
 
-pub struct FakeHardwareBridge {}
+pub struct FakeHardwareBridge {
+    hardware: Hardware,
+}
 
 #[derive(Debug)]
 struct InternalSensor {}
@@ -16,8 +18,8 @@ static TEMP_INTERNAL_INDEX: usize = 0;
 static FAN_INTERNAL_INDEX: usize = 1;
 static CONTROL_INTERNAL_INDEX: usize = 2;
 
-impl HardwareBridge for FakeHardwareBridge {
-    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
+impl FakeHardwareBridge {
+    pub fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
         let temp1 = TempH {
@@ -60,7 +62,13 @@ impl HardwareBridge for FakeHardwareBridge {
         };
         hardware.controls.push(control2.into());
 
-        Ok((hardware, Box::new(Self {})))
+        Ok(Self { hardware })
+    }
+}
+
+impl HardwareBridge for FakeHardwareBridge {
+    fn hardware(&self) -> &Hardware {
+        &self.hardware
     }
 
     fn get_value(&mut self, _internal_index: &usize) -> crate::Result<Value> {

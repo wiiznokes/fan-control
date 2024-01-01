@@ -10,7 +10,7 @@ use std::{
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridge, HardwareBridgeT, Mode, TempH, Value};
+use crate::{ControlH, FanH, Hardware, HardwareBridge, Mode, TempH, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
@@ -19,6 +19,7 @@ use self::packet::{command::Command, i32::I32, Packet};
 pub struct WindowsBridge {
     process_handle: std::process::Child,
     stream: TcpStream,
+    hardware: Hardware,
 }
 
 #[derive(Error, Debug)]
@@ -215,6 +216,7 @@ mod packet {
         #[derive(Debug, Clone, PartialEq, Eq)]
         #[repr(i32)]
         pub enum Command {
+            GetHardware = 0,
             SetAuto = 1,
             SetValue = 2,
             GetValue = 3,
@@ -311,19 +313,27 @@ impl WindowsBridge {
     }
 }
 
-impl HardwareBridge for WindowsBridge {
-    fn generate_hardware() -> crate::Result<(Hardware, HardwareBridgeT)> {
+impl WindowsBridge {
+    pub fn new() -> crate::Result<Self> {
         let process_handle = spawn_windows_server()?;
         let stream = try_connect()?;
 
-        let hardware = read_hardware(&stream)?;
-
-        let windows_bridge = WindowsBridge {
+        let mut windows_bridge = WindowsBridge {
             process_handle,
             stream,
+            hardware: Hardware::default(),
         };
 
-        Ok((hardware, Box::new(windows_bridge)))
+        windows_bridge.send(Command::GetHardware)?;
+        windows_bridge.hardware = read_hardware(&windows_bridge.stream)?;
+
+        Ok(windows_bridge)
+    }
+}
+
+impl HardwareBridge for WindowsBridge {
+    fn hardware(&self) -> &Hardware {
+        &self.hardware
     }
 
     fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
@@ -369,7 +379,7 @@ impl HardwareBridge for WindowsBridge {
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
-    use crate::{Hardware, HardwareBridge, HardwareBridgeT};
+    use crate::{Hardware, HardwareBridge};
     use std::{
         thread::sleep,
         time::{Duration, Instant},
@@ -378,7 +388,10 @@ mod test {
     #[test]
     fn test_time() {
         let now = Instant::now();
-        let (hardware, mut bridge) = WindowsBridge::generate_hardware().unwrap();
+
+        let mut bridge = WindowsBridge::new().unwrap();
+        let hardware = bridge.hardware().clone();
+
         println!("generation took {} millis", now.elapsed().as_millis());
 
         for _ in 0..5 {
@@ -393,7 +406,7 @@ mod test {
         }
     }
 
-    fn update(bridge: &mut HardwareBridgeT, hardware: &Hardware) {
+    fn update(bridge: &mut WindowsBridge, hardware: &Hardware) {
         println!();
 
         bench(
@@ -415,7 +428,7 @@ mod test {
         }
     }
 
-    fn get_value(bridge: &mut HardwareBridgeT, index: &usize, name: &str) {
+    fn get_value(bridge: &mut WindowsBridge, index: &usize, name: &str) {
         bench(
             || match bridge.get_value(index) {
                 Ok(value) => {
