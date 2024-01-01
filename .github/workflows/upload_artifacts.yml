@@ -24,7 +24,7 @@ jobs:
         run: just deb
           
       - run: echo "DEB_NAME=$(basename ./packages/fan-control*.deb)" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.DEB_NAME }}
           path: |
@@ -47,7 +47,7 @@ jobs:
 
       - run: echo "NSIS_NAME=$(basename ./packages/fan-control*-setup.exe)" >> $GITHUB_ENV
         shell: bash
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.NSIS_NAME }}
           path: |
