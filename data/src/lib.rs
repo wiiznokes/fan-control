@@ -16,7 +16,7 @@ pub mod update;
 pub mod utils;
 
 use crate::app_graph::AppGraph;
-use hardware::{HardwareBridgeT};
+use hardware::HardwareBridgeT;
 use update::Update;
 
 use crate::dir_manager::DirManager;

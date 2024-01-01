@@ -19,6 +19,7 @@ use self::packet::{command::Command, i32::I32, Packet};
 pub struct WindowsBridge {
     process_handle: std::process::Child,
     stream: TcpStream,
+    hardware: Hardware,
 }
 
 #[derive(Error, Debug)]
@@ -317,20 +318,22 @@ impl WindowsBridge {
         let process_handle = spawn_windows_server()?;
         let stream = try_connect()?;
 
-        let windows_bridge = WindowsBridge {
+        let mut windows_bridge = WindowsBridge {
             process_handle,
             stream,
+            hardware: Hardware::default(),
         };
+
+        windows_bridge.send(Command::GetHardware)?;
+        windows_bridge.hardware = read_hardware(&windows_bridge.stream)?;
 
         Ok(windows_bridge)
     }
 }
 
 impl HardwareBridge for WindowsBridge {
-    fn generate_hardware(&mut self) -> crate::Result<Hardware> {
-        self.send(Command::GetHardware)?;
-        let hardware = read_hardware(&self.stream)?;
-        Ok(hardware)
+    fn hardware(&self) -> &Hardware {
+        &self.hardware
     }
 
     fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
@@ -387,7 +390,7 @@ mod test {
         let now = Instant::now();
 
         let mut bridge = WindowsBridge::new().unwrap();
-        let hardware = bridge.generate_hardware().unwrap();
+        let hardware = bridge.hardware().clone();
 
         println!("generation took {} millis", now.elapsed().as_millis());
 
