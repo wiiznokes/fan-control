@@ -5,7 +5,7 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    node::{validate_name, NodeType},
+    node::{validate_name, IsValid, NodeType},
     settings::AppTheme,
     utils::RemoveElem,
     AppState,
@@ -120,13 +120,20 @@ impl cosmic::Application for Ui {
                 let node = self.app_state.app_graph.get_mut(&id);
                 match modif_node_msg {
                     ModifNodeMsg::ChangeHardware(hardware_id) => {
-                        let hardware = self.app_state.bridge.hardware();
+                        let bridge = &mut self.app_state.bridge;
 
                         match &mut node.node_type {
                             NodeType::Control(i) => {
+                                if i.is_valid() {
+                                    if let Err(e) = i.set_mode(Mode::Auto, bridge) {
+                                        error!("Can't set control to auto when removing his hardware ref: {e}.");
+                                    }
+                                }
+
                                 i.hardware_id = hardware_id;
                                 i.control_h = match &i.hardware_id {
-                                    Some(hardware_id) => hardware
+                                    Some(hardware_id) => bridge
+                                        .hardware()
                                         .controls
                                         .iter()
                                         .find(|h| &h.hardware_id == hardware_id)
@@ -138,7 +145,8 @@ impl cosmic::Application for Ui {
                             NodeType::Fan(i) => {
                                 i.hardware_id = hardware_id;
                                 i.fan_h = match &i.hardware_id {
-                                    Some(hardware_id) => hardware
+                                    Some(hardware_id) => bridge
+                                        .hardware()
                                         .fans
                                         .iter()
                                         .find(|h| &h.hardware_id == hardware_id)
@@ -150,7 +158,8 @@ impl cosmic::Application for Ui {
                             NodeType::Temp(i) => {
                                 i.hardware_id = hardware_id;
                                 i.temp_h = match &i.hardware_id {
-                                    Some(hardware_id) => hardware
+                                    Some(hardware_id) => bridge
+                                        .hardware()
                                         .temps
                                         .iter()
                                         .find(|h| &h.hardware_id == hardware_id)
