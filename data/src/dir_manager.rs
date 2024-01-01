@@ -8,7 +8,7 @@ use hardware::Hardware;
 
 use thiserror::Error;
 
-use crate::{args::Args, config::Config, name_sorter, settings::Settings, utils::RemoveElem};
+use crate::{config::Config, name_sorter, settings::Settings, utils::RemoveElem};
 
 use self::helper::{deserialize, serialize};
 
@@ -42,7 +42,7 @@ static SETTINGS_FILENAME: &str = "settings.toml";
 static HARDWARE_FILENAME: &str = "hardware.toml";
 
 impl DirManager {
-    pub fn new(args: &Args) -> DirManager {
+    pub fn new(config_dir_path: &Option<PathBuf>, config_name: &Option<String>) -> DirManager {
         fn default_config_dir_path() -> PathBuf {
             static QUALIFIER: &str = "com";
             static ORG: &str = "wiiznokes";
@@ -54,7 +54,7 @@ impl DirManager {
                 .to_path_buf()
         }
 
-        let config_dir_path = match &args.config_dir_path {
+        let config_dir_path = match config_dir_path {
             Some(config_dir_path) => {
                 if !config_dir_path.is_dir() {
                     error!("{} is not a directory", config_dir_path.display());
@@ -76,7 +76,7 @@ impl DirManager {
 
         let config_names = ConfigNames::new(&config_dir_path);
 
-        if let Some(config_name) = &args.config_name {
+        if let Some(config_name) = config_name {
             let config_name = helper::remove_toml_extension(config_name).to_owned();
             settings.current_config = if config_names.contains(&config_name) {
                 Some(config_name)

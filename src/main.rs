@@ -4,8 +4,9 @@
 
 use std::{env, fs};
 
+use args::Args;
 use clap::Parser;
-use data::{app_graph::AppGraph, args::Args, dir_manager::DirManager, update::Update, AppState};
+use data::{app_graph::AppGraph, dir_manager::DirManager, update::Update, AppState};
 use hardware::{self, HardwareBridge, HardwareBridgeT};
 use log::LevelFilter;
 use thiserror::Error;
@@ -14,13 +15,14 @@ use thiserror::Error;
 #[macro_use]
 extern crate log;
 
+pub mod args;
+mod cli;
+
 #[cfg(all(test, feature = "fake_hardware"))]
 mod fake_integrated_test;
 
 #[cfg(test)]
 mod integrated_test;
-
-mod cli;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -73,7 +75,7 @@ fn try_run() -> Result<()> {
     ui::localize::localize();
     data::localize::localize();
 
-    let dir_manager = DirManager::new(&args);
+    let dir_manager = DirManager::new(&args.config_dir_path, &args.config_name);
 
     let bridge = HardwareBridgeT::new()?;
     let hardware = bridge.hardware();

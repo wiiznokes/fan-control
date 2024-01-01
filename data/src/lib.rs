@@ -5,7 +5,6 @@ extern crate log;
 pub mod localize;
 
 pub mod app_graph;
-pub mod args;
 pub mod config;
 pub mod dir_manager;
 pub mod id;

@@ -1,7 +1,4 @@
-use data::args::Args;
-use data::dir_manager::DirManager;
 use hardware::{self, HardwareBridge, HardwareBridgeT};
-use std::path::PathBuf;
 
 pub fn init_test_logging() {
     let _ = env_logger::builder()
@@ -13,14 +10,6 @@ pub fn init_test_logging() {
 #[test]
 fn test_init() {
     init_test_logging();
-
-    let args = Args {
-        config_dir_path: Some(PathBuf::from("./.config")),
-        config_name: Some("fake".into()),
-        ..Default::default()
-    };
-
-    let _dir_manager = DirManager::new(&args);
 
     let mut bridge = HardwareBridgeT::new().unwrap();
     let hardware = bridge.hardware();
