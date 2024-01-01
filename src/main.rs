@@ -75,21 +75,20 @@ fn try_run() -> Result<()> {
 
     let dir_manager = DirManager::new(&args);
 
-    let mut bridge = HardwareBridgeT::new()?;
-    let hardware = bridge.generate_hardware()?;
+    let bridge = HardwareBridgeT::new()?;
+    let hardware = bridge.hardware();
 
     debug!("sensors found: {:?}", hardware);
 
-    dir_manager.serialize_hardware(&hardware);
+    dir_manager.serialize_hardware(hardware);
 
     let app_graph = match dir_manager.get_config() {
-        Some(config) => AppGraph::from_config(config, &hardware),
-        None => AppGraph::default(&hardware),
+        Some(config) => AppGraph::from_config(config, hardware),
+        None => AppGraph::default(hardware),
     };
 
     let app_state = AppState {
         dir_manager,
-        hardware,
         bridge,
         app_graph,
         update: Update::new(),

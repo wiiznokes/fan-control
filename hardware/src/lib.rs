@@ -17,7 +17,6 @@ mod windows;
 #[cfg(target_os = "windows")]
 use windows::WindowsBridge;
 
-
 #[cfg(feature = "fake_hardware")]
 mod fake_hardware;
 #[cfg(feature = "fake_hardware")]
@@ -121,7 +120,7 @@ impl HardwareBridgeT {
 
 #[enum_dispatch(HardwareBridgeT)]
 pub trait HardwareBridge {
-    fn generate_hardware(&mut self) -> Result<Hardware>;
+    fn hardware(&self) -> &Hardware;
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
     fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;

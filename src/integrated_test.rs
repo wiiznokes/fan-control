@@ -23,7 +23,7 @@ fn test_init() {
     let _dir_manager = DirManager::new(&args);
 
     let mut bridge = HardwareBridgeT::new().unwrap();
-    let hardware = bridge.generate_hardware().unwrap();
+    let hardware = bridge.hardware();
 
     info!("Controls: {}", hardware.controls.len());
     info!("Fans: {}", hardware.fans.len());

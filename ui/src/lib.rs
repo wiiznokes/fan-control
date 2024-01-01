@@ -120,7 +120,7 @@ impl cosmic::Application for Ui {
                 let node = self.app_state.app_graph.get_mut(&id);
                 match modif_node_msg {
                     ModifNodeMsg::ChangeHardware(hardware_id) => {
-                        let hardware = &self.app_state.hardware;
+                        let hardware = self.app_state.bridge.hardware();
 
                         match &mut node.node_type {
                             NodeType::Control(i) => {
@@ -342,7 +342,7 @@ impl cosmic::Application for Ui {
                             Some((config_name, config)) => {
                                 self.current_config_cached = config_name;
                                 self.app_state.app_graph =
-                                    AppGraph::from_config(config, &self.app_state.hardware);
+                                    AppGraph::from_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
                                 if let Err(e) = self.app_state.update.all(
                                     &mut self.app_state.app_graph.nodes,
@@ -436,7 +436,7 @@ impl cosmic::Application for Ui {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let content = items_view(&app_graph.nodes, &self.nodes_c, &app_state.hardware);
+        let content = items_view(&app_graph.nodes, &self.nodes_c, app_state.bridge.hardware());
 
         let floating_button = Column::new()
             .push(Space::new(0.0, Length::Fill))

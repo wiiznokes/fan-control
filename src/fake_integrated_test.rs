@@ -21,16 +21,14 @@ fn test_config() {
 
     let dir_manager = DirManager::new(&args);
 
-    let mut bridge = HardwareBridgeT::new().unwrap();
-    let hardware = bridge.generate_hardware().unwrap();
+    let bridge = HardwareBridgeT::new().unwrap();
 
     let config = dir_manager.get_config().unwrap();
 
-    let app_graph = AppGraph::from_config(config, &hardware);
+    let app_graph = AppGraph::from_config(config, bridge.hardware());
 
     let mut app_state = AppState {
         dir_manager,
-        hardware,
         app_graph,
         update: Update::new(),
         bridge,
