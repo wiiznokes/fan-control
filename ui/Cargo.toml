@@ -25,7 +25,7 @@ derive_more.workspace = true
 [dependencies.libcosmic]
 #git = "https://github.com/wiiznokes/libcosmic"
 git = "https://github.com/pop-os/libcosmic"
-rev = "a731ebc1b2d45fcc504ba5d6ae54a0e2d60da599"
+rev = "8cc0c3b469a5146deca9d7fd72de1c73ddd28b72"
 #branch = "master"
 default-features = false
 features = [
