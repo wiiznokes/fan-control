@@ -23,7 +23,7 @@ deb:
 	cp ./target/release/fan-control*.deb ./packages/
 
 nsis:
-	cargo packager --release --formats nsis
+	cargo packager --release --formats nsis --verbose
 	New-Item -Path .\packages -ItemType Directory -Force > $null
 	cp ./target/release/fan-control*-setup.exe ./packages/
 
