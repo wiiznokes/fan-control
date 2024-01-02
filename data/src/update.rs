@@ -67,31 +67,7 @@ impl Update {
     ) -> Result<()> {
         bridge.update()?;
 
-        for id in root_nodes {
-            match nodes.get_mut(id) {
-                Some(node) => {
-                    if let NodeType::Control(control) = &node.node_type {
-                        match control.get_value(bridge) {
-                            Ok(value) => {
-                                node.value = Some(value);
-                            }
-                            Err(UpdateError::NodeIsInvalid(_)) => {
-                                node.value.take();
-                            }
-                            Err(e) => {
-                                node.value.take();
-                                error!("can't get value of a root node: {}", e);
-                            }
-                        }
-                    }
-                }
-                None => {
-                    error!("root node: {}", UpdateError::NodeNotFound(*id));
-                }
-            }
-        }
-
-        let ids: Vec<Id>;
+        let ids_to_update_sorted: Vec<Id>;
         {
             let mut key_values = nodes.iter().collect::<Vec<_>>();
 
@@ -138,13 +114,38 @@ impl Update {
                 },
             });
 
-            ids = key_values.iter().map(|e| *e.0).collect();
+            ids_to_update_sorted = key_values.iter().map(|e| *e.0).collect();
         }
 
         let mut updated = HashSet::new();
-        for id in ids {
+        for id in ids_to_update_sorted {
             if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge) {
                 error!("can't update node: {}", e);
+            }
+        }
+
+        // update printed value of root nodes
+        for id in root_nodes {
+            match nodes.get_mut(id) {
+                Some(node) => {
+                    if let NodeType::Control(control) = &node.node_type {
+                        match control.get_value(bridge) {
+                            Ok(value) => {
+                                node.value = Some(value);
+                            }
+                            Err(UpdateError::NodeIsInvalid(_)) => {
+                                node.value.take();
+                            }
+                            Err(e) => {
+                                node.value.take();
+                                error!("can't get value of a root node: {}", e);
+                            }
+                        }
+                    }
+                }
+                None => {
+                    error!("root node: {}", UpdateError::NodeNotFound(*id));
+                }
             }
         }
         Ok(())
