@@ -36,52 +36,39 @@ pub enum HardwareError {
 
 type Result<T> = std::result::Result<T, HardwareError>;
 
+#[derive(Serialize, Debug, Clone, Eq)]
+pub struct HItem {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+
+    #[serde(skip)]
+    pub info: String,
+
+    #[serde(skip)]
+    pub internal_index: usize,
+}
+
+impl ToString for HItem {
+    fn to_string(&self) -> String {
+        self.name.clone()
+    }
+}
+
+impl PartialEq for HItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.internal_index == other.internal_index
+    }
+}
+
 #[derive(Serialize, Debug, Clone, Default)]
 pub struct Hardware {
     #[serde(default, rename = "Control")]
-    pub controls: Vec<Rc<ControlH>>,
+    pub controls: Vec<Rc<HItem>>,
     #[serde(default, rename = "Fan")]
-    pub fans: Vec<Rc<FanH>>,
+    pub fans: Vec<Rc<HItem>>,
     #[serde(default, rename = "Temp")]
-    pub temps: Vec<Rc<TempH>>,
-}
-
-#[derive(Serialize, Debug)]
-pub struct ControlH {
-    pub name: String,
-    #[serde(rename = "id")]
-    pub hardware_id: String,
-
-    #[serde(skip)]
-    pub info: String,
-
-    #[serde(skip)]
-    pub internal_index: usize,
-}
-
-#[derive(Serialize, Debug)]
-pub struct FanH {
-    pub name: String,
-    #[serde(rename = "id")]
-    pub hardware_id: String,
-
-    #[serde(skip)]
-    pub info: String,
-
-    #[serde(skip)]
-    pub internal_index: usize,
-}
-
-#[derive(Serialize, Debug)]
-pub struct TempH {
-    pub name: String,
-    #[serde(rename = "id")]
-    pub hardware_id: String,
-    #[serde(skip)]
-    pub info: String,
-
-    #[serde(skip)]
-    pub internal_index: usize,
+    pub temps: Vec<Rc<HItem>>,
 }
 
 pub type Value = i32;
@@ -142,53 +129,5 @@ pub trait HardwareBridgeT {
     /// Used on Windows to shutdown the server properly.
     fn shutdown(&mut self) -> Result<()> {
         Ok(())
-    }
-}
-
-pub trait HardwareInfoTrait {
-    fn name(&self) -> &String;
-    fn id(&self) -> &String;
-    fn info(&self) -> &String;
-}
-
-impl HardwareInfoTrait for ControlH {
-    fn name(&self) -> &String {
-        &self.name
-    }
-
-    fn id(&self) -> &String {
-        &self.hardware_id
-    }
-
-    fn info(&self) -> &String {
-        &self.info
-    }
-}
-
-impl HardwareInfoTrait for FanH {
-    fn name(&self) -> &String {
-        &self.name
-    }
-
-    fn id(&self) -> &String {
-        &self.hardware_id
-    }
-
-    fn info(&self) -> &String {
-        &self.info
-    }
-}
-
-impl HardwareInfoTrait for TempH {
-    fn name(&self) -> &String {
-        &self.name
-    }
-
-    fn id(&self) -> &String {
-        &self.hardware_id
-    }
-
-    fn info(&self) -> &String {
-        &self.info
     }
 }

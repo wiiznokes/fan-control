@@ -21,7 +21,7 @@ use data::{
     },
     node::{Input, Node, NodeTypeLight, ValueKind},
 };
-use hardware::{Hardware, HardwareInfoTrait};
+use hardware::{HItem, Hardware};
 
 use crate::{
     icon::{icon_button, icon_path_for_node_type, my_icon},
@@ -162,30 +162,23 @@ fn item_view<'a>(
         .into()
 }
 
-fn pick_hardware<'a, H>(
+fn pick_hardware<'a>(
     node: &'a Node,
-    hardwares: &'a [Rc<H>],
+    hardwares: &'a [Rc<HItem>],
     one_ref: bool,
-) -> Element<'a, AppMsg>
-where
-    H: HardwareInfoTrait,
-{
+) -> Element<'a, AppMsg> {
     let hardware_id = node.hardware_id().clone();
     let (selected_hardware_info, input_hardware) =
         utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
 
-    PickList::new(
-        input_hardware,
-        Some(selected_hardware_info),
-        |hardware_info| {
-            let message_content = match hardware_info {
-                MyOption::Some(hardware_info) => Some(hardware_info.id),
-                MyOption::None => None,
-            };
+    PickList::new(input_hardware, Some(selected_hardware_info), |selected| {
+        let message_content = match selected {
+            MyOption::Some(selected) => Some(selected.hardware_id),
+            MyOption::None => None,
+        };
 
-            ModifNodeMsg::ChangeHardware(message_content).to_app(node.id)
-        },
-    )
+        ModifNodeMsg::ChangeHardware(message_content).to_app(node.id)
+    })
     .width(Length::Fill)
     .into()
 }

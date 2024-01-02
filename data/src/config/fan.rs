@@ -6,7 +6,7 @@ use crate::{
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
-use hardware::{FanH, Hardware, HardwareBridge, HardwareBridgeT, Value};
+use hardware::{HItem, Hardware, HardwareBridge, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -16,7 +16,7 @@ pub struct Fan {
     pub hardware_id: Option<String>,
 
     #[serde(skip)]
-    pub fan_h: Option<Rc<FanH>>,
+    pub fan_h: Option<Rc<HItem>>,
 }
 
 impl Fan {

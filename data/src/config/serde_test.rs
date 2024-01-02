@@ -1,5 +1,5 @@
 use const_format::formatcp;
-use hardware::{ControlH, FanH, Hardware, TempH};
+use hardware::{HItem, Hardware};
 use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
@@ -97,21 +97,21 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
 
 fn hardware1() -> Hardware {
     Hardware {
-        controls: vec![ControlH {
+        controls: vec![HItem {
             name: "ControlH".into(),
             hardware_id: "ControlH".into(),
             info: "ControlH".into(),
             internal_index: 0,
         }
         .into()],
-        temps: vec![TempH {
+        temps: vec![HItem {
             name: "TempH".into(),
             hardware_id: "TempH".into(),
             info: "TempH".into(),
             internal_index: 0,
         }
         .into()],
-        fans: vec![FanH {
+        fans: vec![HItem {
             name: "FanH".into(),
             hardware_id: "FanH".into(),
             info: "FanH".into(),

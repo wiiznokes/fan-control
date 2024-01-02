@@ -10,7 +10,7 @@ use std::{
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridgeT, Mode, TempH, Value};
+use crate::{HItem, Hardware, HardwareBridgeT, Mode, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
@@ -180,25 +180,17 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
     let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data)?;
 
     for base_hardware in base_hardware_list {
+        let h_item = Rc::new(HItem {
+            name: base_hardware.name,
+            hardware_id: base_hardware.id,
+            info: String::new(),
+            internal_index: base_hardware.index,
+        });
+
         match base_hardware.hardware_type {
-            HardwareType::Control => hardware.controls.push(Rc::new(ControlH {
-                name: base_hardware.name,
-                hardware_id: base_hardware.id,
-                info: String::new(),
-                internal_index: base_hardware.index,
-            })),
-            HardwareType::Fan => hardware.fans.push(Rc::new(FanH {
-                name: base_hardware.name,
-                hardware_id: base_hardware.id,
-                info: String::new(),
-                internal_index: base_hardware.index,
-            })),
-            HardwareType::Temp => hardware.temps.push(Rc::new(TempH {
-                name: base_hardware.name,
-                hardware_id: base_hardware.id,
-                info: String::new(),
-                internal_index: base_hardware.index,
-            })),
+            HardwareType::Control => hardware.controls.push(h_item),
+            HardwareType::Fan => hardware.fans.push(h_item),
+            HardwareType::Temp => hardware.temps.push(h_item),
         }
     }
 
