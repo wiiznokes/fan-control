@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridgeT, Mode, TempH, Value};
+use crate::{HItem, Hardware, HardwareBridgeT, Mode, Value};
 
 pub struct FakeHardwareBridge {
     hardware: Hardware,
@@ -22,7 +22,7 @@ impl FakeHardwareBridge {
     pub fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
-        let temp1 = TempH {
+        let temp1 = HItem {
             name: "temp1".into(),
             hardware_id: "temp1".into(),
             info: String::new(),
@@ -30,7 +30,7 @@ impl FakeHardwareBridge {
         };
         hardware.temps.push(temp1.into());
 
-        let temp2 = TempH {
+        let temp2 = HItem {
             name: "temp2".into(),
             hardware_id: "temp2".into(),
             info: String::new(),
@@ -38,7 +38,7 @@ impl FakeHardwareBridge {
         };
         hardware.temps.push(temp2.into());
 
-        let fan1 = FanH {
+        let fan1 = HItem {
             name: "fan1".into(),
             hardware_id: "fan1".into(),
             info: String::new(),
@@ -46,7 +46,7 @@ impl FakeHardwareBridge {
         };
         hardware.fans.push(fan1.into());
 
-        let control1 = ControlH {
+        let control1 = HItem {
             name: "control1".into(),
             hardware_id: "control1".into(),
             info: String::new(),
@@ -54,7 +54,7 @@ impl FakeHardwareBridge {
         };
         hardware.controls.push(control1.into());
 
-        let control2 = ControlH {
+        let control2 = HItem {
             name: "control2".into(),
             hardware_id: "control2".into(),
             info: String::new(),

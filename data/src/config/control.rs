@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{ControlH, Hardware, HardwareBridge, HardwareBridgeT, Mode, Value};
+use hardware::{HItem, Hardware, HardwareBridge, HardwareBridgeT, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -19,7 +19,7 @@ pub struct Control {
     pub active: bool,
 
     #[serde(skip)]
-    pub control_h: Option<Rc<ControlH>>,
+    pub control_h: Option<Rc<HItem>>,
 
     #[serde(skip)]
     pub mode_set: Option<Mode>,
@@ -31,7 +31,7 @@ impl Control {
         hardware_id: Option<String>,
         input: Option<String>,
         active: bool,
-        control_h: Option<Rc<ControlH>>,
+        control_h: Option<Rc<HItem>>,
     ) -> Self {
         Self {
             name: name.clone(),

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{Hardware, HardwareBridge, HardwareBridgeT, TempH, Value};
+use hardware::{HItem, Hardware, HardwareBridge, HardwareBridgeT, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -17,7 +17,7 @@ pub struct Temp {
     pub hardware_id: Option<String>,
 
     #[serde(skip)]
-    pub temp_h: Option<Rc<TempH>>,
+    pub temp_h: Option<Rc<HItem>>,
 }
 
 impl Temp {
