@@ -20,7 +20,7 @@ pub fn run_cli(mut app_state: AppState) {
                 "You can define one in {} directory,",
                 app_state.dir_manager.config_dir_path.display()
             );
-            println!("Or specifie a config to use using a argument");
+            println!("Or specifie a config to use using an argument");
             return;
         }
     };
