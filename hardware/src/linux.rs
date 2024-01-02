@@ -1,9 +1,9 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
-use crate::{ControlH, FanH, Hardware, HardwareBridgeT, HardwareError, Mode, TempH, Value};
+use crate::{HItem, Hardware, HardwareBridgeT, HardwareError, Mode, Value};
 use ouroboros::self_referencing;
 
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
@@ -60,55 +60,53 @@ fn generate_hardware<'a>(
     lib: &'a LMSensors,
     hardware: &mut Hardware,
 ) -> Vec<InternalSubFeatureRef<'a>> {
-    struct HardwareMetadata {
-        id: String,
-        name: String,
-        info: String,
-    }
+    fn h_item_from_refs(
+        chip_ref: &ChipRef,
+        feature_ref: &FeatureRef,
+        sub_feature_ref: &SubFeatureRef,
+        internal_index: usize,
+    ) -> Result<Rc<HItem>> {
+        let Some(chip_path) = chip_ref.path() else {
+            return Err(LinuxError::InvalidData("chip path is none".to_owned()));
+        };
 
-    impl HardwareMetadata {
-        fn new(
-            chip_ref: &ChipRef,
-            feature_ref: &FeatureRef,
-            sub_feature_ref: &SubFeatureRef,
-        ) -> Result<Self> {
-            let Some(chip_path) = chip_ref.path() else {
-                return Err(LinuxError::InvalidData("chip path is none".to_owned()));
-            };
+        let bus = chip_ref.bus();
 
-            let bus = chip_ref.bus();
+        let label = feature_ref.label()?;
+        let chip_name = chip_ref.name()?;
 
-            let label = feature_ref.label()?;
-            let chip_name = chip_ref.name()?;
+        let sub_feature_name = match sub_feature_ref.name() {
+            Some(sub_feature_name) => sub_feature_name?,
+            None => {
+                return Err(LinuxError::InvalidData(
+                    "sub feature name is none".to_owned(),
+                ));
+            }
+        };
 
-            let sub_feature_name = match sub_feature_ref.name() {
-                Some(sub_feature_name) => sub_feature_name?,
-                None => {
-                    return Err(LinuxError::InvalidData(
-                        "sub feature name is none".to_owned(),
-                    ));
-                }
-            };
+        let h_item = HItem {
+            name: format!("{} {}", label, chip_name),
+            hardware_id: format!("{}-{}-{}", label, chip_name, sub_feature_name),
+            info: format!(
+                "chip path: {}\nchip name: {}\nbus: {}\nlabel: {}\nfeature: {}",
+                chip_path.display(),
+                chip_name,
+                bus,
+                label,
+                sub_feature_name
+            ),
+            internal_index,
+        };
 
-            Ok(Self {
-                id: format!("{}-{}-{}", label, chip_name, sub_feature_name),
-                name: format!("{} {}", label, chip_name),
-                info: format!(
-                    "chip path: {}\nchip name: {}\nbus: {}\nlabel: {}\nfeature: {}",
-                    chip_path.display(),
-                    chip_name,
-                    bus,
-                    label,
-                    sub_feature_name
-                ),
-            })
-        }
+        Ok(Rc::new(h_item))
     }
 
     let mut sensors = Vec::new();
 
     for chip_ref in lib.chip_iter(None) {
         for feature_ref in chip_ref.feature_iter() {
+            let next_internal_index = sensors.len();
+
             match feature_ref.kind() {
                 Some(feature_kind) => match feature_kind {
                     feature::Kind::Fan => {
@@ -118,20 +116,18 @@ fn generate_hardware<'a>(
                             continue;
                         };
 
-                        match HardwareMetadata::new(&chip_ref, &feature_ref, &sub_feature_ref) {
-                            Ok(metadata) => {
-                                let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
+                        match h_item_from_refs(
+                            &chip_ref,
+                            &feature_ref,
+                            &sub_feature_ref,
+                            next_internal_index,
+                        ) {
+                            Ok(h_item) => {
+                                let sensor = SensorRefs {
                                     io: sub_feature_ref,
-                                });
-                                sensors.push(sensor);
-
-                                let fan_h = FanH {
-                                    name: metadata.name,
-                                    hardware_id: metadata.id,
-                                    info: metadata.info,
-                                    internal_index: sensors.len() - 1,
                                 };
-                                hardware.fans.push(fan_h.into());
+                                sensors.push(InternalSubFeatureRef::Sensor(sensor));
+                                hardware.fans.push(h_item);
                             }
                             Err(e) => {
                                 error!("can't generate hardware metadata for fan: {}", e);
@@ -145,20 +141,18 @@ fn generate_hardware<'a>(
                             continue;
                         };
 
-                        match HardwareMetadata::new(&chip_ref, &feature_ref, &sub_feature_ref) {
-                            Ok(metadata) => {
-                                let sensor = InternalSubFeatureRef::Sensor(SensorRefs {
+                        match h_item_from_refs(
+                            &chip_ref,
+                            &feature_ref,
+                            &sub_feature_ref,
+                            next_internal_index,
+                        ) {
+                            Ok(h_item) => {
+                                let sensor = SensorRefs {
                                     io: sub_feature_ref,
-                                });
-                                sensors.push(sensor);
-
-                                let temp_h = TempH {
-                                    name: metadata.name,
-                                    hardware_id: metadata.id,
-                                    info: metadata.info,
-                                    internal_index: sensors.len() - 1,
                                 };
-                                hardware.temps.push(temp_h.into());
+                                sensors.push(InternalSubFeatureRef::Sensor(sensor));
+                                hardware.temps.push(h_item);
                             }
                             Err(e) => {
                                 error!("can't generate hardware metadata for temp: {}", e);
@@ -191,22 +185,20 @@ fn generate_hardware<'a>(
                             }
                         };
 
-                        match HardwareMetadata::new(&chip_ref, &feature_ref, &sub_feature_ref_io) {
-                            Ok(metadata) => {
+                        match h_item_from_refs(
+                            &chip_ref,
+                            &feature_ref,
+                            &sub_feature_ref_io,
+                            next_internal_index,
+                        ) {
+                            Ok(h_item) => {
                                 let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
                                     io: sub_feature_ref_io,
                                     enable: sub_feature_ref_enable,
                                     default_enable_cached: enable_cached,
                                 });
                                 sensors.push(sensor);
-
-                                let control_h = ControlH {
-                                    name: metadata.name,
-                                    hardware_id: metadata.id,
-                                    info: metadata.info,
-                                    internal_index: sensors.len() - 1,
-                                };
-                                hardware.controls.push(control_h.into());
+                                hardware.controls.push(h_item);
                             }
                             Err(e) => {
                                 error!("can't generate hardware metadata for control: {}", e);
