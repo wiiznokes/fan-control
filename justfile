@@ -18,7 +18,7 @@ lhm:
 ###################  Packaging
 
 deb:
-	cargo packager --release --formats deb
+	cargo packager --release --formats deb --verbose
 	mkdir -p packages
 	cp ./target/release/fan-control*.deb ./packages/
 

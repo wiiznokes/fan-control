@@ -35,12 +35,25 @@ pub type Result<T> = std::result::Result<T, Error>;
 fn setup_logs(args: &Args) {
     let mut env_logger_builder = env_logger::builder();
 
+    fn filter_workspace_crates(
+        env_logger_builder: &mut env_logger::Builder,
+        level_filter: LevelFilter,
+    ) -> &mut env_logger::Builder {
+        // allow other crate to show warn level of error
+        env_logger_builder.filter_level(LevelFilter::Warn);
+        env_logger_builder.filter_module("hardware", level_filter);
+        env_logger_builder.filter_module("data", level_filter);
+        env_logger_builder.filter_module("ui", level_filter);
+        env_logger_builder.filter_module("fan-control", level_filter);
+        env_logger_builder
+    }
+
     if args.info {
-        env_logger_builder.filter_level(LevelFilter::Info);
+        filter_workspace_crates(&mut env_logger_builder, LevelFilter::Info);
     };
 
     if args.debug {
-        env_logger_builder.filter_level(LevelFilter::Debug);
+        filter_workspace_crates(&mut env_logger_builder, LevelFilter::Debug);
     };
 
     if let Some(log_file_path) = &args.log_file {

@@ -1,18 +1,18 @@
 [[Control]]
 name = "pwm2 nct6798-isa-0290"
-id = "nct6798-isa-0290-pwm2"
+id = "pwm2-nct6798-isa-0290-pwm2"
 input = "linear1"
 active = true
 
 [[Control]]
 name = "pwm3 nct6798-isa-0290"
-id = "nct6798-isa-0290-pwm3"
+id = "pwm3-nct6798-isa-0290-pwm3"
 input = "target1"
 active = true
 
 [[Control]]
 name = "pwm4 nct6798-isa-0290"
-id = "nct6798-isa-0290-pwm4"
+id = "pwm4-nct6798-isa-0290-pwm4"
 input = "flat1"
 active = true
 
@@ -60,33 +60,33 @@ inputs = [
 
 [[Temp]]
 name = "TSI0_TEMP nct6798-isa-0290"
-id = "nct6798-isa-0290-temp11_input"
+id = "TSI0_TEMP-nct6798-isa-0290-temp11_input"
 
 [[Temp]]
 name = "AUXTIN1 nct6798-isa-0290"
-id = "nct6798-isa-0290-temp4_input"
+id = "AUXTIN1-nct6798-isa-0290-temp4_input"
 
 [[Temp]]
 name = "Tctl k10temp-pci-00c3"
-id = "k10temp-pci-00c3-temp1_input"
+id = "Tctl-k10temp-pci-00c3-temp1_input"
 
 [[Temp]]
 name = "Tccd1 k10temp-pci-00c3"
-id = "k10temp-pci-00c3-temp3_input"
+id = "Tccd1-k10temp-pci-00c3-temp3_input"
 
 [[Temp]]
 name = "Composite nvme-pci-0100"
-id = "nvme-pci-0100-temp1_input"
+id = "Composite-nvme-pci-0100-temp1_input"
 
 
 [[Fan]]
 name = "fan2 nct6798-isa-0290"
-id = "nct6798-isa-0290-fan2_input"
+id = "fan2-nct6798-isa-0290-fan2_input"
 
 [[Fan]]
 name = "fan3 nct6798-isa-0290"
-id = "nct6798-isa-0290-fan3_input"
+id = "fan3-nct6798-isa-0290-fan3_input"
 
 [[Fan]]
 name = "fan4 nct6798-isa-0290"
-id = "nct6798-isa-0290-fan4_input"
+id = "fan4-nct6798-isa-0290-fan4_input"
