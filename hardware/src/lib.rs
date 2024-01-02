@@ -93,6 +93,9 @@ pub enum Mode {
     Specific(Value),
 }
 
+/// Use this type to interact with the hardware.
+/// Only one implementation will be used at runtime. Using enum
+/// instead of a trait have better performance.
 #[enum_dispatch]
 pub enum HardwareBridge {
     #[cfg(target_os = "windows")]
@@ -106,18 +109,21 @@ pub enum HardwareBridge {
 }
 
 impl HardwareBridge {
+    /// Try to construct a new hardware bridge
+    #[allow(unreachable_code)]
     pub fn new() -> Result<Self> {
         #[cfg(feature = "fake_hardware")]
         return Ok(Self::FakeHardwareBridge(FakeHardwareBridge::new()?));
 
-        #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+        #[cfg(target_os = "windows")]
         return Ok(Self::WindowsBridge(WindowsBridge::new()?));
 
-        #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+        #[cfg(target_os = "linux")]
         return Ok(Self::LinuxBridge(LinuxBridge::new()?));
     }
 }
 
+/// All variant of HardwareBridge will implement this trait
 #[enum_dispatch(HardwareBridge)]
 pub trait HardwareBridgeT {
     fn hardware(&self) -> &Hardware;
