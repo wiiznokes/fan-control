@@ -53,7 +53,7 @@ impl Update {
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
             if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
-                error!("can't update node: {}", e);
+                error!("Can't update node: {}.", e);
             }
         }
         Ok(())
@@ -124,6 +124,8 @@ impl Update {
             }
         }
 
+        bridge.update()?;
+
         // update printed value of root nodes
         for id in root_nodes {
             match nodes.get_mut(id) {
@@ -131,14 +133,19 @@ impl Update {
                     if let NodeType::Control(control) = &node.node_type {
                         match control.get_value(bridge) {
                             Ok(value) => {
-                                node.value = Some(value);
+                                debug!("Control {} value is {}.", control.name, value);
+                                node.value.replace(value);
                             }
                             Err(UpdateError::NodeIsInvalid(_)) => {
                                 node.value.take();
                             }
                             Err(e) => {
                                 node.value.take();
-                                error!("can't get value of a root node: {}", e);
+                                error!(
+                                    "Can't get the value of the root node {}: {}.",
+                                    node.name(),
+                                    e
+                                );
                             }
                         }
                     }
@@ -286,6 +293,7 @@ impl Node {
                     debug!("Control {} already set to {}", control.name, input_value);
                     Ok(())
                 } else {
+                    debug!("Before setting control {} to {}", control.name, input_value);
                     control.set_value(input_value, bridge).map(|_| ())
                 };
             }
@@ -300,7 +308,6 @@ impl Node {
 
         match value {
             Ok(value) => {
-                debug!("{} set to {}", self.name(), value);
                 self.value = Some(value);
                 Ok(())
             }
