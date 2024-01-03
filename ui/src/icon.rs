@@ -10,9 +10,12 @@ use once_cell::sync::Lazy;
 use cargo_packager_resource_resolver as resource_resolver;
 
 lazy_static::lazy_static! {
-    static ref RESSOURCE_PATH: PathBuf = resource_resolver::resource_dir_with_suffix("resource")
+    static ref RESSOURCE_PATH: PathBuf = {
+        let package_format = resource_resolver::current_format();
+        resource_resolver::resource_dir_with_suffix(package_format, "resource")
         .unwrap_or(PathBuf::from("resource"))
-        .join("icons/");
+        .join("icons/")
+    };
 }
 
 static EXTENSION: &str = "px.svg";
