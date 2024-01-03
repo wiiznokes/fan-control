@@ -39,7 +39,7 @@ add_target = Prendre 5 variables :
 
 # Config
 config_name = Nom de la configuration
-save_config = Enregistrer/Remplacer la configuration
+save_config = Enregistrer la configuration active
 delete_config = Supprimer la configuration
 create_config = Créer une configuration
 
