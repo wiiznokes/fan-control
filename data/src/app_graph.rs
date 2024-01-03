@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use hardware::Hardware;
 
@@ -9,7 +9,7 @@ use crate::id::{Id, IdGenerator};
 use crate::node::{self, Node, NodeType, NodeTypeLight, ToNode};
 use crate::utils::RemoveElem;
 
-pub type Nodes = HashMap<Id, Node>;
+pub type Nodes = BTreeMap<Id, Node>;
 pub type RootNodes = Vec<Id>;
 
 #[derive(Debug)]

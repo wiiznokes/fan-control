@@ -39,7 +39,6 @@ pub enum WindowsError {
 type Result<T> = std::result::Result<T, WindowsError>;
 
 fn spawn_windows_server() -> Result<std::process::Child> {
-
     let resource_path = {
         let resource_suffix = "resource";
         #[cfg(test)]

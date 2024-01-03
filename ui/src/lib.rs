@@ -1,5 +1,3 @@
-//#![allow(dead_code)]
-//#![allow(unused_imports)]
 use std::time::Duration;
 
 use data::{
