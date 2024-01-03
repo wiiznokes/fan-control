@@ -50,7 +50,7 @@ public class HardwareResearcher : IVisitor
 
     public void Stop()
     {
-        Logger.Info("Shutdown Lhm");
+        Logger.Info("Shutdown lhm");
 
         if (!_isStarted)
             return;

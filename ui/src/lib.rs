@@ -340,11 +340,14 @@ impl cosmic::Application for Ui {
                 }
                 ConfigMsg::Change(selected) => {
                     self.choose_config_expanded = false;
-                    self.app_state.update.set_valid_controls_to_auto(
-                        &mut self.app_state.app_graph.nodes,
-                        &self.app_state.app_graph.root_nodes,
-                        &mut self.app_state.bridge,
-                    );
+
+                    if selected.is_some() {
+                        self.app_state.update.set_valid_controls_to_auto(
+                            &mut self.app_state.app_graph.nodes,
+                            &self.app_state.app_graph.root_nodes,
+                            &mut self.app_state.bridge,
+                        );
+                    }
 
                     match dir_manager.change_config(selected) {
                         Ok(config) => match config {
