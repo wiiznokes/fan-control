@@ -21,8 +21,8 @@ sudo sensors-detect
 Also, make sure to execute the program in sudo mode.
 
 ## Config files
-- Windows: [C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config)
-- Linux: [/home/wiiz/.config/fan-control](file:///home/wiiz/.config/fan-control) or [/root/.config/fan-control](file:///root/.config/fan-control)
+- Windows: [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config)
+- Linux: [`/home/wiiz/.config/fan-control`](file:///home/wiiz/.config/fan-control) or [`/root/.config/fan-control`](file:///root/.config/fan-control)
 
 ## Repo structure
 - [hardware](./hardware/README.md): define an abstraction around the hardware.
