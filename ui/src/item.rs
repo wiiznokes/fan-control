@@ -41,6 +41,7 @@ pub fn items_view<'a>(
 ) -> Element<'a, AppMsg> {
     let mut controls = Vec::new();
     let mut behaviors = Vec::new();
+    let mut custom_temps = Vec::new();
     let mut temps = Vec::new();
     let mut fans = Vec::new();
 
@@ -51,17 +52,19 @@ pub fn items_view<'a>(
         match node.node_type.to_light() {
             NodeTypeLight::Control => controls.push(content),
             NodeTypeLight::Fan => fans.push(content),
-            NodeTypeLight::Temp | NodeTypeLight::CustomTemp => temps.push(content),
+            NodeTypeLight::Temp => temps.push(content),
             NodeTypeLight::Graph => {}
             NodeTypeLight::Flat | NodeTypeLight::Linear | NodeTypeLight::Target => {
                 behaviors.push(content)
             }
+            NodeTypeLight::CustomTemp => custom_temps.push(content),
         }
     }
 
     let list_views = vec![
         list_view(controls),
         list_view(behaviors),
+        list_view(custom_temps),
         list_view(temps),
         list_view(fans),
     ];
