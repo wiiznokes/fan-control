@@ -2168,6 +2168,7 @@ dependencies = [
  "cargo-packager-resource-resolver",
  "derive_more",
  "enum_dispatch",
+ "env_logger",
  "lm-sensors",
  "log",
  "ouroboros 0.18.2",

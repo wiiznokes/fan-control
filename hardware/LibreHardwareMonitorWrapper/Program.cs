@@ -78,12 +78,12 @@ if (!isServerStarted || !isHardwareManagerStarted)
 
 try
 {
-    Logger.Info("start waiting for commands");
+    Logger.Info("Start waiting for commands");
     server.WaitAndHandleCommands(hardwareManager);
 }
 catch (Exception e)
 {
-    Logger.Error("can't wait for commands" + e.Message);
+    Logger.Error("Can't wait for commands: " + e.Message);
     ShutDown();
     return 1;
 }
