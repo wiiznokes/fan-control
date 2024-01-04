@@ -108,7 +108,7 @@ impl cosmic::Application for Ui {
         fn wait_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
             Command::perform(
                 async {
-                    // this block the command pool of Iced, so not idle
+                    // todo: fix me: this block the command pool of Iced, so not idle
                     std::thread::sleep(hardware::TIME_TO_UPDATE)
                 },
                 |_| cosmic::app::Message::App(msg_to_send),
