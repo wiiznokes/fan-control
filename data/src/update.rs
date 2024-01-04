@@ -59,7 +59,11 @@ impl Update {
         Ok(())
     }
 
-    pub fn all_except_root_nodes(&mut self, nodes: &mut Nodes, bridge: &mut HardwareBridge) -> Result<()> {
+    pub fn all_except_root_nodes(
+        &mut self,
+        nodes: &mut Nodes,
+        bridge: &mut HardwareBridge,
+    ) -> Result<()> {
         let ids_to_update_sorted: Vec<Id>;
         {
             let mut key_values = nodes.iter().collect::<Vec<_>>();
