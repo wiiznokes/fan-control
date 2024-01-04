@@ -76,18 +76,23 @@ if (!isServerStarted || !isHardwareManagerStarted)
 }
 
 
+
+var updateCts = new CancellationTokenSource();
+
 try
 {
     Logger.Info("Start waiting for commands");
-    server.WaitAndHandleCommands(hardwareManager);
+    server.WaitAndHandleCommands(hardwareManager, updateCts);
 }
 catch (Exception e)
 {
     Logger.Error("Can't wait for commands: " + e.Message);
+    updateCts.Cancel();
     ShutDown();
     return 1;
 }
 
+updateCts.Cancel();
 ShutDown();
 return 0;
 

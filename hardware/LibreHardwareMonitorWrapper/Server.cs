@@ -34,8 +34,9 @@ public class Server
         listener.Close();
     }
 
-    public void WaitAndHandleCommands(HardwareManager hardwareManager)
+    public void WaitAndHandleCommands(HardwareManager hardwareManager, CancellationTokenSource updateCts)
     {
+        var isUpdateRunning = false;
         while (true)
         {
             var res = block_read();
@@ -71,7 +72,15 @@ public class Server
                 case Command.Shutdown:
                     return;
                 case Command.Update:
-                    hardwareManager.Update();
+                    if (!isUpdateRunning)
+                    {
+                        Task.Run(() =>
+                        {
+                            isUpdateRunning = true;
+                            hardwareManager.Update();
+                            isUpdateRunning = false;
+                        }, updateCts.Token); 
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown command");
