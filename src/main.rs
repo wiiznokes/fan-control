@@ -33,27 +33,27 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 fn setup_logs(args: &Args) {
-    let mut env_logger_builder = env_logger::builder();
+    let mut builder = env_logger::builder();
 
     fn filter_workspace_crates(
-        env_logger_builder: &mut env_logger::Builder,
+        builder: &mut env_logger::Builder,
         level_filter: LevelFilter,
     ) -> &mut env_logger::Builder {
         // allow other crate to show warn level of error
-        env_logger_builder.filter_level(LevelFilter::Warn);
-        env_logger_builder.filter_module("hardware", level_filter);
-        env_logger_builder.filter_module("data", level_filter);
-        env_logger_builder.filter_module("ui", level_filter);
-        env_logger_builder.filter_module("fan-control", level_filter);
-        env_logger_builder
+        builder.filter_level(LevelFilter::Warn);
+        builder.filter_module("hardware", level_filter);
+        builder.filter_module("data", level_filter);
+        builder.filter_module("ui", level_filter);
+        builder.filter_module("fan-control", level_filter);
+        builder
     }
 
     if args.info {
-        filter_workspace_crates(&mut env_logger_builder, LevelFilter::Info);
+        filter_workspace_crates(&mut builder, LevelFilter::Info);
     };
 
     if args.debug {
-        filter_workspace_crates(&mut env_logger_builder, LevelFilter::Debug);
+        filter_workspace_crates(&mut builder, LevelFilter::Debug);
     };
 
     if let Some(log_file_path) = &args.log_file {
@@ -65,7 +65,7 @@ fn setup_logs(args: &Args) {
                 };
 
                 let pipe = env_logger::Target::Pipe(Box::new(log_file));
-                env_logger_builder.target(pipe);
+                builder.target(pipe);
             }
             Err(e) => {
                 error!("can't create/open log file: {e}");
@@ -74,11 +74,11 @@ fn setup_logs(args: &Args) {
     }
 
     if args.log_file.is_some() {
-        env_logger_builder.format_timestamp_secs();
+        builder.format_timestamp_secs();
     } else {
-        env_logger_builder.format_timestamp(None);
+        builder.format_timestamp(None);
     }
-    env_logger_builder.init();
+    builder.init();
 }
 
 fn try_run() -> Result<()> {

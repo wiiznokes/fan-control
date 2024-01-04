@@ -60,6 +60,7 @@ pub struct Ui {
     create_button_expanded: bool,
     choose_config_expanded: bool,
     nodes_c: NodesC,
+    is_updating: bool,
 }
 
 impl cosmic::Application for Ui {
@@ -96,6 +97,7 @@ impl cosmic::Application for Ui {
             create_button_expanded: false,
             choose_config_expanded: false,
             current_config_cached,
+            is_updating: false,
         };
         (ui_state, commands)
     }
@@ -106,7 +108,7 @@ impl cosmic::Application for Ui {
         fn wait_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
             Command::perform(
                 async {
-                    // this block the command pool of Iced, so not idle
+                    // todo: fix me: this block the command pool of Iced, so not idle
                     std::thread::sleep(hardware::TIME_TO_UPDATE)
                 },
                 |_| cosmic::app::Message::App(msg_to_send),
@@ -115,31 +117,40 @@ impl cosmic::Application for Ui {
 
         match message {
             AppMsg::Tick => {
-                if let Err(e) = self.app_state.bridge.update() {
-                    error!("{}", e);
+                if !self.is_updating {
+                    self.is_updating = true;
+                    if let Err(e) = self.app_state.bridge.update() {
+                        error!("{}", e);
+                        self.is_updating = false;
+                    } else {
+                        return wait_update_to_finish(AppMsg::UpdateGraph);
+                    }
+                } else {
+                    debug!("An update is already processing: skipping that one.");
                 }
-                return wait_update_to_finish(AppMsg::UpdateGraph);
             }
             AppMsg::UpdateGraph => {
-                if let Err(e) = self.app_state.update.all_except_root_nodes(
+                if let Err(e) = self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
                     &mut self.app_state.bridge,
                 ) {
                     error!("{}", e);
-                }
-                if let Err(e) = self.app_state.bridge.update() {
+                    self.is_updating = false;
+                } else if let Err(e) = self.app_state.bridge.update() {
                     error!("{}", e);
+                    self.is_updating = false;
+                } else {
+                    return wait_update_to_finish(AppMsg::UpdateRootNodes);
                 }
-                return wait_update_to_finish(AppMsg::UpdateRootNodes);
             }
             AppMsg::UpdateRootNodes => {
-                if let Err(e) = self.app_state.update.root_nodes(
+                if let Err(e) = self.app_state.update.nodes_which_update_can_change(
                     &mut self.app_state.app_graph.nodes,
-                    &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
                 ) {
                     error!("{}", e);
                 }
+                self.is_updating = false;
             }
 
             AppMsg::ModifNode(id, modif_node_msg) => {
@@ -318,7 +329,7 @@ impl cosmic::Application for Ui {
                     }
                 }
 
-                self.app_state.update.set_invalid_controls_to_auto(
+                self.app_state.update.set_invalid_root_nodes_to_auto(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
@@ -368,7 +379,7 @@ impl cosmic::Application for Ui {
                     self.choose_config_expanded = false;
 
                     if selected.is_some() {
-                        self.app_state.update.set_valid_controls_to_auto(
+                        self.app_state.update.set_valid_root_nodes_to_auto(
                             &mut self.app_state.app_graph.nodes,
                             &self.app_state.app_graph.root_nodes,
                             &mut self.app_state.bridge,
