@@ -60,6 +60,7 @@ pub struct Ui {
     create_button_expanded: bool,
     choose_config_expanded: bool,
     nodes_c: NodesC,
+    is_updating: bool,
 }
 
 impl cosmic::Application for Ui {
@@ -96,6 +97,7 @@ impl cosmic::Application for Ui {
             create_button_expanded: false,
             choose_config_expanded: false,
             current_config_cached,
+            is_updating: false,
         };
         (ui_state, commands)
     }
@@ -115,10 +117,17 @@ impl cosmic::Application for Ui {
 
         match message {
             AppMsg::Tick => {
-                if let Err(e) = self.app_state.bridge.update() {
-                    error!("{}", e);
+                if !self.is_updating {
+                    self.is_updating = true;
+                    if let Err(e) = self.app_state.bridge.update() {
+                        error!("{}", e);
+                        self.is_updating = false;
+                    } else {
+                        return wait_update_to_finish(AppMsg::UpdateGraph);
+                    }
+                } else {
+                    debug!("An update is already processing: skipping that one.")
                 }
-                return wait_update_to_finish(AppMsg::UpdateGraph);
             }
             AppMsg::UpdateGraph => {
                 if let Err(e) = self.app_state.update.all_except_root_nodes(
@@ -126,11 +135,15 @@ impl cosmic::Application for Ui {
                     &mut self.app_state.bridge,
                 ) {
                     error!("{}", e);
+                    self.is_updating = false;
+                } else {
+                    if let Err(e) = self.app_state.bridge.update() {
+                        error!("{}", e);
+                        self.is_updating = false;
+                    } else {
+                        return wait_update_to_finish(AppMsg::UpdateRootNodes);
+                    }
                 }
-                if let Err(e) = self.app_state.bridge.update() {
-                    error!("{}", e);
-                }
-                return wait_update_to_finish(AppMsg::UpdateRootNodes);
             }
             AppMsg::UpdateRootNodes => {
                 if let Err(e) = self.app_state.update.root_nodes(
@@ -140,6 +153,7 @@ impl cosmic::Application for Ui {
                 ) {
                     error!("{}", e);
                 }
+                self.is_updating = false;
             }
 
             AppMsg::ModifNode(id, modif_node_msg) => {
