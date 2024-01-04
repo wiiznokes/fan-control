@@ -39,6 +39,8 @@
     ]
     ```
 - make a similar crate of https://github.com/mxre/winres, but with no dependencies. This will add an icon to .exe on Windows https://github.com/crabnebula-dev/cargo-packager/issues/107
+- find out how to do blocking operation on the command pool of Iced, without blocking the thread
+- support const value in trait that use enum_dispatch
 
 
 

@@ -80,5 +80,6 @@ derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
 [workspace.dependencies.cargo-packager-resource-resolver]
 git = "https://github.com/wiiznokes/cargo-packager.git"
 branch = "resource-resolver"
+features = ["auto-detect-formats"]
 #path = "../cargo-packager/crates/resource-resolver/"
 #package = "resource-resolver"

@@ -31,7 +31,7 @@ pub enum WindowsError {
     #[error("No connection was found")]
     NoConnectionFound,
     #[error(transparent)]
-    Resource(#[from] resource_resolver::error::Error),
+    Resource(#[from] resource_resolver::Error),
     #[error("Failed to parse hardware struct: {0}")]
     JSONConfigParseError(#[from] serde_json::Error),
 }
@@ -47,7 +47,8 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         }
         #[cfg(not(test))]
         {
-            match resource_resolver::resource_dir_with_suffix(resource_suffix) {
+            let package_format = resource_resolver::current_format();
+            match resource_resolver::resource_dir_with_suffix(package_format, resource_suffix) {
                 Ok(resource_path) => resource_path,
                 Err(e) => {
                     error!("Can't find resource path: {e}. Fall back to current dir.");
@@ -377,14 +378,20 @@ mod test {
         time::{Duration, Instant},
     };
 
+    fn init_test_logging() {
+        let _ = env_logger::builder().format_timestamp(None).try_init();
+    }
+
     #[test]
     fn test_time() {
+        init_test_logging();
+
         let now = Instant::now();
 
         let mut bridge = WindowsBridge::new().unwrap();
         let hardware = bridge.hardware().clone();
 
-        println!("generation took {} millis", now.elapsed().as_millis());
+        info!("generation took {} millis", now.elapsed().as_millis());
 
         for _ in 0..5 {
             bench(
@@ -396,10 +403,11 @@ mod test {
             );
             sleep(Duration::from_millis(500))
         }
+        bridge.shutdown().unwrap();
     }
 
     fn update(bridge: &mut WindowsBridge, hardware: &Hardware) {
-        println!();
+        info!("");
 
         bench(
             || {
@@ -437,7 +445,7 @@ mod test {
     fn bench(f: impl FnOnce() -> String, info: &str) {
         let now = Instant::now();
         let output = f();
-        println!(
+        info!(
             "{}: {} in {} millis",
             info,
             output,

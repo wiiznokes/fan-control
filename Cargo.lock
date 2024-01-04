@@ -697,7 +697,7 @@ dependencies = [
 [[package]]
 name = "cargo-packager-resource-resolver"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/cargo-packager.git?branch=resource-resolver#fd16858827dadecd74379bb93b9767c42fc79e89"
+source = "git+https://github.com/wiiznokes/cargo-packager.git?branch=resource-resolver#9c7e96219c24c6bf5554ca4b92fa0645bb1f7c06"
 dependencies = [
  "ctor",
  "thiserror",
@@ -2168,6 +2168,7 @@ dependencies = [
  "cargo-packager-resource-resolver",
  "derive_more",
  "enum_dispatch",
+ "env_logger",
  "lm-sensors",
  "log",
  "ouroboros 0.18.2",
@@ -5837,9 +5838,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.5.31"
+version = "0.5.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97a4882e6b134d6c28953a387571f1acdd3496830d5e36c5e3a1075580ea641c"
+checksum = "8434aeec7b290e8da5c3f0d628cb0eac6cabcb31d14bb74f779a08109a5914d6"
 dependencies = [
  "memchr",
 ]

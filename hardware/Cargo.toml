@@ -34,3 +34,4 @@ cargo-packager-resource-resolver.workspace = true
 #num_enum = "0.7"
 
 [dev-dependencies]
+env_logger.workspace = true
