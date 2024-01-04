@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::vec;
 
 use derive_more::{Display, Unwrap};
@@ -340,7 +341,52 @@ impl NodeType {
         )
     }
 
-    pub fn is_control(&self) -> bool {
+    pub fn is_root(&self) -> bool {
         matches!(self, NodeType::Control(..))
+    }
+
+    pub fn compare_update_priority(&self, other: &Self) -> Ordering {
+        match self {
+            NodeType::Control(_) => match other {
+                NodeType::Control(_) => Ordering::Equal,
+                _ => Ordering::Greater,
+            },
+            NodeType::Fan(_) => {
+                if other.is_sensor() {
+                    Ordering::Equal
+                } else {
+                    Ordering::Less
+                }
+            }
+            NodeType::Temp(_) => {
+                if other.is_sensor() {
+                    Ordering::Equal
+                } else {
+                    Ordering::Less
+                }
+            }
+            NodeType::CustomTemp(_) => match other {
+                NodeType::CustomTemp(_) => Ordering::Equal,
+                NodeType::Fan(_) => Ordering::Greater,
+                NodeType::Temp(_) => Ordering::Greater,
+                _ => Ordering::Less,
+            },
+            NodeType::Graph(_) => todo!(),
+            NodeType::Flat(_) => Ordering::Equal,
+            NodeType::Linear(..) => match other {
+                NodeType::Control(_) => Ordering::Less,
+                NodeType::Fan(_) => Ordering::Greater,
+                NodeType::Temp(_) => Ordering::Greater,
+                NodeType::CustomTemp(_) => Ordering::Greater,
+                _ => Ordering::Equal,
+            },
+            NodeType::Target(..) => match other {
+                NodeType::Control(_) => Ordering::Less,
+                NodeType::Fan(_) => Ordering::Greater,
+                NodeType::Temp(_) => Ordering::Greater,
+                NodeType::CustomTemp(_) => Ordering::Greater,
+                _ => Ordering::Equal,
+            },
+        }
     }
 }

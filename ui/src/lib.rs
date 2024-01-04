@@ -130,25 +130,22 @@ impl cosmic::Application for Ui {
                 }
             }
             AppMsg::UpdateGraph => {
-                if let Err(e) = self.app_state.update.all_except_root_nodes(
+                if let Err(e) = self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
                     &mut self.app_state.bridge,
                 ) {
                     error!("{}", e);
                     self.is_updating = false;
+                } else if let Err(e) = self.app_state.bridge.update() {
+                    error!("{}", e);
+                    self.is_updating = false;
                 } else {
-                    if let Err(e) = self.app_state.bridge.update() {
-                        error!("{}", e);
-                        self.is_updating = false;
-                    } else {
-                        return wait_update_to_finish(AppMsg::UpdateRootNodes);
-                    }
+                    return wait_update_to_finish(AppMsg::UpdateRootNodes);
                 }
             }
             AppMsg::UpdateRootNodes => {
-                if let Err(e) = self.app_state.update.root_nodes(
+                if let Err(e) = self.app_state.update.nodes_which_update_can_change(
                     &mut self.app_state.app_graph.nodes,
-                    &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
                 ) {
                     error!("{}", e);
@@ -332,7 +329,7 @@ impl cosmic::Application for Ui {
                     }
                 }
 
-                self.app_state.update.set_invalid_controls_to_auto(
+                self.app_state.update.set_invalid_root_nodes_to_auto(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
@@ -382,7 +379,7 @@ impl cosmic::Application for Ui {
                     self.choose_config_expanded = false;
 
                     if selected.is_some() {
-                        self.app_state.update.set_valid_controls_to_auto(
+                        self.app_state.update.set_valid_root_nodes_to_auto(
                             &mut self.app_state.app_graph.nodes,
                             &self.app_state.app_graph.root_nodes,
                             &mut self.app_state.bridge,

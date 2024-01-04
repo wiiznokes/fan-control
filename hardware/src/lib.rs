@@ -136,7 +136,7 @@ pub trait HardwareBridgeT {
 
 /// Approximative time to update sensors on my pc
 #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
-pub const TIME_TO_UPDATE: Duration = Duration::from_millis(200);
+pub const TIME_TO_UPDATE: Duration = Duration::from_millis(300);
 
 #[cfg(any(feature = "fake_hardware", target_os = "linux"))]
 pub const TIME_TO_UPDATE: Duration = Duration::from_millis(0);

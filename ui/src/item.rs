@@ -62,7 +62,7 @@ pub fn items_view<'a>(
     }
 
     let mut list_views = Vec::new();
-    
+
     if !controls.is_empty() {
         list_views.push(list_view(controls))
     }
