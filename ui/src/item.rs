@@ -61,13 +61,23 @@ pub fn items_view<'a>(
         }
     }
 
-    let list_views = vec![
-        list_view(controls),
-        list_view(behaviors),
-        list_view(custom_temps),
-        list_view(temps),
-        list_view(fans),
-    ];
+    let mut list_views = Vec::new();
+    
+    if !controls.is_empty() {
+        list_views.push(list_view(controls))
+    }
+    if !behaviors.is_empty() {
+        list_views.push(list_view(behaviors))
+    }
+    if !custom_temps.is_empty() {
+        list_views.push(list_view(custom_temps))
+    }
+    if !temps.is_empty() {
+        list_views.push(list_view(temps))
+    }
+    if !fans.is_empty() {
+        list_views.push(list_view(fans))
+    }
 
     let content = Row::with_children(list_views).spacing(20).padding(25);
 
