@@ -193,7 +193,7 @@ impl Node {
     }
 
     pub fn is_root(&self) -> bool {
-        matches!(self.node_type, NodeType::Control(..))
+        self.node_type.is_root()
     }
 }
 

@@ -209,7 +209,7 @@ impl Update {
             updated.insert(node.id);
 
             if !node.node_type.is_valid() {
-                if !node.node_type.is_root() {
+                if !node.is_root() {
                     node.value = None;
                 }
                 return Ok(None);
@@ -224,7 +224,7 @@ impl Update {
                 None => {
                     return match nodes.get_mut(node_id) {
                         Some(node) => {
-                            if !node.node_type.is_root() {
+                            if !node.is_root() {
                                 node.value = None;
                             }
                             Ok(None)
@@ -260,11 +260,11 @@ impl Node {
             }
             crate::node::NodeType::Fan(fan) => fan.get_value(bridge),
             crate::node::NodeType::Temp(temp) => temp.get_value(bridge),
-            crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.update(input_values),
+            crate::node::NodeType::CustomTemp(custom_temp) => custom_temp.get_value(input_values),
             crate::node::NodeType::Graph(_) => todo!(),
             crate::node::NodeType::Flat(flat) => Ok(flat.value.into()),
-            crate::node::NodeType::Linear(linear, ..) => linear.update(input_values[0]),
-            crate::node::NodeType::Target(target, ..) => target.update(input_values[0]),
+            crate::node::NodeType::Linear(linear, ..) => linear.get_value(input_values[0]),
+            crate::node::NodeType::Target(target, ..) => target.get_value(input_values[0]),
         };
 
         match value {

@@ -25,7 +25,7 @@ pub struct Target {
 }
 
 impl Target {
-    pub fn update(&mut self, value: Value) -> Result<Value, UpdateError> {
+    pub fn get_value(&mut self, value: Value) -> Result<Value, UpdateError> {
         if self.idle_has_been_reatch {
             if value < self.load_temp.into() {
                 return Ok(self.idle_speed.into());
@@ -91,9 +91,9 @@ mod test {
             idle_has_been_reatch: false,
         };
 
-        assert!(target.update(55).unwrap() == 100);
-        assert!(target.update(30).unwrap() == 10);
-        assert!(target.update(55).unwrap() == 10);
-        assert!(target.update(70).unwrap() == 100);
+        assert!(target.get_value(55).unwrap() == 100);
+        assert!(target.get_value(30).unwrap() == 10);
+        assert!(target.get_value(55).unwrap() == 10);
+        assert!(target.get_value(70).unwrap() == 100);
     }
 }

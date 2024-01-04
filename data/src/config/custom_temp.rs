@@ -29,7 +29,7 @@ impl CustomTemp {
         Self { name, kind, inputs }
     }
 
-    pub fn update(&self, values: &[Value]) -> Result<Value, UpdateError> {
+    pub fn get_value(&self, values: &[Value]) -> Result<Value, UpdateError> {
         let value = match self.kind {
             CustomTempKind::Min => match values.iter().min() {
                 Some(min) => *min,

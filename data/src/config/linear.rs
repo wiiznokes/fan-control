@@ -34,7 +34,7 @@ struct Affine {
 }
 
 impl Linear {
-    pub fn update(&self, value: Value) -> Result<Value, UpdateError> {
+    pub fn get_value(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
             return Ok(self.min_speed.into());
         }
@@ -99,8 +99,8 @@ mod test {
             input: Some("temp1".into()),
         };
 
-        assert!(linear.update(9).unwrap() == 10);
-        assert!(linear.update(70).unwrap() == 100);
-        assert!(linear.update(40).unwrap() == 55);
+        assert!(linear.get_value(9).unwrap() == 10);
+        assert!(linear.get_value(70).unwrap() == 100);
+        assert!(linear.get_value(40).unwrap() == 55);
     }
 }
