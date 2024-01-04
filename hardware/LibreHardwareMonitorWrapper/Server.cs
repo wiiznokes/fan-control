@@ -79,7 +79,7 @@ public class Server
                             isUpdateRunning = true;
                             hardwareManager.Update();
                             isUpdateRunning = false;
-                        }, updateCts.Token); 
+                        }, updateCts.Token);
                     }
                     break;
                 default:
