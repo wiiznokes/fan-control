@@ -103,9 +103,37 @@ impl cosmic::Application for Ui {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         let dir_manager = &mut self.app_state.dir_manager;
 
+        fn wait_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
+            Command::perform(
+                async {
+                    // this block the command pool of Iced, so not idle
+                    std::thread::sleep(hardware::TIME_TO_UPDATE)
+                },
+                |_| cosmic::app::Message::App(msg_to_send),
+            )
+        }
+
         match message {
             AppMsg::Tick => {
-                if let Err(e) = self.app_state.update.all(
+                if let Err(e) = self.app_state.bridge.update() {
+                    error!("{}", e);
+                }
+                return wait_update_to_finish(AppMsg::UpdateGraph);
+            }
+            AppMsg::UpdateGraph => {
+                if let Err(e) = self.app_state.update.all_except_root_nodes(
+                    &mut self.app_state.app_graph.nodes,
+                    &mut self.app_state.bridge,
+                ) {
+                    error!("{}", e);
+                }
+                if let Err(e) = self.app_state.bridge.update() {
+                    error!("{}", e);
+                }
+                return wait_update_to_finish(AppMsg::UpdateRootNodes);
+            }
+            AppMsg::UpdateRootNodes => {
+                if let Err(e) = self.app_state.update.root_nodes(
                     &mut self.app_state.app_graph.nodes,
                     &self.app_state.app_graph.root_nodes,
                     &mut self.app_state.bridge,
@@ -354,13 +382,8 @@ impl cosmic::Application for Ui {
                                 self.app_state.app_graph =
                                     AppGraph::from_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
-                                if let Err(e) = self.app_state.update.all(
-                                    &mut self.app_state.app_graph.nodes,
-                                    &self.app_state.app_graph.root_nodes,
-                                    &mut self.app_state.bridge,
-                                ) {
-                                    error!("can't update after config change: {}", e);
-                                }
+
+                                return command::message(cosmic::app::Message::App(AppMsg::Tick));
                             }
                             None => {
                                 self.current_config_cached.clear();

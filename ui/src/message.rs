@@ -8,6 +8,8 @@ use data::{
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Tick,
+    UpdateGraph,
+    UpdateRootNodes,
 
     Config(ConfigMsg),
     Settings(SettingsMsg),

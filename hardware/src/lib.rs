@@ -1,7 +1,7 @@
 use derive_more::Display;
 use enum_dispatch::enum_dispatch;
 use serde::Serialize;
-use std::{fmt::Debug, rc::Rc};
+use std::{fmt::Debug, rc::Rc, time::Duration};
 use thiserror::Error;
 
 #[macro_use]
@@ -131,3 +131,12 @@ pub trait HardwareBridgeT {
         Ok(())
     }
 }
+
+// todo: move this 2 line in HardwareBridgeT when enum_dispatch support const value
+
+/// Approximative time to update sensors on my pc
+#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+pub const TIME_TO_UPDATE: Duration = Duration::from_millis(200);
+
+#[cfg(any(feature = "fake_hardware", target_os = "linux"))]
+pub const TIME_TO_UPDATE: Duration = Duration::from_millis(0);
