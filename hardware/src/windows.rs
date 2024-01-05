@@ -48,7 +48,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         #[cfg(not(test))]
         {
             let package_format = resource_resolver::current_format();
-            match resource_resolver::resource_dir_with_suffix(package_format, resource_suffix) {
+            match resource_resolver::resolve_resource(package_format, resource_suffix) {
                 Ok(resource_path) => resource_path,
                 Err(e) => {
                     error!("Can't find resource path: {e}. Fall back to current dir.");

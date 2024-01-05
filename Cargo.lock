@@ -727,10 +727,18 @@ dependencies = [
 [[package]]
 name = "cargo-packager-resource-resolver"
 version = "0.1.0"
-source = "git+https://github.com/wiiznokes/cargo-packager.git?branch=resource-resolver#9c7e96219c24c6bf5554ca4b92fa0645bb1f7c06"
+source = "git+https://github.com/wiiznokes/cargo-packager.git?branch=resource-resolver#db277be81d68a635e3729a9f03e094d5ecf95e84"
+dependencies = [
+ "cargo-packager-utils",
+ "thiserror",
+]
+
+[[package]]
+name = "cargo-packager-utils"
+version = "0.1.0"
+source = "git+https://github.com/wiiznokes/cargo-packager.git?branch=resource-resolver#db277be81d68a635e3729a9f03e094d5ecf95e84"
 dependencies = [
  "ctor",
- "thiserror",
 ]
 
 [[package]]
