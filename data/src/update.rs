@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use hardware::{HardwareBridge, HardwareBridgeT, Mode, Value};
+use hardware::{HardwareBridge, Mode, Value};
 
 use thiserror::Error;
 
