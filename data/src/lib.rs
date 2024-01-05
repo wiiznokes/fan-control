@@ -8,7 +8,6 @@ pub mod app_graph;
 pub mod config;
 pub mod dir_manager;
 pub mod id;
-mod name_sorter;
 pub mod node;
 pub mod settings;
 pub mod update;

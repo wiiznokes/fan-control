@@ -25,6 +25,7 @@ rust-embed.workspace = true
 lazy_static.workspace = true
 derive_more.workspace = true
 thiserror.workspace = true
+lexical-sort = "0.3"
 
 [dev-dependencies]
 serial_test = "2.0"

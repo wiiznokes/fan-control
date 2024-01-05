@@ -8,7 +8,7 @@ use hardware::Hardware;
 
 use thiserror::Error;
 
-use crate::{config::Config, name_sorter, settings::Settings, utils::RemoveElem};
+use crate::{config::Config, settings::Settings, utils::RemoveElem};
 
 use self::helper::{deserialize, serialize};
 
@@ -56,10 +56,21 @@ impl DirManager {
 
         let config_dir_path = match config_dir_path {
             Some(config_dir_path) => {
-                if !config_dir_path.is_dir() {
-                    error!("{} is not a directory", config_dir_path.display());
-                    default_config_dir_path()
+                if config_dir_path.exists() {
+                    if config_dir_path.is_dir() {
+                        config_dir_path.clone()
+                    } else {
+                        error!(
+                            "The path {} is not a directory. Fall back to default directory.",
+                            config_dir_path.display()
+                        );
+                        default_config_dir_path()
+                    }
                 } else {
+                    warn!(
+                        "The directory {} does not yet exist.",
+                        config_dir_path.display()
+                    );
                     config_dir_path.clone()
                 }
             }
@@ -68,7 +79,7 @@ impl DirManager {
 
         if !config_dir_path.exists() {
             if let Err(e) = fs::create_dir_all(&config_dir_path) {
-                error!("can't create config directories: {e}")
+                error!("Can't create config directories: {e}.")
             }
         }
 
@@ -81,7 +92,7 @@ impl DirManager {
             settings.current_config = if config_names.contains(&config_name) {
                 Some(config_name)
             } else {
-                warn!("config gave as parameter not exist");
+                warn!("Config gave as parameter not exist.");
                 None
             }
         };
@@ -146,7 +157,7 @@ impl DirManager {
 
         let previous_path = self.config_file_path(previous_name);
         if let Err(e) = fs::remove_file(previous_path) {
-            warn!("can't remove file while saving config: {}", e);
+            warn!("Can't remove file while saving config: {}.", e);
         }
 
         let new_path = self.config_file_path(new_name);
@@ -278,7 +289,7 @@ impl ConfigNames {
 
         config_names
             .data
-            .sort_by(|first, second| name_sorter::compare_names(first, second));
+            .sort_by(|first, second| lexical_sort::natural_lexical_cmp(first, second));
 
         config_names
     }
@@ -292,7 +303,16 @@ impl ConfigNames {
 
     fn add(&mut self, name: &str) {
         let name = helper::remove_toml_extension(name).to_owned();
-        name_sorter::add_sorted(&mut self.data, name);
+
+        let insert_position = match self
+            .data
+            .binary_search_by(|e| lexical_sort::natural_lexical_cmp(&name, e))
+        {
+            Ok(position) => position,  // Element already exists at this position
+            Err(position) => position, // Element doesn't exist, insert at this position
+        };
+
+        self.data.insert(insert_position, name);
     }
 
     pub fn is_valid_create(&self, name: &str) -> bool {

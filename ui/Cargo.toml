@@ -22,6 +22,7 @@ lazy_static.workspace = true
 once_cell.workspace = true
 cargo-packager-resource-resolver.workspace = true
 derive_more.workspace = true
+tokio = { version = "1.35", features = ["time"] }
 [dependencies.libcosmic]
 #git = "https://github.com/wiiznokes/libcosmic"
 git = "https://github.com/pop-os/libcosmic"
@@ -29,11 +30,12 @@ rev = "1bd39b17ae7c97934ea214028cd31c578b589e3e"
 #branch = "master"
 default-features = false
 features = [
+    "smol",
+    "wgpu",
+    "winit",
+    "tokio",
     #"a11y",
     #"debug",
     #"serde-keycode",
-    "smol",
     #"wayland",
-    "wgpu",
-    "winit",
 ]
