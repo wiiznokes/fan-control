@@ -85,3 +85,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Dotnet format
         run: dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj --verify-no-changes --verbosity detailed
+
+  prettier:
+    name: Prettier fmt
+    if: github.event.pull_request.draft == false
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prettier
+        run: npx prettier --check .
+  

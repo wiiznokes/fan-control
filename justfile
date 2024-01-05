@@ -39,6 +39,9 @@ fix: fmt
 
 fmt:
 	cargo fmt --all
+
+prettier:
+	npx prettier -w .
 	
 fmt-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
