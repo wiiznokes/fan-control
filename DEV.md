@@ -20,9 +20,8 @@
 
 ## Todo/upgradable parts
 - add cargo-packager a way to localize ressource: done but not merged
-- add app icon on windows (nsis)
+- add app icon on windows, with cargo packager (nsis)
 - add resource folder only for nsis
-- execute as admin by default: nsis
 - return error from the windows server
 - stop windows server with a command: implemented but could be improved with taking app state back
 - get app_state back when we close the ui
@@ -42,7 +41,7 @@
 - find out how to do blocking operation on the command pool of Iced, without blocking the thread
 - support const value in trait that use enum_dispatch
 - fix the time_stamp of env_logger
-
+- pop when leaving the app, to save the current config or auto create temp config
 
 ## run specific test:
 ```

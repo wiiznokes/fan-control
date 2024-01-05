@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use hardware::{HardwareBridge, HardwareBridgeT, Mode, Value};
+use hardware::{HardwareBridge, Mode, Value};
 
 use thiserror::Error;
 
@@ -42,14 +42,15 @@ impl Update {
     }
 
     // todo: remember what nodes are valid
+    /// Update graph in an optimal way. This shouln't be use
+    /// with a graphical interface.
+    /// Warning: doesn't call update from the bridge, it's the role of the caller.
     pub fn optimized(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut HardwareBridge,
     ) -> Result<()> {
-        bridge.update()?;
-
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
             if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
@@ -60,7 +61,7 @@ impl Update {
     }
 
     /// Doesn't update root nodes and doesn't re update nodes that could have been updated (fans).
-    /// Also, don't call update function of the bridge, it must have been called by the caller
+    /// Warning: doesn't call update from the bridge, it's the role of the caller.
     pub fn all(&mut self, nodes: &mut Nodes, bridge: &mut HardwareBridge) -> Result<()> {
         let ids_to_update_sorted: Vec<Id>;
         {
