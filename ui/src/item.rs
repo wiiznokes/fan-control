@@ -1,15 +1,5 @@
 use std::rc::Rc;
 
-use cosmic::{
-    iced_core::{Alignment, Length, Padding},
-    iced_widget::{
-        scrollable::{Direction, Properties},
-        Button, PickList, Scrollable, Toggler,
-    },
-    style, theme,
-    widget::{Column, Container, Row, Slider, Space, Text, TextInput},
-    Element,
-};
 use data::{
     app_graph::Nodes,
     config::{
@@ -22,6 +12,15 @@ use data::{
     node::{Input, Node, NodeTypeLight, ValueKind},
 };
 use hardware::{HItem, Hardware};
+use iced::{
+    theme,
+    widget::{
+        scrollable::{Direction, Properties},
+        Button, Column, Container, PickList, Row, Scrollable, Slider, Space, Text, TextInput,
+        Toggler,
+    },
+    Alignment, Element, Length, Padding,
+};
 
 use crate::{
     icon::{icon_button, icon_path_for_node_type, my_icon},
@@ -108,12 +107,12 @@ fn item_view<'a>(
 ) -> Element<'a, AppMsg> {
     let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
 
-    let mut name = TextInput::new(fl!("name"), &node_c.name)
+    let name = TextInput::new(&fl!("name"), &node_c.name)
         .on_input(|s| AppMsg::Rename(node.id, s))
         .width(Length::Fill);
 
     if node_c.is_error_name {
-        name = name.error("This name is already being use");
+        // name = name.error("This name is already being use");
     }
 
     fn action_line<'a>(action: String, message: AppMsg) -> Element<'a, AppMsg> {
@@ -127,7 +126,7 @@ fn item_view<'a>(
         fl!("delete"),
         ModifNodeMsg::Delete.to_app(node.id),
     )))
-    .style(theme::Container::Dropdown);
+    .style(theme::Container::Box);
 
     let context_menu = DropDown::new(
         icon_button("more_vert/24")
@@ -171,7 +170,7 @@ fn item_view<'a>(
     Container::new(content)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
-        .style(style::Container::Card)
+        .style(theme::Container::Box)
         .into()
 }
 

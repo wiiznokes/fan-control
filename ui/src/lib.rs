@@ -4,25 +4,19 @@ use data::{
     app_graph::AppGraph,
     config::Config,
     node::{validate_name, IsValid, NodeType},
-    settings::AppTheme,
     utils::RemoveElem,
     AppState,
 };
 use hardware::{HardwareBridgeT, Mode};
+use headers::{header_center, header_end, header_start, header_wrapper};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
 
-use crate::settings_drawer::settings_drawer;
-
-use cosmic::{
-    app::{command, Command, Core},
-    executor,
-    iced::{self, time},
-    iced_core::Length,
-    theme,
+use iced::{
+    executor, time,
     widget::{Column, Row, Space},
-    ApplicationExt, Element,
+    Application, Command, Element, Length,
 };
 
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -43,18 +37,18 @@ mod item;
 mod message;
 mod my_widgets;
 mod node_cache;
-mod settings_drawer;
+//mod settings_drawer;
 mod utils;
 
 pub fn run_ui(app_state: AppState) {
-    let settings = cosmic::app::Settings::default();
-    if let Err(e) = cosmic::app::run::<Ui>(settings, app_state) {
+    let settings = iced::Settings::with_flags(app_state);
+
+    if let Err(e) = Ui::run(settings) {
         error!("error while running ui: {}", e);
         panic!()
     }
 }
 pub struct Ui {
-    core: Core,
     app_state: AppState,
     current_config_cached: String,
     create_button_expanded: bool,
@@ -63,43 +57,36 @@ pub struct Ui {
     is_updating: bool,
 }
 
-impl cosmic::Application for Ui {
+impl iced::Application for Ui {
     type Executor = executor::Default;
     type Message = AppMsg;
     type Flags = AppState;
+    type Theme = iced::Theme;
 
-    const APP_ID: &'static str = "com.wiiznokes.fan-control";
-
-    fn core(&self) -> &Core {
-        &self.core
+    fn title(&self) -> String {
+        "fan-control".into()
     }
 
-    fn core_mut(&mut self) -> &mut Core {
-        &mut self.core
-    }
-
-    fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let current_config_cached = flags
             .dir_manager
             .settings()
             .current_config_text()
             .to_owned();
 
-        let commands = Command::batch([
-            command::set_theme(to_cosmic_theme(&flags.dir_manager.settings().theme)),
-            command::message(cosmic::app::Message::App(AppMsg::Tick)),
-        ]);
-
-        let ui_state = Ui {
+        let mut ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
             app_state: flags,
-            core,
             create_button_expanded: false,
             choose_config_expanded: false,
             current_config_cached,
             is_updating: false,
         };
-        (ui_state, commands)
+
+        // because update require multiple commands
+        let command = ui_state.update(AppMsg::Tick);
+
+        (ui_state, command)
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -111,7 +98,7 @@ impl cosmic::Application for Ui {
                     // todo: fix me: this block the command pool of Iced, so not idle
                     std::thread::sleep(hardware::TIME_TO_UPDATE)
                 },
-                |_| cosmic::app::Message::App(msg_to_send),
+                |_| msg_to_send,
             )
         }
 
@@ -341,7 +328,6 @@ impl cosmic::Application for Ui {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
                     });
-                    return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
                 }
                 SettingsMsg::UpdateDelay(update_delay) => dir_manager.update_settings(|settings| {
                     settings.update_delay = update_delay;
@@ -355,10 +341,7 @@ impl cosmic::Application for Ui {
             }
             AppMsg::Toggle(ui_msg) => match ui_msg {
                 ToogleMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
-                ToogleMsg::Settings => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title(fl!("settings"));
-                }
+                ToogleMsg::Settings => {}
                 ToogleMsg::ChooseConfig(expanded) => {
                     self.choose_config_expanded = expanded;
                 }
@@ -394,7 +377,7 @@ impl cosmic::Application for Ui {
                                     AppGraph::from_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
 
-                                return command::message(cosmic::app::Message::App(AppMsg::Tick));
+                                return self.update(AppMsg::Tick);
                             }
                             None => {
                                 self.current_config_cached.clear();
@@ -480,33 +463,29 @@ impl cosmic::Application for Ui {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let content = items_view(&app_graph.nodes, &self.nodes_c, app_state.bridge.hardware());
+        let header_bar = Row::new()
+            .push(header_wrapper(header_start()))
+            .push(Space::new(Length::Fill, 0.0))
+            .push(header_wrapper(header_center(
+                &self.app_state.dir_manager,
+                &self.current_config_cached,
+                self.choose_config_expanded,
+            )))
+            .push(header_wrapper(header_end()))
+            .align_items(iced::Alignment::Center)
+            .width(Length::Fill);
+
+        let content = Column::new().push(header_bar).push(items_view(
+            &app_graph.nodes,
+            &self.nodes_c,
+            app_state.bridge.hardware(),
+        ));
 
         let floating_button = Column::new()
             .push(Space::new(0.0, Length::Fill))
             .push(add_node_button_view(self.create_button_expanded));
 
         Row::new().push(content).push(floating_button).into()
-    }
-
-    fn header_start(&self) -> Vec<Element<Self::Message>> {
-        headers::header_start()
-    }
-
-    fn header_center(&self) -> Vec<Element<Self::Message>> {
-        headers::header_center(
-            &self.app_state.dir_manager,
-            &self.current_config_cached,
-            self.choose_config_expanded,
-        )
-    }
-
-    fn header_end(&self) -> Vec<Element<Self::Message>> {
-        headers::header_end()
-    }
-
-    fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        settings_drawer(self.core.window.show_context, &self.app_state.dir_manager)
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
@@ -516,24 +495,5 @@ impl cosmic::Application for Ui {
         .map(|_| AppMsg::Tick)
 
         //cosmic::iced_futures::Subscription::none()
-    }
-
-    fn on_app_exit(&mut self) {
-        if let Err(e) = self.app_state.bridge.shutdown() {
-            error!("shutdown hardware: {}", e);
-        }
-    }
-
-    fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
-        // todo: pop up. Need to use settings to not close auto
-        None
-    }
-}
-
-fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
-    match theme {
-        AppTheme::Dark => theme::Theme::dark(),
-        AppTheme::Light => theme::Theme::light(),
-        AppTheme::System => theme::system_preference(),
     }
 }

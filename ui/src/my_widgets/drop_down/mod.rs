@@ -1,17 +1,16 @@
 #![allow(clippy::too_many_arguments)]
 
-use cosmic::{
-    iced::{self, keyboard, touch},
-    iced_core::{widget::OperationOutputWrapper, Size, Vector},
-    iced_widget,
-};
-use iced_widget::core::{
-    self, event,
-    layout::{Limits, Node},
+use iced::{
+    self,
+    advanced::widget::{Operation, Tree},
+    advanced::{
+        layout::{Limits, Node},
+        Clipboard, Layout, Shell, Widget,
+    },
+    advanced::{renderer, Overlay},
+    event, keyboard,
     mouse::{self, Cursor},
-    overlay, renderer,
-    widget::{Operation, Tree},
-    Clipboard, Element, Event, Layout, Length, Point, Rectangle, Shell, Widget,
+    overlay, touch, Element, Event, Length, Point, Rectangle, Size, Vector,
 };
 
 use super::{alignment::Alignment, offset::Offset};
@@ -19,7 +18,7 @@ use super::{alignment::Alignment, offset::Offset};
 pub struct DropDown<'a, Message, Renderer = iced::Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     underlay: Element<'a, Message, Renderer>,
     overlay: Element<'a, Message, Renderer>,
@@ -34,7 +33,7 @@ where
 impl<'a, Message, Renderer> DropDown<'a, Message, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     pub fn new<U, B>(underlay: U, overlay: B, expanded: bool) -> Self
     where
@@ -77,7 +76,7 @@ where
 impl<'a, Message, Renderer> DropDown<'a, Message, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     #[must_use]
     pub fn on_dismiss(mut self, message: Message) -> Self {
@@ -89,7 +88,7 @@ where
 impl<'a, Message, Renderer> Widget<Message, Renderer> for DropDown<'a, Message, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: 'a + core::Renderer,
+    Renderer: 'a + renderer::Renderer,
 {
     fn width(&self) -> Length {
         self.underlay.as_widget().width()
@@ -130,8 +129,8 @@ where
         vec![Tree::new(&self.underlay), Tree::new(&self.overlay)]
     }
 
-    fn diff(&mut self, tree: &mut Tree) {
-        tree.diff_children(&mut [&mut self.underlay, &mut self.overlay]);
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(&[&self.underlay, &self.overlay]);
     }
 
     fn operate<'b>(
@@ -139,7 +138,7 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
+        operation: &mut dyn Operation<Message>,
     ) {
         self.underlay
             .as_widget()
@@ -220,7 +219,7 @@ where
 impl<'a, Message, Renderer> From<DropDown<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: 'a + core::Renderer,
+    Renderer: 'a + renderer::Renderer,
 {
     fn from(drop_down: DropDown<'a, Message, Renderer>) -> Self {
         Element::new(drop_down)
@@ -244,7 +243,7 @@ where
 impl<'a, 'b, Message, Renderer> DropDownOverlay<'a, 'b, Message, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     fn new(
         state: &'b mut Tree,
@@ -269,11 +268,11 @@ where
     }
 }
 
-impl<'a, 'b, Message, Renderer> core::Overlay<Message, Renderer>
+impl<'a, 'b, Message, Renderer> Overlay<Message, Renderer>
     for DropDownOverlay<'a, 'b, Message, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     fn layout(
         &mut self,

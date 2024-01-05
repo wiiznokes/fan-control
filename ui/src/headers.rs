@@ -1,11 +1,9 @@
-use cosmic::{
-    iced_core::{Alignment, Length},
-    iced_widget::{Button, Column},
-    theme,
-    widget::{Container, Row, Text, TextInput},
-    Element,
-};
 use data::dir_manager::DirManager;
+use iced::{
+    theme,
+    widget::{Button, Column, Container, Row, Text, TextInput},
+    Alignment, Element, Length,
+};
 
 use crate::{
     icon::{expand_icon, icon_button, my_icon},
@@ -13,6 +11,12 @@ use crate::{
     my_widgets::drop_down,
     AppMsg, ToogleMsg,
 };
+
+pub fn header_wrapper(elements: Vec<Element<'_, AppMsg>>) -> Element<'_, AppMsg> {
+    Row::with_children(elements)
+        .align_items(iced::Alignment::Center)
+        .into()
+}
 
 static ICON_LENGHT: Length = Length::Fixed(35.0);
 
@@ -38,7 +42,7 @@ pub fn header_center<'a>(
     let mut elems = Vec::new();
 
     let mut save_button = icon_button("save/40")
-        .tooltip(fl!("save_config"))
+        //.tooltip(fl!("save_config"))
         .height(ICON_LENGHT)
         .width(ICON_LENGHT);
 
@@ -52,7 +56,7 @@ pub fn header_center<'a>(
 
     elems.push(save_button.into());
 
-    let mut name = TextInput::new(fl!("config_name"), current_config)
+    let name = TextInput::new(&fl!("config_name"), current_config)
         .on_input(|name| ConfigMsg::Rename(name).into())
         .width(Length::Fixed(180.0));
 
@@ -61,7 +65,7 @@ pub fn header_center<'a>(
         .is_valid_name(&settings.current_config, current_config)
     {
         //let error_text = fl!("already_used_error");
-        name = name.error("This name is already being use");
+        //name = name.error("This name is already being use");
     }
 
     let mut configs = Vec::new();
@@ -91,7 +95,7 @@ pub fn header_center<'a>(
         .align_items(Alignment::Center);
 
     let overlay = Container::new(Column::with_children(configs).align_items(Alignment::Start))
-        .style(theme::Container::Dropdown);
+        .style(theme::Container::Box);
 
     let choose_config = drop_down::DropDown::new(underlay, overlay, expanded)
         .on_dismiss(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(false)))
@@ -99,7 +103,8 @@ pub fn header_center<'a>(
 
     elems.push(choose_config);
 
-    let mut create_button = icon_button("add/40").tooltip(fl!("create_config"));
+    let mut create_button = icon_button("add/40");
+    //.tooltip(fl!("create_config"));
 
     if dir_manager.config_names.is_valid_create(current_config) {
         create_button = create_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());
@@ -122,7 +127,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
         elements.push(
             icon_button("delete_forever/24")
                 .on_press(ConfigMsg::Delete(name).into())
-                .tooltip(fl!("delete_config"))
+                //.tooltip(fl!("delete_config"))
                 .into(),
         );
     }

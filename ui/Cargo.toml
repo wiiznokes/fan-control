@@ -22,18 +22,32 @@ lazy_static.workspace = true
 once_cell.workspace = true
 cargo-packager-resource-resolver.workspace = true
 derive_more.workspace = true
-[dependencies.libcosmic]
-#git = "https://github.com/wiiznokes/libcosmic"
-git = "https://github.com/pop-os/libcosmic"
-rev = "1bd39b17ae7c97934ea214028cd31c578b589e3e"
-#branch = "master"
-default-features = false
+
+[dependencies.iced]
+#branch = "dev"
+#version = "0.10"
+#path = "./../iced"
+git = "https://github.com/iced-rs/iced.git"
+rev = "3f5f99ca6e9f16cde6dd84841c43796e25d76893"
 features = [
-    #"a11y",
-    #"debug",
-    #"serde-keycode",
     "smol",
-    #"wayland",
     "wgpu",
-    "winit",
+    "svg",
+    "advanced",
 ]
+
+# [dependencies.libcosmic]
+# #git = "https://github.com/wiiznokes/libcosmic"
+# git = "https://github.com/pop-os/libcosmic"
+# rev = "1bd39b17ae7c97934ea214028cd31c578b589e3e"
+# #branch = "master"
+# default-features = false
+# features = [
+#     #"a11y",
+#     #"debug",
+#     #"serde-keycode",
+#     "smol",
+#     #"wayland",
+#     "wgpu",
+#     "winit",
+# ]
