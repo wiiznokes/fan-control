@@ -105,7 +105,8 @@ impl iced::Application for Ui {
             Command::perform(
                 async {
                     // todo: fix me: this block the command pool of Iced, so not idle
-                    std::thread::sleep(hardware::TIME_TO_UPDATE)
+                    //std::thread::sleep(hardware::TIME_TO_UPDATE)
+                    tokio::time::sleep(Duration::from_millis(200)).await;
                 },
                 |_| msg_to_send,
             )
