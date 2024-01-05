@@ -21,11 +21,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  upload-artifacts:
-    uses: ./.github/workflows/upload_artifacts.yml
+  # upload-artifacts:
+  #   uses: ./.github/workflows/upload_artifacts.yml
   
   publish:
-    needs: upload-artifacts
+    #needs: upload-artifacts
     runs-on: ubuntu-latest
 
     env:
@@ -41,7 +41,7 @@ jobs:
           # https://github.com/actions/checkout/issues/1471
           fetch-tags: false
       # must be after checkout because it will remove artifacts
-      - uses: actions/download-artifact@v4
+      #- uses: actions/download-artifact@v4
       
       - name: Prepare release on Github
         run: |
