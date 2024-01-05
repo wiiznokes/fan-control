@@ -85,12 +85,7 @@ impl cosmic::Application for Ui {
             .current_config_text()
             .to_owned();
 
-        let commands = Command::batch([
-            command::set_theme(to_cosmic_theme(&flags.dir_manager.settings().theme)),
-            command::message(cosmic::app::Message::App(AppMsg::Tick)),
-        ]);
-
-        let ui_state = Ui {
+        let mut ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
             app_state: flags,
             core,
@@ -99,35 +94,24 @@ impl cosmic::Application for Ui {
             current_config_cached,
             is_updating: false,
         };
+
+        let update_graph_command = ui_state.maybe_update_hardware_to_update_graph();
+
+        let commands = Command::batch([
+            command::set_theme(to_cosmic_theme(
+                &ui_state.app_state.dir_manager.settings().theme,
+            )),
+            update_graph_command,
+        ]);
+
         (ui_state, commands)
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         let dir_manager = &mut self.app_state.dir_manager;
 
-        fn wait_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
-            Command::perform(
-                async {
-                    tokio::time::sleep(hardware::TIME_TO_UPDATE).await;
-                },
-                |_| cosmic::app::Message::App(msg_to_send),
-            )
-        }
-
         match message {
-            AppMsg::Tick => {
-                if !self.is_updating {
-                    self.is_updating = true;
-                    if let Err(e) = self.app_state.bridge.update() {
-                        error!("{}", e);
-                        self.is_updating = false;
-                    } else {
-                        return wait_update_to_finish(AppMsg::UpdateGraph);
-                    }
-                } else {
-                    warn!("An update is already processing: skipping that one.");
-                }
-            }
+            AppMsg::Tick => return self.maybe_update_hardware_to_update_graph(),
             AppMsg::UpdateGraph => {
                 if let Err(e) = self.app_state.update.all(
                     &mut self.app_state.app_graph.nodes,
@@ -139,7 +123,7 @@ impl cosmic::Application for Ui {
                     error!("{}", e);
                     self.is_updating = false;
                 } else {
-                    return wait_update_to_finish(AppMsg::UpdateRootNodes);
+                    return wait_hardware_update_to_finish(AppMsg::UpdateRootNodes);
                 }
             }
             AppMsg::UpdateRootNodes => {
@@ -393,7 +377,7 @@ impl cosmic::Application for Ui {
                                     AppGraph::from_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
 
-                                return command::message(cosmic::app::Message::App(AppMsg::Tick));
+                                return self.maybe_update_hardware_to_update_graph();
                             }
                             None => {
                                 self.current_config_cached.clear();
@@ -534,5 +518,32 @@ fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
         AppTheme::Dark => theme::Theme::dark(),
         AppTheme::Light => theme::Theme::light(),
         AppTheme::System => theme::system_preference(),
+    }
+}
+
+fn wait_hardware_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
+    Command::perform(
+        async {
+            tokio::time::sleep(hardware::TIME_TO_UPDATE).await;
+        },
+        |_| cosmic::app::Message::App(msg_to_send),
+    )
+}
+
+impl Ui {
+    fn maybe_update_hardware_to_update_graph(&mut self) -> Command<AppMsg> {
+        if !self.is_updating {
+            self.is_updating = true;
+            if let Err(e) = self.app_state.bridge.update() {
+                error!("{}", e);
+                self.is_updating = false;
+            } else {
+                return wait_hardware_update_to_finish(AppMsg::UpdateGraph);
+            }
+        } else {
+            warn!("An update is already processing: skipping that one.");
+        }
+
+        Command::none()
     }
 }
