@@ -30,6 +30,12 @@ pub fn run_cli(mut app_state: AppState) {
     display_info(app_state.dir_manager.settings(), current_config);
 
     loop {
+        if let Err(e) = app_state.bridge.update() {
+            error!("{}", e);
+            break;
+        }
+        std::thread::sleep(hardware::TIME_TO_UPDATE);
+
         if let Err(e) = app_state.update.optimized(
             &mut app_state.app_graph.nodes,
             &app_state.app_graph.root_nodes,
@@ -38,9 +44,12 @@ pub fn run_cli(mut app_state: AppState) {
             error!("{}", e);
         }
 
-        let duration = Duration::from_millis(app_state.dir_manager.settings().update_delay);
+        let settings_update_delay =
+            Duration::from_millis(app_state.dir_manager.settings().update_delay)
+                - hardware::TIME_TO_UPDATE;
+        let final_delay = std::cmp::max(settings_update_delay, Duration::from_millis(50));
 
-        match rx.recv_timeout(duration) {
+        match rx.recv_timeout(final_delay) {
             Ok(action) => match action {
                 UserAction::Quit => {
                     println!("quit requested");

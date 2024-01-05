@@ -125,7 +125,7 @@ impl cosmic::Application for Ui {
                         return wait_update_to_finish(AppMsg::UpdateGraph);
                     }
                 } else {
-                    debug!("An update is already processing: skipping that one.");
+                    warn!("An update is already processing: skipping that one.");
                 }
             }
             AppMsg::UpdateGraph => {

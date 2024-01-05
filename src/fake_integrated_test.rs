@@ -35,6 +35,12 @@ fn test_config() {
     };
 
     for _ in 0..20 {
+        if let Err(e) = app_state.bridge.update() {
+            error!("{}", e);
+            break;
+        }
+        std::thread::sleep(hardware::TIME_TO_UPDATE);
+
         app_state
             .update
             .optimized(

@@ -409,13 +409,8 @@ mod test {
     fn update(bridge: &mut WindowsBridge, hardware: &Hardware) {
         info!("");
 
-        bench(
-            || {
-                bridge.update().unwrap();
-                "lhm".to_string()
-            },
-            "update",
-        );
+        bridge.update().unwrap();
+        std::thread::sleep(crate::TIME_TO_UPDATE);
 
         for h in &hardware.controls {
             get_value(bridge, &h.internal_index, &h.name);
