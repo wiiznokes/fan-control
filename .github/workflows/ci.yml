@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         #os: [ ubuntu-latest, windows-latest ]
-        os: [ ubuntu-latest ]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ubuntu-latest, windows-latest]
         #os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
@@ -67,7 +67,7 @@ jobs:
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
-          
+
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
         run: just libsensors
@@ -96,4 +96,3 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prettier
         run: npx prettier --check .
-  

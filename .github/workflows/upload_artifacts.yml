@@ -22,7 +22,7 @@ jobs:
         run: just libsensors
       - name: Package deb
         run: just deb
-          
+
       - run: echo "DEB_NAME=$(basename ./packages/fan-control*.deb)" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v4
         with:

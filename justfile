@@ -4,7 +4,7 @@ all:
 	cargo run --release
 
 # call before pull request
-pull: fix test
+pull: fmt prettier fix test
 	
 ###################  Build Libs
 
@@ -34,7 +34,7 @@ test:
 
 ###################  Format
 
-fix: fmt
+fix:
 	cargo clippy --workspace --all-features --fix --allow-dirty --allow-staged
 
 fmt:
