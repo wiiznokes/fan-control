@@ -1,130 +1,102 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug 'fan-control'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=fan-control",
-                    "--package=fan-control"
-                    
-                ],
-                "filter": {
-                    "name": "fan-control",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "-p",
-                "./.test",
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug 'fan-control': fake hardware",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=fan-control",
-                    "--package=fan-control",
-                    "--features=fake_hardware"
-                ],
-                "filter": {
-                    "name": "fan-control",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "-p",
-                "./.test",
-                "-c",
-                "test"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'data'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=data"
-                ],
-                "filter": {
-                    "name": "data",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'hardware'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=hardware"
-                ],
-                "filter": {
-                    "name": "hardware",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'ui'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=ui"
-                ],
-                "filter": {
-                    "name": "ui",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'fan-control'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=fan-control",
-                    "--package=fan-control"
-                ],
-                "filter": {
-                    "name": "fan-control",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug 'fan-control'",
+      "cargo": {
+        "args": ["build", "--bin=fan-control", "--package=fan-control"],
+        "filter": {
+          "name": "fan-control",
+          "kind": "bin"
         }
-    ]
+      },
+      "args": ["-p", "./.test"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug 'fan-control': fake hardware",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=fan-control",
+          "--package=fan-control",
+          "--features=fake_hardware"
+        ],
+        "filter": {
+          "name": "fan-control",
+          "kind": "bin"
+        }
+      },
+      "args": ["-p", "./.test", "-c", "test"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'data'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=data"],
+        "filter": {
+          "name": "data",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hardware'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hardware"],
+        "filter": {
+          "name": "hardware",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'ui'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=ui"],
+        "filter": {
+          "name": "ui",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'fan-control'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=fan-control",
+          "--package=fan-control"
+        ],
+        "filter": {
+          "name": "fan-control",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
 }

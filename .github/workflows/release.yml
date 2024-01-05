@@ -23,7 +23,7 @@ env:
 jobs:
   upload-artifacts:
     uses: ./.github/workflows/upload_artifacts.yml
-  
+
   publish:
     needs: upload-artifacts
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
           fetch-tags: false
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v4
-      
+
       - name: Prepare release on Github
         run: |
           # get the package version from Cargo.toml
@@ -51,7 +51,7 @@ jobs:
           # delete nightly release
           gh release delete nightly --yes || true
           git push --delete origin nightly || true
-      
+
       # in case is_nightly is not defined
       - if: ${{ (github.event.inputs.is_nightly  == 'true') || (github.event.inputs.is_nightly  == '') }}
         name: Setup options for nightly
@@ -62,7 +62,7 @@ jobs:
         name: Setup options for a new release
         run: |
           echo "TAG_NAME=v${{ env.PKG_VERSION }}" >> $GITHUB_ENV
-      
+
       - name: Publish release
         run: |
           git tag ${{ env.TAG_NAME }}
