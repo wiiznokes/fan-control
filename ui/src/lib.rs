@@ -41,7 +41,16 @@ mod node_cache;
 mod utils;
 
 pub fn run_ui(app_state: AppState) {
-    let settings = iced::Settings::with_flags(app_state);
+
+    // https://stackoverflow.com/questions/30291757/attaching-an-icon-resource-to-a-rust-application
+    let bytes = include_bytes!("./../../resource/app_icon/app_icon150.ico");
+
+    // todo: export Imageformat from Iced
+    let window_icon = iced::window::icon::from_file_data(bytes, None).unwrap();
+
+    let mut settings = iced::Settings::with_flags(app_state);
+
+    settings.window.icon = Some(window_icon);
 
     if let Err(e) = Ui::run(settings) {
         error!("error while running ui: {}", e);
@@ -471,6 +480,7 @@ impl iced::Application for Ui {
                 &self.current_config_cached,
                 self.choose_config_expanded,
             )))
+            .push(Space::new(Length::Fill, 0.0))
             .push(header_wrapper(header_end()))
             .align_items(iced::Alignment::Center)
             .width(Length::Fill);
