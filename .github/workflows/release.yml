@@ -1,9 +1,10 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
+  # todo: allow this but should not build if the current HEAD is already tagger with nightly
+  #schedule:
+  # run every day
+  #- cron: 0 0 * * *
   workflow_dispatch:
     inputs:
       is_nightly:

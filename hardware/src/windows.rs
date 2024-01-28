@@ -47,16 +47,18 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         }
         #[cfg(not(test))]
         {
-            let package_format = resource_resolver::current_format();
-            match resource_resolver::resolve_resource(package_format, resource_suffix) {
-                Ok(resource_path) => resource_path,
-                Err(e) => {
-                    error!("Can't find resource path: {e}. Fall back to current dir.");
-                    match std::env::current_dir() {
-                        Ok(current_dir) => current_dir.join(resource_suffix),
-                        Err(e) => return Err(WindowsError::SpawnServer(e)),
+            match resource_resolver::current_format() {
+                Ok(package_format) => match resource_resolver::resources_dir(package_format) {
+                    Ok(path) => path,
+                    Err(e) => {
+                        error!("Can't find resource path: {e}. Fall back to current dir.");
+                        match std::env::current_dir() {
+                            Ok(current_dir) => current_dir.join(resource_suffix),
+                            Err(e) => return Err(WindowsError::SpawnServer(e)),
+                        }
                     }
-                }
+                },
+                Err(_) => std::path::PathBuf::from(resource_suffix),
             }
         }
     };

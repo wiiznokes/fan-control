@@ -10,11 +10,13 @@ use once_cell::sync::Lazy;
 use cargo_packager_resource_resolver as resource_resolver;
 
 lazy_static::lazy_static! {
-    static ref RESSOURCE_PATH: PathBuf = {
-        let package_format = resource_resolver::current_format();
-        resource_resolver::resolve_resource(package_format, "resource")
-        .unwrap_or(PathBuf::from("resource"))
-        .join("icons/")
+    static ref ICONS_DIR: PathBuf = {
+        resource_resolver::current_format()
+            .map_or(PathBuf::from("resource/icons"), |package_format| {
+                resource_resolver::resources_dir(package_format)
+                    .unwrap_or(PathBuf::from("resource"))
+                    .join("icons/")
+            })
     };
 }
 
@@ -41,7 +43,7 @@ fn get_handle_icon(name: &str) -> Handle {
         BUF.insert_str(BUF.chars().count(), EXTENSION);
     };
 
-    let path = RESSOURCE_PATH.join(unsafe { BUF.as_str() });
+    let path = ICONS_DIR.join(unsafe { BUF.as_str() });
     cosmic::widget::icon::from_path(path)
 }
 

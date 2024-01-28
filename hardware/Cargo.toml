@@ -24,14 +24,13 @@ enum_dispatch = "0.3"
 rand = { version = "0.8", optional = true }
 derive_more.workspace = true
 
-[target.'cfg(target_os = "linux")'.dependencies]
-lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
-
-
 [target.'cfg(target_os = "windows")'.dependencies]
 serde_json.workspace = true
 cargo-packager-resource-resolver.workspace = true
 #num_enum = "0.7"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
 
 [dev-dependencies]
 env_logger.workspace = true
