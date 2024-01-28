@@ -22,7 +22,7 @@
 
 ## Todo/upgradable parts
 
-- add cargo-packager a way to localize ressource: done but not merged
+- add cargo-packager a way to localize resource: done but not merged
 - add app icon on windows, with cargo packager (nsis)
 - add resource folder only for nsis
 - return error from the windows server

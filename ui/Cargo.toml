@@ -26,7 +26,7 @@ tokio = { version = "1.35", features = ["time"] }
 [dependencies.libcosmic]
 #git = "https://github.com/wiiznokes/libcosmic"
 git = "https://github.com/pop-os/libcosmic"
-rev = "1bd39b17ae7c97934ea214028cd31c578b589e3e"
+rev = "213ede371b8f37780267542eb2e1af09ca0173fc"
 #branch = "master"
 default-features = false
 features = [
