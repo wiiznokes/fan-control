@@ -24,9 +24,9 @@ cargo-packager-resource-resolver.workspace = true
 derive_more.workspace = true
 tokio = { version = "1.35", features = ["time"] }
 [dependencies.libcosmic]
-#git = "https://github.com/wiiznokes/libcosmic"
 git = "https://github.com/pop-os/libcosmic"
-rev = "213ede371b8f37780267542eb2e1af09ca0173fc"
+rev = "08b2e1ca385b836411729c162984d59449fe3e51"
+#git = "https://github.com/wiiznokes/libcosmic"
 #branch = "master"
 default-features = false
 features = [

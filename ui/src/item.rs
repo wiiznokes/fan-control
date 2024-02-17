@@ -277,8 +277,7 @@ fn custom_temp_view<'a>(
                 )
                 .align_items(Alignment::Center)
                 .into()
-        })
-        .collect();
+        });
 
     let input_options: Vec<Input> = utils::input::availlable_inputs(nodes, node).collect();
 

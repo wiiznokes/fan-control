@@ -2,7 +2,7 @@
 
 use cosmic::{
     iced::{self, keyboard, touch},
-    iced_core::{widget::OperationOutputWrapper, Size, Vector},
+    iced_core::{keyboard::key::Named, widget::OperationOutputWrapper, Size, Vector},
     iced_widget,
 };
 use iced_widget::core::{
@@ -16,13 +16,13 @@ use iced_widget::core::{
 
 use super::{alignment::Alignment, offset::Offset};
 
-pub struct DropDown<'a, Message, Renderer = iced::Renderer>
+pub struct DropDown<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
 {
-    underlay: Element<'a, Message, Renderer>,
-    overlay: Element<'a, Message, Renderer>,
+    underlay: Element<'a, Message, Theme, Renderer>,
+    overlay: Element<'a, Message, Theme, Renderer>,
     on_dismiss: Option<Message>,
     width: Option<Length>,
     height: Length,
@@ -31,15 +31,15 @@ where
     expanded: bool,
 }
 
-impl<'a, Message, Renderer> DropDown<'a, Message, Renderer>
+impl<'a, Message, Theme, Renderer> DropDown<'a, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
 {
     pub fn new<U, B>(underlay: U, overlay: B, expanded: bool) -> Self
     where
-        U: Into<Element<'a, Message, Renderer>>,
-        B: Into<Element<'a, Message, Renderer>>,
+        U: Into<Element<'a, Message, Theme, Renderer>>,
+        B: Into<Element<'a, Message, Theme, Renderer>>,
     {
         DropDown {
             underlay: underlay.into(),
@@ -74,7 +74,7 @@ where
     }
 }
 
-impl<'a, Message, Renderer> DropDown<'a, Message, Renderer>
+impl<'a, Message, Theme, Renderer> DropDown<'a, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
@@ -86,18 +86,15 @@ where
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Renderer> for DropDown<'a, Message, Renderer>
+impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer> for DropDown<'a, Message, Theme, Renderer>
 where
     Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
 {
-    fn width(&self) -> Length {
-        self.underlay.as_widget().width()
+    fn size(&self) -> Size<Length> {
+        self.underlay.as_widget().size()
     }
 
-    fn height(&self) -> Length {
-        self.underlay.as_widget().height()
-    }
 
     fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
         self.underlay
@@ -109,7 +106,7 @@ where
         &self,
         state: &Tree,
         renderer: &mut Renderer,
-        theme: &Renderer::Theme,
+        theme: &Theme,
         style: &renderer::Style,
         layout: Layout<'_>,
         cursor: Cursor,
@@ -191,7 +188,7 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-    ) -> Option<overlay::Element<'b, Message, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         if !self.expanded {
             return self
                 .underlay
@@ -217,22 +214,22 @@ where
     }
 }
 
-impl<'a, Message, Renderer> From<DropDown<'a, Message, Renderer>> for Element<'a, Message, Renderer>
+impl<'a, Message, Theme: 'a, Renderer> From<DropDown<'a, Message, Theme, Renderer>> for Element<'a, Message, Theme, Renderer>
 where
     Message: 'a + Clone,
     Renderer: 'a + core::Renderer,
 {
-    fn from(drop_down: DropDown<'a, Message, Renderer>) -> Self {
+    fn from(drop_down: DropDown<'a, Message, Theme, Renderer>) -> Self {
         Element::new(drop_down)
     }
 }
 
-struct DropDownOverlay<'a, 'b, Message, Renderer = iced::Renderer>
+struct DropDownOverlay<'a, 'b, Message, Theme = iced::Theme, Renderer = iced::Renderer>
 where
     Message: Clone,
 {
     state: &'b mut Tree,
-    element: &'b mut Element<'a, Message, Renderer>,
+    element: &'b mut Element<'a, Message, Theme, Renderer>,
     on_dismiss: &'b Option<Message>,
     width: &'b Option<Length>,
     height: &'b Length,
@@ -241,14 +238,14 @@ where
     underlay_bounds: Rectangle,
 }
 
-impl<'a, 'b, Message, Renderer> DropDownOverlay<'a, 'b, Message, Renderer>
+impl<'a, 'b, Message, Theme, Renderer> DropDownOverlay<'a, 'b, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
 {
     fn new(
         state: &'b mut Tree,
-        element: &'b mut Element<'a, Message, Renderer>,
+        element: &'b mut Element<'a, Message, Theme, Renderer>,
         on_dismiss: &'b Option<Message>,
         width: &'b Option<Length>,
         height: &'b Length,
@@ -269,8 +266,8 @@ where
     }
 }
 
-impl<'a, 'b, Message, Renderer> core::Overlay<Message, Renderer>
-    for DropDownOverlay<'a, 'b, Message, Renderer>
+impl<'a, 'b, Message, Theme, Renderer> core::Overlay<Message, Theme, Renderer>
+    for DropDownOverlay<'a, 'b, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
@@ -329,7 +326,7 @@ where
             ),
         };
 
-        node.move_to(position);
+        node.move_to_mut(position);
 
         node
     }
@@ -337,7 +334,7 @@ where
     fn draw(
         &self,
         renderer: &mut Renderer,
-        theme: &Renderer::Theme,
+        theme: &Theme,
         style: &renderer::Style,
         layout: Layout<'_>,
         cursor: Cursor,
@@ -357,11 +354,11 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<Message>,
     ) -> event::Status {
-        if let Some(message) = self.on_dismiss {
-            match event {
-                Event::Keyboard(keyboard::Event::KeyPressed { key_code, .. }) => {
-                    if key_code == keyboard::KeyCode::Escape {
-                        shell.publish(message.clone());
+        if let Some(on_dismiss) = self.on_dismiss {
+            match &event {
+                Event::Keyboard(keyboard::Event::KeyPressed { key, .. }) => {
+                    if key == &keyboard::Key::Named(Named::Escape) {
+                        shell.publish(on_dismiss.clone());
                     }
                 }
 
@@ -370,7 +367,7 @@ where
                 ))
                 | Event::Touch(touch::Event::FingerPressed { .. }) => {
                     if !cursor.is_over(layout.bounds()) && !cursor.is_over(self.underlay_bounds) {
-                        shell.publish(message.clone());
+                        shell.publish(on_dismiss.clone());
                     }
                 }
 
@@ -406,7 +403,7 @@ where
         &'c mut self,
         layout: Layout<'_>,
         renderer: &Renderer,
-    ) -> Option<overlay::Element<'c, Message, Renderer>> {
+    ) -> Option<overlay::Element<'c, Message, Theme, Renderer>> {
         self.element
             .as_widget_mut()
             .overlay(self.state, layout, renderer)

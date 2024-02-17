@@ -8,7 +8,7 @@ edition = "2021"
 license = "MIT"
 homepage = "https://github.com/wiiznokes/fan-control/"
 repository = "https://github.com/wiiznokes/fan-control.git"
-rust-version = "1.75"
+rust-version = "1.76"
 keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 
