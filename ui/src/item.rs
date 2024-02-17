@@ -264,20 +264,17 @@ fn custom_temp_view<'a>(
     .width(Length::Fill)
     .into();
 
-    let inputs = node
-        .inputs
-        .iter()
-        .map(|input| {
-            Row::new()
-                .push(Text::new(input.name.clone()).width(Length::Fixed(100.0)))
-                .push(Space::new(Length::Fill, Length::Fixed(0.0)))
-                .push(
-                    icon_button("close/20")
-                        .on_press(ModifNodeMsg::RemoveInput(input.clone()).to_app(node.id)),
-                )
-                .align_items(Alignment::Center)
-                .into()
-        });
+    let inputs = node.inputs.iter().map(|input| {
+        Row::new()
+            .push(Text::new(input.name.clone()).width(Length::Fixed(100.0)))
+            .push(Space::new(Length::Fill, Length::Fixed(0.0)))
+            .push(
+                icon_button("close/20")
+                    .on_press(ModifNodeMsg::RemoveInput(input.clone()).to_app(node.id)),
+            )
+            .align_items(Alignment::Center)
+            .into()
+    });
 
     let input_options: Vec<Input> = utils::input::availlable_inputs(nodes, node).collect();
 
