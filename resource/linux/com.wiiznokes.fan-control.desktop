@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=fan-control
+Comment=Control your fans with different behaviors
+Type=Application
+Keywords=fan;control;temp;sensor;
+Categories=System;Utility;
+Exec=fan-control
+Icon=com.wiiznokes.fan-control
+StartupWMClass=com.wiiznokes.fan-control
+Terminal=false
