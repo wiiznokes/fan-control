@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.wiiznokes.fan-control</id>
+  
+  <name>fan-control</name>
+  <summary>Control your fans with different behaviors</summary>
+  
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  
+  <description>
+    <p>
+      # Features
+    </p>
+    <p>
+      - Display sensors data on real time - Control fans based on custom behaviors - Save configuration - Multiplatform (Linux/Windows)
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">fan-control.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/wiiznokes/fan-control/assets/78230769/cdc30753-4186-47a1-ba49-11af3868380f</image>
+    </screenshot>
+  </screenshots>
+</component>

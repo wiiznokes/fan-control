@@ -28,3 +28,5 @@ LibreHardwareMonitorWrapper.sln.DotSettings.user
 
 # Lmsensors
 build/
+
+/.flatpak-builder
