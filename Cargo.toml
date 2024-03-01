@@ -14,7 +14,7 @@ keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 [package]
 name = "fan-control"
-version = "0.1.1"
+version = "0.1.2"
 description = "Control your fans with different behaviors"
 exclude = ["/.*", "justfile", "LICENCE"]
 categories = ["command-line-utilities"]
