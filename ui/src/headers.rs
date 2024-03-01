@@ -1,6 +1,7 @@
 use cosmic::{
     iced_core::{Alignment, Length},
     iced_widget::{Button, Column},
+    prelude::CollectionWidget,
     theme,
     widget::{Container, Row, Text, TextInput},
     Element,
@@ -37,20 +38,21 @@ pub fn header_center<'a>(
     let settings = dir_manager.settings();
     let mut elems = Vec::new();
 
-    let mut save_button = icon_button("save/40")
-        .tooltip(fl!("save_config"))
-        .height(ICON_LENGHT)
-        .width(ICON_LENGHT);
+    if settings.current_config.is_some() {
+        let mut save_button = icon_button("save/40")
+            .tooltip(fl!("save_config"))
+            .height(ICON_LENGHT)
+            .width(ICON_LENGHT);
 
-    if settings.current_config.is_some()
-        && dir_manager
+        if dir_manager
             .config_names
             .is_valid_name(&settings.current_config, current_config)
-    {
-        save_button = save_button.on_press(ConfigMsg::Save.into());
-    }
+        {
+            save_button = save_button.on_press(ConfigMsg::Save.into());
+        }
 
-    elems.push(save_button.into());
+        elems.push(save_button.into());
+    }
 
     let mut name = TextInput::new(fl!("config_name"), current_config)
         .on_input(|name| ConfigMsg::Rename(name).into())
@@ -78,16 +80,19 @@ pub fn header_center<'a>(
             .for_each(|name| configs.push(config_choice_line(Some(name.to_owned()))))
     }
 
-    let mut expand_icon = expand_icon(expanded).height(ICON_LENGHT).width(ICON_LENGHT);
-
-    if !configs.is_empty() {
-        expand_icon =
-            expand_icon.on_press(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(!expanded)));
-    }
+    let expand_icon = if !configs.is_empty() {
+        let expand_icon = expand_icon(expanded)
+            .height(ICON_LENGHT)
+            .width(ICON_LENGHT)
+            .on_press(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(!expanded)));
+        Some(expand_icon)
+    } else {
+        None
+    };
 
     let underlay = Row::new()
         .push(name)
-        .push(expand_icon)
+        .push_maybe(expand_icon)
         .align_items(Alignment::Center);
 
     let overlay = Container::new(Column::with_children(configs).align_items(Alignment::Start))

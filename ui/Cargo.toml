@@ -25,7 +25,7 @@ derive_more.workspace = true
 tokio = { version = "1.35", features = ["time"] }
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
-rev = "c7093b67f6e248d901e4bdef6f681b16bd181509"
+rev = "8a86f1857fc7cd0e638b1a5ad768345b1ae200f7"
 #git = "https://github.com/wiiznokes/libcosmic"
 #branch = "master"
 default-features = false
@@ -34,6 +34,7 @@ features = [
     "wgpu",
     "winit",
     "tokio",
+    "multi-window"
     #"a11y",
     #"debug",
     #"serde-keycode",
