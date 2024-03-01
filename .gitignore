@@ -17,6 +17,7 @@ rustc-ice*
 .vscode/*
 !.vscode/launch.json
 !.vscode/settings.json
+!.vscode/extensions.json
 
 # CSharp
 bin/
