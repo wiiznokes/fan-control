@@ -14,7 +14,7 @@ cargo run --release # or just deb for building a deb package
 
 ### Windows
 
-1. install [dotnet 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+1. install [dotnet 7](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 2. run these commands
    ```shell
    just lhm
