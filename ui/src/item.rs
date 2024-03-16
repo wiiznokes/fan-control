@@ -276,7 +276,8 @@ fn custom_temp_view<'a>(
             .into()
     });
 
-    let input_options: Vec<Input> = pick_list_utils::input::availlable_inputs(nodes, node).collect();
+    let input_options: Vec<Input> =
+        pick_list_utils::input::availlable_inputs(nodes, node).collect();
 
     let current_input = Input {
         id: Default::default(),
