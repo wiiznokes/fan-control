@@ -3,7 +3,7 @@ use std::{fmt::Debug, rc::Rc};
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
-use crate::{HItem, Hardware, HardwareBridgeT, HardwareError, Mode, Value};
+use crate::{HItem, Hardware, HardwareBridge, HardwareError, Mode, Value};
 use ouroboros::self_referencing;
 
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
@@ -240,7 +240,7 @@ impl LinuxBridge {
     }
 }
 
-impl HardwareBridgeT for LinuxBridge {
+impl HardwareBridge for LinuxBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

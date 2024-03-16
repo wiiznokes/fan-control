@@ -28,7 +28,9 @@ pub enum UpdateError {
 
 type Result<T> = std::result::Result<T, UpdateError>;
 
-pub struct Update {}
+pub struct Update {
+    
+}
 
 impl Default for Update {
     fn default() -> Self {
@@ -45,11 +47,11 @@ impl Update {
     /// Update graph in an optimal way. This shouln't be use
     /// with a graphical interface.
     /// Warning: doesn't call update from the bridge, it's the role of the caller.
-    pub fn optimized(
+    pub fn optimized<H: HardwareBridge>(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) -> Result<()> {
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
@@ -62,7 +64,7 @@ impl Update {
 
     /// Doesn't update root nodes and doesn't re update nodes that could have been updated (fans).
     /// Warning: doesn't call update from the bridge, it's the role of the caller.
-    pub fn all(&mut self, nodes: &mut Nodes, bridge: &mut HardwareBridge) -> Result<()> {
+    pub fn all<H: HardwareBridge>(&mut self, nodes: &mut Nodes, bridge: &mut H) -> Result<()> {
         let ids_to_update_sorted: Vec<Id>;
         {
             let mut key_values = nodes.iter().collect::<Vec<_>>();
@@ -84,10 +86,10 @@ impl Update {
         Ok(())
     }
 
-    pub fn nodes_which_update_can_change(
+    pub fn nodes_which_update_can_change<H: HardwareBridge>(
         &mut self,
         nodes: &mut Nodes,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) -> Result<()> {
         for node in nodes.values_mut() {
             let value = match &mut node.node_type {
@@ -120,11 +122,11 @@ impl Update {
         Ok(())
     }
 
-    fn set_node_to_auto(
+    fn set_node_to_auto<H: HardwareBridge>(
         &mut self,
         nodes: &mut Nodes,
         node_id: &Id,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) -> Result<()> {
         let Some(node) = nodes.get_mut(node_id) else {
             return Err(UpdateError::NodeNotFound(*node_id));
@@ -136,11 +138,11 @@ impl Update {
         }
     }
 
-    pub fn set_valid_root_nodes_to_auto(
+    pub fn set_valid_root_nodes_to_auto<H: HardwareBridge>(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) {
         for node_id in root_nodes {
             if Self::validate_rec(nodes, node_id) {
@@ -154,11 +156,11 @@ impl Update {
         }
     }
 
-    pub fn set_invalid_root_nodes_to_auto(
+    pub fn set_invalid_root_nodes_to_auto<H: HardwareBridge>(
         &mut self,
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
@@ -189,11 +191,11 @@ impl Update {
         true
     }
 
-    fn update_rec(
+    fn update_rec<H: HardwareBridge>(
         nodes: &mut Nodes,
         node_id: &Id,
         updated: &mut HashSet<Id>,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) -> Result<Option<Value>> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
@@ -247,7 +249,7 @@ impl Update {
 }
 
 impl Node {
-    fn update(&mut self, input_values: &[Value], bridge: &mut HardwareBridge) -> Result<()> {
+    fn update<H: HardwareBridge>(&mut self, input_values: &[Value], bridge: &mut H) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {
                 let input_value = input_values[0];

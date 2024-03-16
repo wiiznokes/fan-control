@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{HItem, Hardware, HardwareBridgeT, Mode, Value};
+use crate::{HItem, Hardware, HardwareBridge, Mode, Value};
 
 pub struct FakeHardwareBridge {
     hardware: Hardware,
@@ -66,7 +66,7 @@ impl FakeHardwareBridge {
     }
 }
 
-impl HardwareBridgeT for FakeHardwareBridge {
+impl HardwareBridge for FakeHardwareBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

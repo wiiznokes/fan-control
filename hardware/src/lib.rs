@@ -1,5 +1,4 @@
 use derive_more::Display;
-use enum_dispatch::enum_dispatch;
 use serde::Serialize;
 use std::{fmt::Debug, rc::Rc, time::Duration};
 use thiserror::Error;
@@ -9,8 +8,6 @@ extern crate log;
 
 #[cfg(target_os = "linux")]
 mod linux;
-#[cfg(target_os = "linux")]
-use linux::LinuxBridge;
 
 #[cfg(target_os = "windows")]
 mod windows;
@@ -19,8 +16,6 @@ use windows::WindowsBridge;
 
 #[cfg(feature = "fake_hardware")]
 mod fake_hardware;
-#[cfg(feature = "fake_hardware")]
-use fake_hardware::FakeHardwareBridge;
 
 #[derive(Error, Debug)]
 pub enum HardwareError {
@@ -80,39 +75,22 @@ pub enum Mode {
     Specific(Value),
 }
 
-/// Use this type to interact with the hardware.
-/// Only one implementation will be used at runtime. Using enum
-/// instead of a trait have better performance.
-#[enum_dispatch]
-pub enum HardwareBridge {
+
+/// Try to construct a new hardware bridge
+#[allow(unreachable_code)]
+pub fn new() -> Result<impl HardwareBridge> {
+    #[cfg(feature = "fake_hardware")]
+    return fake_hardware::FakeHardwareBridge::new();
+
     #[cfg(target_os = "windows")]
-    WindowsBridge,
+    return windows::WindowsBridge::new();
 
     #[cfg(target_os = "linux")]
-    LinuxBridge,
-
-    #[cfg(feature = "fake_hardware")]
-    FakeHardwareBridge,
+    return linux::LinuxBridge::new();
 }
 
-impl HardwareBridge {
-    /// Try to construct a new hardware bridge
-    #[allow(unreachable_code)]
-    pub fn new() -> Result<Self> {
-        #[cfg(feature = "fake_hardware")]
-        return Ok(Self::FakeHardwareBridge(FakeHardwareBridge::new()?));
 
-        #[cfg(target_os = "windows")]
-        return Ok(Self::WindowsBridge(WindowsBridge::new()?));
-
-        #[cfg(target_os = "linux")]
-        return Ok(Self::LinuxBridge(LinuxBridge::new()?));
-    }
-}
-
-/// All variant of HardwareBridge will implement this trait
-#[enum_dispatch(HardwareBridge)]
-pub trait HardwareBridgeT {
+pub trait HardwareBridge {
     fn hardware(&self) -> &Hardware;
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;

@@ -7,7 +7,7 @@ use std::{env, fs};
 use args::Args;
 use clap::Parser;
 use data::{app_graph::AppGraph, dir_manager::DirManager, update::Update, AppState};
-use hardware::{self, HardwareBridge, HardwareBridgeT};
+use hardware::{self, HardwareBridge};
 use log::LevelFilter;
 use thiserror::Error;
 
@@ -90,7 +90,7 @@ fn try_run() -> Result<()> {
 
     let dir_manager = DirManager::new(&args.config_dir_path, &args.config_name);
 
-    let bridge = HardwareBridge::new()?;
+    let bridge = hardware::new()?;
     let hardware = bridge.hardware();
 
     debug!("sensors found: {:?}", hardware);

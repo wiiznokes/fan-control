@@ -8,7 +8,7 @@ use data::{
     utils::RemoveElem,
     AppState,
 };
-use hardware::{HardwareBridgeT, Mode};
+use hardware::{HardwareBridge, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
@@ -46,16 +46,16 @@ mod node_cache;
 mod settings_drawer;
 mod utils;
 
-pub fn run_ui(app_state: AppState) {
+pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
     let settings = cosmic::app::Settings::default();
-    if let Err(e) = cosmic::app::run::<Ui>(settings, app_state) {
+    if let Err(e) = cosmic::app::run::<Ui<H>>(settings, app_state) {
         error!("error while running ui: {}", e);
         panic!()
     }
 }
-pub struct Ui {
+pub struct Ui<H: HardwareBridge> {
     core: Core,
-    app_state: AppState,
+    app_state: AppState<H>,
     current_config_cached: String,
     create_button_expanded: bool,
     choose_config_expanded: bool,
@@ -63,10 +63,10 @@ pub struct Ui {
     is_updating: bool,
 }
 
-impl cosmic::Application for Ui {
+impl <H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     type Executor = executor::Default;
     type Message = AppMsg;
-    type Flags = AppState;
+    type Flags = AppState<H>;
 
     const APP_ID: &'static str = "com.wiiznokes.fan-control";
 
@@ -530,7 +530,7 @@ fn wait_hardware_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
     )
 }
 
-impl Ui {
+impl <H: HardwareBridge> Ui<H> {
     fn maybe_update_hardware_to_update_graph(&mut self) -> Command<AppMsg> {
         if !self.is_updating {
             self.is_updating = true;

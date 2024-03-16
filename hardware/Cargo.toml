@@ -20,7 +20,6 @@ thiserror.workspace = true
 log.workspace = true
 serde.workspace = true
 ouroboros = "0.18"
-enum_dispatch = "0.3"
 rand = { version = "0.8", optional = true }
 derive_more.workspace = true
 
