@@ -61,7 +61,11 @@ impl Control {
         }
     }
 
-    pub fn set_mode<H: HardwareBridge>(&mut self, mode: Mode, bridge: &mut H) -> Result<(), UpdateError> {
+    pub fn set_mode<H: HardwareBridge>(
+        &mut self,
+        mode: Mode,
+        bridge: &mut H,
+    ) -> Result<(), UpdateError> {
         if let Some(mode_set) = &self.mode_set {
             if mode_set == &mode {
                 info!("Mode {} is already set for {}.", mode, self.name);

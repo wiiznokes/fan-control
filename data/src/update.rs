@@ -28,9 +28,7 @@ pub enum UpdateError {
 
 type Result<T> = std::result::Result<T, UpdateError>;
 
-pub struct Update {
-    
-}
+pub struct Update {}
 
 impl Default for Update {
     fn default() -> Self {

@@ -7,7 +7,7 @@ use crate::integrated_test::init_test_logging;
 use data::app_graph::AppGraph;
 use data::dir_manager::DirManager;
 use data::{update::Update, AppState};
-use hardware::{HardwareBridge, HardwareBridgeT};
+use hardware::HardwareBridge;
 
 #[test]
 fn test_config() {
@@ -21,25 +21,30 @@ fn test_config() {
 
     let dir_manager = DirManager::new(&args.config_dir_path, &args.config_name);
 
-    let bridge = HardwareBridge::new().unwrap();
+    let bridge = hardware::new().unwrap();
 
     let config = dir_manager.get_config().unwrap();
 
     let app_graph = AppGraph::from_config(config, bridge.hardware());
 
-    let mut app_state = AppState {
+    let app_state = AppState {
         dir_manager,
         app_graph,
         update: Update::new(),
         bridge,
     };
 
+    run(app_state)
+}
+
+fn run<H: HardwareBridge>(mut app_state: AppState<H>) {
     for _ in 0..20 {
         if let Err(e) = app_state.bridge.update() {
             error!("{}", e);
             break;
         }
-        std::thread::sleep(hardware::TIME_TO_UPDATE);
+
+        std::thread::sleep(H::TIME_TO_UPDATE);
 
         app_state
             .update

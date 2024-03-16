@@ -11,8 +11,6 @@ mod linux;
 
 #[cfg(target_os = "windows")]
 mod windows;
-#[cfg(target_os = "windows")]
-use windows::WindowsBridge;
 
 #[cfg(feature = "fake_hardware")]
 mod fake_hardware;
@@ -75,22 +73,22 @@ pub enum Mode {
     Specific(Value),
 }
 
-
 /// Try to construct a new hardware bridge
-#[allow(unreachable_code)]
 pub fn new() -> Result<impl HardwareBridge> {
     #[cfg(feature = "fake_hardware")]
     return fake_hardware::FakeHardwareBridge::new();
 
-    #[cfg(target_os = "windows")]
+    #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
     return windows::WindowsBridge::new();
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
     return linux::LinuxBridge::new();
 }
 
-
 pub trait HardwareBridge {
+    /// Approximative time to update sensors on my pc
+    const TIME_TO_UPDATE: Duration = Duration::from_millis(0);
+
     fn hardware(&self) -> &Hardware;
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
@@ -109,12 +107,3 @@ pub trait HardwareBridge {
         Ok(())
     }
 }
-
-// todo: move this 2 line in HardwareBridgeT when enum_dispatch support const value
-
-/// Approximative time to update sensors on my pc
-#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
-pub const TIME_TO_UPDATE: Duration = Duration::from_millis(250);
-
-#[cfg(any(feature = "fake_hardware", target_os = "linux"))]
-pub const TIME_TO_UPDATE: Duration = Duration::from_millis(0);

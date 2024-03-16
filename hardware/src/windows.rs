@@ -10,7 +10,7 @@ use std::{
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{HItem, Hardware, HardwareBridgeT, Mode, Value};
+use crate::{HItem, Hardware, HardwareBridge, Mode, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
@@ -326,7 +326,9 @@ impl WindowsBridge {
     }
 }
 
-impl HardwareBridgeT for WindowsBridge {
+impl HardwareBridge for WindowsBridge {
+    const TIME_TO_UPDATE: Duration = Duration::from_millis(250);
+
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }
@@ -374,7 +376,7 @@ impl HardwareBridgeT for WindowsBridge {
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
-    use crate::{Hardware, HardwareBridgeT};
+    use crate::Hardware;
     use std::{
         thread::sleep,
         time::{Duration, Instant},
@@ -412,7 +414,7 @@ mod test {
         info!("");
 
         bridge.update().unwrap();
-        std::thread::sleep(crate::TIME_TO_UPDATE);
+        std::thread::sleep(WindowsBridge::TIME_TO_UPDATE);
 
         for h in &hardware.controls {
             get_value(bridge, &h.internal_index, &h.name);

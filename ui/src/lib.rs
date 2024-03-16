@@ -63,7 +63,7 @@ pub struct Ui<H: HardwareBridge> {
     is_updating: bool,
 }
 
-impl <H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
+impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     type Executor = executor::Default;
     type Message = AppMsg;
     type Flags = AppState<H>;
@@ -123,7 +123,7 @@ impl <H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     error!("{}", e);
                     self.is_updating = false;
                 } else {
-                    return wait_hardware_update_to_finish(AppMsg::UpdateRootNodes);
+                    return wait_hardware_update_to_finish::<H>(AppMsg::UpdateRootNodes);
                 }
             }
             AppMsg::UpdateRootNodes => {
@@ -521,16 +521,16 @@ fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
     }
 }
 
-fn wait_hardware_update_to_finish(msg_to_send: AppMsg) -> Command<AppMsg> {
+fn wait_hardware_update_to_finish<H: HardwareBridge>(msg_to_send: AppMsg) -> Command<AppMsg> {
     Command::perform(
         async {
-            tokio::time::sleep(hardware::TIME_TO_UPDATE).await;
+            tokio::time::sleep(H::TIME_TO_UPDATE).await;
         },
         |_| cosmic::app::Message::App(msg_to_send),
     )
 }
 
-impl <H: HardwareBridge> Ui<H> {
+impl<H: HardwareBridge> Ui<H> {
     fn maybe_update_hardware_to_update_graph(&mut self) -> Command<AppMsg> {
         if !self.is_updating {
             self.is_updating = true;
@@ -538,7 +538,7 @@ impl <H: HardwareBridge> Ui<H> {
                 error!("{}", e);
                 self.is_updating = false;
             } else {
-                return wait_hardware_update_to_finish(AppMsg::UpdateGraph);
+                return wait_hardware_update_to_finish::<H>(AppMsg::UpdateGraph);
             }
         } else {
             warn!("An update is already processing: skipping that one.");
