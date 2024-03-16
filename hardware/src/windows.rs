@@ -309,6 +309,7 @@ impl WindowsBridge {
 }
 
 impl WindowsBridge {
+    #[allow(dead_code)]
     pub fn new() -> crate::Result<Self> {
         let process_handle = spawn_windows_server()?;
         let stream = try_connect()?;

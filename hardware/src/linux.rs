@@ -215,6 +215,7 @@ fn generate_hardware<'a>(
 }
 
 impl LinuxBridge {
+    #[allow(dead_code)]
     pub fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
