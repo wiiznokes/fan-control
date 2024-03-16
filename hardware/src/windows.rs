@@ -183,7 +183,6 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
     let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data)?;
 
     for base_hardware in base_hardware_list {
-       
         match base_hardware.hardware_type {
             HardwareType::Control => hardware.controls.push(Rc::new(HControl {
                 name: base_hardware.name,
@@ -354,7 +353,6 @@ impl HardwareBridge for WindowsBridge {
         let value = self.read::<I32>()?;
         Ok(value.0)
     }
-
 
     fn set_value(&mut self, control: &HControl, value: Value) -> crate::Result<()> {
         self.send(Command::SetValue)?;
