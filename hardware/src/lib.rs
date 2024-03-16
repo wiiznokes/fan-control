@@ -17,8 +17,6 @@ pub mod fake_hardware;
 
 #[derive(Error, Debug)]
 pub enum HardwareError {
-    #[error("Internal index not found")]
-    InternalIndexNotFound,
     #[cfg(target_os = "linux")]
     #[error(transparent)]
     Linux(#[from] linux::LinuxError),
@@ -29,8 +27,14 @@ pub enum HardwareError {
 
 type Result<T> = std::result::Result<T, HardwareError>;
 
+pub trait HItem {
+    fn name(&self) -> &String;
+    fn id(&self) -> &String;
+    fn info(&self) -> &String;
+}
+
 #[derive(Serialize, Debug, Clone, Eq)]
-pub struct HItem {
+pub struct HSensor {
     pub name: String,
     #[serde(rename = "id")]
     pub hardware_id: String,
@@ -39,16 +43,57 @@ pub struct HItem {
     pub info: String,
 
     #[serde(skip)]
-    pub internal_index: usize,
+    internal_index: usize,
 }
 
-impl ToString for HItem {
-    fn to_string(&self) -> String {
-        self.name.clone()
+impl HItem for HSensor {
+    fn id(&self) -> &String {
+        &self.hardware_id
+    }
+
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn info(&self) -> &String {
+        &self.info
     }
 }
 
-impl PartialEq for HItem {
+#[derive(Serialize, Debug, Clone, Eq)]
+pub struct HControl {
+    pub name: String,
+    #[serde(rename = "id")]
+    pub hardware_id: String,
+
+    #[serde(skip)]
+    pub info: String,
+
+    #[serde(skip)]
+    internal_index: usize,
+}
+
+impl HItem for HControl {
+    fn id(&self) -> &String {
+        &self.hardware_id
+    }
+
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn info(&self) -> &String {
+        &self.info
+    }
+}
+
+impl PartialEq for HControl {
+    fn eq(&self, other: &Self) -> bool {
+        self.internal_index == other.internal_index
+    }
+}
+
+impl PartialEq for HSensor {
     fn eq(&self, other: &Self) -> bool {
         self.internal_index == other.internal_index
     }
@@ -57,11 +102,11 @@ impl PartialEq for HItem {
 #[derive(Serialize, Debug, Clone, Default)]
 pub struct Hardware {
     #[serde(default, rename = "Control")]
-    pub controls: Vec<Rc<HItem>>,
+    pub controls: Vec<Rc<HControl>>,
     #[serde(default, rename = "Fan")]
-    pub fans: Vec<Rc<HItem>>,
+    pub fans: Vec<Rc<HSensor>>,
     #[serde(default, rename = "Temp")]
-    pub temps: Vec<Rc<HItem>>,
+    pub temps: Vec<Rc<HSensor>>,
 }
 
 pub type Value = i32;
@@ -95,9 +140,11 @@ pub trait HardwareBridge {
 
     fn hardware(&self) -> &Hardware;
 
-    fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> Result<()>;
-    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> Result<()>;
+    fn get_sensor_value(&mut self, sensor: &HSensor) -> Result<Value>;
+    fn get_control_value(&mut self, control: &HControl) -> Result<Value>;
+
+    fn set_value(&mut self, control: &HControl, value: Value) -> Result<()>;
+    fn set_mode(&mut self, control: &HControl, mode: &Mode) -> Result<()>;
 
     /// Used on Windows, because we update all sensors in one function, so
     /// we don't want to update at each call, instead, we call this function

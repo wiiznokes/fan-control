@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{HItem, Hardware, HardwareBridge, Mode, Value};
+use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
 
 pub struct FakeHardwareBridge {
     hardware: Hardware,
@@ -22,7 +22,7 @@ impl HardwareBridge for FakeHardwareBridge {
     fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
-        let temp1 = HItem {
+        let temp1 = HSensor {
             name: "temp1".into(),
             hardware_id: "temp1".into(),
             info: String::new(),
@@ -30,7 +30,7 @@ impl HardwareBridge for FakeHardwareBridge {
         };
         hardware.temps.push(temp1.into());
 
-        let temp2 = HItem {
+        let temp2 = HSensor {
             name: "temp2".into(),
             hardware_id: "temp2".into(),
             info: String::new(),
@@ -38,7 +38,7 @@ impl HardwareBridge for FakeHardwareBridge {
         };
         hardware.temps.push(temp2.into());
 
-        let fan1 = HItem {
+        let fan1 = HSensor {
             name: "fan1".into(),
             hardware_id: "fan1".into(),
             info: String::new(),
@@ -46,7 +46,7 @@ impl HardwareBridge for FakeHardwareBridge {
         };
         hardware.fans.push(fan1.into());
 
-        let control1 = HItem {
+        let control1 = HControl {
             name: "control1".into(),
             hardware_id: "control1".into(),
             info: String::new(),
@@ -54,7 +54,7 @@ impl HardwareBridge for FakeHardwareBridge {
         };
         hardware.controls.push(control1.into());
 
-        let control2 = HItem {
+        let control2 = HControl {
             name: "control2".into(),
             hardware_id: "control2".into(),
             info: String::new(),
@@ -68,23 +68,22 @@ impl HardwareBridge for FakeHardwareBridge {
         &self.hardware
     }
 
-    fn get_value(&mut self, _internal_index: &usize) -> crate::Result<Value> {
+    fn get_sensor_value(&mut self, _sensor: &HSensor) -> crate::Result<Value> {
         let nb = rand::thread_rng().gen_range(30..80);
         Ok(nb)
     }
 
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
-        if internal_index != &CONTROL_INTERNAL_INDEX {
-            panic!("set value to hardware != Control")
-        }
+    fn get_control_value(&mut self, _control: &HControl) -> crate::Result<Value> {
+        let nb = rand::thread_rng().gen_range(30..80);
+        Ok(nb)
+    }
+
+    fn set_value(&mut self, _control: &HControl, value: Value) -> crate::Result<()> {
         debug!("set value {}", value);
         Ok(())
     }
 
-    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
-        if internal_index != &CONTROL_INTERNAL_INDEX {
-            panic!("set mode to hardware != Control")
-        }
+    fn set_mode(&mut self, _control: &HControl, mode: &Mode) -> crate::Result<()> {
         debug!("set mode {}", mode);
         Ok(())
     }

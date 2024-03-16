@@ -44,7 +44,7 @@ mod message;
 mod my_widgets;
 mod node_cache;
 mod settings_drawer;
-mod utils;
+mod pick_list_utils;
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
     let settings = cosmic::app::Settings::default();
