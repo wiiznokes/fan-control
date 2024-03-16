@@ -33,7 +33,7 @@ pub trait HItem {
     fn info(&self) -> &String;
 }
 
-#[derive(Serialize, Debug, Clone, Eq)]
+#[derive(Serialize, Debug, Eq)]
 pub struct HSensor {
     pub name: String,
     #[serde(rename = "id")]
@@ -60,7 +60,7 @@ impl HItem for HSensor {
     }
 }
 
-#[derive(Serialize, Debug, Clone, Eq)]
+#[derive(Serialize, Debug, Eq)]
 pub struct HControl {
     pub name: String,
     #[serde(rename = "id")]
@@ -99,7 +99,7 @@ impl PartialEq for HSensor {
     }
 }
 
-#[derive(Serialize, Debug, Clone, Default)]
+#[derive(Serialize, Debug, Default)]
 pub struct Hardware {
     #[serde(default, rename = "Control")]
     pub controls: Vec<Rc<HControl>>,
