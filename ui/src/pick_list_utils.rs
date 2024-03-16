@@ -30,6 +30,7 @@ where
         }
     }
 }
+
 pub mod input {
 
     use data::{
@@ -129,22 +130,51 @@ pub mod hardware {
 
     use super::MyOption;
 
+    #[derive(Debug, Clone, Eq)]
+    pub struct HardwarePickListOption {
+        pub name: String,
+        pub id: String,
+    }
+
+    impl PartialEq for HardwarePickListOption {
+        fn eq(&self, other: &Self) -> bool {
+            self.id == other.id
+        }
+    }
+    impl ToString for HardwarePickListOption {
+        fn to_string(&self) -> String {
+            self.name.clone()
+        }
+    }
+
+    impl<H: HItem> From<&Rc<H>> for HardwarePickListOption {
+        fn from(value: &Rc<H>) -> Self {
+            Self {
+                name: value.name().clone(),
+                id: value.id().clone(),
+            }
+        }
+    }
+
     /// Return hardware info about `hardware_id` and a vec of
     /// availlable hardware
-    pub fn availlable_hardware<'a>(
+    pub fn availlable_hardware<'a, H: HItem>(
         hardware_id: &'a Option<String>,
-        hardwares: &'a [Rc<HItem>],
+        hardwares: &'a [Rc<H>],
         one_ref: bool,
-    ) -> (MyOption<HItem>, Vec<MyOption<HItem>>) {
-        let mut selected_hardware_info: MyOption<HItem> = MyOption::None;
+    ) -> (
+        MyOption<HardwarePickListOption>,
+        Vec<MyOption<HardwarePickListOption>>,
+    ) {
+        let mut selected_hardware_info = MyOption::None;
 
         let mut hardware_options: Vec<_> = hardwares
             .iter()
             .filter_map(|h| {
                 let is_equal = match hardware_id {
                     Some(hardware_id) => {
-                        if hardware_id == &h.hardware_id {
-                            selected_hardware_info = MyOption::Some(HItem::clone(h));
+                        if hardware_id == h.id() {
+                            selected_hardware_info = MyOption::Some(h.into());
                             true
                         } else {
                             false
@@ -163,7 +193,7 @@ pub mod hardware {
 
                 // we only add if hardware_id != h
                 if !is_equal {
-                    Some(MyOption::Some(HItem::clone(h)))
+                    Some(MyOption::Some(h.into()))
                 } else {
                     None
                 }

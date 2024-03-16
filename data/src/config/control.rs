@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{HItem, Hardware, HardwareBridge, Mode, Value};
+use hardware::{HControl, Hardware, HardwareBridge, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -19,7 +19,7 @@ pub struct Control {
     pub active: bool,
 
     #[serde(skip)]
-    pub control_h: Option<Rc<HItem>>,
+    pub control_h: Option<Rc<HControl>>,
 
     #[serde(skip)]
     pub mode_set: Option<Mode>,
@@ -31,7 +31,7 @@ impl Control {
         hardware_id: Option<String>,
         input: Option<String>,
         active: bool,
-        control_h: Option<Rc<HItem>>,
+        control_h: Option<Rc<HControl>>,
     ) -> Self {
         Self {
             name: name.clone(),
@@ -54,7 +54,7 @@ impl Control {
 
         match &self.control_h {
             Some(control_h) => {
-                bridge.set_value(&control_h.internal_index, value)?;
+                bridge.set_value(control_h, value)?;
                 Ok(value)
             }
             None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
@@ -74,7 +74,7 @@ impl Control {
         }
 
         match &self.control_h {
-            Some(control_h) => bridge.set_mode(&control_h.internal_index, &mode)?,
+            Some(control_h) => bridge.set_mode(control_h, &mode)?,
             None => return Err(UpdateError::NodeIsInvalid(self.name.clone())),
         };
 
@@ -86,7 +86,7 @@ impl Control {
     pub fn get_value<H: HardwareBridge>(&self, bridge: &mut H) -> Result<Value, UpdateError> {
         match &self.control_h {
             Some(control_h) => bridge
-                .get_value(&control_h.internal_index)
+                .get_control_value(control_h)
                 .map_err(UpdateError::Hardware),
             None => Err(UpdateError::NodeIsInvalid(self.name.clone())),
         }

@@ -31,7 +31,7 @@ use crate::{
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
     node_cache::{LinearC, NodeC, NodesC, TargetC},
-    utils::{self, MyOption},
+    pick_list_utils::{self, MyOption},
 };
 
 pub fn items_view<'a>(
@@ -175,18 +175,18 @@ fn item_view<'a>(
         .into()
 }
 
-fn pick_hardware<'a>(
+fn pick_hardware<'a, H: HItem>(
     node: &'a Node,
-    hardwares: &'a [Rc<HItem>],
+    hardwares: &'a [Rc<H>],
     one_ref: bool,
 ) -> Element<'a, AppMsg> {
     let hardware_id = node.hardware_id().clone();
     let (selected_hardware_info, input_hardware) =
-        utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
+        pick_list_utils::hardware::availlable_hardware(&hardware_id, hardwares, one_ref);
 
     PickList::new(input_hardware, Some(selected_hardware_info), |selected| {
         let message_content = match selected {
-            MyOption::Some(selected) => Some(selected.hardware_id),
+            MyOption::Some(selected) => Some(selected.id),
             MyOption::None => None,
         };
 
@@ -203,7 +203,7 @@ fn control_view<'a>(
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
     let input_options =
-        utils::input::optional_availlable_inputs(nodes, node, control.input.is_some());
+        pick_list_utils::input::optional_availlable_inputs(nodes, node, control.input.is_some());
     let current_input: MyOption<Input> = control.input.clone().into();
 
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
@@ -276,7 +276,7 @@ fn custom_temp_view<'a>(
             .into()
     });
 
-    let input_options: Vec<Input> = utils::input::availlable_inputs(nodes, node).collect();
+    let input_options: Vec<Input> = pick_list_utils::input::availlable_inputs(nodes, node).collect();
 
     let current_input = Input {
         id: Default::default(),
@@ -341,7 +341,7 @@ fn linear_view<'a>(
     nodes: &'a Nodes,
 ) -> Element<'a, AppMsg> {
     let input_options =
-        utils::input::optional_availlable_inputs(nodes, node, linear.input.is_some());
+        pick_list_utils::input::optional_availlable_inputs(nodes, node, linear.input.is_some());
     let current_input: MyOption<Input> = linear.input.clone().into();
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
         ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
@@ -400,7 +400,7 @@ fn target_view<'a>(
     nodes: &'a Nodes,
 ) -> Element<'a, AppMsg> {
     let input_options =
-        utils::input::optional_availlable_inputs(nodes, node, target.input.is_some());
+        pick_list_utils::input::optional_availlable_inputs(nodes, node, target.input.is_some());
     let current_input: MyOption<Input> = target.input.clone().into();
     let pick_input = PickList::new(input_options, Some(current_input), |input| {
         ModifNodeMsg::ReplaceInput(input.into()).to_app(node.id)
