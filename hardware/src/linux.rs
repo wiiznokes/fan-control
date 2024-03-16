@@ -3,7 +3,7 @@ use std::{fmt::Debug, rc::Rc};
 use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
 use thiserror::Error;
 
-use crate::{HItem, Hardware, HardwareBridgeT, HardwareError, Mode, Value};
+use crate::{HItem, Hardware, HardwareBridge, HardwareError, Mode, Value};
 use ouroboros::self_referencing;
 
 // https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface
@@ -13,7 +13,7 @@ static DEFAULT_PWM_ENABLE: f64 = 5.0;
 static MANUAL_MODE: f64 = 1.0;
 
 #[self_referencing]
-pub struct LinuxBridgeSelfRef {
+struct LinuxBridgeSelfRef {
     lib: LMSensors,
     #[borrows(lib)]
     #[not_covariant]
@@ -214,8 +214,8 @@ fn generate_hardware<'a>(
     sensors
 }
 
-impl LinuxBridge {
-    pub fn new() -> crate::Result<Self> {
+impl HardwareBridge for LinuxBridge {
+    fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {
@@ -238,9 +238,6 @@ impl LinuxBridge {
             hardware,
         })
     }
-}
-
-impl HardwareBridgeT for LinuxBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

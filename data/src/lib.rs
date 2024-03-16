@@ -19,9 +19,9 @@ use update::Update;
 
 use crate::dir_manager::DirManager;
 
-pub struct AppState {
+pub struct AppState<H: HardwareBridge> {
     pub dir_manager: DirManager,
-    pub bridge: HardwareBridge,
+    pub bridge: H,
     pub app_graph: AppGraph,
     pub update: Update,
 }

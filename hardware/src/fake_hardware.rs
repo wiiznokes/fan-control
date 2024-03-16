@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
-use crate::{HItem, Hardware, HardwareBridgeT, Mode, Value};
+use crate::{HItem, Hardware, HardwareBridge, Mode, Value};
 
 pub struct FakeHardwareBridge {
     hardware: Hardware,
@@ -18,8 +18,8 @@ static TEMP_INTERNAL_INDEX: usize = 0;
 static FAN_INTERNAL_INDEX: usize = 1;
 static CONTROL_INTERNAL_INDEX: usize = 2;
 
-impl FakeHardwareBridge {
-    pub fn new() -> crate::Result<Self> {
+impl HardwareBridge for FakeHardwareBridge {
+    fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
         let temp1 = HItem {
@@ -64,9 +64,6 @@ impl FakeHardwareBridge {
 
         Ok(Self { hardware })
     }
-}
-
-impl HardwareBridgeT for FakeHardwareBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

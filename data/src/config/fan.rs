@@ -6,7 +6,7 @@ use crate::{
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
-use hardware::{HItem, Hardware, HardwareBridge, HardwareBridgeT, Value};
+use hardware::{HItem, Hardware, HardwareBridge, Value};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -20,7 +20,7 @@ pub struct Fan {
 }
 
 impl Fan {
-    pub fn get_value(&self, bridge: &mut HardwareBridge) -> Result<Value, UpdateError> {
+    pub fn get_value<H: HardwareBridge>(&self, bridge: &mut H) -> Result<Value, UpdateError> {
         match &self.fan_h {
             Some(fan_h) => bridge
                 .get_value(&fan_h.internal_index)

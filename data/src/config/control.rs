@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use hardware::{HItem, Hardware, HardwareBridge, HardwareBridgeT, Mode, Value};
+use hardware::{HItem, Hardware, HardwareBridge, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -43,10 +43,10 @@ impl Control {
         }
     }
 
-    pub fn set_value(
+    pub fn set_value<H: HardwareBridge>(
         &mut self,
         value: Value,
-        bridge: &mut HardwareBridge,
+        bridge: &mut H,
     ) -> Result<Value, UpdateError> {
         if self.mode_set != Some(Mode::Manual) {
             self.set_mode(Mode::Manual, bridge)?;
@@ -61,7 +61,11 @@ impl Control {
         }
     }
 
-    pub fn set_mode(&mut self, mode: Mode, bridge: &mut HardwareBridge) -> Result<(), UpdateError> {
+    pub fn set_mode<H: HardwareBridge>(
+        &mut self,
+        mode: Mode,
+        bridge: &mut H,
+    ) -> Result<(), UpdateError> {
         if let Some(mode_set) = &self.mode_set {
             if mode_set == &mode {
                 info!("Mode {} is already set for {}.", mode, self.name);
@@ -79,7 +83,7 @@ impl Control {
         Ok(())
     }
 
-    pub fn get_value(&self, bridge: &mut HardwareBridge) -> Result<Value, UpdateError> {
+    pub fn get_value<H: HardwareBridge>(&self, bridge: &mut H) -> Result<Value, UpdateError> {
         match &self.control_h {
             Some(control_h) => bridge
                 .get_value(&control_h.internal_index)

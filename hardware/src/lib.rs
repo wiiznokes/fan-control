@@ -1,5 +1,4 @@
 use derive_more::Display;
-use enum_dispatch::enum_dispatch;
 use serde::Serialize;
 use std::{fmt::Debug, rc::Rc, time::Duration};
 use thiserror::Error;
@@ -8,19 +7,13 @@ use thiserror::Error;
 extern crate log;
 
 #[cfg(target_os = "linux")]
-mod linux;
-#[cfg(target_os = "linux")]
-use linux::LinuxBridge;
+pub mod linux;
 
 #[cfg(target_os = "windows")]
-mod windows;
-#[cfg(target_os = "windows")]
-use windows::WindowsBridge;
+pub mod windows;
 
 #[cfg(feature = "fake_hardware")]
-mod fake_hardware;
-#[cfg(feature = "fake_hardware")]
-use fake_hardware::FakeHardwareBridge;
+pub mod fake_hardware;
 
 #[derive(Error, Debug)]
 pub enum HardwareError {
@@ -80,39 +73,26 @@ pub enum Mode {
     Specific(Value),
 }
 
-/// Use this type to interact with the hardware.
-/// Only one implementation will be used at runtime. Using enum
-/// instead of a trait have better performance.
-#[enum_dispatch]
-pub enum HardwareBridge {
-    #[cfg(target_os = "windows")]
-    WindowsBridge,
-
-    #[cfg(target_os = "linux")]
-    LinuxBridge,
-
+/// Try to construct a new hardware bridge
+pub fn new() -> Result<impl HardwareBridge> {
     #[cfg(feature = "fake_hardware")]
-    FakeHardwareBridge,
+    return fake_hardware::FakeHardwareBridge::new();
+
+    #[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
+    return windows::WindowsBridge::new();
+
+    #[cfg(all(not(feature = "fake_hardware"), target_os = "linux"))]
+    return linux::LinuxBridge::new();
 }
 
-impl HardwareBridge {
-    /// Try to construct a new hardware bridge
-    #[allow(unreachable_code)]
-    pub fn new() -> Result<Self> {
-        #[cfg(feature = "fake_hardware")]
-        return Ok(Self::FakeHardwareBridge(FakeHardwareBridge::new()?));
+pub trait HardwareBridge {
+    /// Approximative time to update sensors on my pc
+    const TIME_TO_UPDATE: Duration = Duration::from_millis(0);
 
-        #[cfg(target_os = "windows")]
-        return Ok(Self::WindowsBridge(WindowsBridge::new()?));
+    fn new() -> Result<Self>
+    where
+        Self: Sized;
 
-        #[cfg(target_os = "linux")]
-        return Ok(Self::LinuxBridge(LinuxBridge::new()?));
-    }
-}
-
-/// All variant of HardwareBridge will implement this trait
-#[enum_dispatch(HardwareBridge)]
-pub trait HardwareBridgeT {
     fn hardware(&self) -> &Hardware;
 
     fn get_value(&mut self, internal_index: &usize) -> Result<Value>;
@@ -131,12 +111,3 @@ pub trait HardwareBridgeT {
         Ok(())
     }
 }
-
-// todo: move this 2 line in HardwareBridgeT when enum_dispatch support const value
-
-/// Approximative time to update sensors on my pc
-#[cfg(all(not(feature = "fake_hardware"), target_os = "windows"))]
-pub const TIME_TO_UPDATE: Duration = Duration::from_millis(250);
-
-#[cfg(any(feature = "fake_hardware", target_os = "linux"))]
-pub const TIME_TO_UPDATE: Duration = Duration::from_millis(0);

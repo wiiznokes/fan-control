@@ -9,9 +9,9 @@ use std::{
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
 use data::{settings::Settings, AppState};
-use hardware::HardwareBridgeT;
+use hardware::HardwareBridge;
 
-pub fn run_cli(mut app_state: AppState) {
+pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
     let current_config = match &app_state.dir_manager.settings().current_config {
         Some(current_config) => current_config,
         None => {
@@ -34,7 +34,7 @@ pub fn run_cli(mut app_state: AppState) {
             error!("{}", e);
             break;
         }
-        std::thread::sleep(hardware::TIME_TO_UPDATE);
+        std::thread::sleep(H::TIME_TO_UPDATE);
 
         if let Err(e) = app_state.update.optimized(
             &mut app_state.app_graph.nodes,
@@ -46,7 +46,7 @@ pub fn run_cli(mut app_state: AppState) {
 
         let settings_update_delay =
             Duration::from_millis(app_state.dir_manager.settings().update_delay)
-                - hardware::TIME_TO_UPDATE;
+                - H::TIME_TO_UPDATE;
         let final_delay = std::cmp::max(settings_update_delay, Duration::from_millis(50));
 
         match rx.recv_timeout(final_delay) {
