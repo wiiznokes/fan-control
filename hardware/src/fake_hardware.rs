@@ -19,10 +19,7 @@ static FAN_INTERNAL_INDEX: usize = 1;
 static CONTROL_INTERNAL_INDEX: usize = 2;
 
 impl HardwareBridge for FakeHardwareBridge {
-    fn new() -> crate::Result<impl HardwareBridge>
-    where
-        Self: Sized,
-    {
+    fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
         let temp1 = HItem {

@@ -215,10 +215,7 @@ fn generate_hardware<'a>(
 }
 
 impl HardwareBridge for LinuxBridge {
-    fn new() -> crate::Result<impl HardwareBridge>
-    where
-        Self: Sized,
-    {
+    fn new() -> crate::Result<Self> {
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {

@@ -89,7 +89,7 @@ pub trait HardwareBridge {
     /// Approximative time to update sensors on my pc
     const TIME_TO_UPDATE: Duration = Duration::from_millis(0);
 
-    fn new() -> Result<impl HardwareBridge>
+    fn new() -> Result<Self>
     where
         Self: Sized;
 

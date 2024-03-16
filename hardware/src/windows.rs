@@ -311,10 +311,7 @@ impl WindowsBridge {
 impl HardwareBridge for WindowsBridge {
     const TIME_TO_UPDATE: Duration = Duration::from_millis(250);
 
-    fn new() -> crate::Result<impl HardwareBridge>
-    where
-        Self: Sized,
-    {
+    fn new() -> crate::Result<Self> {
         let process_handle = spawn_windows_server()?;
         let stream = try_connect()?;
 
