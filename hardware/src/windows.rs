@@ -308,9 +308,13 @@ impl WindowsBridge {
     }
 }
 
-impl WindowsBridge {
-    #[allow(dead_code)]
-    pub fn new() -> crate::Result<Self> {
+impl HardwareBridge for WindowsBridge {
+    const TIME_TO_UPDATE: Duration = Duration::from_millis(250);
+
+    fn new() -> crate::Result<impl HardwareBridge>
+    where
+        Self: Sized,
+    {
         let process_handle = spawn_windows_server()?;
         let stream = try_connect()?;
 
@@ -325,11 +329,6 @@ impl WindowsBridge {
 
         Ok(windows_bridge)
     }
-}
-
-impl HardwareBridge for WindowsBridge {
-    const TIME_TO_UPDATE: Duration = Duration::from_millis(250);
-
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

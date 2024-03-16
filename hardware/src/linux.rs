@@ -13,7 +13,7 @@ static DEFAULT_PWM_ENABLE: f64 = 5.0;
 static MANUAL_MODE: f64 = 1.0;
 
 #[self_referencing]
-pub struct LinuxBridgeSelfRef {
+struct LinuxBridgeSelfRef {
     lib: LMSensors,
     #[borrows(lib)]
     #[not_covariant]
@@ -214,9 +214,11 @@ fn generate_hardware<'a>(
     sensors
 }
 
-impl LinuxBridge {
-    #[allow(dead_code)]
-    pub fn new() -> crate::Result<Self> {
+impl HardwareBridge for LinuxBridge {
+    fn new() -> crate::Result<impl HardwareBridge>
+    where
+        Self: Sized,
+    {
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {
@@ -239,9 +241,6 @@ impl LinuxBridge {
             hardware,
         })
     }
-}
-
-impl HardwareBridge for LinuxBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

@@ -18,8 +18,11 @@ static TEMP_INTERNAL_INDEX: usize = 0;
 static FAN_INTERNAL_INDEX: usize = 1;
 static CONTROL_INTERNAL_INDEX: usize = 2;
 
-impl FakeHardwareBridge {
-    pub fn new() -> crate::Result<Self> {
+impl HardwareBridge for FakeHardwareBridge {
+    fn new() -> crate::Result<impl HardwareBridge>
+    where
+        Self: Sized,
+    {
         let mut hardware = Hardware::default();
 
         let temp1 = HItem {
@@ -64,9 +67,6 @@ impl FakeHardwareBridge {
 
         Ok(Self { hardware })
     }
-}
-
-impl HardwareBridge for FakeHardwareBridge {
     fn hardware(&self) -> &Hardware {
         &self.hardware
     }

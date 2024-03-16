@@ -7,13 +7,13 @@ use thiserror::Error;
 extern crate log;
 
 #[cfg(target_os = "linux")]
-mod linux;
+pub mod linux;
 
 #[cfg(target_os = "windows")]
-mod windows;
+pub mod windows;
 
 #[cfg(feature = "fake_hardware")]
-mod fake_hardware;
+pub mod fake_hardware;
 
 #[derive(Error, Debug)]
 pub enum HardwareError {
@@ -88,6 +88,10 @@ pub fn new() -> Result<impl HardwareBridge> {
 pub trait HardwareBridge {
     /// Approximative time to update sensors on my pc
     const TIME_TO_UPDATE: Duration = Duration::from_millis(0);
+
+    fn new() -> Result<impl HardwareBridge>
+    where
+        Self: Sized;
 
     fn hardware(&self) -> &Hardware;
 
