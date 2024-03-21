@@ -24,7 +24,7 @@ sudo apt install lm-sensors
 sudo sensors-detect
 ```
 
-Also, make sure to execute the program in sudo mode.
+Also, make sure to run the application with admin privileges (running in user mode is [planned](https://wiki.archlinux.org/title/udev)).
 
 ## Config files
 
