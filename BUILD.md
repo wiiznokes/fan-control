@@ -7,6 +7,8 @@ Also, the project use [just](https://github.com/casey/just) as a command runner.
 ### Linux
 
 ```shell
+git clone https://github.com/wiiznokes/fan-control.git
+cd fan-control
 sudo apt install make bison flex clang -y
 just libsensors
 cargo run --release # or just deb for building a deb package
@@ -14,9 +16,11 @@ cargo run --release # or just deb for building a deb package
 
 ### Windows
 
-1. install [dotnet 7](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+1. install [dotnet 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 2. run these commands
    ```shell
+   git clone https://github.com/wiiznokes/fan-control.git
+   cd fan-control
    just lhm
    cargo run --release # or just nsis
    ```
