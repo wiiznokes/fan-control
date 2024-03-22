@@ -20,7 +20,7 @@
 
 To have the maximum number of sensors detected by the application, you must
 
-1. install lm-sensor:
+1. install `lm-sensors`:
    - Debian: `sudo apt install lm-sensors`
    - Fedora: `sudo dnf install lm_sensors`
 2. run the hardware detection script: `sudo sensors-detect`
