@@ -15,21 +15,28 @@
 
 # Installation
 
-#### Linux
+<details>
+    <summary>Linux</summary>
 
-To have the maximum number of sensors detected by the application, you must install lm-sensor and run the hardware detection script:
+To have the maximum number of sensors detected by the application, you must
 
-```
-sudo apt install lm-sensors
-sudo sensors-detect
-```
+1. install lm-sensor:
+   - Debian: `sudo apt install lm-sensors`
+   - Fedora: `sudo dnf install lm_sensors`
+2. run the hardware detection script: `sudo sensors-detect`
 
-Also, make sure to run the application with admin privileges (running in user mode is [planned](https://wiki.archlinux.org/title/udev)).
+Also, make sure to run the application with sudo. (running in user mode is [planned](https://wiki.archlinux.org/title/udev))
 
-## Config files
+The configuration file will be in [`~/.config/fan-control`](file://~/.config/fan-control) or [`/root/.config/fan-control`](file:///root/.config/fan-control).
 
-- Windows: [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config)
-- Linux: [`/home/wiiz/.config/fan-control`](file:///home/wiiz/.config/fan-control) or [`/root/.config/fan-control`](file:///root/.config/fan-control)
+</details>
+
+<details>
+    <summary>Windows</summary>
+
+The configuration file can be found in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config).
+
+</details>
 
 ## Repo structure
 

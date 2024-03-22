@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  
+
     paths-ignore:
-      - '**.md'
+      - "**.md"
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
