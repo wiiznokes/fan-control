@@ -10,7 +10,7 @@ use std::{
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{HItem, Hardware, HardwareBridge, Mode, Value};
+use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
 
 use cargo_packager_resource_resolver as resource_resolver;
 
@@ -183,17 +183,25 @@ fn read_hardware(stream: &TcpStream) -> Result<Hardware> {
     let base_hardware_list = serde_json::from_str::<Vec<BaseHardware>>(&data)?;
 
     for base_hardware in base_hardware_list {
-        let h_item = Rc::new(HItem {
-            name: base_hardware.name,
-            hardware_id: base_hardware.id,
-            info: String::new(),
-            internal_index: base_hardware.index,
-        });
-
         match base_hardware.hardware_type {
-            HardwareType::Control => hardware.controls.push(h_item),
-            HardwareType::Fan => hardware.fans.push(h_item),
-            HardwareType::Temp => hardware.temps.push(h_item),
+            HardwareType::Control => hardware.controls.push(Rc::new(HControl {
+                name: base_hardware.name,
+                hardware_id: base_hardware.id,
+                info: String::new(),
+                internal_index: base_hardware.index,
+            })),
+            HardwareType::Fan => hardware.fans.push(Rc::new(HSensor {
+                name: base_hardware.name,
+                hardware_id: base_hardware.id,
+                info: String::new(),
+                internal_index: base_hardware.index,
+            })),
+            HardwareType::Temp => hardware.temps.push(Rc::new(HSensor {
+                name: base_hardware.name,
+                hardware_id: base_hardware.id,
+                info: String::new(),
+                internal_index: base_hardware.index,
+            })),
         }
     }
 
@@ -249,9 +257,9 @@ mod packet {
             }
         }
 
-        impl From<&usize> for I32 {
-            fn from(value: &usize) -> Self {
-                let value: i32 = (*value).try_into().expect("Can't convert usize to i32.");
+        impl From<usize> for I32 {
+            fn from(value: usize) -> Self {
+                let value: i32 = (value).try_into().expect("Can't convert usize to i32.");
                 I32(value)
             }
         }
@@ -330,32 +338,40 @@ impl HardwareBridge for WindowsBridge {
         &self.hardware
     }
 
-    fn get_value(&mut self, internal_index: &usize) -> crate::Result<Value> {
+    fn get_sensor_value(&mut self, sensor: &HSensor) -> crate::Result<Value> {
         self.send(Command::GetValue)?;
-        self.send(I32::from(internal_index))?;
+        self.send(I32::from(sensor.internal_index))?;
 
         let value = self.read::<I32>()?;
         Ok(value.0)
     }
 
-    fn set_value(&mut self, internal_index: &usize, value: Value) -> crate::Result<()> {
+    fn get_control_value(&mut self, control: &HControl) -> crate::Result<Value> {
+        self.send(Command::GetValue)?;
+        self.send(I32::from(control.internal_index))?;
+
+        let value = self.read::<I32>()?;
+        Ok(value.0)
+    }
+
+    fn set_value(&mut self, control: &HControl, value: Value) -> crate::Result<()> {
         self.send(Command::SetValue)?;
-        self.send(I32::from(internal_index))?;
+        self.send(I32::from(control.internal_index))?;
         self.send(I32(value))?;
         Ok(())
     }
 
-    fn set_mode(&mut self, internal_index: &usize, mode: &Mode) -> crate::Result<()> {
+    fn set_mode(&mut self, control: &HControl, mode: &Mode) -> crate::Result<()> {
         if mode == &Mode::Manual {
             debug!(
-                "An attempt was made to set the mode to manual, which is not necessary under Windows. Internal index: {}",
-                internal_index
+                "An attempt was made to set the mode to manual on control {}, which is not necessary under Windows.",
+                control.name
             );
             return Ok(());
         }
 
         self.send(Command::SetAuto)?;
-        self.send(I32::from(internal_index))?;
+        self.send(I32::from(control.internal_index))?;
         Ok(())
     }
 
@@ -373,7 +389,7 @@ impl HardwareBridge for WindowsBridge {
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
-    use crate::Hardware;
+    use crate::HardwareBridge;
     use std::{
         thread::sleep,
         time::{Duration, Instant},
@@ -390,14 +406,13 @@ mod test {
         let now = Instant::now();
 
         let mut bridge = WindowsBridge::new().unwrap();
-        let hardware = bridge.hardware().clone();
 
         info!("generation took {} millis", now.elapsed().as_millis());
 
         for _ in 0..5 {
             bench(
                 || {
-                    update(&mut bridge, &hardware);
+                    update(&mut bridge);
                     "all sensors".to_string()
                 },
                 "update",
@@ -407,35 +422,51 @@ mod test {
         bridge.shutdown().unwrap();
     }
 
-    fn update(bridge: &mut WindowsBridge, hardware: &Hardware) {
+    fn update(bridge: &mut WindowsBridge) {
         info!("");
 
         bridge.update().unwrap();
         std::thread::sleep(WindowsBridge::TIME_TO_UPDATE);
 
-        for h in &hardware.controls {
-            get_value(bridge, &h.internal_index, &h.name);
+        for h in &bridge.hardware().controls.clone() {
+            bench(
+                || match bridge.get_control_value(h) {
+                    Ok(value) => {
+                        format!("{} = {}", h.name, value)
+                    }
+                    Err(e) => {
+                        format!("error for {}: {}", h.name, e)
+                    }
+                },
+                "get_value",
+            );
         }
-        for h in &hardware.temps {
-            get_value(bridge, &h.internal_index, &h.name);
+        for h in &bridge.hardware().temps.clone() {
+            bench(
+                || match bridge.get_sensor_value(h) {
+                    Ok(value) => {
+                        format!("{} = {}", h.name, value)
+                    }
+                    Err(e) => {
+                        format!("error for {}: {}", h.name, e)
+                    }
+                },
+                "get_value",
+            );
         }
-        for h in &hardware.fans {
-            get_value(bridge, &h.internal_index, &h.name);
+        for h in &bridge.hardware().fans.clone() {
+            bench(
+                || match bridge.get_sensor_value(h) {
+                    Ok(value) => {
+                        format!("{} = {}", h.name, value)
+                    }
+                    Err(e) => {
+                        format!("error for {}: {}", h.name, e)
+                    }
+                },
+                "get_value",
+            );
         }
-    }
-
-    fn get_value(bridge: &mut WindowsBridge, index: &usize, name: &str) {
-        bench(
-            || match bridge.get_value(index) {
-                Ok(value) => {
-                    format!("{} = {}", name, value)
-                }
-                Err(e) => {
-                    format!("error for {}: {}", name, e)
-                }
-            },
-            "get_value",
-        );
     }
 
     fn bench(f: impl FnOnce() -> String, info: &str) {

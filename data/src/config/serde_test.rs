@@ -1,5 +1,8 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 use const_format::formatcp;
-use hardware::{HItem, Hardware};
+use hardware::{HControl, HSensor, Hardware};
 use serial_test::serial;
 use std::fmt::Debug;
 use std::fs::{self, File};
@@ -67,10 +70,12 @@ fn serialize() {
         toml::to_string_pretty(&settings)
     });
 
+    /*
     write_file(HARDWARE_PATH, || {
         let hardware1 = hardware1();
         toml::to_string_pretty(&hardware1)
     });
+     */
 
     let config1 = config1();
 
@@ -95,9 +100,10 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     println!("file {} succesfully writed!", path);
 }
 
+/*
 fn hardware1() -> Hardware {
     Hardware {
-        controls: vec![HItem {
+        controls: vec![HControl {
             name: "ControlH".into(),
             hardware_id: "ControlH".into(),
             info: "ControlH".into(),
@@ -120,6 +126,7 @@ fn hardware1() -> Hardware {
         .into()],
     }
 }
+ */
 
 fn config1() -> Config {
     Config {
