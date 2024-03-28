@@ -257,9 +257,9 @@ mod packet {
             }
         }
 
-        impl From<&usize> for I32 {
-            fn from(value: &usize) -> Self {
-                let value: i32 = (*value).try_into().expect("Can't convert usize to i32.");
+        impl From<usize> for I32 {
+            fn from(value: usize) -> Self {
+                let value: i32 = (value).try_into().expect("Can't convert usize to i32.");
                 I32(value)
             }
         }
@@ -389,7 +389,7 @@ impl HardwareBridge for WindowsBridge {
 #[cfg(test)]
 mod test {
     use super::WindowsBridge;
-    use crate::Hardware;
+    use crate::HardwareBridge;
     use std::{
         thread::sleep,
         time::{Duration, Instant},
@@ -406,14 +406,13 @@ mod test {
         let now = Instant::now();
 
         let mut bridge = WindowsBridge::new().unwrap();
-        let hardware = bridge.hardware().clone();
 
         info!("generation took {} millis", now.elapsed().as_millis());
 
         for _ in 0..5 {
             bench(
                 || {
-                    update(&mut bridge, &hardware);
+                    update(&mut bridge);
                     "all sensors".to_string()
                 },
                 "update",
@@ -423,35 +422,51 @@ mod test {
         bridge.shutdown().unwrap();
     }
 
-    fn update(bridge: &mut WindowsBridge, hardware: &Hardware) {
+    fn update(bridge: &mut WindowsBridge) {
         info!("");
 
         bridge.update().unwrap();
         std::thread::sleep(WindowsBridge::TIME_TO_UPDATE);
 
-        for h in &hardware.controls {
-            get_value(bridge, &h.internal_index, &h.name);
+        for h in &bridge.hardware().controls.clone() {
+            bench(
+                || match bridge.get_control_value(h) {
+                    Ok(value) => {
+                        format!("{} = {}", h.name, value)
+                    }
+                    Err(e) => {
+                        format!("error for {}: {}", h.name, e)
+                    }
+                },
+                "get_value",
+            );
         }
-        for h in &hardware.temps {
-            get_value(bridge, &h.internal_index, &h.name);
+        for h in &bridge.hardware().temps.clone() {
+            bench(
+                || match bridge.get_sensor_value(h) {
+                    Ok(value) => {
+                        format!("{} = {}", h.name, value)
+                    }
+                    Err(e) => {
+                        format!("error for {}: {}", h.name, e)
+                    }
+                },
+                "get_value",
+            );
         }
-        for h in &hardware.fans {
-            get_value(bridge, &h.internal_index, &h.name);
+        for h in &bridge.hardware().fans.clone() {
+            bench(
+                || match bridge.get_sensor_value(h) {
+                    Ok(value) => {
+                        format!("{} = {}", h.name, value)
+                    }
+                    Err(e) => {
+                        format!("error for {}: {}", h.name, e)
+                    }
+                },
+                "get_value",
+            );
         }
-    }
-
-    fn get_value(bridge: &mut WindowsBridge, index: &usize, name: &str) {
-        bench(
-            || match bridge.get_value(index) {
-                Ok(value) => {
-                    format!("{} = {}", name, value)
-                }
-                Err(e) => {
-                    format!("error for {}: {}", name, e)
-                }
-            },
-            "get_value",
-        );
     }
 
     fn bench(f: impl FnOnce() -> String, info: &str) {
