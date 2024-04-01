@@ -30,3 +30,4 @@ LibreHardwareMonitorWrapper.sln.DotSettings.user
 build/
 
 /.flatpak-builder
+/vendor

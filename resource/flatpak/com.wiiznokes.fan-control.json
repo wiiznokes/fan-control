@@ -4,8 +4,7 @@
     "runtime-version": "23.08",
     "sdk": "org.freedesktop.Sdk",
     "sdk-extensions": [
-        "org.freedesktop.Sdk.Extension.rust-stable",
-        "org.freedesktop.Sdk.Extension.llvm17"
+        "org.freedesktop.Sdk.Extension.rust-stable"
     ],
     "command": "fan-control",
     "finish-args": [
@@ -25,13 +24,11 @@
             "build-options": {
                 "env": {
                     "CARGO_HOME": "/run/build/fan-control/cargo"
-                },
-                "append-path": "/usr/lib/sdk/llvm17/bin",
-                "prepend-ld-library-path": "/usr/lib/sdk/llvm17/lib"
+                }
             },
             "build-commands": [
                 "make -C ./hardware/libsensors/ install PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc",
-                "cargo build --release --verbose",
+                "cargo --offline build --release --verbose",
                 "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.png /app/share/icons/hicolor/128x128/apps/com.wiiznokes.fan-control.png",
                 "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.metainfo.xml /app/share/metainfo/com.wiiznokes.fan-control.metainfo.xml",
                 "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.desktop /app/share/applications/com.wiiznokes.fan-control.desktop",
@@ -41,6 +38,13 @@
                 {
                     "type": "dir",
                     "path": "../.."
+                },
+                {
+                    "type": "shell",
+                    "commands": [
+                        "git submodule update --init hardware/libsensors",
+                        "cargo fetch --verbose"
+                    ]
                 }
             ]
         }
