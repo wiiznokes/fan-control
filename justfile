@@ -124,3 +124,8 @@ flatpak:
 		--force-clean \
 		packages \
 		resource/flatpak/com.wiiznokes.fan-control.json
+
+
+flatpak-source:
+	# pip install aiohttp
+	python3 ./flatpak-cargo-generator.py Cargo.lock -o cargo-sources.json

@@ -114,18 +114,22 @@ def fetch_git_repo(git_url: str, commit: str) -> str:
     if head[:COMMIT_LEN] != commit[:COMMIT_LEN]:
         subprocess.run(['git', 'fetch', 'origin', commit], cwd=clone_dir, check=True)
         subprocess.run(['git', 'checkout', commit], cwd=clone_dir, check=True)
+
+    # Get the submodules as they might contain dependencies. This is a noop if
+    # there are no submodules in the repository
+    subprocess.run(['git', 'submodule', 'update', '--init', '--recursive'], cwd=clone_dir, check=True)
+
     return clone_dir
 
 def update_workspace_keys(pkg, workspace):
     for key, item in pkg.items():
-        # target.cfg(..).dependencies should reference root dependencies table from workspace
+        # Recurse for keys under target.cfg(..)
         if key == 'target':
             for target in item.values():
-                if 'dependencies' in target:
-                    update_workspace_keys(target['dependencies'], workspace.get('dependencies', None))
+                update_workspace_keys(target, workspace)
             continue;
-        # dev-dependencies should reference root dependencies table from workspace
-        elif key == 'dev-dependencies':
+        # dev-dependencies and build-dependencies should reference root dependencies table from workspace
+        elif key == 'dev-dependencies' or key == 'build-dependencies':
             update_workspace_keys(item, workspace.get('dependencies', None))
             continue;
 
@@ -137,7 +141,13 @@ def update_workspace_keys(pkg, workspace):
         if 'workspace' in item:
             if isinstance(workspace_item, dict):
                 del item['workspace']
-                item.update(workspace_item)
+
+                for dep_key, workspace_value in workspace_item.items():
+                    # features are additive
+                    if dep_key == 'features' and 'features' in item:
+                        item['features'] += workspace_value
+                    else:
+                        item[dep_key] = workspace_value
             elif len(item) > 1:
                 del item['workspace']
                 item.update({ 'version': workspace_item })
@@ -169,13 +179,27 @@ async def get_git_repo_packages(git_url: str, commit: str) -> _GitPackagesType:
     git_repo_dir = fetch_git_repo(git_url, commit)
     packages: _GitPackagesType = {}
 
+    def get_cargo_toml_packages(root_dir: str, workspace: Optional[_TomlType] = None):
+        assert not os.path.isabs(root_dir) and os.path.isdir(root_dir)
+
+        with workdir(root_dir):
+            if os.path.exists('Cargo.toml'):
+                cargo_toml = load_toml('Cargo.toml')
+                if 'package' in cargo_toml:
+                    packages[cargo_toml['package']['name']] = _GitPackage(
+                        path=os.path.normpath(root_dir),
+                        package=cargo_toml,
+                        workspace=workspace
+                    )
+
+                workspace = cargo_toml.get('workspace') or workspace
+        for child in os.scandir(root_dir):
+            if child.is_dir():
+                # the workspace can be referenced by any subdirectory
+                get_cargo_toml_packages(child.path, workspace)
+
     with workdir(git_repo_dir):
-        if os.path.isfile('Cargo.toml'):
-            packages.update(await get_cargo_toml_packages(load_toml('Cargo.toml'), '.'))
-        else:
-            for toml_path in glob.glob('*/Cargo.toml'):
-                packages.update(await get_cargo_toml_packages(load_toml(toml_path),
-                                                              os.path.dirname(toml_path)))
+        get_cargo_toml_packages('.')
 
     assert packages, f"No packages found in {git_repo_dir}"
     logging.debug(
@@ -186,68 +210,6 @@ async def get_git_repo_packages(git_url: str, commit: str) -> _GitPackagesType:
             indent=4,
         ),
     )
-    return packages
-
-
-async def get_cargo_toml_packages(root_toml: _TomlType, root_dir: str) -> _GitPackagesType:
-    assert not os.path.isabs(root_dir) and os.path.isdir(root_dir)
-    assert 'package' in root_toml or 'workspace' in root_toml
-    packages: _GitPackagesType = {}
-
-    async def get_dep_packages(
-        entry: _TomlType,
-        toml_dir: str,
-        workspace: Optional[_TomlType] = None,
-    ):
-        assert not os.path.isabs(toml_dir)
-        # https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html
-        if 'dependencies' in entry:
-            for dep_name, dep in entry['dependencies'].items():
-                if 'package' in dep:
-                    dep_name = dep['package']
-                if 'path' not in dep:
-                    continue
-                if dep_name in packages:
-                    continue
-                dep_dir = os.path.normpath(os.path.join(toml_dir, dep['path']))
-                logging.debug("Loading dependency %s from %s", dep_name, dep_dir)
-                dep_toml = load_toml(os.path.join(dep_dir, 'Cargo.toml'))
-                assert dep_toml['package']['name'] == dep_name, toml_dir
-                await get_dep_packages(dep_toml, dep_dir, workspace)
-                packages[dep_name] = _GitPackage(
-                    path=dep_dir,
-                    package=dep,
-                    workspace=workspace,
-                )
-        if 'target' in entry:
-            for _, target in entry['target'].items():
-                await get_dep_packages(target, toml_dir)
-
-    if 'package' in root_toml:
-        await get_dep_packages(root_toml, root_dir)
-        packages[root_toml['package']['name']] = _GitPackage(
-            path=root_dir,
-            package=root_toml,
-            workspace=None,
-        )
-
-    if 'workspace' in root_toml:
-        for member in root_toml['workspace'].get('members', []):
-            for subpkg_toml in glob.glob(os.path.join(root_dir, member, 'Cargo.toml')):
-                subpkg = os.path.normpath(os.path.dirname(subpkg_toml))
-                logging.debug(
-                    "Loading workspace member %s in %s",
-                    subpkg_toml,
-                    os.path.abspath(root_dir),
-                )
-                pkg_toml = load_toml(subpkg_toml)
-                await get_dep_packages(pkg_toml, subpkg, root_toml['workspace'])
-                packages[pkg_toml['package']['name']] = _GitPackage(
-                    path=subpkg,
-                    package=pkg_toml,
-                    workspace=root_toml['workspace'],
-                )
-
     return packages
 
 
