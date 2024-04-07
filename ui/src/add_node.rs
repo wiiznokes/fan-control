@@ -15,6 +15,7 @@ pub fn add_node_button_view(expanded: bool) -> Element<'static, AppMsg> {
             .push(add_item(NodeTypeLight::CustomTemp, fl!("add_custom_temp")))
             .push(add_item(NodeTypeLight::Linear, fl!("add_linear")))
             .push(add_item(NodeTypeLight::Target, fl!("add_target")))
+            .push(add_item(NodeTypeLight::Graph, fl!("add_graph")))
             .push(add_item(NodeTypeLight::Flat, fl!("add_flat")))
             .push(icon_button("close/40").on_press(AppMsg::Toggle(ToogleMsg::CreateButton(false))))
             .into(),

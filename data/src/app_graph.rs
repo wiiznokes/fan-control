@@ -133,6 +133,11 @@ impl AppGraph {
             app_graph.insert_node(node);
         }
 
+        for graph in config.graphs {
+            let node = graph.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            app_graph.insert_node(node);
+        }
+
         for control in config.controls {
             let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
             app_graph.insert_node(node);

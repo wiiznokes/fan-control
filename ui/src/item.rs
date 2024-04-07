@@ -24,6 +24,7 @@ use data::{
 use hardware::{HItem, Hardware};
 
 use crate::{
+    graph::graph_view,
     icon::{icon_button, icon_path_for_node_type, my_icon},
     input_line::{input_line, InputLineUnit},
     message::{
@@ -53,10 +54,10 @@ pub fn items_view<'a>(
             NodeTypeLight::Control => controls.push(content),
             NodeTypeLight::Fan => fans.push(content),
             NodeTypeLight::Temp => temps.push(content),
-            NodeTypeLight::Graph => {}
-            NodeTypeLight::Flat | NodeTypeLight::Linear | NodeTypeLight::Target => {
-                behaviors.push(content)
-            }
+            NodeTypeLight::Graph
+            | NodeTypeLight::Flat
+            | NodeTypeLight::Linear
+            | NodeTypeLight::Target => behaviors.push(content),
             NodeTypeLight::CustomTemp => custom_temps.push(content),
         }
     }
@@ -152,7 +153,9 @@ fn item_view<'a>(
         data::node::NodeType::Fan(_fan) => fan_view(node, hardware),
         data::node::NodeType::Temp(_temp) => temp_view(node, hardware),
         data::node::NodeType::CustomTemp(custom_temp) => custom_temp_view(node, custom_temp, nodes),
-        data::node::NodeType::Graph(_graph) => todo!(),
+        data::node::NodeType::Graph(graph) => {
+            graph_view(node, graph, node_c.node_type_c.unwrap_graph_ref(), nodes)
+        }
         data::node::NodeType::Flat(flat) => flat_view(node, flat),
         data::node::NodeType::Linear(linear) => {
             linear_view(node, linear, node_c.node_type_c.unwrap_linear_ref(), nodes)

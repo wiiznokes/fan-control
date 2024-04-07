@@ -34,7 +34,7 @@ features = [
     "wgpu",
     "winit",
     "tokio",
-    #"multi-window"
+    "multi-window"
     #"a11y",
     #"debug",
     #"serde-keycode",

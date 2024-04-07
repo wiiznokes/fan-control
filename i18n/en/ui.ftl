@@ -15,6 +15,7 @@ idle_temp = idle temp
 idle_speed = idle speed
 load_temp = load temp
 load_speed = load speed
+launch_graph_window = Add coordinates
 
 # Add item description
 add_item = Add an item
@@ -36,6 +37,7 @@ add_target = Take 5 variables:
     - a sensor value
     If the sensor > trigger temperature, trigger speed is set
     until this sensor is < ideal temperature
+add_graph = A graph
 
 # Config
 config_name = Configuration name

@@ -1,9 +1,11 @@
 use data::{
-    config::custom_temp::CustomTempKind,
+    config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
     node::{Input, NodeTypeLight},
     settings::AppTheme,
 };
+
+use crate::graph::GraphWindowMsg;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -21,6 +23,8 @@ pub enum AppMsg {
 
     // can invalidate control
     ModifNode(Id, ModifNodeMsg),
+
+    GraphWindow(GraphWindowMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +63,7 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
+    Graph(GraphMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -92,9 +97,23 @@ pub enum TargetMsg {
     LoadSpeed(u8, String),
 }
 
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, Clone)]
+pub enum GraphMsg {
+    RemoveCoord(Coord),
+    AddCoord(Coord),
+    ReplaceCoord { previous: Coord, new: Coord },
+}
+
 impl From<SettingsMsg> for AppMsg {
     fn from(value: SettingsMsg) -> Self {
         AppMsg::Settings(value)
+    }
+}
+
+impl From<GraphWindowMsg> for AppMsg {
+    fn from(value: GraphWindowMsg) -> Self {
+        AppMsg::GraphWindow(value)
     }
 }
 
