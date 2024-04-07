@@ -16,7 +16,6 @@ use data::{
         control::Control,
         custom_temp::{CustomTemp, CustomTempKind},
         flat::Flat,
-        graph::Graph,
         linear::Linear,
         target::Target,
     },
@@ -25,13 +24,15 @@ use data::{
 use hardware::{HItem, Hardware};
 
 use crate::{
+    graph::graph_view,
     icon::{icon_button, icon_path_for_node_type, my_icon},
     input_line::{input_line, InputLineUnit},
     message::{
-        AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
+        AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg,
+        ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
-    node_cache::{GraphC, LinearC, NodeC, NodesC, TargetC},
+    node_cache::{LinearC, NodeC, NodesC, TargetC},
     pick_list_utils::{self, MyOption},
 };
 
@@ -454,13 +455,4 @@ fn target_view<'a>(
     ];
 
     Column::with_children(content).into()
-}
-
-fn graph_view<'a>(
-    node: &'a Node,
-    _graph: &'a Graph,
-    _graph_c: &'a GraphC,
-    _nodes: &'a Nodes,
-) -> Element<'a, AppMsg> {
-    Text::new(node.value_text(&ValueKind::Porcentage)).into()
 }

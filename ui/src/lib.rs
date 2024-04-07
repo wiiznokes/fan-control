@@ -3,9 +3,10 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
+    id::Id,
     node::{validate_name, IsValid, NodeType},
     settings::AppTheme,
-    utils::RemoveElem,
+    utils::{InsertSorted, RemoveElem},
     AppState,
 };
 use hardware::{HardwareBridge, Mode};
@@ -18,8 +19,9 @@ use crate::settings_drawer::settings_drawer;
 use cosmic::{
     app::{command, Command, Core},
     executor,
-    iced::{self, time},
+    iced::{self, time, window},
     iced_core::Length,
+    iced_runtime::command::Action,
     theme,
     widget::{Column, Row, Space},
     ApplicationExt, Element,
@@ -36,6 +38,7 @@ extern crate log;
 pub mod localize;
 
 mod add_node;
+mod graph;
 mod headers;
 mod icon;
 mod input_line;
@@ -61,6 +64,7 @@ pub struct Ui<H: HardwareBridge> {
     choose_config_expanded: bool,
     nodes_c: NodesC,
     is_updating: bool,
+    graph_expanded: Option<(window::Id, Id)>,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -93,6 +97,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             choose_config_expanded: false,
             current_config_cached,
             is_updating: false,
+            graph_expanded: None,
         };
 
         let update_graph_command = ui_state.maybe_update_hardware_to_update_graph();
@@ -310,6 +315,27 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         self.nodes_c.remove(&id);
                         self.app_state.app_graph.sanitize_inputs(false)
                     }
+                    ModifNodeMsg::Graph(graph_msg) => {
+                        let graph = node.node_type.unwrap_graph_mut();
+                        let _graph_c = self.nodes_c.get_mut(&id).node_type_c.unwrap_graph_mut();
+
+                        match graph_msg {
+                            message::GraphMsg::RemoveCoord(coord) => {
+                                graph.coords.0.remove_elem(|c| c.exact_same(&coord));
+                            }
+                            message::GraphMsg::AddCoord(coord) => {
+                                graph
+                                    .coords
+                                    .0
+                                    .insert_sorted(|c| coord.cmp(c), coord.clone());
+                            }
+                            message::GraphMsg::ReplaceCoord { previous, new } => {
+                                graph.coords.0.remove_elem(|c| c.exact_same(&previous));
+
+                                graph.coords.0.insert_sorted(|c| new.cmp(c), new.clone());
+                            }
+                        }
+                    }
                 }
 
                 self.app_state.update.set_invalid_root_nodes_to_auto(
@@ -349,6 +375,38 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     let node_c = self.nodes_c.get_mut(&id);
                     node_c.context_menu_expanded = expanded;
                 }
+                ToogleMsg::GraphWindow(ids) => match ids {
+                    Some(node_id) => {
+                        let mut commands = Vec::new();
+
+                        if let Some((windown_id, _)) = self.graph_expanded {
+                            let command =
+                                Command::single(Action::Window(window::Action::Close(windown_id)));
+                            commands.push(command);
+                        }
+
+                        let new_id = window::Id::unique();
+
+                        self.graph_expanded = Some((new_id, node_id));
+
+                        let settings = window::Settings {
+                            ..Default::default()
+                        };
+                        let command = Command::single(Action::Window(window::Action::Spawn(
+                            new_id, settings,
+                        )));
+                        commands.push(command);
+
+                        return Command::batch(commands);
+                    }
+                    None => {
+                        if let Some((windown_id, _)) = self.graph_expanded {
+                            return Command::single(Action::Window(window::Action::Close(
+                                windown_id,
+                            )));
+                        }
+                    }
+                },
             },
             AppMsg::Config(config_msg) => match config_msg {
                 ConfigMsg::Save => {
@@ -510,6 +568,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
         // todo: pop up. Need to use settings to not close auto
         None
+    }
+
+    fn view_window(&self, id: window::Id) -> Element<Self::Message> {
+        panic!("no view for window {id:?}");
     }
 }
 

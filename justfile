@@ -68,7 +68,8 @@ clean-lhm:
 ###################  Handy
 
 fake:
-	cargo run --features fake_hardware -- -p ./.config -c fake
+	cargo run --features fake_hardware -- -p ./.config
+	
 
 temp:
 	cargo run --features fake_hardware -- -p ./temp

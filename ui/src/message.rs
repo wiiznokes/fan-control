@@ -1,5 +1,6 @@
+
 use data::{
-    config::custom_temp::CustomTempKind,
+    config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
     node::{Input, NodeTypeLight},
     settings::AppTheme,
@@ -44,6 +45,7 @@ pub enum ToogleMsg {
     Settings,
     ChooseConfig(bool),
     NodeContextMenu(Id, bool),
+    GraphWindow(Option<Id>),
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +61,7 @@ pub enum ModifNodeMsg {
     Flat(FlatMsg),
     Linear(LinearMsg),
     Target(TargetMsg),
+    Graph(GraphMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -90,6 +93,14 @@ pub enum TargetMsg {
     IdleSpeed(u8, String),
     LoadTemp(u8, String),
     LoadSpeed(u8, String),
+}
+
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, Clone)]
+pub enum GraphMsg {
+    RemoveCoord(Coord),
+    AddCoord(Coord),
+    ReplaceCoord { previous: Coord, new: Coord },
 }
 
 impl From<SettingsMsg> for AppMsg {

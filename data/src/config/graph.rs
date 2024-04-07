@@ -33,6 +33,12 @@ impl Ord for Coord {
     }
 }
 
+impl Coord {
+    pub fn exact_same(&self, other: &Self) -> bool {
+        self.percent == other.percent && self.temp == other.temp
+    }
+}
+
 // todo: better default + UI
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Graph {
