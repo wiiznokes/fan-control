@@ -2,3 +2,13 @@
 name = "CPU"
 kind = "Average"
 inputs = []
+
+
+[[Graph]]
+name = "Graph"
+input = "max"
+coord = [
+    { temp = 50, percent = 30 },
+    { temp = 50, percent = 30 },
+    { temp = 50, percent = 30 },
+]

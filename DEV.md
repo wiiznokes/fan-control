@@ -32,7 +32,7 @@
   [[Graph]]
   name = "Graph"
   input = "max"
-  cood = [
+  coord = [
       { temp = 50, percent = 30 },
       { temp = 50, percent = 30 },
       { temp = 50, percent = 30 },

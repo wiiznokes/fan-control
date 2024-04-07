@@ -16,6 +16,7 @@ use data::{
         control::Control,
         custom_temp::{CustomTemp, CustomTempKind},
         flat::Flat,
+        graph::Graph,
         linear::Linear,
         target::Target,
     },
@@ -30,7 +31,7 @@ use crate::{
         AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
-    node_cache::{LinearC, NodeC, NodesC, TargetC},
+    node_cache::{GraphC, LinearC, NodeC, NodesC, TargetC},
     pick_list_utils::{self, MyOption},
 };
 
@@ -53,10 +54,10 @@ pub fn items_view<'a>(
             NodeTypeLight::Control => controls.push(content),
             NodeTypeLight::Fan => fans.push(content),
             NodeTypeLight::Temp => temps.push(content),
-            NodeTypeLight::Graph => {}
-            NodeTypeLight::Flat | NodeTypeLight::Linear | NodeTypeLight::Target => {
-                behaviors.push(content)
-            }
+            NodeTypeLight::Graph
+            | NodeTypeLight::Flat
+            | NodeTypeLight::Linear
+            | NodeTypeLight::Target => behaviors.push(content),
             NodeTypeLight::CustomTemp => custom_temps.push(content),
         }
     }
@@ -152,7 +153,9 @@ fn item_view<'a>(
         data::node::NodeType::Fan(_fan) => fan_view(node, hardware),
         data::node::NodeType::Temp(_temp) => temp_view(node, hardware),
         data::node::NodeType::CustomTemp(custom_temp) => custom_temp_view(node, custom_temp, nodes),
-        data::node::NodeType::Graph(_graph) => todo!(),
+        data::node::NodeType::Graph(graph) => {
+            graph_view(node, graph, node_c.node_type_c.unwrap_graph_ref(), nodes)
+        }
         data::node::NodeType::Flat(flat) => flat_view(node, flat),
         data::node::NodeType::Linear(linear) => {
             linear_view(node, linear, node_c.node_type_c.unwrap_linear_ref(), nodes)
@@ -451,4 +454,13 @@ fn target_view<'a>(
     ];
 
     Column::with_children(content).into()
+}
+
+fn graph_view<'a>(
+    node: &'a Node,
+    _graph: &'a Graph,
+    _graph_c: &'a GraphC,
+    _nodes: &'a Nodes,
+) -> Element<'a, AppMsg> {
+    Text::new(node.value_text(&ValueKind::Porcentage)).into()
 }

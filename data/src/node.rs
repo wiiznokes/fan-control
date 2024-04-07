@@ -371,16 +371,9 @@ impl NodeType {
                 NodeType::Temp(_) => Ordering::Greater,
                 _ => Ordering::Less,
             },
-            NodeType::Graph(_) => todo!(),
             NodeType::Flat(_) => Ordering::Equal,
-            NodeType::Linear(..) => match other {
-                NodeType::Control(_) => Ordering::Less,
-                NodeType::Fan(_) => Ordering::Greater,
-                NodeType::Temp(_) => Ordering::Greater,
-                NodeType::CustomTemp(_) => Ordering::Greater,
-                _ => Ordering::Equal,
-            },
-            NodeType::Target(..) => match other {
+
+            NodeType::Graph(_) | NodeType::Linear(..) | NodeType::Target(..) => match other {
                 NodeType::Control(_) => Ordering::Less,
                 NodeType::Fan(_) => Ordering::Greater,
                 NodeType::Temp(_) => Ordering::Greater,
