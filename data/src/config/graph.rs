@@ -168,6 +168,7 @@ impl Graph {
     }
 }
 
+// todo: use it in linear
 mod affine {
     use hardware::Value;
 
