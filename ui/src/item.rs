@@ -28,8 +28,7 @@ use crate::{
     icon::{icon_button, icon_path_for_node_type, my_icon},
     input_line::{input_line, InputLineUnit},
     message::{
-        AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg,
-        ToogleMsg,
+        AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
     node_cache::{LinearC, NodeC, NodesC, TargetC},

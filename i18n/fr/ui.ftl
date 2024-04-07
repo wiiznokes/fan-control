@@ -15,6 +15,7 @@ idle_temp = idle temp
 idle_speed = idle speed
 load_temp = load temp
 load_speed = load speed
+launch_graph_window = Ajout de coordonnées
 
 # Add item description
 add_item = Ajouter un item
@@ -36,6 +37,7 @@ add_target = Prendre 5 variables :
     - une valeur de capteur
     Si le capteur > température de déclenchement, la vitesse de déclenchement est définie
     jusqu'à ce que ce capteur < température idéale
+add_graph = Un graph
 
 # Config
 config_name = Nom de la configuration

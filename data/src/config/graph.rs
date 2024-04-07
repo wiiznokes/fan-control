@@ -1,3 +1,5 @@
+use std::vec;
+
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -13,6 +15,22 @@ use crate::{
 pub struct Coord {
     pub temp: u8,
     pub percent: u8,
+}
+
+impl TryFrom<(&str, &str)> for Coord {
+    type Error = Box<dyn std::error::Error>;
+
+    fn try_from((temp, percent): (&str, &str)) -> Result<Self, Self::Error> {
+        let temp = temp.parse::<u8>()?;
+
+        let percent = percent.parse::<u8>()?;
+
+        if percent > 100 {
+            return Err("Percent > 100".into());
+        }
+
+        Ok(Coord { temp, percent })
+    }
 }
 
 impl PartialEq for Coord {
@@ -40,12 +58,31 @@ impl Coord {
 }
 
 // todo: better default + UI
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
     pub name: String,
     #[serde(rename = "coord")]
     pub coords: Coords,
     pub input: Option<String>, // Temp or CustomTemp
+}
+
+impl Default for Graph {
+    fn default() -> Self {
+        Self {
+            name: Default::default(),
+            coords: Coords(vec![
+                Coord {
+                    temp: 10,
+                    percent: 10,
+                },
+                Coord {
+                    temp: 70,
+                    percent: 100,
+                },
+            ]),
+            input: Default::default(),
+        }
+    }
 }
 
 impl ToNode for Graph {

@@ -1,10 +1,11 @@
-
 use data::{
     config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
     node::{Input, NodeTypeLight},
     settings::AppTheme,
 };
+
+use crate::graph::GraphWindowMsg;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -22,6 +23,8 @@ pub enum AppMsg {
 
     // can invalidate control
     ModifNode(Id, ModifNodeMsg),
+
+    GraphWindow(GraphWindowMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -45,7 +48,6 @@ pub enum ToogleMsg {
     Settings,
     ChooseConfig(bool),
     NodeContextMenu(Id, bool),
-    GraphWindow(Option<Id>),
 }
 
 #[derive(Debug, Clone)]
@@ -106,6 +108,12 @@ pub enum GraphMsg {
 impl From<SettingsMsg> for AppMsg {
     fn from(value: SettingsMsg) -> Self {
         AppMsg::Settings(value)
+    }
+}
+
+impl From<GraphWindowMsg> for AppMsg {
+    fn from(value: GraphWindowMsg) -> Self {
+        AppMsg::GraphWindow(value)
     }
 }
 

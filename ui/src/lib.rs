@@ -3,18 +3,18 @@ use std::time::Duration;
 use data::{
     app_graph::AppGraph,
     config::Config,
-    id::Id,
     node::{validate_name, IsValid, NodeType},
     settings::AppTheme,
     utils::{InsertSorted, RemoveElem},
     AppState,
 };
+use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
 
-use crate::settings_drawer::settings_drawer;
+use crate::{graph::graph_window_view, settings_drawer::settings_drawer};
 
 use cosmic::{
     app::{command, Command, Core},
@@ -64,7 +64,7 @@ pub struct Ui<H: HardwareBridge> {
     choose_config_expanded: bool,
     nodes_c: NodesC,
     is_updating: bool,
-    graph_expanded: Option<(window::Id, Id)>,
+    graph_window: Option<GraphWindow>,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -97,7 +97,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             choose_config_expanded: false,
             current_config_cached,
             is_updating: false,
-            graph_expanded: None,
+            graph_window: None,
         };
 
         let update_graph_command = ui_state.maybe_update_hardware_to_update_graph();
@@ -375,38 +375,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     let node_c = self.nodes_c.get_mut(&id);
                     node_c.context_menu_expanded = expanded;
                 }
-                ToogleMsg::GraphWindow(ids) => match ids {
-                    Some(node_id) => {
-                        let mut commands = Vec::new();
-
-                        if let Some((windown_id, _)) = self.graph_expanded {
-                            let command =
-                                Command::single(Action::Window(window::Action::Close(windown_id)));
-                            commands.push(command);
-                        }
-
-                        let new_id = window::Id::unique();
-
-                        self.graph_expanded = Some((new_id, node_id));
-
-                        let settings = window::Settings {
-                            ..Default::default()
-                        };
-                        let command = Command::single(Action::Window(window::Action::Spawn(
-                            new_id, settings,
-                        )));
-                        commands.push(command);
-
-                        return Command::batch(commands);
-                    }
-                    None => {
-                        if let Some((windown_id, _)) = self.graph_expanded {
-                            return Command::single(Action::Window(window::Action::Close(
-                                windown_id,
-                            )));
-                        }
-                    }
-                },
             },
             AppMsg::Config(config_msg) => match config_msg {
                 ConfigMsg::Save => {
@@ -512,6 +480,56 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     node_c.is_error_name = true;
                 }
             }
+            AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
+                graph::GraphWindowMsg::Toogle(node_id) => match node_id {
+                    Some(node_id) => {
+                        let mut commands = Vec::new();
+
+                        if let Some(graph_window) = &self.graph_window {
+                            let command = Command::single(Action::Window(window::Action::Close(
+                                graph_window.window_id,
+                            )));
+                            commands.push(command);
+                        }
+
+                        let new_id = window::Id::unique();
+
+                        self.graph_window = Some(GraphWindow {
+                            window_id: new_id,
+                            node_id,
+                            temp_c: String::new(),
+                            percent_c: String::new(),
+                        });
+
+                        let settings = window::Settings {
+                            ..Default::default()
+                        };
+                        let command = Command::single(Action::Window(window::Action::Spawn(
+                            new_id, settings,
+                        )));
+                        commands.push(command);
+
+                        return Command::batch(commands);
+                    }
+                    None => {
+                        if let Some(graph_window) = &self.graph_window {
+                            return Command::single(Action::Window(window::Action::Close(
+                                graph_window.window_id,
+                            )));
+                        }
+                    }
+                },
+                graph::GraphWindowMsg::ChangeTemp(temp) => {
+                    if let Some(graph_window) = &mut self.graph_window {
+                        graph_window.temp_c = temp;
+                    }
+                }
+                graph::GraphWindowMsg::ChangePercent(percent) => {
+                    if let Some(graph_window) = &mut self.graph_window {
+                        graph_window.percent_c = percent;
+                    }
+                }
+            },
         }
 
         Command::none()
@@ -571,6 +589,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn view_window(&self, id: window::Id) -> Element<Self::Message> {
+        if let Some(graph_window) = &self.graph_window {
+            if graph_window.window_id == id {
+                return graph_window_view(graph_window, &self.app_state.app_graph.nodes);
+            }
+        }
+
         panic!("no view for window {id:?}");
     }
 }
