@@ -52,7 +52,8 @@ fmt-lhm:
 
 clean-libsensors:
 	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc
-
+	rm -r build/libsensors
+	
 clean-lhm:
 	dotnet clean ./hardware/LibreHardwareMonitorWrapper/
 

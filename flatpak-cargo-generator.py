@@ -123,6 +123,10 @@ def fetch_git_repo(git_url: str, commit: str) -> str:
 
 def update_workspace_keys(pkg, workspace):
     for key, item in pkg.items():
+        # There cannot be a 'workspace' key if the item is not a dict.
+        if not isinstance(item, dict):
+            continue;
+
         # Recurse for keys under target.cfg(..)
         if key == 'target':
             for target in item.values():
@@ -153,7 +157,7 @@ def update_workspace_keys(pkg, workspace):
                 item.update({ 'version': workspace_item })
             else:
                 pkg[key] = workspace_item
-        elif isinstance(item, dict):
+        else:
             update_workspace_keys(item, workspace_item)
 
 class _GitPackage(NamedTuple):
@@ -185,14 +189,14 @@ async def get_git_repo_packages(git_url: str, commit: str) -> _GitPackagesType:
         with workdir(root_dir):
             if os.path.exists('Cargo.toml'):
                 cargo_toml = load_toml('Cargo.toml')
+                workspace = cargo_toml.get('workspace') or workspace
+
                 if 'package' in cargo_toml:
                     packages[cargo_toml['package']['name']] = _GitPackage(
                         path=os.path.normpath(root_dir),
                         package=cargo_toml,
                         workspace=workspace
                     )
-
-                workspace = cargo_toml.get('workspace') or workspace
         for child in os.scandir(root_dir):
             if child.is_dir():
                 # the workspace can be referenced by any subdirectory

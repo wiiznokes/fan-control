@@ -42,10 +42,10 @@
                 {
                     "type": "shell",
                     "commands": [
-                        "git submodule update --init hardware/libsensors",
-                        "cargo fetch --verbose"
+                        "git submodule update --init hardware/libsensors"
                     ]
-                }
+                },
+                "./../../cargo-sources.json"
             ]
         }
     ]
