@@ -39,12 +39,6 @@
                     "type": "dir",
                     "path": "../.."
                 },
-                {
-                    "type": "shell",
-                    "commands": [
-                        "git submodule update --init hardware/libsensors"
-                    ]
-                },
                 "./../../cargo-sources.json"
             ]
         }
