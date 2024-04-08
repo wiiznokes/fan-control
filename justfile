@@ -123,6 +123,8 @@ flatpak:
 	# sudo apt install flatpak-builder
 	flatpak-builder \
 		--force-clean \
+		--verbose \
+		--ccache \
 		packages \
 		resource/flatpak/com.wiiznokes.fan-control.json
 
