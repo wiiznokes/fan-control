@@ -128,7 +128,26 @@ flatpak:
 		packages \
 		resource/flatpak/com.wiiznokes.fan-control.json
 
+flatpak-run:
+	# flatpak install -y flathub org.flatpak.Builder
+	flatpak-builder \
+		--force-clean \
+		--verbose \
+		--ccache \
+		--user --install \
+		--install-deps-from=flathub \
+		--repo=repo \
+		packages \
+		resource/flatpak/com.wiiznokes.fan-control.json
+	
+	flatpak run com.wiiznokes.fan-control
+
 
 flatpak-source:
 	# pip install aiohttp
 	python3 ./flatpak-cargo-generator.py Cargo.lock -o cargo-sources.json
+
+metainfo-check:
+	appstreamcli validate --pedantic --explain --strict resource/linux/com.wiiznokes.fan-control.metainfo.xml
+
+# todo: https://docs.flathub.org/docs/for-app-authors/submission

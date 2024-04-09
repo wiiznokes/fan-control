@@ -31,3 +31,4 @@ build/
 
 /.flatpak-builder
 /vendor
+/repo
