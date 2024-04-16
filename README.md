@@ -5,7 +5,7 @@
 - Save configuration
 - Multiplatform (Linux/Windows)
 
-![fan-control](https://github.com/wiiznokes/fan-control/assets/78230769/cdc30753-4186-47a1-ba49-11af3868380f)
+![screenshot of fan-control](https://media.githubusercontent.com/media/wiiznokes/fan-control/master/resource/screenshots/app.png)
 
 # Usage
 
