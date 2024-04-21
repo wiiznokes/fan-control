@@ -125,7 +125,7 @@ flatpak:
 		--force-clean \
 		--verbose \
 		--ccache \
-		packages \
+		flatpak-out \
 		resource/flatpak/com.wiiznokes.fan-control.json
 
 flatpak-run:
@@ -137,7 +137,7 @@ flatpak-run:
 		--user --install \
 		--install-deps-from=flathub \
 		--repo=repo \
-		packages \
+		flatpak-out \
 		resource/flatpak/com.wiiznokes.fan-control.json
 	
 	flatpak run com.wiiznokes.fan-control
