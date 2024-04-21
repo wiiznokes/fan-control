@@ -12,7 +12,8 @@
     "--share=ipc",
     "--socket=fallback-x11",
     "--socket=wayland",
-    "--device=all"
+    "--device=all",
+    "--filesystem=/sys:ro"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin"
