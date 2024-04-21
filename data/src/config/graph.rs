@@ -92,6 +92,11 @@ impl ToNode for Graph {
 }
 
 impl IsValid for Graph {
+    
+    // todo: we can filter wrong Coord when launching
+    // and only autorize good coord to be added so we don't need this
+    // kind on verification
+    // so only check if !empty
     fn is_valid(&self) -> bool {
         #[derive(PartialEq)]
         enum DupState {
