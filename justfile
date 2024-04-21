@@ -51,11 +51,11 @@ fmt-lhm:
 ###################  Clean
 
 clean-libsensors:
-	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc
-	rm -r build/libsensors
+	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc || true
+	rm -r build/libsensors || true
 	
 clean-lhm:
-	dotnet clean ./hardware/LibreHardwareMonitorWrapper/
+	dotnet clean ./hardware/LibreHardwareMonitorWrapper/ || true
 
 
 
@@ -128,8 +128,12 @@ flatpak:
 		flatpak-out \
 		resource/flatpak/com.wiiznokes.fan-control.json
 
-flatpak-run:
+flatpak-run: clean-libsensors
 	# flatpak install -y flathub org.flatpak.Builder
+	
+	flatpak uninstall fan-control -y || true
+	# cargo clean
+
 	flatpak-builder \
 		--force-clean \
 		--verbose \

@@ -32,3 +32,4 @@ build/
 /.flatpak-builder
 /vendor
 /repo
+/flatpak-out

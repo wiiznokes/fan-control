@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "hardware", "ui"]
+members = ["data", "hardware", "ui", "utils"]
 resolver = "2"
 
 [workspace.package]
@@ -58,6 +58,7 @@ winres = "0.1"
 hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
+utils = { path = "utils" }
 clap = { version = "4.3", features = ["derive"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"

@@ -7,17 +7,9 @@ use cosmic::{
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
-use cargo_packager_resource_resolver as resource_resolver;
 
 lazy_static::lazy_static! {
-    static ref ICONS_DIR: PathBuf = {
-        resource_resolver::current_format()
-            .map_or(PathBuf::from("resource/icons"), |package_format| {
-                resource_resolver::resources_dir(package_format)
-                    .unwrap_or(PathBuf::from("resource"))
-                    .join("icons/")
-            })
-    };
+    static ref ICONS_DIR: PathBuf = utils::resource_dir().join("icons/");
 }
 
 static EXTENSION: &str = "px.svg";
