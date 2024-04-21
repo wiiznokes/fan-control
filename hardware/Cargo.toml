@@ -24,7 +24,7 @@ derive_more.workspace = true
 
 [target.'cfg(target_os = "windows")'.dependencies]
 serde_json.workspace = true
-cargo-packager-resource-resolver.workspace = true
+utils.workspace = true
 #num_enum = "0.7"
 
 [target.'cfg(target_os = "linux")'.dependencies]

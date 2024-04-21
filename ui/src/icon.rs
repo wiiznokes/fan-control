@@ -7,7 +7,6 @@ use cosmic::{
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
-
 lazy_static::lazy_static! {
     static ref ICONS_DIR: PathBuf = utils::resource_dir().join("icons/");
 }

@@ -12,8 +12,6 @@ use thiserror::Error;
 
 use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
 
-use cargo_packager_resource_resolver as resource_resolver;
-
 use self::packet::{command::Command, i32::I32, Packet};
 
 pub struct WindowsBridge {
@@ -30,8 +28,6 @@ pub enum WindowsError {
     SpawnServer(std::io::Error),
     #[error("No connection was found")]
     NoConnectionFound,
-    #[error(transparent)]
-    Resource(#[from] resource_resolver::Error),
     #[error("Failed to parse hardware struct: {0}")]
     JSONConfigParseError(#[from] serde_json::Error),
 }
@@ -39,28 +35,10 @@ pub enum WindowsError {
 type Result<T> = std::result::Result<T, WindowsError>;
 
 fn spawn_windows_server() -> Result<std::process::Child> {
-    let resource_path = {
-        let resource_suffix = "resource";
-        #[cfg(test)]
-        {
-            std::path::PathBuf::from(format!("../{resource_suffix}"))
-        }
-        #[cfg(not(test))]
-        {
-            match resource_resolver::current_format() {
-                Ok(package_format) => match resource_resolver::resources_dir(package_format) {
-                    Ok(path) => path,
-                    Err(e) => {
-                        error!("Can't find resource path: {e}. Fall back to current dir.");
-                        match std::env::current_dir() {
-                            Ok(current_dir) => current_dir.join(resource_suffix),
-                            Err(e) => return Err(WindowsError::SpawnServer(e)),
-                        }
-                    }
-                },
-                Err(_) => std::path::PathBuf::from(resource_suffix),
-            }
-        }
+    let resource_path = if cfg!(test) {
+        std::path::PathBuf::from("../resource".to_string())
+    } else {
+        utils::resource_dir()
     };
 
     let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");

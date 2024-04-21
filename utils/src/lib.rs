@@ -1,4 +1,4 @@
-use std::{path::PathBuf, process::Command};
+use std::path::PathBuf;
 
 use cargo_packager_resource_resolver as resource_resolver;
 use log::error;
@@ -7,7 +7,6 @@ use cached::proc_macro::cached;
 
 #[cached]
 pub fn resource_dir() -> PathBuf {
-
     if cfg!(FAN_CONTROL_FORMAT = "flatpak") {
         PathBuf::from("/app/share/com.wiiznokes.fan-control/resource")
     } else {

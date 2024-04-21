@@ -2496,7 +2496,6 @@ dependencies = [
 name = "hardware"
 version = "0.1.0"
 dependencies = [
- "cargo-packager-resource-resolver",
  "derive_more",
  "env_logger",
  "lm-sensors",
@@ -2506,6 +2505,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "utils",
 ]
 
 [[package]]
