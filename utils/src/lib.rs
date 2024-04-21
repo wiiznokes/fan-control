@@ -8,14 +8,9 @@ use cached::proc_macro::cached;
 #[cached]
 pub fn resource_dir() -> PathBuf {
 
-    let _ = Command::new("ls").spawn();
-    let _ = Command::new("pwd").spawn();
-
     if cfg!(FAN_CONTROL_FORMAT = "flatpak") {
-        println!("flatpak");
-        PathBuf::from("/resource")
+        PathBuf::from("/app/share/com.wiiznokes.fan-control/resource")
     } else {
-        println!("not flatpak");
         match resource_resolver::current_format() {
             Ok(format) => resource_resolver::resources_dir(format).unwrap(),
             Err(e) => {

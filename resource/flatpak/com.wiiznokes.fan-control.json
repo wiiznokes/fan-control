@@ -36,8 +36,8 @@
         "install -Dm644 ./resource/app_icon/app_icon.svg /app/share/icons/hicolor/scalable/apps/com.wiiznokes.fan-control.svg",
         "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.metainfo.xml /app/share/metainfo/com.wiiznokes.fan-control.metainfo.xml",
         "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.desktop /app/share/applications/com.wiiznokes.fan-control.desktop",
-        "mkdir -pm755 /app/resource",
-        "cp -R ./resource/icons /app/resource"
+        "mkdir -pm755 /app/share/com.wiiznokes.fan-control/resource",
+        "cp -R ./resource/icons /app/share/com.wiiznokes.fan-control/resource"
       ],
       "sources": [
         {
