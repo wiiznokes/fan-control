@@ -37,7 +37,7 @@ add_target = Prendre 5 variables :
     - une valeur de capteur
     Si le capteur > température de déclenchement, la vitesse de déclenchement est définie
     jusqu'à ce que ce capteur < température idéale
-add_graph = Un graph
+add_graph = Graphe
 
 # Config
 config_name = Nom de la configuration

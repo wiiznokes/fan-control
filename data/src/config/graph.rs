@@ -5,11 +5,12 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::{
     app_graph::Nodes,
-    config::graph::affine::Affine,
     id::IdGenerator,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
+
+use super::utils::affine::Affine;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 pub struct Coord {
@@ -57,7 +58,6 @@ impl Coord {
     }
 }
 
-// todo: better default + UI
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
     pub name: String,
@@ -168,72 +168,55 @@ impl Graph {
     }
 }
 
-// todo: use it in linear
-mod affine {
-    use hardware::Value;
+#[cfg(test)]
+mod test {
+    use crate::config::graph::{Coord, Coords};
 
-    #[derive(Debug)]
-    pub struct Affine {
-        pub xa: f32,
-        pub ya: f32,
-        pub xb: f32,
-        pub yb: f32,
-    }
+    #[test]
+    fn test() {
+        let coord1 = Coord {
+            temp: 10,
+            percent: 10,
+        };
 
-    impl Affine {
-        pub fn calcule(&self, value: Value) -> f32 {
-            let a = (self.yb - self.ya) / (self.xb - self.xa);
-            let b = self.ya - a * self.xa;
+        let coord2 = Coord {
+            temp: 20,
+            percent: 20,
+        };
 
-            a * value as f32 + b
-        }
-    }
-}
+        let coord3 = Coord {
+            temp: 30,
+            percent: 30,
+        };
 
-#[test]
-fn test() {
-    let coord1 = Coord {
-        temp: 10,
-        percent: 10,
-    };
+        let coord4 = Coord {
+            temp: 40,
+            percent: 40,
+        };
 
-    let coord2 = Coord {
-        temp: 20,
-        percent: 20,
-    };
+        let coords = Coords(vec![coord1, coord2, coord3, coord4]);
 
-    let coord3 = Coord {
-        temp: 30,
-        percent: 30,
-    };
+        let dummy_coord = Coord {
+            temp: 50,
+            percent: 0,
+        };
 
-    let coord4 = Coord {
-        temp: 40,
-        percent: 40,
-    };
+        let res = coords.0.binary_search(&dummy_coord);
 
-    let coords = Coords(vec![coord1, coord2, coord3, coord4]);
-
-    let dummy_coord = Coord {
-        temp: 50,
-        percent: 0,
-    };
-
-    let res = coords.0.binary_search(&dummy_coord);
-
-    match res {
-        Ok(index) => {
-            println!("use {}", index);
-        }
-        Err(index) => {
-            if index == 0 {
+        match res {
+            Ok(index) => {
                 println!("use {}", index);
-            } else if index == coords.0.len() {
-                println!("use {}", index - 1);
-            } else {
-                println!("use {} and {}", index - 1, index);
+            }
+            Err(index) => {
+                if index == 0 {
+                    println!("use {}", index);
+                } else if index == coords.0.len() {
+                    println!("use {}", index - 1);
+                } else {
+                    println!("use {} and {}", index - 1, index);
+                }
             }
         }
+        dbg!(&res);
     }
-    dbg!(&res);
 }

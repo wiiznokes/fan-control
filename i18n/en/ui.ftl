@@ -37,7 +37,7 @@ add_target = Take 5 variables:
     - a sensor value
     If the sensor > trigger temperature, trigger speed is set
     until this sensor is < ideal temperature
-add_graph = A graph
+add_graph = Graph
 
 # Config
 config_name = Configuration name
