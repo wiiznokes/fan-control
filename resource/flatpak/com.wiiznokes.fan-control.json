@@ -32,12 +32,12 @@
       "build-commands": [
         "make -C ./hardware/libsensors/ install PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc",
         "FAN_CONTROL_FORMAT=flatpak cargo --offline build --release --verbose",
-        "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.png /app/share/icons/hicolor/128x128/apps/com.wiiznokes.fan-control.png",
-        "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.svg /app/share/icons/hicolor/scalable/apps/com.wiiznokes.fan-control.svg",
+        "install -Dm755 ./target/release/fan-control -t /app/bin/",
+        "install -Dm644 ./resource/app_icon/app_icon.svg /app/share/icons/hicolor/scalable/apps/com.wiiznokes.fan-control.svg",
         "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.metainfo.xml /app/share/metainfo/com.wiiznokes.fan-control.metainfo.xml",
         "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.desktop /app/share/applications/com.wiiznokes.fan-control.desktop",
-        "install -dDm755 ./resource/icons /app/resource/icons",
-        "install -Dm755 ./target/release/fan-control -t /app/bin/"
+        "mkdir -pm755 /app/resource",
+        "cp -R ./resource/icons /app/resource"
       ],
       "sources": [
         {

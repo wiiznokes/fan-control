@@ -119,7 +119,7 @@ flatpak-sdk:
 		org.freedesktop.Sdk.Extension.rust-stable//23.08 \
 		org.freedesktop.Sdk.Extension.llvm17//23.08
 
-flatpak:
+flatpak-build: clean-libsensors
 	# sudo apt install flatpak-builder
 	flatpak-builder \
 		--force-clean \
@@ -128,7 +128,7 @@ flatpak:
 		flatpak-out \
 		resource/flatpak/com.wiiznokes.fan-control.json
 
-flatpak-run: clean-libsensors
+flatpak: clean-libsensors
 	# flatpak install -y flathub org.flatpak.Builder
 	
 	flatpak uninstall fan-control -y || true
