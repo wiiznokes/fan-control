@@ -1,13 +1,13 @@
 [package]
 name = "utils"
 version = "0.1.0"
+description = "Utils for fan-control"
 
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
-rust-version.workspace = true
 keywords.workspace = true
 
 

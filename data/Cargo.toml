@@ -2,7 +2,6 @@
 name = "data"
 version = "0.1.0"
 description = "Data struct used by fan-control"
-rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
