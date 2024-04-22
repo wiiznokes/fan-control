@@ -200,6 +200,8 @@ fn generate_hardware<'a>(lib: &'a LMSensors, hardware: &mut Hardware) -> Sensors
 
                         match get_infos_from_refs(&chip_ref, &feature_ref, &sub_feature_ref_io) {
                             Ok(h_info) => {
+                                println!("{}", &h_info.info);
+                                
                                 let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
                                     io: sub_feature_ref_io,
                                     enable: sub_feature_ref_enable,

@@ -1,3 +1,4 @@
 
+SUBSYSTEM=="pwm*", TAG+="uaccess"
 
-SUBSYSTEM=="hwmon", TAG+="uaccess"
+KERNEL=="hwmon[0-99]*", TAG+="uaccess"
