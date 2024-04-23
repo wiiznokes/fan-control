@@ -24,3 +24,6 @@ ACTION=="add", SUBSYSTEM=="platform", KERNEL=="faustus", RUN+="/bin/chmod a+w /s
 
 SUBSYSTEMS=="usb|hidraw", ATTRS{idVendor}=="3061", ATTRS{idProduct}=="4772", TAG+="uaccess", TAG+="GaiZhongGai_20_PRO"
 
+
+
+use udevadm monitor -u | grep hwmon to see what rules get triggered
