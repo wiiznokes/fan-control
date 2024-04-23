@@ -26,24 +26,19 @@ pub enum LinuxError {
 #[self_referencing]
 struct LinuxBridgeSelfRef {
     lib: LMSensors,
+
+    // ouroboros doesn't provide any documentation on the droping order
+    // https://github.com/someguynamedjosh/ouroboros/issues/82
+    // but this structure that store references should be dropped first
     #[borrows(lib)]
     #[not_covariant]
-    sensors: SensorsRefs<'this>,
+    sensors: Vec<InternalSubFeatureRef<'this>>,
 }
 
-// ouroboros doesn't provide any documentation on the droping order
-// https://github.com/someguynamedjosh/ouroboros/issues/82
-// but this structure that store references should be dropped first
-struct SensorsRefs<'a>(pub Vec<InternalSubFeatureRef<'a>>);
-
-impl Drop for SensorsRefs<'_> {
+impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
-        for sensor in &self.0 {
-            if let InternalSubFeatureRef::Pwm(pwm) = sensor {
-                if let Err(e) = pwm.enable.set_raw_value(pwm.default_enable_cached) {
-                    error!("can't set auto to a pwm sensor when quitting: {}", e)
-                }
-            }
+        if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
+            error!("can't set auto to a pwm sensor when quitting: {}", e)
         }
     }
 }
@@ -62,7 +57,10 @@ enum InternalSubFeatureRef<'a> {
     Sensor(SensorRefs<'a>),
 }
 
-fn generate_hardware<'a>(lib: &'a LMSensors, hardware: &mut Hardware) -> SensorsRefs<'a> {
+fn generate_hardware<'a>(
+    lib: &'a LMSensors,
+    hardware: &mut Hardware,
+) -> Vec<InternalSubFeatureRef<'a>> {
     struct HInfo {
         name: String,
         hardware_id: String,
@@ -201,7 +199,7 @@ fn generate_hardware<'a>(lib: &'a LMSensors, hardware: &mut Hardware) -> Sensors
                         match get_infos_from_refs(&chip_ref, &feature_ref, &sub_feature_ref_io) {
                             Ok(h_info) => {
                                 println!("{}", &h_info.info);
-                                
+
                                 let sensor = InternalSubFeatureRef::Pwm(PwmRefs {
                                     io: sub_feature_ref_io,
                                     enable: sub_feature_ref_enable,
@@ -226,7 +224,7 @@ fn generate_hardware<'a>(lib: &'a LMSensors, hardware: &mut Hardware) -> Sensors
             };
         }
     }
-    SensorsRefs(sensors)
+    sensors
 }
 
 impl HardwareBridge for LinuxBridge {
@@ -259,11 +257,7 @@ impl HardwareBridge for LinuxBridge {
 
     fn get_sensor_value(&mut self, sensor: &HSensor) -> crate::Result<Value> {
         self.lm_sensor.with_sensors(|sensors| {
-            match sensors
-                .0
-                .get(sensor.internal_index)
-                .expect("no sensor found")
-            {
+            match sensors.get(sensor.internal_index).expect("no sensor found") {
                 InternalSubFeatureRef::Sensor(sensor_refs) => match sensor_refs.io.raw_value() {
                     Ok(value) => Ok(value as i32),
                     Err(e) => Err(HardwareError::Linux(LinuxError::LmSensors(
@@ -278,7 +272,6 @@ impl HardwareBridge for LinuxBridge {
     fn get_control_value(&mut self, control: &HControl) -> crate::Result<Value> {
         self.lm_sensor.with_sensors(|sensors| {
             match sensors
-                .0
                 .get(control.internal_index)
                 .expect("no sensor found")
             {
@@ -297,7 +290,6 @@ impl HardwareBridge for LinuxBridge {
     fn set_value(&mut self, control: &HControl, value: Value) -> crate::Result<()> {
         self.lm_sensor.with_sensors(|sensors| {
             match sensors
-                .0
                 .get(control.internal_index)
                 .expect("no sensor found")
             {
@@ -318,7 +310,6 @@ impl HardwareBridge for LinuxBridge {
     fn set_mode(&mut self, control: &HControl, mode: &Mode) -> crate::Result<()> {
         self.lm_sensor.with_sensors(|sensors| {
             match sensors
-                .0
                 .get(control.internal_index)
                 .expect("no sensor found")
             {

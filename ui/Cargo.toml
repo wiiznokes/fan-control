@@ -30,7 +30,8 @@ branch = "master"
 default-features = false
 features = [
     "smol",
-    "wgpu",
+    # disable because cause seg fault when quitting the app on flatpak
+    #"wgpu",
     "winit",
     "tokio",
     "multi-window"
