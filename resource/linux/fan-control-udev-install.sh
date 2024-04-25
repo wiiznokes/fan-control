@@ -21,12 +21,12 @@ fi
 #wget https://raw.githubusercontent.com/wiiznokes/fan-control/flatpak/resource/linux/60-fan-control.rules
 
 # Move udev rules file to udev rules directory
-#sudo mv 60-fan-control.rules /usr/lib/udev/rules.d
-sudo cp 60-fan-control.rules /usr/lib/udev/rules.d
+sudo mv 60-fan-control.rules /usr/lib/udev/rules.d
+#sudo install -m644 90-fan-control.rules /usr/lib/udev/rules.d
 
 # Reload the rules
-sudo udevadm control --reload-rules
-sudo udevadm trigger
+sudo udevadm control --reload-rules && sudo udevadm trigger
+
 
 if [ "$STEAMOS" = 1 ] ; then
 	if [ "$STEAMOS_READONLY" = 1 ] ; then

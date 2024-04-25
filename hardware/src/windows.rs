@@ -41,7 +41,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         utils::resource_dir()
     };
 
-    let exe_path = resource_path.join("windows/build/LibreHardwareMonitorWrapper");
+    let exe_path = resource_path.join("lhmbuild/LibreHardwareMonitorWrapper");
 
     let mut command = process::Command::new(exe_path);
 

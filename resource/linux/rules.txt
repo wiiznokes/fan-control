@@ -27,3 +27,20 @@ SUBSYSTEMS=="usb|hidraw", ATTRS{idVendor}=="3061", ATTRS{idProduct}=="4772", TAG
 
 
 use udevadm monitor -u | grep hwmon to see what rules get triggered
+
+
+
+
+We need to check if uaccess is enough or we need to change ownership
+Is it always in hwmon7 ?
+
+
+https://github.com/lm-sensors/lm-sensors/issues/426
+
+find . -name "pwm2*" -exec sudo chmod a+w {} \;
+
+# KERNEL=="hwmon[0-99]*"
+
+# RUN+="/bin/chmod -R a+w /sys/class/hwmon/hwmon7"
+
+

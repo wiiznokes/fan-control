@@ -1,0 +1,2 @@
+
+KERNEL=="hwmon7", SUBSYSTEM=="hwmon", TAG+="uaccess"

@@ -13,10 +13,9 @@ keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 [package]
 name = "fan-control"
-version = "0.1.2"
+version = "0.2.0"
 description = "Control your fans with different behaviors"
 exclude = ["/.*", "justfile", "LICENCE"]
-categories = ["command-line-utilities"]
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -27,8 +26,8 @@ keywords.workspace = true
 [package.metadata.packager]
 before-each-package-command = "cargo build --release"
 identifier = "com.wiiznokes.fan-control"
-icons = ["resource/app_icon/*"]
-resources = ["resource/icons", "resource/windows"]
+icons = ["resource/windows/app_icon.ico"]
+resources = ["resource/icons", "resource/windows/lhmbuild"]
 category = "Utility"
 
 [package.metadata.packager.windows]

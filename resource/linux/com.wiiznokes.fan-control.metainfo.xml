@@ -9,7 +9,7 @@
   <project_license>MIT</project_license>
 
   <developer id="tld.vendor">
-    <name>Wiiznokes</name>
+    <name>wiiznokes</name>
   </developer>
 
   <url type="homepage">https://github.com/wiiznokes/fan-control</url>
@@ -36,7 +36,7 @@
     <screenshot type="default">
       <caption>fan-control screenshot</caption>
       <image>
-        https://github.com/wiiznokes/fan-control/assets/78230769/cdc30753-4186-47a1-ba49-11af3868380f</image>
+        https://media.githubusercontent.com/media/wiiznokes/fan-control/master/resource/screenshots/app.png</image>
     </screenshot>
   </screenshots>
 

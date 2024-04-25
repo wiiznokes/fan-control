@@ -13,7 +13,7 @@
     "--socket=fallback-x11",
     "--socket=wayland",
     "--device=all",
-    "--filesystem=/sys:ro"
+    "--filesystem=/sys"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin"
@@ -33,7 +33,7 @@
         "make -C ./hardware/libsensors/ install PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc",
         "FAN_CONTROL_FORMAT=flatpak cargo --offline build --release --verbose",
         "install -Dm755 ./target/release/fan-control -t /app/bin/",
-        "install -Dm644 ./resource/app_icon/app_icon.svg /app/share/icons/hicolor/scalable/apps/com.wiiznokes.fan-control.svg",
+        "install -Dm644 ./resource/linux/app_icon.svg /app/share/icons/hicolor/scalable/apps/com.wiiznokes.fan-control.svg",
         "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.metainfo.xml /app/share/metainfo/com.wiiznokes.fan-control.metainfo.xml",
         "install -Dm644 ./resource/linux/com.wiiznokes.fan-control.desktop /app/share/applications/com.wiiznokes.fan-control.desktop",
         "mkdir -pm755 /app/share/com.wiiznokes.fan-control/resource",
