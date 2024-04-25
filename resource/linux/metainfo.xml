@@ -40,4 +40,7 @@
     </screenshot>
   </screenshots>
 
+  <releases>
+    <release version="0.1.0" date="2024-01-06" />
+  </releases>
 </component>
