@@ -44,3 +44,4 @@ find . -name "pwm2*" -exec sudo chmod a+w {} \;
 # RUN+="/bin/chmod -R a+w /sys/class/hwmon/hwmon7"
 
 
+https://gitlab.com/CalcProgrammer1/OpenRGB/

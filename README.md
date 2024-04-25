@@ -24,10 +24,10 @@ To have the maximum number of sensors detected by the application, you must
    - Debian: `sudo apt install lm-sensors`
    - Fedora: `sudo dnf install lm_sensors`
 2. run the hardware detection script: `sudo sensors-detect`
+3. [install udev rules](./resource/linux/udev_rules.md)
+4. install the app from [flathub]()
 
-Also, make sure to run the application with sudo. (running in user mode is [planned](https://wiki.archlinux.org/title/udev))
-
-The configuration file will be in [`~/.config/fan-control`](file://~/.config/fan-control) or [`/root/.config/fan-control`](file:///root/.config/fan-control).
+The configuration file will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 
 </details>
 
