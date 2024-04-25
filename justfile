@@ -87,35 +87,6 @@ expand:
 
 ## TEMP
 
-
-flatpak-sdk:
-	flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
-	flatpak install --noninteractive --user flathub \
-		org.freedesktop.Platform//23.08 \
-		org.freedesktop.Sdk//23.08 \
-		org.freedesktop.Sdk.Extension.rust-stable//23.08 \
-		org.freedesktop.Sdk.Extension.llvm17//23.08
-
-
-flatpak: clean-libsensors
-	# flatpak install -y flathub org.flatpak.Builder
-	
-	flatpak uninstall fan-control -y || true
-	# cargo clean
-
-	flatpak-builder \
-		--force-clean \
-		--verbose \
-		--ccache \
-		--user --install \
-		--install-deps-from=flathub \
-		--repo=repo \
-		flatpak-out \
-		resource/flatpak/com.wiiznokes.fan-control.json
-	
-	flatpak run com.wiiznokes.fan-control
-
-
-
+# todo: Add to CI
 metainfo-check:
-	appstreamcli validate --pedantic --explain --strict resource/linux/com.wiiznokes.fan-control.metainfo.xml
+	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml

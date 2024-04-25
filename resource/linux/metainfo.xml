@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.wiiznokes.fan-control</id>
+  <id>io.github.wiiznokes.fan-control</id>
 
   <name>fan-control</name>
   <summary>Control your fans with different behaviors</summary>
@@ -31,7 +31,7 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">com.wiiznokes.fan-control.desktop</launchable>
+  <launchable type="desktop-id">io.github.wiiznokes.fan-control.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <caption>fan-control screenshot</caption>

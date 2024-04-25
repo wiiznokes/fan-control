@@ -5,10 +5,18 @@ use log::error;
 
 use cached::proc_macro::cached;
 
+// https://github.com/rust-lang/rust/issues/31383
+
+pub const APP_ID: &str = "io.github.wiiznokes.fan-control";
+
+pub const QUALIFIER: &str = "io.github";
+pub const ORG: &str = "wiiznokes";
+pub const APP: &str = "fan-control";
+
 #[cached]
 pub fn resource_dir() -> PathBuf {
     if cfg!(FAN_CONTROL_FORMAT = "flatpak") {
-        PathBuf::from("/app/share/com.wiiznokes.fan-control/resource")
+        PathBuf::from(format!("/app/share/{APP_ID}/resource"))
     } else {
         match resource_resolver::current_format() {
             Ok(format) => resource_resolver::resources_dir(format).unwrap(),
