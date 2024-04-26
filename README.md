@@ -1,5 +1,3 @@
-&nbsp;
-
 <h1 align="center">fan-control</h1>
 
 <div>
