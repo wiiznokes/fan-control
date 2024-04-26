@@ -1,4 +1,6 @@
-<h1 style="text-align: center;">fan-control</h1>
+&nbsp;
+
+<h1 align="center">fan-control</h1>
 
 <div>
     <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="55" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
