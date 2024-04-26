@@ -1,11 +1,11 @@
 <h1 style="text-align: center;">fan-control</h1>
 
-<p style="display: flex; align-items: center; justify-content: start;">
-<a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img style="max-height: 55;" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
-<a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img style="max-height: 30;" alt="Download on Github release" src="https://img.shields.io/github/release/wiiznokes/fan-control.svg"/></a>&nbsp;&nbsp;
-</p>
+<div>
+    <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="55" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
+<a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center alt="Download on Github release" src="https://img.shields.io/github/release/wiiznokes/fan-control.svg"/></a>&nbsp;&nbsp;
+<div>
 
-# Features
+## Features
 
 - Display sensors data on real time
 - Control fans based on custom behaviors
@@ -14,13 +14,13 @@
 
 ![screenshot of fan-control](https://media.githubusercontent.com/media/wiiznokes/fan-control/master/resource/screenshots/app.png)
 
-# Usage
+## Usage
 
 - You can add items with the buttons on the right of the app.
 - To save a configuration, write a name in the "Configuration name" field, and click on the `+`.
 - To modify the value of a fan, you must select it in a `Control` item (the left column), select a `Behavior`, and activate the swtich.
 
-# Installation
+## Installation
 
 <details>
     <summary>Linux</summary>
