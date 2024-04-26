@@ -1,3 +1,10 @@
+<h1 style="text-align: center;">fan-control</h1>
+
+<p style="display: flex; align-items: center; justify-content: start;">
+<a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img style="max-height: 55;" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
+<a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img style="max-height: 30;" alt="Download on Github release" src="https://img.shields.io/github/release/wiiznokes/fan-control.svg"/></a>&nbsp;&nbsp;
+</p>
+
 # Features
 
 - Display sensors data on real time
@@ -25,7 +32,7 @@ To have the maximum number of sensors detected by the application, you must
    - Fedora: `sudo dnf install lm_sensors`
 2. run the hardware detection script: `sudo sensors-detect`
 3. [install udev rules](./resource/linux/udev_rules.md)
-4. install the app from [flathub]()
+4. install the app from [flathub](io.github.wiiznokes.fan-control)
 
 The configuration file will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 
