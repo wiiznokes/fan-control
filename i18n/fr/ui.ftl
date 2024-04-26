@@ -24,20 +24,20 @@ add_temp = Monitore un capteur de temperature
 add_custom_temp = Defini une logique entre des valeurs (Max, Moyenne, ...)
 add_control = Applique un certain comportement a un ventilateur
 add_flat = Retourne une valeur fixe
-add_linear = Prendre 5 variables :
+add_linear = Prend 5 variables :
     - une température minimale et maximale
     - une vitesse minimale et maximale
     - une valeur de capteur
     Si le capteur < température minimale -> vitesse minimale
     Si le capteur > température maximale -> vitesse maximale
     Sinon, une moyenne est calculée (voir icône)
-add_target = Prendre 5 variables :
+add_target = Prend 5 variables :
     - une température idéale et une température de déclenchement
     - une vitesse idéale et une vitesse de déclenchement
     - une valeur de capteur
     Si le capteur > température de déclenchement, la vitesse de déclenchement est définie
     jusqu'à ce que ce capteur < température idéale
-add_graph = Un graph
+add_graph = Graphe
 
 # Config
 config_name = Nom de la configuration

@@ -12,14 +12,6 @@ use ouroboros::self_referencing;
 static DEFAULT_PWM_ENABLE: f64 = 5.0;
 static MANUAL_MODE: f64 = 1.0;
 
-#[self_referencing]
-struct LinuxBridgeSelfRef {
-    lib: LMSensors,
-    #[borrows(lib)]
-    #[not_covariant]
-    sensors: Vec<InternalSubFeatureRef<'this>>,
-}
-
 pub struct LinuxBridge {
     lm_sensor: LinuxBridgeSelfRef,
     hardware: Hardware,
@@ -29,6 +21,26 @@ pub struct LinuxBridge {
 pub enum LinuxError {
     #[error("{0}: {1}")]
     LmSensors(String, lm_sensors::errors::Error),
+}
+
+#[self_referencing]
+struct LinuxBridgeSelfRef {
+    lib: LMSensors,
+
+    // ouroboros doesn't provide any documentation on the droping order
+    // https://github.com/someguynamedjosh/ouroboros/issues/82
+    // but this structure that store references should be dropped first
+    #[borrows(lib)]
+    #[not_covariant]
+    sensors: Vec<InternalSubFeatureRef<'this>>,
+}
+
+impl Drop for PwmRefs<'_> {
+    fn drop(&mut self) {
+        if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
+            error!("can't set auto to a pwm sensor when quitting: {}", e)
+        }
+    }
 }
 
 struct PwmRefs<'a> {
@@ -316,13 +328,5 @@ impl HardwareBridge for LinuxBridge {
                 _ => unreachable!(),
             }
         })
-    }
-}
-
-impl Drop for PwmRefs<'_> {
-    fn drop(&mut self) {
-        if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
-            error!("can't set auto to a pwn in his drop function: {}", e)
-        }
     }
 }

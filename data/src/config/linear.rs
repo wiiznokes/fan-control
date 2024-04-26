@@ -7,6 +7,8 @@ use crate::{
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
 
+use super::utils::affine::Affine;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Linear {
     pub name: String,
@@ -27,12 +29,6 @@ impl IsValid for Linear {
     }
 }
 
-#[derive(Debug)]
-struct Affine {
-    a: f32,
-    b: f32,
-}
-
 impl Linear {
     pub fn get_value(&self, value: Value) -> Result<Value, UpdateError> {
         if value <= self.min_temp.into() {
@@ -43,21 +39,15 @@ impl Linear {
             return Ok(self.max_speed.into());
         }
 
-        let affine = self.calcule_affine();
+        let res = Affine {
+            xa: self.min_temp.into(),
+            ya: self.min_speed.into(),
+            xb: self.max_temp.into(),
+            yb: self.max_speed.into(),
+        }
+        .calcule(value) as Value;
 
-        let final_value: f32 = affine.a * value as f32 + affine.b;
-        Ok(final_value as Value)
-    }
-
-    fn calcule_affine(&self) -> Affine {
-        let xa: f32 = self.min_temp.into();
-        let ya: f32 = self.min_speed.into();
-        let xb: f32 = self.max_temp.into();
-        let yb: f32 = self.max_speed.into();
-
-        let a = (yb - ya) / (xb - xa);
-
-        Affine { a, b: ya - a * xa }
+        Ok(res)
     }
 }
 

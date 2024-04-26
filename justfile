@@ -17,11 +17,6 @@ lhm:
 
 ###################  Packaging
 
-deb:
-	cargo packager --release --formats deb --verbose
-	mkdir -p packages
-	cp ./target/release/fan-control*.deb ./packages/
-
 nsis:
 	cargo packager --release --formats nsis --verbose
 	New-Item -Path .\packages -ItemType Directory -Force > $null
@@ -51,10 +46,11 @@ fmt-lhm:
 ###################  Clean
 
 clean-libsensors:
-	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc
-
+	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc || true
+	rm -r build/libsensors || true
+	
 clean-lhm:
-	dotnet clean ./hardware/LibreHardwareMonitorWrapper/
+	dotnet clean ./hardware/LibreHardwareMonitorWrapper/ || true
 
 
 
@@ -89,23 +85,8 @@ expand:
 
 
 
+## TEMP
 
-## Debug
-
-debll:
-	dpkg-deb -c ./packages/fan-control*.deb | grep -v usr/lib/fan-control/icons/
-
-debi: deb debll
-	sudo apt-get remove fan-control -y || true > /dev/null
-	sudo apt-get install ./packages/fan-control_0.1.0_amd64.deb > /dev/null
-	fan-control
-
-debinfo:
-	dpkg-query -s fan-control
-
-debl:
-	dpkg-query -L fan-control | grep -v /usr/lib/fan-control/ressource/
-
-package-msi:
-	cargo bundle --release --format msi
-
+# todo: Add to CI
+metainfo-check:
+	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml

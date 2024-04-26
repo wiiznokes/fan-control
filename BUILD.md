@@ -11,7 +11,7 @@ git clone https://github.com/wiiznokes/fan-control.git
 cd fan-control
 sudo apt install make bison flex clang -y
 just libsensors
-cargo run --release # or just deb for building a deb package
+cargo run --release
 ```
 
 ### Windows

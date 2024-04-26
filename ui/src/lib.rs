@@ -72,7 +72,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     type Message = AppMsg;
     type Flags = AppState<H>;
 
-    const APP_ID: &'static str = "com.wiiznokes.fan-control";
+    const APP_ID: &'static str = utils::APP_ID;
 
     fn core(&self) -> &Core {
         &self.core

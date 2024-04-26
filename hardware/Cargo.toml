@@ -3,7 +3,6 @@ name = "hardware"
 version = "0.1.0"
 description = "hardware abstraction used by fan-control"
 categories = ["hardware-support"]
-rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -19,17 +18,17 @@ fake_hardware = ["rand"]
 thiserror.workspace = true
 log.workspace = true
 serde.workspace = true
-ouroboros = "0.18"
 rand = { version = "0.8", optional = true }
 derive_more.workspace = true
 
 [target.'cfg(target_os = "windows")'.dependencies]
 serde_json.workspace = true
-cargo-packager-resource-resolver.workspace = true
+utils.workspace = true
 #num_enum = "0.7"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
+ouroboros = "0.18"
 
 [dev-dependencies]
 env_logger.workspace = true

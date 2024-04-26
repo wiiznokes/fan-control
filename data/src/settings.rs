@@ -16,9 +16,10 @@ pub struct Settings {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, Default, Values)]
 pub enum AppTheme {
-    #[default]
     System,
     Dark,
+    // todo: change default to system when dark mode is fixed
+    #[default]
     Light,
 }
 

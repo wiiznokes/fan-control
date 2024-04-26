@@ -1,4 +1,15 @@
 {
   "rust-analyzer.showUnlinkedFileNotification": false,
-  "rust-analyzer.cargo.features": "all"
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.server.extraEnv": {
+    "CARGO_TARGET_DIR": "target/analyzer"
+  },
+  "rust-analyzer.linkedProjects": [
+    "Cargo.toml",
+  ],
+  "rust-analyzer.files.excludeDirs": [
+    ".flatpak-builder",
+    "flatpak-out",
+    "packages"
+  ]
 }

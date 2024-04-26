@@ -2,7 +2,6 @@
 name = "ui"
 version = "0.1.0"
 description = "Ui implementation of fan-control"
-rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -20,7 +19,7 @@ i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 lazy_static.workspace = true
 once_cell.workspace = true
-cargo-packager-resource-resolver.workspace = true
+utils.workspace = true
 derive_more.workspace = true
 tokio = { version = "1.35", features = ["time"] }
 [dependencies.libcosmic]
@@ -31,7 +30,8 @@ branch = "master"
 default-features = false
 features = [
     "smol",
-    "wgpu",
+    # disable because cause seg fault when quitting the app on flatpak
+    #"wgpu",
     "winit",
     "tokio",
     "multi-window"

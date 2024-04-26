@@ -7,6 +7,8 @@ pub mod linear;
 pub mod target;
 pub mod temp;
 
+mod utils;
+
 #[cfg(test)]
 mod serde_test;
 

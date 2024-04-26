@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "hardware", "ui"]
+members = ["data", "hardware", "ui", "utils"]
 resolver = "2"
 
 [workspace.package]
@@ -8,17 +8,14 @@ edition = "2021"
 license = "MIT"
 homepage = "https://github.com/wiiznokes/fan-control/"
 repository = "https://github.com/wiiznokes/fan-control.git"
-rust-version = "1.76"
 keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 
 [package]
 name = "fan-control"
-version = "0.1.2"
+version = "0.1.3"
 description = "Control your fans with different behaviors"
 exclude = ["/.*", "justfile", "LICENCE"]
-categories = ["command-line-utilities"]
-rust-version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -28,9 +25,9 @@ keywords.workspace = true
 
 [package.metadata.packager]
 before-each-package-command = "cargo build --release"
-identifier = "com.wiiznokes.fan-control"
-icons = ["resource/app_icon/*"]
-resources = ["resource/icons", "resource/windows"]
+identifier = "io.github.wiiznokes.fan-control"
+icons = ["resource/windows/app_icon.ico"]
+resources = ["resource/icons", "resource/windows/lhmbuild"]
 category = "Utility"
 
 [package.metadata.packager.windows]
@@ -58,6 +55,7 @@ winres = "0.1"
 hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
+utils = { path = "utils" }
 clap = { version = "4.3", features = ["derive"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"

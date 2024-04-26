@@ -7,6 +7,7 @@ use directories::ProjectDirs;
 use hardware::Hardware;
 
 use thiserror::Error;
+use utils::{APP, ORG, QUALIFIER};
 
 use crate::{config::Config, settings::Settings, utils::RemoveElem};
 
@@ -44,10 +45,6 @@ static HARDWARE_FILENAME: &str = "hardware.toml";
 impl DirManager {
     pub fn new(config_dir_path: &Option<PathBuf>, config_name: &Option<String>) -> DirManager {
         fn default_config_dir_path() -> PathBuf {
-            static QUALIFIER: &str = "com";
-            static ORG: &str = "wiiznokes";
-            static APP: &str = "fan-control";
-
             ProjectDirs::from(QUALIFIER, ORG, APP)
                 .unwrap()
                 .config_dir()

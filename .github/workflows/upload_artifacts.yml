@@ -8,28 +8,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: rustup update
-      - uses: taiki-e/install-action@just
-      - uses: Swatinem/rust-cache@v2
-      - run: |
-          cargo install cargo-packager
-
-      - name: Build libsensors
-        run: just libsensors
-      - name: Package deb
-        run: just deb
-
-      - run: echo "DEB_NAME=$(basename ./packages/fan-control*.deb)" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.DEB_NAME }}
-          path: |
-            ./packages/${{ env.DEB_NAME }}
-
   windows:
     runs-on: windows-latest
     steps:
