@@ -1,7 +1,7 @@
 <h1 align="center">fan-control</h1>
 
 <div>
-    <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="55" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
+    <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="50" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
     <a href="https://github.com/wiiznokes/fan-control/releases/latest"><img align=center alt="Download on Github release" src="https://img.shields.io/github/release/wiiznokes/fan-control.svg"/></a>&nbsp;&nbsp;
 <div>
 
@@ -31,8 +31,8 @@ To have the maximum number of sensors detected by the application, you must
    - Debian: `sudo apt install lm-sensors`
    - Fedora: `sudo dnf install lm_sensors`
 2. run the hardware detection script: `sudo sensors-detect`
-3. [install udev rules](./resource/linux/udev_rules.md)
-4. install the app from [flathub](io.github.wiiznokes.fan-control)
+
+For the flatpak version, you need to [install the required udev rules](./resource/linux/udev_rules.md). Then, you can install the app from [flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
 
 The configuration file will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 
