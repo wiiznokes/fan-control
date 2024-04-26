@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- https://docs.flathub.org/docs/for-app-authors/metainfo-guidelines -->
+
 <component type="desktop-application">
   <id>io.github.wiiznokes.fan-control</id>
 
@@ -15,6 +18,7 @@
   <url type="homepage">https://github.com/wiiznokes/fan-control</url>
   <url type="bugtracker">https://github.com/wiiznokes/fan-control/issues</url>
   <url type="donation">https://www.paypal.com/donate/?hosted_button_id=HV84HZ4G63HQ6</url>
+  <url type="vcs-browser">https://github.com/wiiznokes/fan-control</url>
 
   <content_rating type="oars-1.1" />
 
