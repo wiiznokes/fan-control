@@ -17,7 +17,7 @@
   <url type="donation">https://www.paypal.com/donate/?hosted_button_id=HV84HZ4G63HQ6</url>
 
   <content_rating type="oars-1.1" />
-  
+
   <description>
     <p>You can add items with the buttons on the right of the app.
       To save a configuration, write a name in the "Configuration name" field, and click on the +.
@@ -41,6 +41,26 @@
   </screenshots>
 
   <releases>
-    <release version="0.1.0" date="2024-01-06" />
+    <release version="0.1.3" date="2024-04-26">
+      <description>
+        <p>First release on Flathub</p>
+        <ul>
+          <li>Flatpak support</li>
+          <li>Initial graph support</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.2" date="2024-03-01" />
+    <release version="0.1.1" date="2024-01-28" />
+    <release version="0.1.0" date="2024-01-06">
+      <description>
+        <p>Initial release</p>
+        <ul>
+          <li>UI</li>
+          <li>Windows + Linux support</li>
+        </ul>
+      </description>
+    </release>
   </releases>
+
 </component>

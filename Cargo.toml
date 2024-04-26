@@ -13,7 +13,7 @@ keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 [package]
 name = "fan-control"
-version = "0.2.0"
+version = "0.1.3"
 description = "Control your fans with different behaviors"
 exclude = ["/.*", "justfile", "LICENCE"]
 authors.workspace = true
