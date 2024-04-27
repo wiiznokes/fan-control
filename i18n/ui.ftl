@@ -46,5 +46,5 @@ delete_config = Elimina configurazione
 create_config = Crea configurazione
 
 # Error
-already_used_error =Questo nome è già in uso
+already_used_error = Questo nome è già in uso
 invalid_value_error = questo valore non è valido
