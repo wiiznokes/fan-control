@@ -7,6 +7,7 @@
 
   <name>fan-control</name>
   <summary>Control your fans with different behaviors</summary>
+  <summary xml:lang="de">Kontrolliere deine Lüfter mit verschiedenen Verhaltensweisen</summary>
 
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
@@ -28,10 +29,18 @@
       To modify the value of a fan, you must select it in a Control item (the left column), select a
       Behavior, and activate the swtich.
     </p>
+    <p xml:lang="de">Du kannst mit den Schaltflächen auf der rechten Seite der App Elemente hinzufügen.
+      Um eine Konfiguration zu speichern, schreibst du einen Namen in das Feld „Konfigurationsname“ und klickst auf das +.
+      Um den Wert eines Lüfters zu ändern, musst du ihn in einem Steuerelement (in der linken Spalte) auswählen,
+      ein Verhalten wählen und den Regler aktivieren.
+    </p>
     <ul>
       <li>Display sensors data on real time</li>
+      <li xml:lang="de">Anzeige von Sensordaten in Echtzeit</li>
       <li>Control fans based on custom behaviors</li>
+      <li xml:lang="de">Steuerung von Lüftern basierend auf benutzerdefinierten Verhaltensweisen</li>
       <li>Save configuration</li>
+      <li xml:lang="de">Konfiguration speichern</li>
     </ul>
   </description>
 
