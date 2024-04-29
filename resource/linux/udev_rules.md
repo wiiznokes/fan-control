@@ -21,7 +21,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ### Steam Os
 
-You need to disable read the read only mode temporarily
+You need to disable the read only mode temporarily
 
 ```sh
 sudo steamos-readonly disable
