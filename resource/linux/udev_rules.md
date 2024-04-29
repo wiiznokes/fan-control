@@ -8,7 +8,7 @@ This is why we use [udev](https://en.wikipedia.org/wiki/Udev), which allows norm
 # Commands to install the rules
 
 ```sh
-wget https://raw.githubusercontent.com/wiiznokes/fan-control/resource/linux/60-fan-control.rules
+wget https://raw.githubusercontent.com/wiiznokes/fan-control/master/resource/linux/60-fan-control.rules
 sudo mv 60-fan-control.rules /usr/lib/udev/rules.d
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
@@ -21,7 +21,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ### Steam Os
 
-You need to disable read the read only mode temporarily
+You need to disable the read only mode temporarily
 
 ```sh
 sudo steamos-readonly disable
