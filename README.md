@@ -25,17 +25,23 @@
 <details>
     <summary>Linux</summary>
 
-To have the maximum number of sensors detected by the application, you must
+### Flatpak Version
+If you're using the Flatpak version of the application, you'll need to [install the required udev rules](./resource/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
 
-1. install `lm-sensors`:
-   - Debian: `sudo apt install lm-sensors`
-   - Fedora: `sudo dnf install lm_sensors`
-2. run the hardware detection script: `sudo sensors-detect`
+The configuration file for the Flatpak version will be located at: [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 
-For the flatpak version, you need to [install the required udev rules](./resource/linux/udev_rules.md). Then, you can install the app from [flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
+---
 
-The configuration file will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
+<ins>To ensure the application detects the maximum number of sensors, follow these steps:</ins>
 
+1) Install `lm-sensors`  
+For Debian-based systems, run:
+` sudo apt install lm-sensors `  
+For Fedora-based systems, run:
+` sudo dnf install lm_sensors `  
+
+2) Run Hardware Detection Script  
+After installing `lm-sensors`, execute the following command to detect the available hardware sensors: `sudo sensors-detect`
 </details>
 
 <details>
