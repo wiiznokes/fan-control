@@ -42,6 +42,8 @@
       <li>Save configuration</li>
       <li xml:lang="de">Konfiguration speichern</li>
     </ul>
+    <p>Note: After installation, you will need to add the necessary udev rule to your system for this to work. See the GitHub page for more details.</p>
+    <p xml:lang="de">Hinweis: Nach der Installation musst du die notwendige udev-Regel zu deinem System hinzufügen, damit dies funktioniert. Auf der GitHub-Seite findest du weitere Details.</p>
   </description>
 
   <launchable type="desktop-id">io.github.wiiznokes.fan-control.desktop</launchable>
