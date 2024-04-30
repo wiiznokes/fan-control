@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=fan-control
 Comment=Control your fans with different behaviors
+Comment[de]=Kontrolliere deine Lüfter mit verschiedenen Verhaltensweisen
 Type=Application
 Keywords=fan;control;temp;sensor;
 Categories=System;Utility;
