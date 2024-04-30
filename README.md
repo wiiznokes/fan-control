@@ -26,6 +26,7 @@
     <summary>Linux</summary>
 
 ### Flatpak Version
+
 If you're using the Flatpak version of the application, you'll need to [install the required udev rules](./resource/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
 
 The configuration file for the Flatpak version will be located at: [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
@@ -39,9 +40,9 @@ For Debian-based systems, run:
 ` sudo apt install lm-sensors `  
 For Fedora-based systems, run:
 ` sudo dnf install lm_sensors `  
-
 2) Run Hardware Detection Script  
 After installing `lm-sensors`, execute the following command to detect the available hardware sensors: `sudo sensors-detect`
+
 </details>
 
 <details>
