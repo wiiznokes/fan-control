@@ -36,10 +36,8 @@ The configuration file for the Flatpak version will be located at: [`~/.var/app/
 <ins>To ensure the application detects the maximum number of sensors, follow these steps:</ins>
 
 1) Install `lm-sensors`  
-For Debian-based systems, run:
-` sudo apt install lm-sensors `  
-For Fedora-based systems, run:
-` sudo dnf install lm_sensors `  
+For Debian-based systems, run: ` sudo apt install lm-sensors `  
+For Fedora-based systems, run: ` sudo dnf install lm_sensors `
 2) Run Hardware Detection Script  
 After installing `lm-sensors`, execute the following command to detect the available hardware sensors: `sudo sensors-detect`
 
