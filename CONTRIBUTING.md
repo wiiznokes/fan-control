@@ -1,6 +1,6 @@
 # Contributing
 
-First off, thanks for taking the time to contribute! 
+First off, thanks for taking the time to contribute!
 
 Contributions are welcome, do not hesitate to open an issue, a pull request, etc...
 

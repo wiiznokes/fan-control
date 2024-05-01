@@ -39,6 +39,9 @@ prettier:
 	# install on Debian: sudo snap install node --classic
 	# npx is the command to run npm package, node is the runtime
 	npx prettier -w .
+
+metainfo-check:
+	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
 	
 fmt-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
@@ -82,10 +85,3 @@ run-lhm:
 
 expand:
 	cargo expand
-
-
-
-## TEMP
-
-metainfo-check:
-	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
