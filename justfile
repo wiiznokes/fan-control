@@ -87,6 +87,5 @@ expand:
 
 ## TEMP
 
-# todo: Add to CI
 metainfo-check:
 	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml

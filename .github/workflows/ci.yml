@@ -9,6 +9,8 @@ on:
       - "**.md"
       - "**.txt"
       - "**.log"
+      - "**.desktop"
+      - "metainfo.xml"
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
