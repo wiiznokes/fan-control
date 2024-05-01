@@ -12,3 +12,5 @@ The name of the folders follow [this convention](https://en.wikipedia.org/wiki/L
 Support for [pontoon](https://github.com/mozilla/pontoon) (a tool for making translation) will be added at some point.
 
 You can also translate the [metainfo](./resource/linux/metainfo.xml) file and the [desktop entry](./resource/linux/desktop_entry.desktop).
+
+<strong> Please don't translate the README, this will not be merged. </strong>
