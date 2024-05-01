@@ -25,4 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: install deps
+        run: sudo apt install appstreamcli
+        
       - run: appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
