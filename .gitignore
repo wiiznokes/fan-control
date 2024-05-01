@@ -32,4 +32,3 @@ build/
 /vendor
 /repo
 /flatpak-out
-/node_modules
