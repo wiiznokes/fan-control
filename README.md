@@ -58,4 +58,4 @@ See instructions [here](./BUILD.md).
 
 ## Contributing
 
-Contributions are welcome, do not hesitate to open an issue, a pull request, etc...
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
