@@ -40,6 +40,7 @@ prettier:
 	# npx is the command to run npm package, node is the runtime
 	npx prettier -w .
 
+# todo: add to CI when ubuntu-image get appstream version 1.0
 metainfo-check:
 	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
 	
