@@ -26,6 +26,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install deps
-        run: sudo apt install appstreamcli
-        
+        run: sudo apt-get install appstream
       - run: appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
