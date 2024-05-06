@@ -4,10 +4,10 @@ about: Request a feature
 labels: enhancement
 ---
 
-#### Use Case:
+#### Use Case
 
-#### Proposed Change:
+#### Proposed Change
 
-#### Who Benefits From The Change(s)?:
+#### Who Benefits From The Change(s) ?
 
-#### Alternative Approaches:
+#### Alternative Approaches
