@@ -4,18 +4,20 @@ about: Report a correctness issue or violated expectation
 labels: bug
 ---
 
-#### Bug Description:
+#### Bug Description
 
-#### Expected Result:
+#### Expected Result
 
-#### Steps to Reproduce:
+#### Steps to Reproduce
 
-#### Possible Solutions:
+#### Possible Solutions (optional)
 
-#### Possible Additional Information:
+#### Possible Additional Information (optional)
 
 #### Operating system
 
 #### fan-control version
 
-#### Logs, Panic Messages, Stack Traces:
+#### Logs
+
+On linux, run `flatpak run io.github.wiiznokes.fan-control` in a terminal.
