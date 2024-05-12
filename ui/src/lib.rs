@@ -20,8 +20,7 @@ use iced::{
     multi_window::Application,
     time,
     widget::{Column, Row, Space},
-    window,
-    Command, Element, Length, Theme,
+    window, Command, Element, Length, Theme,
 };
 
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -97,7 +96,7 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
     fn title(&self, window: iced::window::Id) -> String {
         if let Some(graph_window) = &self.graph_window {
             if graph_window.window_id == window {
-                return "add node".into();
+                return "Graph".into();
             }
         }
 
@@ -473,21 +472,17 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
                 }
             }
 
-            #[allow(unused_variables)]
             AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
                 graph::GraphWindowMsg::Toogle(node_id) => match node_id {
                     Some(node_id) => {
-                        let commands = Vec::new();
+                        let mut commands = Vec::new();
 
                         if let Some(graph_window) = &self.graph_window {
-
-                            // let command = Command::single(command::aAction::Window(Action::Close(
-                            //     graph_window.window_id,
-                            // )));
-                            // commands.push(command);
+                            commands.push(window::close(graph_window.window_id));
                         }
 
-                        let new_id = window::Id::unique();
+                        let (new_id, command) = window::spawn(graph::window_settings());
+                        commands.push(command);
 
                         self.graph_window = Some(GraphWindow {
                             window_id: new_id,
@@ -496,21 +491,11 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
                             percent_c: String::new(),
                         });
 
-                        let settings = window::Settings {
-                            ..Default::default()
-                        };
-                        // let command = Command::single(Action::Window(window::Action::Spawn(
-                        //     new_id, settings,
-                        // )));
-                        // commands.push(command);
-
                         return Command::batch(commands);
                     }
                     None => {
                         if let Some(graph_window) = &self.graph_window {
-                            // return Command::single(Action::Window(window::Action::Close(
-                            //     graph_window.window_id,
-                            // )));
+                            return window::close(graph_window.window_id);
                         }
                     }
                 },
