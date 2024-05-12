@@ -10,6 +10,7 @@ use crate::graph::GraphWindowMsg;
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Tick,
+    CloseRequested,
     UpdateGraph,
     UpdateRootNodes,
 

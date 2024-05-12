@@ -20,7 +20,7 @@ use iced::{
     multi_window::Application,
     time,
     widget::{Column, Row, Space},
-    window, Command, Element, Length, Theme,
+    window, Command, Element, Event, Length, Theme,
 };
 
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -46,7 +46,8 @@ mod pick_list_utils;
 // mod settings_drawer;
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
-    let settings = iced::Settings::with_flags(app_state);
+    let mut settings = iced::Settings::with_flags(app_state);
+    settings.window.exit_on_close_request = false;
 
     if let Err(e) = Ui::run(settings) {
         error!("error while running ui: {}", e);
@@ -510,6 +511,14 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
                     }
                 }
             },
+            AppMsg::CloseRequested => {
+                if let Err(e) = self.app_state.bridge.shutdown() {
+                    error!("shutdown hardware: {}", e);
+                }
+
+                // todo: pop up if you really want to close if conf not saved
+                return window::close(window::Id::MAIN);
+            }
         }
 
         Command::none()
@@ -552,30 +561,28 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(
+        let close = iced::event::listen_with(|e, _| {
+            if let Event::Window(_, window_event) = e {
+                if window_event == window::Event::CloseRequested {
+                    return Some(AppMsg::CloseRequested);
+                }
+            }
+            None
+        });
+
+        let tick = time::every(Duration::from_millis(
             self.app_state.dir_manager.settings().update_delay,
         ))
-        .map(|_| AppMsg::Tick)
+        .map(|_| AppMsg::Tick);
+
+        iced::subscription::Subscription::batch([close, tick])
 
         //cosmic::iced_futures::Subscription::none()
     }
 
     /*
-
        fn context_drawer(&self) -> Option<Element<Self::Message>> {
            settings_drawer(self.core.window.show_context, &self.app_state.dir_manager)
-       }
-
-       fn on_app_exit(&mut self) {
-           if let Err(e) = self.app_state.bridge.shutdown() {
-               error!("shutdown hardware: {}", e);
-           }
-       }
-
-
-       fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
-           // todo: pop up. Need to use settings to not close auto
-           None
        }
     */
 }
