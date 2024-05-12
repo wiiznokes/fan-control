@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 use rand::Rng;
 
 use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
@@ -7,12 +5,6 @@ use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
 pub struct FakeHardwareBridge {
     hardware: Hardware,
 }
-
-#[derive(Debug)]
-struct InternalSensor {}
-
-#[derive(Debug)]
-struct InternalControl {}
 
 static TEMP_INTERNAL_INDEX: usize = 0;
 static FAN_INTERNAL_INDEX: usize = 1;

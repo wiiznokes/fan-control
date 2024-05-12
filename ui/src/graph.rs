@@ -1,10 +1,8 @@
-use cosmic::{
-    iced::window,
-    iced_core::{Alignment, Length},
-    iced_widget::PickList,
-    widget::{button::text, Button, Column, Row, Space, Text, TextInput},
-    Element,
+use iced::{
+    widget::{text, Button, Column, PickList, Row, Space, Text, TextInput},
+    window, Alignment, Element, Length,
 };
+
 use data::{
     app_graph::Nodes,
     config::graph::{Coord, Graph},

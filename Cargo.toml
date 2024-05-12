@@ -78,3 +78,5 @@ derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
 cargo-packager-resource-resolver = { version = "0.1", features = ["auto-detect-format"]}
 # strum = { version = "0.25", features = ["derive"] }
 
+[workspace.lints.clippy]
+to_string_trait_impl = "allow"

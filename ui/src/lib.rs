@@ -4,7 +4,6 @@ use data::{
     app_graph::AppGraph,
     config::Config,
     node::{validate_name, IsValid, NodeType},
-    settings::AppTheme,
     utils::{InsertSorted, RemoveElem},
     AppState,
 };
@@ -14,17 +13,15 @@ use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
 
-use crate::{graph::graph_window_view, settings_drawer::settings_drawer};
+use crate::graph::graph_window_view;
 
-use cosmic::{
-    app::{command, Command, Core},
+use iced::{
     executor,
-    iced::{self, time, window},
-    iced_core::Length,
-    iced_runtime::command::Action,
-    theme,
+    multi_window::Application,
+    time,
     widget::{Column, Row, Space},
-    ApplicationExt, Element,
+    window::{self},
+    Command, Element, Length,
 };
 
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -47,17 +44,17 @@ mod message;
 mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
-mod settings_drawer;
+// mod settings_drawer;
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
-    let settings = cosmic::app::Settings::default();
-    if let Err(e) = cosmic::app::run::<Ui<H>>(settings, app_state) {
+    let settings = iced::Settings::with_flags(app_state);
+
+    if let Err(e) = Ui::run(settings) {
         error!("error while running ui: {}", e);
         panic!()
     }
 }
 pub struct Ui<H: HardwareBridge> {
-    core: Core,
     app_state: AppState<H>,
     current_config_cached: String,
     create_button_expanded: bool,
@@ -67,22 +64,13 @@ pub struct Ui<H: HardwareBridge> {
     graph_window: Option<GraphWindow>,
 }
 
-impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
+impl<H: HardwareBridge + 'static> Application for Ui<H> {
     type Executor = executor::Default;
     type Message = AppMsg;
     type Flags = AppState<H>;
+    type Theme = iced::Theme;
 
-    const APP_ID: &'static str = utils::APP_ID;
-
-    fn core(&self) -> &Core {
-        &self.core
-    }
-
-    fn core_mut(&mut self) -> &mut Core {
-        &mut self.core
-    }
-
-    fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
         let current_config_cached = flags
             .dir_manager
             .settings()
@@ -92,7 +80,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         let mut ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
             app_state: flags,
-            core,
             create_button_expanded: false,
             choose_config_expanded: false,
             current_config_cached,
@@ -102,14 +89,19 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
         let update_graph_command = ui_state.maybe_update_hardware_to_update_graph();
 
-        let commands = Command::batch([
-            command::set_theme(to_cosmic_theme(
-                &ui_state.app_state.dir_manager.settings().theme,
-            )),
-            update_graph_command,
-        ]);
+        let commands = Command::batch([update_graph_command]);
 
         (ui_state, commands)
+    }
+
+    fn title(&self, window: iced::window::Id) -> String {
+        if let Some(graph_window) = &self.graph_window {
+            if graph_window.window_id == window {
+                return "add node".into();
+            }
+        }
+
+        "fan-control".into()
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -350,7 +342,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
                     });
-                    return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
                 }
                 SettingsMsg::UpdateDelay(update_delay) => dir_manager.update_settings(|settings| {
                     settings.update_delay = update_delay;
@@ -364,10 +355,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             }
             AppMsg::Toggle(ui_msg) => match ui_msg {
                 ToogleMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
-                ToogleMsg::Settings => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.set_context_title(fl!("settings"));
-                }
+                ToogleMsg::Settings => {}
                 ToogleMsg::ChooseConfig(expanded) => {
                     self.choose_config_expanded = expanded;
                 }
@@ -446,7 +434,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 let node = self.app_state.app_graph.get_mut(&id);
                 let node_c = self.nodes_c.get_mut(&id);
 
-                node_c.name = name.clone();
+                node_c.name.clone_from(&name);
                 if name_is_valid {
                     node_c.is_error_name = false;
                     let previous_name = node.name().clone();
@@ -462,12 +450,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             .iter_mut()
                             .find(|node_input| node_input.id == node_id)
                         {
-                            node_input.name = name.clone();
+                            node_input.name.clone_from(&name);
                             let mut inputs = n.node_type.get_inputs();
 
                             match inputs.iter().position(|n| n == &previous_name) {
                                 Some(index) => {
-                                    inputs[index] = name.clone();
+                                    inputs[index].clone_from(&name);
                                     n.node_type.set_inputs(inputs)
                                 }
                                 None => {
@@ -480,16 +468,19 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     node_c.is_error_name = true;
                 }
             }
+
+            #[allow(unused_variables)]
             AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
                 graph::GraphWindowMsg::Toogle(node_id) => match node_id {
                     Some(node_id) => {
-                        let mut commands = Vec::new();
+                        let commands = Vec::new();
 
                         if let Some(graph_window) = &self.graph_window {
-                            let command = Command::single(Action::Window(window::Action::Close(
-                                graph_window.window_id,
-                            )));
-                            commands.push(command);
+
+                            // let command = Command::single(command::aAction::Window(Action::Close(
+                            //     graph_window.window_id,
+                            // )));
+                            // commands.push(command);
                         }
 
                         let new_id = window::Id::unique();
@@ -504,18 +495,18 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         let settings = window::Settings {
                             ..Default::default()
                         };
-                        let command = Command::single(Action::Window(window::Action::Spawn(
-                            new_id, settings,
-                        )));
-                        commands.push(command);
+                        // let command = Command::single(Action::Window(window::Action::Spawn(
+                        //     new_id, settings,
+                        // )));
+                        // commands.push(command);
 
                         return Command::batch(commands);
                     }
                     None => {
                         if let Some(graph_window) = &self.graph_window {
-                            return Command::single(Action::Window(window::Action::Close(
-                                graph_window.window_id,
-                            )));
+                            // return Command::single(Action::Window(window::Action::Close(
+                            //     graph_window.window_id,
+                            // )));
                         }
                     }
                 },
@@ -535,37 +526,40 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message> {
+    fn view(&self, id: window::Id) -> Element<Self::Message> {
+        if let Some(graph_window) = &self.graph_window {
+            if graph_window.window_id == id {
+                return graph_window_view(graph_window, &self.app_state.app_graph.nodes);
+            }
+        }
+
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let content = items_view(&app_graph.nodes, &self.nodes_c, app_state.bridge.hardware());
+        let header_bar = Row::new()
+            .push(headers::header_wrapper(headers::header_start()))
+            .push(Space::new(Length::Fill, 0.0))
+            .push(headers::header_wrapper(headers::header_center(
+                &self.app_state.dir_manager,
+                &self.current_config_cached,
+                self.choose_config_expanded,
+            )))
+            .push(Space::new(Length::Fill, 0.0))
+            .push(headers::header_wrapper(headers::header_end()))
+            .align_items(iced::Alignment::Center)
+            .width(Length::Fill);
+
+        let content = Column::new().push(header_bar).push(items_view(
+            &app_graph.nodes,
+            &self.nodes_c,
+            app_state.bridge.hardware(),
+        ));
 
         let floating_button = Column::new()
             .push(Space::new(0.0, Length::Fill))
             .push(add_node_button_view(self.create_button_expanded));
 
         Row::new().push(content).push(floating_button).into()
-    }
-
-    fn header_start(&self) -> Vec<Element<Self::Message>> {
-        headers::header_start()
-    }
-
-    fn header_center(&self) -> Vec<Element<Self::Message>> {
-        headers::header_center(
-            &self.app_state.dir_manager,
-            &self.current_config_cached,
-            self.choose_config_expanded,
-        )
-    }
-
-    fn header_end(&self) -> Vec<Element<Self::Message>> {
-        headers::header_end()
-    }
-
-    fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        settings_drawer(self.core.window.show_context, &self.app_state.dir_manager)
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
@@ -577,34 +571,24 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         //cosmic::iced_futures::Subscription::none()
     }
 
-    fn on_app_exit(&mut self) {
-        if let Err(e) = self.app_state.bridge.shutdown() {
-            error!("shutdown hardware: {}", e);
-        }
-    }
+    /*
 
-    fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
-        // todo: pop up. Need to use settings to not close auto
-        None
-    }
+       fn context_drawer(&self) -> Option<Element<Self::Message>> {
+           settings_drawer(self.core.window.show_context, &self.app_state.dir_manager)
+       }
 
-    fn view_window(&self, id: window::Id) -> Element<Self::Message> {
-        if let Some(graph_window) = &self.graph_window {
-            if graph_window.window_id == id {
-                return graph_window_view(graph_window, &self.app_state.app_graph.nodes);
-            }
-        }
+       fn on_app_exit(&mut self) {
+           if let Err(e) = self.app_state.bridge.shutdown() {
+               error!("shutdown hardware: {}", e);
+           }
+       }
 
-        panic!("no view for window {id:?}");
-    }
-}
 
-fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
-    match theme {
-        AppTheme::Dark => theme::Theme::dark(),
-        AppTheme::Light => theme::Theme::light(),
-        AppTheme::System => theme::system_preference(),
-    }
+       fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
+           // todo: pop up. Need to use settings to not close auto
+           None
+       }
+    */
 }
 
 fn wait_hardware_update_to_finish<H: HardwareBridge>(msg_to_send: AppMsg) -> Command<AppMsg> {
@@ -612,7 +596,7 @@ fn wait_hardware_update_to_finish<H: HardwareBridge>(msg_to_send: AppMsg) -> Com
         async {
             tokio::time::sleep(H::TIME_TO_UPDATE).await;
         },
-        |_| cosmic::app::Message::App(msg_to_send),
+        |_| msg_to_send,
     )
 }
 

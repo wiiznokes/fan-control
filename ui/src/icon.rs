@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
-use cosmic::{
-    iced_core::Length,
-    widget::{self, icon::Handle, Icon, IconButton},
+use iced::{
+    widget::{self, svg::Handle, Button},
+    Length,
 };
+
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
@@ -15,16 +16,17 @@ static EXTENSION: &str = "px.svg";
 
 static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));
 
-pub fn icon_button<M>(name: &str) -> widget::button::IconButton<M> {
-    cosmic::widget::button::icon(get_handle_icon(name))
+pub fn icon_button<M>(name: &str) -> Button<M> {
+    widget::Button::new(my_icon(name))
 }
 
 static ICON_LENGHT: Length = Length::Fixed(25.0);
 
-pub fn my_icon(name: &str) -> Icon {
-    widget::icon::icon(get_handle_icon(name))
-        .height(ICON_LENGHT)
+pub fn my_icon(name: &str) -> widget::svg::Svg {
+    let handle = get_handle_icon(name);
+    widget::svg::Svg::new(handle)
         .width(ICON_LENGHT)
+        .height(ICON_LENGHT)
 }
 
 fn get_handle_icon(name: &str) -> Handle {
@@ -35,7 +37,7 @@ fn get_handle_icon(name: &str) -> Handle {
     };
 
     let path = ICONS_DIR.join(unsafe { BUF.as_str() });
-    cosmic::widget::icon::from_path(path)
+    Handle::from_path(path)
 }
 
 pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {
@@ -51,7 +53,7 @@ pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {
     }
 }
 
-pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
+pub fn expand_icon<'a, M>(expanded: bool) -> widget::button::Button<'a, M> {
     if expanded {
         icon_button("expand_less/24")
     } else {

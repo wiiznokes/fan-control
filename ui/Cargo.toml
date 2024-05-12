@@ -9,6 +9,8 @@ homepage.workspace = true
 repository.workspace = true
 keywords.workspace = true
 
+[lints]
+workspace = true
 
 [dependencies]
 data.workspace = true
@@ -22,21 +24,33 @@ once_cell.workspace = true
 utils.workspace = true
 derive_more.workspace = true
 tokio = { version = "1.35", features = ["time"] }
-[dependencies.libcosmic]
-git = "https://github.com/pop-os/libcosmic"
-#rev = "8a86f1857fc7cd0e638b1a5ad768345b1ae200f7"
-#git = "https://github.com/wiiznokes/libcosmic"
+
+[dependencies.iced]
+git = "https://github.com/iced-rs/iced.git"
 branch = "master"
-default-features = false
 features = [
     "smol",
-    # disable because cause seg fault when quitting the app on flatpak
-    #"wgpu",
-    "winit",
     "tokio",
-    "multi-window"
-    #"a11y",
-    #"debug",
-    #"serde-keycode",
-    #"wayland",
+    "svg",
+    "advanced",
+    "multi-window",
 ]
+
+# [dependencies.libcosmic]
+# git = "https://github.com/pop-os/libcosmic"
+# #rev = "8a86f1857fc7cd0e638b1a5ad768345b1ae200f7"
+# #git = "https://github.com/wiiznokes/libcosmic"
+# branch = "master"
+# default-features = false
+# features = [
+#     "smol",
+#     # disable because cause seg fault when quitting the app on flatpak
+#     #"wgpu",
+#     "winit",
+#     "tokio",
+#     "multi-window"
+#     #"a11y",
+#     #"debug",
+#     #"serde-keycode",
+#     #"wayland",
+# ]

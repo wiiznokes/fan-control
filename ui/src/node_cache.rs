@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use cosmic::iced_core::window;
 use data::{
     id::Id,
     node::{Node, NodeType},
 };
 use derive_more::Unwrap;
+use iced::window;
 
 pub struct NodesC {
     data: HashMap<Id, NodeC>,

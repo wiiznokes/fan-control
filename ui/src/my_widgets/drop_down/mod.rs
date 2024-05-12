@@ -1,25 +1,24 @@
-#![allow(clippy::too_many_arguments)]
-
-use cosmic::{
-    iced::{self, keyboard, touch},
-    iced_core::{keyboard::key::Named, widget::OperationOutputWrapper, Size, Vector},
-    iced_widget,
-};
-use iced_widget::core::{
-    self, event,
-    layout::{Limits, Node},
+//! Drop down menu widget
+use iced::{
+    advanced::{
+        layout::{Limits, Node},
+        overlay, renderer,
+        widget::{Operation, Tree},
+        Clipboard, Layout, Shell, Widget,
+    },
+    event,
+    keyboard::{self, key::Named},
     mouse::{self, Cursor},
-    overlay, renderer,
-    widget::{Operation, Tree},
-    Clipboard, Element, Event, Layout, Length, Point, Rectangle, Shell, Widget,
+    touch, Element, Event, Length, Point, Rectangle, Size, Vector,
 };
 
 use super::{alignment::Alignment, offset::Offset};
 
+/// Customizable drop down menu widget
 pub struct DropDown<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
     underlay: Element<'a, Message, Theme, Renderer>,
     overlay: Element<'a, Message, Theme, Renderer>,
@@ -34,8 +33,9 @@ where
 impl<'a, Message, Theme, Renderer> DropDown<'a, Message, Theme, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
+    /// Create a new [`DropDown`]
     pub fn new<U, B>(underlay: U, overlay: B, expanded: bool) -> Self
     where
         U: Into<Element<'a, Message, Theme, Renderer>>,
@@ -53,32 +53,35 @@ where
         }
     }
 
+    /// The width of the overlay
+    #[must_use]
     pub fn width(mut self, width: impl Into<Length>) -> Self {
         self.width = Some(width.into());
         self
     }
 
+    /// The height of the overlay
+    #[must_use]
     pub fn height(mut self, height: impl Into<Length>) -> Self {
         self.height = height.into();
         self
     }
 
+    /// The alignment of the overlay relative to the underlay
+    #[must_use]
     pub fn alignment(mut self, alignment: impl Into<Alignment>) -> Self {
         self.alignment = alignment.into();
         self
     }
 
+    /// The offset of the overlay
+    #[must_use]
     pub fn offset(mut self, offset: impl Into<Offset>) -> Self {
         self.offset = offset.into();
         self
     }
-}
 
-impl<'a, Message, Theme, Renderer> DropDown<'a, Message, Theme, Renderer>
-where
-    Message: Clone,
-    Renderer: core::Renderer,
-{
+    /// Send a message when a click occur outside of the overlay when expanded
     #[must_use]
     pub fn on_dismiss(mut self, message: Message) -> Self {
         self.on_dismiss = Some(message);
@@ -90,7 +93,7 @@ impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
     for DropDown<'a, Message, Theme, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: 'a + core::Renderer,
+    Renderer: 'a + renderer::Renderer,
 {
     fn size(&self) -> Size<Length> {
         self.underlay.as_widget().size()
@@ -127,8 +130,8 @@ where
         vec![Tree::new(&self.underlay), Tree::new(&self.overlay)]
     }
 
-    fn diff(&mut self, tree: &mut Tree) {
-        tree.diff_children(&mut [&mut self.underlay, &mut self.overlay]);
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(&[&self.underlay, &self.overlay]);
     }
 
     fn operate<'b>(
@@ -136,7 +139,7 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
+        operation: &mut dyn Operation<Message>,
     ) {
         self.underlay
             .as_widget()
@@ -188,29 +191,28 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
+        translation: Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         if !self.expanded {
-            return self
-                .underlay
-                .as_widget_mut()
-                .overlay(&mut state.children[0], layout, renderer);
+            return self.underlay.as_widget_mut().overlay(
+                &mut state.children[0],
+                layout,
+                renderer,
+                translation,
+            );
         }
 
-        let bounds = layout.bounds();
-
-        Some(overlay::Element::new(
-            bounds.position(),
-            Box::new(DropDownOverlay::new(
-                &mut state.children[1],
-                &mut self.overlay,
-                &self.on_dismiss,
-                &self.width,
-                &self.height,
-                &self.alignment,
-                &self.offset,
-                layout.bounds(),
-            )),
-        ))
+        Some(overlay::Element::new(Box::new(DropDownOverlay::new(
+            &mut state.children[1],
+            &mut self.overlay,
+            &self.on_dismiss,
+            &self.width,
+            &self.height,
+            &self.alignment,
+            &self.offset,
+            layout.bounds(),
+            layout.position(),
+        ))))
     }
 }
 
@@ -218,7 +220,7 @@ impl<'a, Message, Theme: 'a, Renderer> From<DropDown<'a, Message, Theme, Rendere
     for Element<'a, Message, Theme, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: 'a + core::Renderer,
+    Renderer: 'a + renderer::Renderer,
 {
     fn from(drop_down: DropDown<'a, Message, Theme, Renderer>) -> Self {
         Element::new(drop_down)
@@ -237,13 +239,15 @@ where
     alignment: &'b Alignment,
     offset: &'b Offset,
     underlay_bounds: Rectangle,
+    position: Point,
 }
 
 impl<'a, 'b, Message, Theme, Renderer> DropDownOverlay<'a, 'b, Message, Theme, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         state: &'b mut Tree,
         element: &'b mut Element<'a, Message, Theme, Renderer>,
@@ -253,33 +257,29 @@ where
         alignment: &'b Alignment,
         offset: &'b Offset,
         underlay_bounds: Rectangle,
+        position: Point,
     ) -> Self {
         DropDownOverlay {
             state,
             element,
             on_dismiss,
-            underlay_bounds,
             width,
+            height,
             alignment,
             offset,
-            height,
+            underlay_bounds,
+            position,
         }
     }
 }
 
-impl<'a, 'b, Message, Theme, Renderer> core::Overlay<Message, Theme, Renderer>
+impl<'a, 'b, Message, Theme, Renderer> overlay::Overlay<Message, Theme, Renderer>
     for DropDownOverlay<'a, 'b, Message, Theme, Renderer>
 where
     Message: Clone,
-    Renderer: core::Renderer,
+    Renderer: renderer::Renderer,
 {
-    fn layout(
-        &mut self,
-        renderer: &Renderer,
-        bounds: Size,
-        position: Point,
-        _translation: Vector,
-    ) -> Node {
+    fn layout(&mut self, renderer: &Renderer, bounds: Size) -> Node {
         let limits = Limits::new(Size::ZERO, bounds)
             .width(
                 self.width
@@ -292,42 +292,48 @@ where
             .as_widget()
             .layout(self.state, renderer, &limits);
 
-        let position = match self.alignment {
+        let previous_position = self.position;
+
+        let new_position = match self.alignment {
             Alignment::TopStart => Point::new(
-                position.x - node.bounds().width - self.offset.x,
-                position.y - node.bounds().height + self.underlay_bounds.height - self.offset.y,
+                previous_position.x - node.bounds().width - self.offset.x,
+                previous_position.y - node.bounds().height + self.underlay_bounds.height
+                    - self.offset.y,
             ),
             Alignment::Top => Point::new(
-                position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
-                position.y - node.bounds().height - self.offset.y,
+                previous_position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
+                previous_position.y - node.bounds().height - self.offset.y,
             ),
             Alignment::TopEnd => Point::new(
-                position.x + self.underlay_bounds.width + self.offset.x,
-                position.y - node.bounds().height + self.underlay_bounds.height - self.offset.y,
+                previous_position.x + self.underlay_bounds.width + self.offset.x,
+                previous_position.y - node.bounds().height + self.underlay_bounds.height
+                    - self.offset.y,
             ),
             Alignment::End => Point::new(
-                position.x + self.underlay_bounds.width + self.offset.x,
-                position.y + self.underlay_bounds.height / 2.0 - node.bounds().height / 2.0,
+                previous_position.x + self.underlay_bounds.width + self.offset.x,
+                previous_position.y + self.underlay_bounds.height / 2.0
+                    - node.bounds().height / 2.0,
             ),
             Alignment::BottomEnd => Point::new(
-                position.x + self.underlay_bounds.width + self.offset.x,
-                position.y + self.offset.y,
+                previous_position.x + self.underlay_bounds.width + self.offset.x,
+                previous_position.y + self.offset.y,
             ),
             Alignment::Bottom => Point::new(
-                position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
-                position.y + self.underlay_bounds.height + self.offset.y,
+                previous_position.x + self.underlay_bounds.width / 2.0 - node.bounds().width / 2.0,
+                previous_position.y + self.underlay_bounds.height + self.offset.y,
             ),
             Alignment::BottomStart => Point::new(
-                position.x - node.bounds().width - self.offset.x,
-                position.y + self.offset.y,
+                previous_position.x - node.bounds().width - self.offset.x,
+                previous_position.y + self.offset.y,
             ),
             Alignment::Start => Point::new(
-                position.x - node.bounds().width - self.offset.x,
-                position.y + self.underlay_bounds.height / 2.0 - node.bounds().height / 2.0,
+                previous_position.x - node.bounds().width - self.offset.x,
+                previous_position.y + self.underlay_bounds.height / 2.0
+                    - node.bounds().height / 2.0,
             ),
         };
 
-        node.move_to_mut(position);
+        node.move_to_mut(new_position);
 
         node
     }
@@ -398,15 +404,5 @@ where
         self.element
             .as_widget()
             .mouse_interaction(self.state, layout, cursor, viewport, renderer)
-    }
-
-    fn overlay<'c>(
-        &'c mut self,
-        layout: Layout<'_>,
-        renderer: &Renderer,
-    ) -> Option<overlay::Element<'c, Message, Theme, Renderer>> {
-        self.element
-            .as_widget_mut()
-            .overlay(self.state, layout, renderer)
     }
 }
