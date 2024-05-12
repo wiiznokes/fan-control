@@ -140,6 +140,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
         .into()
 }
 
+#[allow(dead_code)]
 pub fn header_end<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
 

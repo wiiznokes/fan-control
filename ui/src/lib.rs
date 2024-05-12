@@ -20,8 +20,8 @@ use iced::{
     multi_window::Application,
     time,
     widget::{Column, Row, Space},
-    window::{self},
-    Command, Element, Length,
+    window,
+    Command, Element, Length, Theme,
 };
 
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -102,6 +102,10 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
         }
 
         "fan-control".into()
+    }
+
+    fn theme(&self, _window: window::Id) -> Self::Theme {
+        Theme::Nord
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -545,7 +549,7 @@ impl<H: HardwareBridge + 'static> Application for Ui<H> {
                 self.choose_config_expanded,
             )))
             .push(Space::new(Length::Fill, 0.0))
-            .push(headers::header_wrapper(headers::header_end()))
+            //.push(headers::header_wrapper(headers::header_end()))
             .align_items(iced::Alignment::Center)
             .width(Length::Fill);
 
