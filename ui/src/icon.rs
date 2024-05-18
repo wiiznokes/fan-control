@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use iced::{
-    color, widget::{self, button, svg::Handle, Button}, Color, Length
+    color, widget::{self, button, svg::Handle, Button}, Length
 };
 
 use data::node::NodeTypeLight;
