@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
 use iced::{
-    widget::{self, svg::Handle, Button},
-    Length,
+    color, widget::{self, button, svg::Handle, Button}, Color, Length
 };
 
 use data::node::NodeTypeLight;
@@ -18,6 +17,22 @@ static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));
 
 pub fn icon_button<M>(name: &str) -> Button<M> {
     widget::Button::new(my_icon(name))
+        .style(|_theme, status| {
+            let mut style = button::Style::default();
+
+            let grey = color!(200, 200, 200);
+            match status {
+                button::Status::Active => { },
+                button::Status::Hovered => { 
+                    style = style.with_background(grey)
+                },
+                button::Status::Pressed => {
+                    style = style.with_background(grey)
+                },
+                button::Status::Disabled => { },
+            };
+            style
+        })
 }
 
 static ICON_LENGHT: Length = Length::Fixed(25.0);
