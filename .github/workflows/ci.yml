@@ -34,6 +34,9 @@ jobs:
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
+      - name: Install deps
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get install pkg-config libxkbcommon-dev
 
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
@@ -71,6 +74,9 @@ jobs:
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
+      - name: Install deps
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get install pkg-config libxkbcommon-dev
 
       - name: Build libsensors on Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
