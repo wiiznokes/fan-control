@@ -1,7 +1,0 @@
-
-# XXX: Only hwmon7 because it failed on all other number on machine
-SUBSYSTEM=="hwmon", KERNEL=="hwmon7", RUN+="/bin/sh -c '/bin/chmod a+w /sys%p/pwm*'"
-
-
-# LOGS VERSION
-# SUBSYSTEM=="hwmon", KERNEL=="hwmon7", RUN+="/bin/sh -c '/bin/chmod -v a+w /sys%p/pwm* > /tmp/fan-control-udev.txt 2>&1'"

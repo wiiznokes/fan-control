@@ -42,7 +42,7 @@ prettier:
 
 # todo: add to CI when ubuntu-image get appstream version 1.0
 metainfo-check:
-	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
+	appstreamcli validate --pedantic --explain --strict res/linux/metainfo.xml
 	
 fmt-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
@@ -50,8 +50,8 @@ fmt-lhm:
 ###################  Clean
 
 clean-libsensors:
-	make -C ./hardware/libsensors/ clean uninstall PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc || true
-	rm -r build/libsensors || true
+	make -C ./hardware/libsensors clean || true
+	rm -rf build/libsensors || true
 	
 clean-lhm:
 	dotnet clean ./hardware/LibreHardwareMonitorWrapper/ || true

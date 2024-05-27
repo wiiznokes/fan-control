@@ -446,7 +446,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 let node = self.app_state.app_graph.get_mut(&id);
                 let node_c = self.nodes_c.get_mut(&id);
 
-                node_c.name = name.clone();
+                node_c.name.clone_from(&name);
                 if name_is_valid {
                     node_c.is_error_name = false;
                     let previous_name = node.name().clone();
@@ -462,12 +462,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             .iter_mut()
                             .find(|node_input| node_input.id == node_id)
                         {
-                            node_input.name = name.clone();
+                            node_input.name.clone_from(&name);
                             let mut inputs = n.node_type.get_inputs();
 
                             match inputs.iter().position(|n| n == &previous_name) {
                                 Some(index) => {
-                                    inputs[index] = name.clone();
+                                    inputs[index].clone_from(&name);
                                     n.node_type.set_inputs(inputs)
                                 }
                                 None => {
@@ -501,11 +501,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             percent_c: String::new(),
                         });
 
-                        let settings = window::Settings {
-                            ..Default::default()
-                        };
                         let command = Command::single(Action::Window(window::Action::Spawn(
-                            new_id, settings,
+                            new_id,
+                            graph::window_settings(),
                         )));
                         commands.push(command);
 
@@ -577,10 +575,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         //cosmic::iced_futures::Subscription::none()
     }
 
-    fn on_app_exit(&mut self) {
+    fn on_app_exit(&mut self) -> Option<Self::Message> {
         if let Err(e) = self.app_state.bridge.shutdown() {
             error!("shutdown hardware: {}", e);
         }
+        None
     }
 
     fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {

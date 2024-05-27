@@ -36,7 +36,7 @@ type Result<T> = std::result::Result<T, WindowsError>;
 
 fn spawn_windows_server() -> Result<std::process::Child> {
     let resource_path = if cfg!(test) {
-        std::path::PathBuf::from("../resource".to_string())
+        std::path::PathBuf::from("../res".to_string())
     } else {
         utils::resource_dir()
     };

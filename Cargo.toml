@@ -26,8 +26,8 @@ keywords.workspace = true
 [package.metadata.packager]
 before-each-package-command = "cargo build --release"
 identifier = "io.github.wiiznokes.fan-control"
-icons = ["resource/windows/app_icon.ico"]
-resources = ["resource/icons", "resource/windows/lhmbuild"]
+icons = ["res/windows/app_icon.ico"]
+resources = ["res/icons", "res/windows/lhmbuild"]
 category = "Utility"
 
 [package.metadata.packager.windows]

@@ -1,8 +1,8 @@
 use cosmic::{
-    iced::window,
+    iced::{window, Size},
     iced_core::{Alignment, Length},
-    iced_widget::PickList,
-    widget::{button::text, Button, Column, Row, Space, Text, TextInput},
+    iced_widget::{button, PickList},
+    widget::{button::text, container, Column, Row, Space, Text, TextInput},
     Element,
 };
 use data::{
@@ -18,6 +18,14 @@ use crate::{
     node_cache::GraphC,
     pick_list_utils::{self, MyOption},
 };
+
+pub fn window_settings() -> window::Settings {
+    window::Settings {
+        size: Size::new(300.0, 200.0),
+        resizable: false,
+        ..Default::default()
+    }
+}
 
 pub fn graph_view<'a>(
     node: &'a Node,
@@ -88,37 +96,59 @@ pub fn graph_window_view<'a>(
     let temp_input = Row::new()
         .push(
             TextInput::new("temp", &graph_window.temp_c)
-                .on_input(|s| GraphWindowMsg::ChangeTemp(s).into()),
+                .on_input(|s| GraphWindowMsg::ChangeTemp(s).into())
+                .width(Length::Fixed(70.0)),
         )
-        .push(text("°C"));
+        .push(text("°C"))
+        .spacing(5)
+        .align_items(Alignment::Center);
 
     let percent_input = Row::new()
         .push(
             TextInput::new("percent", &graph_window.percent_c)
-                .on_input(|s| GraphWindowMsg::ChangePercent(s).into()),
+                .on_input(|s| GraphWindowMsg::ChangePercent(s).into())
+                .width(Length::Fixed(70.0)),
         )
-        .push(text("%"));
+        .push(text("%"))
+        .spacing(5)
+        .align_items(Alignment::Center);
 
     let coord = Coord::try_from((
         graph_window.temp_c.as_ref(),
         graph_window.percent_c.as_ref(),
     ));
 
-    let mut add_button = Button::new("add");
+    let mut add_button = button("add");
 
     if let Ok(coord) = coord {
         add_button = add_button
             .on_press(ModifNodeMsg::Graph(GraphMsg::AddCoord(coord)).to_app(graph_window.node_id));
     }
 
-    let add_row = Row::new()
-        .push(Button::new("close").on_press(GraphWindowMsg::Toogle(None).into()))
-        .push(add_button);
-
-    Column::new()
+    let inputs_row = Row::new()
         .push(temp_input)
         .push(text("="))
         .push(percent_input)
-        .push(add_row)
+        .align_items(Alignment::Center)
+        .spacing(5);
+
+    let close_button = button("close").on_press(GraphWindowMsg::Toogle(None).into());
+    let actions_row = Row::new()
+        .push(close_button)
+        .push(add_button)
+        .spacing(20)
+        .align_items(Alignment::Center);
+
+    let content = Column::new()
+        .push(inputs_row)
+        .push(actions_row)
+        .align_items(Alignment::Center)
+        .spacing(20);
+
+    container(content)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x()
+        .center_y()
         .into()
 }

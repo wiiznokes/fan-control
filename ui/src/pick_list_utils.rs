@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MyOption<T>
 where
@@ -7,14 +9,14 @@ where
     None,
 }
 
-impl<T> ToString for MyOption<T>
+impl<T> Display for MyOption<T>
 where
     T: ToString,
 {
-    fn to_string(&self) -> String {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MyOption::Some(t) => t.to_string(),
-            MyOption::None => fl!("none"),
+            MyOption::Some(t) => write!(f, "{}", t.to_string()),
+            MyOption::None => write!(f, "{}", fl!("none")),
         }
     }
 }
@@ -124,9 +126,9 @@ pub mod input {
 
 pub mod hardware {
 
-    use std::rc::Rc;
-
     use hardware::HItem;
+    use std::fmt::Display;
+    use std::rc::Rc;
 
     use super::MyOption;
 
@@ -141,9 +143,10 @@ pub mod hardware {
             self.id == other.id
         }
     }
-    impl ToString for HardwarePickListOption {
-        fn to_string(&self) -> String {
-            self.name.clone()
+
+    impl Display for HardwarePickListOption {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.name)
         }
     }
 

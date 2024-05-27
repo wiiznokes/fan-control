@@ -1,6 +1,6 @@
 use light_enum::Values;
-
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
@@ -46,12 +46,13 @@ impl Settings {
     }
 }
 
-impl ToString for AppTheme {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for AppTheme {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             AppTheme::System => fl!("system_theme"),
             AppTheme::Dark => fl!("dark_theme"),
             AppTheme::Light => fl!("light_theme"),
-        }
+        };
+        write!(f, "{}", str)
     }
 }

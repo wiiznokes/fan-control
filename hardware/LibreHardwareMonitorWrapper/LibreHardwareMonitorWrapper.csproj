@@ -11,7 +11,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <OutputPath>.\..\..\resource\windows\lhmbuild</OutputPath>
+        <OutputPath>.\..\..\res\windows\lhmbuild</OutputPath>
     </PropertyGroup>
 
     <ItemGroup>

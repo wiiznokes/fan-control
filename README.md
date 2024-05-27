@@ -12,7 +12,7 @@
 - Save configuration
 - Multiplatform (Linux/Windows)
 
-![screenshot of fan-control](https://media.githubusercontent.com/media/wiiznokes/fan-control/master/resource/screenshots/app.png)
+![screenshot of fan-control](https://media.githubusercontent.com/media/wiiznokes/fan-control/master/res/screenshots/app.png)
 
 ## Usage
 
@@ -27,7 +27,7 @@
 
 ### Flatpak Version
 
-If you're using the Flatpak version of the application, you'll need to [install the required udev rules](./resource/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
+If you're using the Flatpak version of the application, you'll need to [install the required udev rules](./res/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
 
 The configuration file for the Flatpak version will be located at: [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 

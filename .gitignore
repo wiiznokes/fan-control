@@ -32,3 +32,4 @@ build/
 /vendor
 /repo
 /flatpak-out
+package-lock.json

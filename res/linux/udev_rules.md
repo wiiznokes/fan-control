@@ -8,7 +8,7 @@ This is why we use [udev](https://en.wikipedia.org/wiki/Udev), which allows norm
 # Commands to install the rules
 
 ```sh
-wget https://raw.githubusercontent.com/wiiznokes/fan-control/master/resource/linux/60-fan-control.rules
+wget https://raw.githubusercontent.com/wiiznokes/fan-control/master/res/linux/60-fan-control.rules
 sudo mv 60-fan-control.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
