@@ -42,7 +42,7 @@ prettier:
 
 # todo: add to CI when ubuntu-image get appstream version 1.0
 metainfo-check:
-	appstreamcli validate --pedantic --explain --strict resource/linux/metainfo.xml
+	appstreamcli validate --pedantic --explain --strict res/linux/metainfo.xml
 	
 fmt-lhm:
 	dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj
