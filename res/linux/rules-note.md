@@ -64,7 +64,6 @@ SUBSYSTEM=="hwmon", KERNEL=="hwmon7", RUN+="/bin/sh -c '/bin/find /sys%p -type f
 - /etc/udev/rules.d/60-fan-control.rules
 - /usr/lib/udev/rules.d/60-fan-control.rules
 
-
 ```
 # LOGS VERSION
 # SUBSYSTEM=="hwmon", KERNEL=="hwmon7", RUN+="/bin/sh -c '/bin/chmod -v a+w /sys%p/pwm* > /tmp/fan-control-udev.txt 2>&1'"
