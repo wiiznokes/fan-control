@@ -1,7 +1,7 @@
-use std::fmt::{Display};
 use hardware::{Hardware, Value};
 use light_enum::Values;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 use crate::{
     app_graph::Nodes,

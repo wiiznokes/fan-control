@@ -501,11 +501,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             percent_c: String::new(),
                         });
 
-                        let settings = window::Settings {
-                            ..Default::default()
-                        };
                         let command = Command::single(Action::Window(window::Action::Spawn(
-                            new_id, settings,
+                            new_id,
+                            graph::window_settings(),
                         )));
                         commands.push(command);
 

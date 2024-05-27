@@ -12,7 +12,7 @@ where
 impl<T> Display for MyOption<T>
 where
     T: ToString,
-{  
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             MyOption::Some(t) => write!(f, "{}", t.to_string()),
@@ -126,9 +126,9 @@ pub mod input {
 
 pub mod hardware {
 
-    use std::rc::Rc;
-    use std::fmt::Display;
     use hardware::HItem;
+    use std::fmt::Display;
+    use std::rc::Rc;
 
     use super::MyOption;
 
@@ -144,8 +144,7 @@ pub mod hardware {
         }
     }
 
-    impl Display for HardwarePickListOption
-    {  
+    impl Display for HardwarePickListOption {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "{}", self.name)
         }
