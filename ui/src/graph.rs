@@ -1,8 +1,8 @@
 use cosmic::{
     iced::window,
     iced_core::{Alignment, Length},
-    iced_widget::PickList,
-    widget::{button::text, Button, Column, Row, Space, Text, TextInput},
+    iced_widget::{button, PickList},
+    widget::{button::text, Column, Row, Space, Text, TextInput},
     Element,
 };
 use data::{
@@ -104,7 +104,7 @@ pub fn graph_window_view<'a>(
         graph_window.percent_c.as_ref(),
     ));
 
-    let mut add_button = Button::new("add");
+    let mut add_button = button("add");
 
     if let Ok(coord) = coord {
         add_button = add_button
@@ -112,7 +112,7 @@ pub fn graph_window_view<'a>(
     }
 
     let add_row = Row::new()
-        .push(Button::new("close").on_press(GraphWindowMsg::Toogle(None).into()))
+        .push(button("close").on_press(GraphWindowMsg::Toogle(None).into()))
         .push(add_button);
 
     Column::new()

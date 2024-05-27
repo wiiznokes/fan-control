@@ -1,3 +1,4 @@
+use std::fmt::{Display};
 use hardware::{Hardware, Value};
 use light_enum::Values;
 use serde::{Deserialize, Serialize};
@@ -64,12 +65,13 @@ impl ToNode for CustomTemp {
     }
 }
 
-impl ToString for CustomTempKind {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for CustomTempKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             CustomTempKind::Average => fl!("average"),
             CustomTempKind::Max => fl!("max"),
             CustomTempKind::Min => fl!("min"),
-        }
+        };
+        write!(f, "{}", str)
     }
 }

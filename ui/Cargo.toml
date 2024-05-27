@@ -31,7 +31,7 @@ default-features = false
 features = [
     "smol",
     # disable because cause seg fault when quitting the app on flatpak
-    #"wgpu",
+    "wgpu",
     "winit",
     "tokio",
     "multi-window"

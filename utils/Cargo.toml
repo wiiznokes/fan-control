@@ -12,6 +12,6 @@ keywords.workspace = true
 
 
 [dependencies]
-cached = "0.49"
+cached = "0.51"
 cargo-packager-resource-resolver.workspace = true
 log.workspace = true
