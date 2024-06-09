@@ -22,12 +22,13 @@
 
 ## Installation
 
-<details>
-    <summary>Linux</summary>
+### Windows
 
-### Flatpak Version
+The configuration file can be found in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config).
 
-If you're using the Flatpak version of the application, you'll need to [install the required udev rules](./res/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
+### Flatpak (Linux)
+
+You'll need to [install the required udev rules](./res/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
 
 The configuration file for the Flatpak version will be located at: [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 
@@ -40,15 +41,6 @@ The configuration file for the Flatpak version will be located at: [`~/.var/app/
    For Fedora-based systems, run: `sudo dnf install lm_sensors`
 2. Run Hardware Detection Script  
    After installing `lm-sensors`, execute the following command to detect the available hardware sensors: `sudo sensors-detect`
-
-</details>
-
-<details>
-    <summary>Windows</summary>
-
-The configuration file can be found in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config).
-
-</details>
 
 ## Repo structure
 
