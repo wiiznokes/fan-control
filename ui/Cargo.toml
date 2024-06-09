@@ -29,12 +29,12 @@ git = "https://github.com/pop-os/libcosmic"
 branch = "master"
 default-features = false
 features = [
-    "smol",
-    # disable because cause seg fault when quitting the app on flatpak
+    # cause seg fault when quitting the app on flatpak
     "wgpu",
     "winit",
     "tokio",
     "multi-window"
+    # "smol",
     #"a11y",
     #"debug",
     #"serde-keycode",
