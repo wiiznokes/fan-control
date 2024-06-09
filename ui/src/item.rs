@@ -361,7 +361,7 @@ fn linear_view<'a>(
             &linear.min_temp,
             &linear_c.min_temp,
             InputLineUnit::Celcius,
-            &(0..=255),
+            0..linear.max_temp,
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinTemp(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -370,7 +370,7 @@ fn linear_view<'a>(
             &linear.min_speed,
             &linear_c.min_speed,
             InputLineUnit::Porcentage,
-            &(0..=100),
+            0..linear.max_speed,
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MinSpeed(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -379,7 +379,7 @@ fn linear_view<'a>(
             &linear.max_temp,
             &linear_c.max_temp,
             InputLineUnit::Celcius,
-            &(0..=255),
+            linear.min_temp..255,
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxTemp(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -388,7 +388,7 @@ fn linear_view<'a>(
             &linear.max_speed,
             &linear_c.max_speed,
             InputLineUnit::Porcentage,
-            &(0..=100),
+            linear.min_speed..101,
             |val, cached_val| ModifNodeMsg::Linear(LinearMsg::MaxSpeed(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -420,7 +420,7 @@ fn target_view<'a>(
             &target.idle_temp,
             &target_c.idle_temp,
             InputLineUnit::Celcius,
-            &(0..=255),
+            0..255,
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleTemp(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -429,7 +429,7 @@ fn target_view<'a>(
             &target.idle_speed,
             &target_c.idle_speed,
             InputLineUnit::Porcentage,
-            &(0..=100),
+            0..101,
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::IdleSpeed(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -438,7 +438,7 @@ fn target_view<'a>(
             &target.load_temp,
             &target_c.load_temp,
             InputLineUnit::Celcius,
-            &(0..=255),
+            0..255,
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadTemp(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),
@@ -447,7 +447,7 @@ fn target_view<'a>(
             &target.load_speed,
             &target_c.load_speed,
             InputLineUnit::Porcentage,
-            &(0..=100),
+            0..101,
             |val, cached_val| ModifNodeMsg::Target(TargetMsg::LoadSpeed(val, cached_val)),
         )
         .map(|m| m.to_app(node.id)),

@@ -7,7 +7,7 @@ use cosmic::{
 };
 use data::{
     app_graph::Nodes,
-    config::graph::{Coord, Graph},
+    config::graph::Graph,
     id::Id,
     node::{Input, Node, ValueKind},
 };
@@ -42,15 +42,16 @@ pub fn graph_view<'a>(
     .width(Length::Fill)
     .into();
 
-    let coords = graph.coords.0.iter().map(|coord| {
+    let coords = graph.coords.iter().map(|coord| {
         let text = format!("{}°C = {}%", coord.temp, coord.percent);
 
         Row::new()
             .push(Text::new(text).width(Length::Fixed(100.0)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
-            .push(icon_button("close/20").on_press(
-                ModifNodeMsg::Graph(GraphMsg::RemoveCoord(coord.clone())).to_app(node.id),
-            ))
+            .push(
+                icon_button("close/20")
+                    .on_press(ModifNodeMsg::Graph(GraphMsg::RemoveCoord(*coord)).to_app(node.id)),
+            )
             .align_items(Alignment::Center)
             .into()
     });
@@ -91,7 +92,7 @@ pub struct GraphWindow {
 
 pub fn graph_window_view<'a>(
     graph_window: &'a GraphWindow,
-    _nodes: &'a Nodes,
+    graph: &'a Graph,
 ) -> Element<'a, AppMsg> {
     let temp_input = Row::new()
         .push(
@@ -113,10 +114,10 @@ pub fn graph_window_view<'a>(
         .spacing(5)
         .align_items(Alignment::Center);
 
-    let coord = Coord::try_from((
+    let coord = graph.try_new_coord(
         graph_window.temp_c.as_ref(),
         graph_window.percent_c.as_ref(),
-    ));
+    );
 
     let mut add_button = button("add");
 

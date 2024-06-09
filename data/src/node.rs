@@ -5,14 +5,14 @@ use derive_more::{Display, Unwrap};
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
 
-use crate::app_graph::Nodes;
+use crate::app_graph::{AppGraph, Nodes};
 
 use crate::config::{
     control::Control, custom_temp::CustomTemp, fan::Fan, flat::Flat, graph::Graph, linear::Linear,
     target::Target, temp::Temp,
 };
 
-use crate::id::{Id, IdGenerator};
+use crate::id::Id;
 
 #[derive(Debug, Clone, LightEnum, Unwrap)]
 #[unwrap(ref, ref_mut)]
@@ -142,7 +142,7 @@ pub fn validate_name(nodes: &Nodes, id: &Id, name: &String) -> bool {
 }
 
 pub trait ToNode {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, hardware: &Hardware) -> Node;
+    fn to_node(self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node;
 }
 
 pub trait IsValid {
@@ -150,15 +150,21 @@ pub trait IsValid {
 }
 
 impl Node {
-    pub fn new(id_generator: &mut IdGenerator, node_type: NodeType, nodes: &Nodes) -> Self {
+    pub fn new(node_type: NodeType, app_graph: &mut AppGraph) -> Self {
         let mut node = Self {
-            id: id_generator.new_id(),
+            id: app_graph.id_generator.new_id(),
             node_type,
             inputs: Vec::new(),
             value: None,
         };
 
-        let sanitize = self::sanitize_inputs(&node, nodes, true);
+        if app_graph.is_name_taken(node.name()) {
+            warn!("Name {} is already taken", node.name());
+            node.node_type
+                .set_name(app_graph.generate_new_name(node.name()));
+        }
+
+        let sanitize = self::sanitize_inputs(&node, &app_graph.nodes, true);
         node.set_inputs(sanitize);
         node
     }
@@ -216,17 +222,16 @@ impl NodeType {
             NodeType::Target(target, ..) => &target.name,
         }
     }
-    pub fn set_name(&mut self, name: &str) {
-        let name_cloned = name.to_string();
+    pub fn set_name(&mut self, name: String) {
         match self {
-            NodeType::Control(i) => i.name = name_cloned,
-            NodeType::Fan(i) => i.name = name_cloned,
-            NodeType::Temp(i) => i.name = name_cloned,
-            NodeType::CustomTemp(i) => i.name = name_cloned,
-            NodeType::Graph(i) => i.name = name_cloned,
-            NodeType::Flat(i) => i.name = name_cloned,
-            NodeType::Linear(i, ..) => i.name = name_cloned,
-            NodeType::Target(i, ..) => i.name = name_cloned,
+            NodeType::Control(i) => i.name = name,
+            NodeType::Fan(i) => i.name = name,
+            NodeType::Temp(i) => i.name = name,
+            NodeType::CustomTemp(i) => i.name = name,
+            NodeType::Graph(i) => i.name = name,
+            NodeType::Flat(i) => i.name = name,
+            NodeType::Linear(i, ..) => i.name = name,
+            NodeType::Target(i, ..) => i.name = name,
         }
     }
 

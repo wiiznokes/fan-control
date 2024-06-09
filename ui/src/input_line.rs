@@ -1,4 +1,4 @@
-use std::ops::{Add, RangeInclusive, Sub};
+use std::ops::{Add, Range, Sub};
 
 use cosmic::{
     iced_core::{Alignment, Length},
@@ -38,7 +38,7 @@ pub fn input_line<'a, V, F>(
     value: &'a V,
     cached_value: &'a str,
     unit: InputLineUnit,
-    range: &'a RangeInclusive<V>,
+    range: Range<V>,
     map_value: F,
 ) -> Element<'a, ModifNodeMsg>
 where
@@ -50,7 +50,7 @@ where
     F: 'a + Fn(V, String) -> ModifNodeMsg,
 {
     // `map_value` is moved in `on_input` so we procuce buttons messages before
-    let plus_message = if range.end() > value {
+    let plus_message = if range.end > *value {
         let new_value = value.clone() + MyFrom::from(1);
         let new_cached_value = new_value.to_string();
         Some(map_value(new_value, new_cached_value))
@@ -58,7 +58,7 @@ where
         None
     };
 
-    let sub_message = if range.start() < value {
+    let sub_message = if range.start < *value {
         let new_value = value.clone() - MyFrom::from(1);
         let new_cached_value = new_value.to_string();
         Some(map_value(new_value, new_cached_value))

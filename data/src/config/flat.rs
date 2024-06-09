@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 use hardware::Hardware;
 
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
 };
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -20,8 +19,12 @@ impl IsValid for Flat {
 }
 
 impl ToNode for Flat {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
-        Node::new(id_generator, NodeType::Flat(self), nodes)
+    fn to_node(mut self, app_graph: &mut AppGraph, _hardware: &Hardware) -> Node {
+        if self.value > 100 {
+            self.value = 50;
+        }
+
+        Node::new(NodeType::Flat(self), app_graph)
     }
 }
 impl Default for Flat {

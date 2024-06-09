@@ -57,11 +57,8 @@ impl AppGraph {
                 Some(control_h.clone()),
             );
 
-            let node = Node::new(
-                &mut app_graph.id_generator,
-                NodeType::Control(control),
-                &app_graph.nodes,
-            );
+            let node = Node::new(NodeType::Control(control), &mut app_graph);
+
             app_graph.insert_node(node);
         }
 
@@ -72,11 +69,7 @@ impl AppGraph {
                 fan_h: Some(fan_h.clone()),
             };
 
-            let node = Node::new(
-                &mut app_graph.id_generator,
-                NodeType::Fan(fan),
-                &app_graph.nodes,
-            );
+            let node = Node::new(NodeType::Fan(fan), &mut app_graph);
             app_graph.insert_node(node);
         }
 
@@ -87,11 +80,7 @@ impl AppGraph {
                 temp_h: Some(temp_h.clone()),
             };
 
-            let node = Node::new(
-                &mut app_graph.id_generator,
-                NodeType::Temp(temp),
-                &app_graph.nodes,
-            );
+            let node = Node::new(NodeType::Temp(temp), &mut app_graph);
             app_graph.insert_node(node);
         }
 
@@ -104,46 +93,55 @@ impl AppGraph {
         // order: fan -> temp -> custom_temp -> behavior -> control
 
         for fan in config.fans {
-            let node = fan.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = fan.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for temp in config.temps {
-            let node = temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = temp.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for custom_temp in config.custom_temps {
-            let node = custom_temp.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = custom_temp.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for flat in config.flats {
-            let node = flat.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = flat.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for linear in config.linears {
-            let node = linear.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = linear.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for target in config.targets {
-            let node = target.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = target.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for graph in config.graphs {
-            let node = graph.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = graph.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         for control in config.controls {
-            let node = control.to_node(&mut app_graph.id_generator, &app_graph.nodes, hardware);
+            let node = control.to_node(&mut app_graph, hardware);
             app_graph.insert_node(node);
         }
 
         app_graph
+    }
+
+    fn find_unused_name(nodes: &Nodes, default_name: &str, i: u32) -> String {
+        let new_name = format!("{} {}", default_name, i);
+        if nodes.values().any(|n| n.name() == &new_name) {
+            Self::find_unused_name(nodes, default_name, i + 1)
+        } else {
+            new_name
+        }
     }
 
     pub fn generate_default_name(&self, node_type: NodeTypeLight) -> String {
@@ -158,16 +156,20 @@ impl AppGraph {
             NodeTypeLight::Target => fl!("default_target"),
         };
 
-        fn find_unused_name(nodes: &Nodes, default_name: &str, i: u32) -> String {
-            let new_name = format!("{} {}", default_name, i);
-            if nodes.values().any(|n| n.name() == &new_name) {
-                find_unused_name(nodes, default_name, i + 1)
-            } else {
-                new_name
+        Self::find_unused_name(&self.nodes, &default_name, 1)
+    }
+
+    pub fn generate_new_name(&self, name: &str) -> String {
+        Self::find_unused_name(&self.nodes, name, 1)
+    }
+
+    pub fn is_name_taken(&self, name: &str) -> bool {
+        for node in &self.nodes {
+            if node.1.name() == name {
+                return true;
             }
         }
-
-        find_unused_name(&self.nodes, &default_name, 1)
+        false
     }
 
     pub fn create_new_node(&mut self, node_type_light: NodeTypeLight) -> Node {
@@ -183,9 +185,9 @@ impl AppGraph {
         };
 
         let new_name = self.generate_default_name(node_type_light);
-        node_type.set_name(&new_name);
+        node_type.set_name(new_name);
 
-        Node::new(&mut self.id_generator, node_type, &self.nodes)
+        Node::new(node_type, self)
     }
 
     pub fn sanitize_inputs(&mut self, log: bool) {

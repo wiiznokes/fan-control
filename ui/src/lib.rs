@@ -298,18 +298,15 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
                         match graph_msg {
                             message::GraphMsg::RemoveCoord(coord) => {
-                                graph.coords.0.remove_elem(|c| c.exact_same(&coord));
+                                graph.coords.remove_elem(|c| c.exact_same(&coord));
                             }
                             message::GraphMsg::AddCoord(coord) => {
-                                graph
-                                    .coords
-                                    .0
-                                    .insert_sorted(|c| coord.cmp(c), coord.clone());
+                                graph.coords.insert_sorted(|c| coord.cmp(c), coord);
                             }
                             message::GraphMsg::ReplaceCoord { previous, new } => {
-                                graph.coords.0.remove_elem(|c| c.exact_same(&previous));
+                                graph.coords.remove_elem(|c| c.exact_same(&previous));
 
-                                graph.coords.0.insert_sorted(|c| new.cmp(c), new.clone());
+                                graph.coords.insert_sorted(|c| new.cmp(c), new);
                             }
                         }
                     }
@@ -427,7 +424,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 if name_is_valid {
                     node_c.is_error_name = false;
                     let previous_name = node.name().clone();
-                    node.node_type.set_name(&name);
+                    node.node_type.set_name(name.clone());
 
                     let node_id = node.id;
 
@@ -567,7 +564,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     fn view_window(&self, id: window::Id) -> Element<Self::Message> {
         if let Some(graph_window) = &self.graph_window {
             if graph_window.window_id == id {
-                return graph_window_view(graph_window, &self.app_state.app_graph.nodes);
+                let graph = self
+                    .app_state
+                    .app_graph
+                    .get(&graph_window.node_id)
+                    .node_type
+                    .unwrap_graph_ref();
+
+                return graph_window_view(graph_window, graph);
             }
         }
 
