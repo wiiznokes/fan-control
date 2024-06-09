@@ -34,7 +34,6 @@ pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
             error!("{}", e);
             break;
         }
-        std::thread::sleep(H::TIME_TO_UPDATE);
 
         if let Err(e) = app_state.update.optimized(
             &mut app_state.app_graph.nodes,
@@ -45,8 +44,7 @@ pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
         }
 
         let settings_update_delay =
-            Duration::from_millis(app_state.dir_manager.settings().update_delay)
-                - H::TIME_TO_UPDATE;
+            Duration::from_millis(app_state.dir_manager.settings().update_delay);
         let final_delay = std::cmp::max(settings_update_delay, Duration::from_millis(50));
 
         match rx.recv_timeout(final_delay) {
