@@ -585,7 +585,7 @@ fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
 
 impl<H: HardwareBridge> Ui<H> {
     fn update_hardware(&mut self) {
-        if !self.is_updating {
+        if self.is_updating {
             warn!("An update is already processing: skipping that one.");
             return;
         }
