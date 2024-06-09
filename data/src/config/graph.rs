@@ -122,7 +122,7 @@ impl Graph {
 
         let coord = Coord { temp, percent };
 
-        if self.coords.binary_search(&coord).is_err() {
+        if self.coords.binary_search(&coord).is_ok() {
             return Err(format!(
                 "Can't add create this new coord {}, this temp is already present",
                 temp
