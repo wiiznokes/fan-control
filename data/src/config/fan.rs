@@ -1,8 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
@@ -11,10 +10,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Fan {
+    // unique
     pub name: String,
+    // E hardware.fans
     #[serde(rename = "id")]
     pub hardware_id: Option<String>,
 
+    // E hardware.fans
     #[serde(skip)]
     pub fan_h: Option<Rc<HSensor>>,
 }
@@ -37,12 +39,7 @@ impl IsValid for Fan {
 }
 
 impl ToNode for Fan {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        hardware: &Hardware,
-    ) -> Node {
+    fn to_node(mut self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node {
         match &self.hardware_id {
             Some(hardware_id) => {
                 match hardware
@@ -59,13 +56,10 @@ impl ToNode for Fan {
                 }
             }
             None => {
-                if self.fan_h.is_some() {
-                    warn!("Fan to Node: inconsistent internal index");
-                    self.fan_h.take();
-                }
+                debug_assert!(self.fan_h.is_none())
             }
         }
 
-        Node::new(id_generator, NodeType::Fan(self), nodes)
+        Node::new(NodeType::Fan(self), app_graph)
     }
 }

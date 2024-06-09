@@ -4,20 +4,22 @@ use hardware::{HControl, Hardware, HardwareBridge, Mode, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Control {
+    // unique
     pub name: String,
+    // E hardware.controls, only one ref in all controls
     #[serde(rename = "id")]
     pub hardware_id: Option<String>,
     pub input: Option<String>,
     pub active: bool,
 
+    // E hardware.controls, only one ref in all controls
     #[serde(skip)]
     pub control_h: Option<Rc<HControl>>,
 
@@ -103,12 +105,7 @@ impl IsValid for Control {
 }
 
 impl ToNode for Control {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        hardware: &Hardware,
-    ) -> Node {
+    fn to_node(mut self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node {
         match &self.hardware_id {
             Some(hardware_id) => {
                 match hardware
@@ -116,7 +113,15 @@ impl ToNode for Control {
                     .iter()
                     .find(|control_h| &control_h.hardware_id == hardware_id)
                 {
-                    Some(control_h) => self.control_h = Some(control_h.clone()),
+                    Some(control_h) => {
+                        if Rc::strong_count(control_h) > 1 {
+                            warn!("Control to Node, hardware id \"{}\" is already use by another control. {}.", hardware_id, self.name);
+                            self.hardware_id.take();
+                            self.control_h.take();
+                        } else {
+                            self.control_h = Some(control_h.clone());
+                        }
+                    }
                     None => {
                         warn!("Control to Node, hardware id \"{}\" was not found for {}. Fall back: hardware not used.", hardware_id, self.name);
                         self.hardware_id.take();
@@ -135,6 +140,6 @@ impl ToNode for Control {
             }
         }
 
-        Node::new(id_generator, NodeType::Control(self), nodes)
+        Node::new(NodeType::Control(self), app_graph)
     }
 }

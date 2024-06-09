@@ -4,8 +4,7 @@ use hardware::{HSensor, Hardware, HardwareBridge, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
@@ -38,12 +37,7 @@ impl IsValid for Temp {
 }
 
 impl ToNode for Temp {
-    fn to_node(
-        mut self,
-        id_generator: &mut IdGenerator,
-        nodes: &Nodes,
-        hardware: &Hardware,
-    ) -> Node {
+    fn to_node(mut self, app_graph: &mut AppGraph, hardware: &Hardware) -> Node {
         match &self.hardware_id {
             Some(hardware_id) => {
                 match hardware
@@ -67,6 +61,6 @@ impl ToNode for Temp {
             }
         }
 
-        Node::new(id_generator, NodeType::Temp(self), nodes)
+        Node::new(NodeType::Temp(self), app_graph)
     }
 }

@@ -1,6 +1,5 @@
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
@@ -51,8 +50,23 @@ impl IsValid for Target {
 }
 
 impl ToNode for Target {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
-        Node::new(id_generator, NodeType::Target(self), nodes)
+    fn to_node(mut self, app_graph: &mut AppGraph, _hardware: &Hardware) -> Node {
+        let default = Self::default();
+
+        if self.idle_temp > 100 {
+            self.idle_temp = default.idle_temp;
+        }
+        if self.idle_speed > 100 {
+            self.idle_speed = default.idle_speed;
+        }
+        if self.load_temp > 100 {
+            self.load_temp = default.load_temp;
+        }
+        if self.load_speed > 100 {
+            self.load_speed = default.load_speed;
+        }
+
+        Node::new(NodeType::Target(self), app_graph)
     }
 }
 

@@ -18,7 +18,7 @@ use super::custom_temp::{CustomTemp, CustomTempKind};
 
 use super::fan::Fan;
 use super::flat::Flat;
-use super::graph::{Coord, Coords, Graph};
+use super::graph::{Coord, Graph};
 use super::linear::Linear;
 use super::target::Target;
 use super::temp::Temp;
@@ -154,7 +154,7 @@ fn config1() -> Config {
         )],
         graphs: vec![Graph {
             name: "Graph".into(),
-            coords: Coords(vec![
+            coords: vec![
                 Coord {
                     temp: 10,
                     percent: 10,
@@ -163,7 +163,7 @@ fn config1() -> Config {
                     temp: 50,
                     percent: 30,
                 },
-            ]),
+            ],
             input: Some("max".into()),
         }],
         flats: vec![Flat {

@@ -1,6 +1,5 @@
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
@@ -25,7 +24,7 @@ pub struct Linear {
 
 impl IsValid for Linear {
     fn is_valid(&self) -> bool {
-        self.input.is_some() && self.max_temp > self.min_temp && self.max_speed > self.min_speed
+        self.input.is_some()
     }
 }
 
@@ -52,8 +51,33 @@ impl Linear {
 }
 
 impl ToNode for Linear {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
-        Node::new(id_generator, NodeType::Linear(self), nodes)
+    fn to_node(mut self, app_graph: &mut AppGraph, _hardware: &Hardware) -> Node {
+        let default = Self::default();
+
+        if self.max_temp < self.min_temp {
+            self.min_temp = default.min_temp;
+            self.max_temp = default.max_temp;
+        }
+
+        if self.max_speed < self.min_speed {
+            self.min_speed = default.min_speed;
+            self.max_speed = default.max_speed;
+        }
+
+        if self.min_temp > 100 {
+            self.min_temp = default.min_temp;
+        }
+        if self.min_speed > 100 {
+            self.min_speed = default.min_speed;
+        }
+        if self.max_temp > 100 {
+            self.max_temp = default.max_temp;
+        }
+        if self.max_speed > 100 {
+            self.max_speed = default.max_speed;
+        }
+
+        Node::new(NodeType::Linear(self), app_graph)
     }
 }
 

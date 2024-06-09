@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 use crate::{
-    app_graph::Nodes,
-    id::IdGenerator,
+    app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
 };
@@ -60,8 +59,8 @@ impl IsValid for CustomTemp {
 }
 
 impl ToNode for CustomTemp {
-    fn to_node(self, id_generator: &mut IdGenerator, nodes: &Nodes, _hardware: &Hardware) -> Node {
-        Node::new(id_generator, NodeType::CustomTemp(self), nodes)
+    fn to_node(self, app_graph: &mut AppGraph, _hardware: &Hardware) -> Node {
+        Node::new(NodeType::CustomTemp(self), app_graph)
     }
 }
 
