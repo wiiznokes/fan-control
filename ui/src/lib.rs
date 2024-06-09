@@ -89,7 +89,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             .current_config_text()
             .to_owned();
 
-        let mut ui_state = Ui {
+        let ui_state = Ui {
             nodes_c: NodesC::new(flags.app_graph.nodes.values()),
             app_state: flags,
             core,
@@ -100,13 +100,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             graph_window: None,
         };
 
-        let update_graph_command = ui_state.maybe_update_hardware_to_update_graph();
-
         let commands = Command::batch([
             command::set_theme(to_cosmic_theme(
                 &ui_state.app_state.dir_manager.settings().theme,
             )),
-            update_graph_command,
+            cosmic::app::command::message(cosmic::app::message::app(AppMsg::Tick)),
         ]);
 
         (ui_state, commands)
@@ -116,29 +114,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         let dir_manager = &mut self.app_state.dir_manager;
 
         match message {
-            AppMsg::Tick => return self.maybe_update_hardware_to_update_graph(),
-            AppMsg::UpdateGraph => {
-                if let Err(e) = self.app_state.update.all(
-                    &mut self.app_state.app_graph.nodes,
-                    &mut self.app_state.bridge,
-                ) {
-                    error!("{}", e);
-                    self.is_updating = false;
-                } else if let Err(e) = self.app_state.bridge.update() {
-                    error!("{}", e);
-                    self.is_updating = false;
-                } else {
-                    return wait_hardware_update_to_finish::<H>(AppMsg::UpdateRootNodes);
-                }
-            }
-            AppMsg::UpdateRootNodes => {
-                if let Err(e) = self.app_state.update.nodes_which_update_can_change(
-                    &mut self.app_state.app_graph.nodes,
-                    &mut self.app_state.bridge,
-                ) {
-                    error!("{}", e);
-                }
-                self.is_updating = false;
+            AppMsg::Tick => {
+                self.update_hardware();
             }
 
             AppMsg::ModifNode(id, modif_node_msg) => {
@@ -403,7 +380,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                                     AppGraph::from_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
 
-                                return self.maybe_update_hardware_to_update_graph();
+                                self.update_hardware();
                             }
                             None => {
                                 self.current_config_cached.clear();
@@ -606,29 +583,37 @@ fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
     }
 }
 
-fn wait_hardware_update_to_finish<H: HardwareBridge>(msg_to_send: AppMsg) -> Command<AppMsg> {
-    Command::perform(
-        async {
-            tokio::time::sleep(H::TIME_TO_UPDATE).await;
-        },
-        |_| cosmic::app::Message::App(msg_to_send),
-    )
-}
-
 impl<H: HardwareBridge> Ui<H> {
-    fn maybe_update_hardware_to_update_graph(&mut self) -> Command<AppMsg> {
-        if !self.is_updating {
-            self.is_updating = true;
-            if let Err(e) = self.app_state.bridge.update() {
-                error!("{}", e);
-                self.is_updating = false;
-            } else {
-                return wait_hardware_update_to_finish::<H>(AppMsg::UpdateGraph);
-            }
-        } else {
+    fn update_hardware(&mut self) {
+        if self.is_updating {
             warn!("An update is already processing: skipping that one.");
+            return;
         }
 
-        Command::none()
+        self.is_updating = true;
+
+        if let Err(e) = self.app_state.bridge.update() {
+            error!("{}", e);
+            self.is_updating = false;
+            return;
+        }
+        if let Err(e) = self.app_state.update.all(
+            &mut self.app_state.app_graph.nodes,
+            &mut self.app_state.bridge,
+        ) {
+            error!("{}", e);
+            self.is_updating = false;
+            return;
+        }
+
+        if let Err(e) = self.app_state.update.nodes_which_update_can_change(
+            &mut self.app_state.app_graph.nodes,
+            &mut self.app_state.bridge,
+        ) {
+            error!("{}", e);
+            self.is_updating = false;
+            return;
+        }
+        self.is_updating = false;
     }
 }

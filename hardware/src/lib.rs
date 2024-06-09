@@ -1,6 +1,6 @@
 use derive_more::Display;
 use serde::Serialize;
-use std::{fmt::Debug, rc::Rc, time::Duration};
+use std::{fmt::Debug, rc::Rc};
 use thiserror::Error;
 
 #[macro_use]
@@ -131,9 +131,6 @@ pub fn new() -> Result<impl HardwareBridge> {
 }
 
 pub trait HardwareBridge {
-    /// Approximative time to update sensors on my pc
-    const TIME_TO_UPDATE: Duration = Duration::from_millis(0);
-
     fn new() -> Result<Self>
     where
         Self: Sized;

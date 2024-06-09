@@ -44,8 +44,6 @@ fn run<H: HardwareBridge>(mut app_state: AppState<H>) {
             break;
         }
 
-        std::thread::sleep(H::TIME_TO_UPDATE);
-
         app_state
             .update
             .optimized(
