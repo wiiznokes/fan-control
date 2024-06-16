@@ -70,7 +70,7 @@ struct Flags<H: HardwareBridge> {
     app_state: AppState<H>,
 }
 
-pub struct Ui<H: HardwareBridge> {
+struct Ui<H: HardwareBridge> {
     core: Core,
     app_state: AppState<H>,
     current_config_cached: String,

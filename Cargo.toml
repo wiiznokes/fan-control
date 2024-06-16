@@ -73,8 +73,12 @@ once_cell = "1.18"
 thiserror = "1.0"
 derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
     "unwrap",
-    "display"
+    "display",
 ] }
-cargo-packager-resource-resolver = { version = "0.1", features = ["auto-detect-format"]}
+cargo-packager-resource-resolver = { version = "0.1", features = [
+    "auto-detect-format",
+] }
 # strum = { version = "0.25", features = ["derive"] }
 
+[patch."https://github.com/pop-os/libcosmic"]
+libcosmic = { path = "../libcosmic" }
