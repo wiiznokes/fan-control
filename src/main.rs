@@ -95,7 +95,10 @@ fn try_run() -> Result<()> {
 
     debug!("sensors found: {:?}", hardware);
 
-    dir_manager.serialize_hardware(hardware);
+    if args.serialize_hardware {
+        dir_manager.serialize_hardware(hardware);
+        return Ok(());
+    }
 
     let app_graph = match dir_manager.get_config() {
         Some(config) => AppGraph::from_config(config, hardware),

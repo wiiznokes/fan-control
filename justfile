@@ -68,14 +68,14 @@ clean-lhm:
 ###################  Handy
 
 fake:
-	cargo run --features fake_hardware -- -p ./.config
+	cargo run --features fake_hardware -- -p ./configs-examples
 	
 
 temp:
 	cargo run --features fake_hardware -- -p ./temp
 
 conf:
-	cargo run -- -p ./.config
+	cargo run -- -p ./configs-examples
 
 git-cache:
 	git rm -rf --cached .
