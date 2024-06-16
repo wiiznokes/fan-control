@@ -17,7 +17,7 @@ use node_cache::{NodeC, NodesC};
 use crate::{graph::graph_window_view, settings_drawer::settings_drawer};
 
 use cosmic::{
-    app::{command, Command, Core},
+    app::{command, Command, Core, CosmicFlags},
     executor,
     iced::{self, time, window},
     iced_core::Length,
@@ -49,13 +49,27 @@ mod node_cache;
 mod pick_list_utils;
 mod settings_drawer;
 
+impl<H: HardwareBridge> CosmicFlags for Flags<H> {
+    type SubCommand = String;
+
+    type Args = Vec<String>;
+}
+
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
     let settings = cosmic::app::Settings::default();
-    if let Err(e) = cosmic::app::run::<Ui<H>>(settings, app_state) {
+
+    let flags = Flags { app_state };
+
+    if let Err(e) = cosmic::app::run_single_instance::<Ui<H>>(settings, flags) {
         error!("error while running ui: {}", e);
         panic!()
     }
 }
+
+struct Flags<H: HardwareBridge> {
+    app_state: AppState<H>,
+}
+
 pub struct Ui<H: HardwareBridge> {
     core: Core,
     app_state: AppState<H>,
@@ -70,7 +84,7 @@ pub struct Ui<H: HardwareBridge> {
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     type Executor = executor::Default;
     type Message = AppMsg;
-    type Flags = AppState<H>;
+    type Flags = Flags<H>;
 
     const APP_ID: &'static str = utils::APP_ID;
 
@@ -83,15 +97,17 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let current_config_cached = flags
+        let app_state = flags.app_state;
+
+        let current_config_cached = app_state
             .dir_manager
             .settings()
             .current_config_text()
             .to_owned();
 
         let ui_state = Ui {
-            nodes_c: NodesC::new(flags.app_graph.nodes.values()),
-            app_state: flags,
+            nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
+            app_state,
             core,
             create_button_expanded: false,
             choose_config_expanded: false,
