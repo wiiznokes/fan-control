@@ -140,8 +140,15 @@ impl DirManager {
     }
 
     pub fn serialize_hardware(&self, hardware: &Hardware) {
-        if let Err(e) = serialize(&self.hardware_file_path(), hardware) {
+        let hardware_file_path = self.hardware_file_path();
+
+        if let Err(e) = serialize(&hardware_file_path, hardware) {
             warn!("{}", e);
+        } else {
+            println!(
+                "hardware file successfully written in {}",
+                hardware_file_path.display()
+            )
         }
     }
 }

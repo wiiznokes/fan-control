@@ -51,4 +51,11 @@ pub struct Args {
         help = "Puts logs to a specific file. Usefull on Windows because logs cannot be displayed due to limitations"
     )]
     pub log_file: Option<PathBuf>,
+
+    #[arg(
+        long = "write-hardware",
+        default_value_t = false,
+        help = "Write hardware file in the config dir"
+    )]
+    pub serialize_hardware: bool,
 }
