@@ -28,13 +28,12 @@ The configuration file can be found in [`C:\Users\wiiz\AppData\Roaming\wiiznokes
 
 ### Flatpak (Linux)
 
-You'll need to [install the required udev rules](./res/linux/udev_rules.md) first. Then, you can use/install the app from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control).
+1. [Install the required udev rules](./res/linux/udev_rules.md)
+2. Install fan-control from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control)
 
 The configuration file for the Flatpak version will be located at: [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
 
----
-
-<ins>To ensure the application detects the maximum number of sensors, follow these steps:</ins>
+<ins>**To ensure the application detects the maximum number of sensors, follow these steps:**</ins>
 
 1. Install `lm-sensors`  
    For Debian-based systems, run: `sudo apt install lm-sensors`  
