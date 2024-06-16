@@ -303,7 +303,7 @@ dependencies = [
  "serde_repr",
  "tokio",
  "url",
- "zbus 4.2.2",
+ "zbus 4.3.0",
 ]
 
 [[package]]
@@ -1227,6 +1227,7 @@ dependencies = [
 [[package]]
 name = "cosmic-config"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "atomicwrites",
  "cosmic-config-derive",
@@ -1245,6 +1246,7 @@ dependencies = [
 [[package]]
 name = "cosmic-config-derive"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -1275,6 +1277,7 @@ dependencies = [
 [[package]]
 name = "cosmic-theme"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "almost",
  "cosmic-config",
@@ -2584,6 +2587,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "dnd",
  "iced_accessibility",
@@ -2601,6 +2605,7 @@ dependencies = [
 [[package]]
 name = "iced_accessibility"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "accesskit",
  "accesskit_winit",
@@ -2609,6 +2614,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "bitflags 2.5.0",
  "dnd",
@@ -2628,6 +2634,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "futures",
  "iced_core",
@@ -2640,6 +2647,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "bitflags 2.5.0",
  "bytemuck",
@@ -2663,6 +2671,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -2674,6 +2683,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "dnd",
  "iced_core",
@@ -2685,6 +2695,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "iced_core",
  "once_cell",
@@ -2694,6 +2705,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2710,6 +2722,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "bitflags 2.5.0",
  "bytemuck",
@@ -2735,6 +2748,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "dnd",
  "iced_renderer",
@@ -2750,6 +2764,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.12.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "dnd",
  "iced_graphics",
@@ -3184,6 +3199,7 @@ checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 [[package]]
 name = "libcosmic"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#ebf5c2738b98ffc68f2930354949f0b0e954d861"
 dependencies = [
  "apply",
  "ashpd",
@@ -3216,7 +3232,7 @@ dependencies = [
  "tracing",
  "unicode-segmentation",
  "url",
- "zbus 4.2.2",
+ "zbus 4.3.0",
 ]
 
 [[package]]
@@ -6577,9 +6593,9 @@ dependencies = [
 
 [[package]]
 name = "zbus"
-version = "4.2.2"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "989c3977a7aafa97b12b9a35d21cdcff9b0d2289762b14683f45d66b1ba6c48f"
+checksum = "23915fcb26e7a9a9dc05fd93a9870d336d6d032cd7e8cebf1c5c37666489fdd5"
 dependencies = [
  "async-broadcast 0.7.1",
  "async-executor",
@@ -6609,7 +6625,7 @@ dependencies = [
  "uds_windows",
  "windows-sys 0.52.0",
  "xdg-home",
- "zbus_macros 4.2.2",
+ "zbus_macros 4.3.0",
  "zbus_names 3.0.0",
  "zvariant 4.1.1",
 ]
@@ -6630,9 +6646,9 @@ dependencies = [
 
 [[package]]
 name = "zbus_macros"
-version = "4.2.2"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fe9de53245dcf426b7be226a4217dd5e339080e5d46e64a02d6e5dcbf90fca1"
+checksum = "02bcca0b586d2f8589da32347b4784ba424c4891ed86aa5b50d5e88f6b2c4f5d"
 dependencies = [
  "proc-macro-crate 3.1.0",
  "proc-macro2",

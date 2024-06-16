@@ -60,7 +60,7 @@ pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
 
     let flags = Flags { app_state };
 
-    if let Err(e) = cosmic::app::run_single_instance::<Ui<H>>(settings, flags) {
+    if let Err(e) = cosmic::app::run::<Ui<H>>(settings, flags) {
         error!("error while running ui: {}", e);
         panic!()
     }

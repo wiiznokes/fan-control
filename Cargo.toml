@@ -80,5 +80,5 @@ cargo-packager-resource-resolver = { version = "0.1", features = [
 ] }
 # strum = { version = "0.25", features = ["derive"] }
 
-[patch."https://github.com/pop-os/libcosmic"]
-libcosmic = { path = "../libcosmic" }
+# [patch."https://github.com/pop-os/libcosmic"]
+# libcosmic = { path = "../libcosmic" }
