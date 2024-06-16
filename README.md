@@ -24,22 +24,23 @@
 
 ### Windows
 
-The configuration file can be found in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config).
+1. Install fan-control from [the release section](https://github.com/wiiznokes/fan-control/releases/latest)
+   
+*The configuration files will be in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config).*
 
 ### Flatpak (Linux)
 
 1. [Install the required udev rules](./res/linux/udev_rules.md)
 2. Install fan-control from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control)
 
-The configuration file for the Flatpak version will be located at: [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).
+*The configuration files will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).*
 
-<ins>**To ensure the application detects the maximum number of sensors, follow these steps:**</ins>
+<ins>To ensure the application detects the maximum number of sensors, follow these steps</ins>
 
 1. Install `lm-sensors`  
    For Debian-based systems, run: `sudo apt install lm-sensors`  
    For Fedora-based systems, run: `sudo dnf install lm_sensors`
-2. Run Hardware Detection Script  
-   After installing `lm-sensors`, execute the following command to detect the available hardware sensors: `sudo sensors-detect`
+2. Run `sudo sensors-detect` to detect available sensors
 
 ## Repo structure
 
