@@ -1,4 +1,4 @@
-## Making a new release
+## Making a new release
 
 - get the version: `date +"%y.%m"`
 - new release in the [CHANGELOG](./CHANGELOG.md)
