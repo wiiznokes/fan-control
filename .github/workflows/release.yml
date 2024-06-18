@@ -47,7 +47,7 @@ jobs:
       - name: Prepare release on Github
         run: |
           # get the package version from Cargo.toml
-          echo "PKG_VERSION=$(cargo pkgid | grep -oP '\d+\.\d+\.\d+')" >> $GITHUB_ENV
+          echo "PKG_VERSION=$(cat VERSION)" >> $GITHUB_ENV
 
           # delete nightly release
           gh release delete nightly --yes || true

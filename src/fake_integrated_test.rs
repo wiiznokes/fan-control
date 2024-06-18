@@ -14,7 +14,7 @@ fn test_config() {
     init_test_logging();
 
     let args = Args {
-        config_dir_path: Some(PathBuf::from("./.config")),
+        config_dir_path: Some(PathBuf::from("./configs-examples")),
         config_name: Some("fake".into()),
         ..Default::default()
     };
