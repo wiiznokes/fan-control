@@ -25,15 +25,15 @@
 ### Windows
 
 1. Install fan-control from [the release section](https://github.com/wiiznokes/fan-control/releases/latest)
-   
-*The configuration files will be in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config).*
+
+_The configuration files will be in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config)._
 
 ### Flatpak (Linux)
 
 1. [Install the required udev rules](./res/linux/udev_rules.md)
 2. Install fan-control from [Flathub](https://flathub.org/apps/io.github.wiiznokes.fan-control)
 
-*The configuration files will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/).*
+_The configuration files will be in [`~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/`](file://~/.var/app/io.github.wiiznokes.fan-control/config/fan-control/)._
 
 <ins>To ensure the application detects the maximum number of sensors, follow these steps</ins>
 

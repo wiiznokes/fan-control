@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use cosmic::iced_core::window;
 use data::{
     id::Id,
     node::{Node, NodeType},
@@ -45,9 +44,7 @@ pub struct TempC {}
 pub struct CustomTempC {}
 
 #[derive(Debug, Clone)]
-pub struct GraphC {
-    pub new_window_id: Option<window::Id>,
-}
+pub struct GraphC {}
 
 #[derive(Debug, Clone)]
 pub struct FlatC {}
@@ -118,9 +115,7 @@ impl NodeTypeC {
             data::node::NodeType::Fan(_) => NodeTypeC::Fan(FanC {}),
             data::node::NodeType::Temp(_) => NodeTypeC::Temp(TempC {}),
             data::node::NodeType::CustomTemp(_) => NodeTypeC::CustomTemp(CustomTempC {}),
-            data::node::NodeType::Graph(_) => NodeTypeC::Graph(GraphC {
-                new_window_id: None,
-            }),
+            data::node::NodeType::Graph(_) => NodeTypeC::Graph(GraphC {}),
             data::node::NodeType::Flat(_) => NodeTypeC::Flat(FlatC {}),
             data::node::NodeType::Linear(linear) => NodeTypeC::Linear(LinearC {
                 min_temp: linear.min_temp.to_string(),
