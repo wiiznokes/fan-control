@@ -1,1 +1,1 @@
-SUBSYSTEM=="hwmon", RUN+="/bin/sh -c '/bin/chmod a+w /sys%p/pwm* || true'"
+SUBSYSTEM=="hwmon", ACTION=="add", GROUP="fan-control", MODE:="0664"
