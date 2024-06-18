@@ -13,7 +13,7 @@ keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 [package]
 name = "fan-control"
-version = "0.1.3"
+version = "0.1.0"
 description = "Control your fans with different behaviors"
 exclude = ["/.*", "justfile", "LICENCE"]
 authors.workspace = true
@@ -24,6 +24,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [package.metadata.packager]
+version = "24.06"
 before-each-package-command = "cargo build --release"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]
