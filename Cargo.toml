@@ -56,7 +56,7 @@ hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
 utils = { path = "utils" }
-clap = { version = "4.3", features = ["derive"] }
+clap = { version = "4.3", features = ["derive", "string"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 toml = "0.8"
