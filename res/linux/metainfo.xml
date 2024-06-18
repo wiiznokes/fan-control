@@ -29,9 +29,12 @@
       To modify the value of a fan, you must select it in a Control item (the left column), select a
       Behavior, and activate the swtich.
     </p>
-    <p xml:lang="de">Du kannst mit den Schaltflächen auf der rechten Seite der App Elemente hinzufügen.
-      Um eine Konfiguration zu speichern, schreibst du einen Namen in das Feld „Konfigurationsname“ und klickst auf das +.
-      Um den Wert eines Lüfters zu ändern, musst du ihn in einem Steuerelement (in der linken Spalte) auswählen,
+    <p xml:lang="de">Du kannst mit den Schaltflächen auf der rechten Seite der App Elemente
+      hinzufügen.
+      Um eine Konfiguration zu speichern, schreibst du einen Namen in das Feld „Konfigurationsname“
+      und klickst auf das +.
+      Um den Wert eines Lüfters zu ändern, musst du ihn in einem Steuerelement (in der linken
+      Spalte) auswählen,
       ein Verhalten wählen und den Regler aktivieren.
     </p>
     <ul>
@@ -42,8 +45,10 @@
       <li>Save configuration</li>
       <li xml:lang="de">Konfiguration speichern</li>
     </ul>
-    <p>Note: After installation, you will need to add the necessary udev rule to your system for this to work. See the GitHub page for more details.</p>
-    <p xml:lang="de">Hinweis: Nach der Installation musst du die notwendige udev-Regel zu deinem System hinzufügen, damit dies funktioniert. Auf der GitHub-Seite findest du weitere Details.</p>
+    <p>Note: After installation, you will need to add the necessary udev rule to your system for
+      this to work. See the GitHub page for more details.</p>
+    <p xml:lang="de">Hinweis: Nach der Installation musst du die notwendige udev-Regel zu deinem
+      System hinzufügen, damit dies funktioniert. Auf der GitHub-Seite findest du weitere Details.</p>
   </description>
 
   <launchable type="desktop-id">io.github.wiiznokes.fan-control.desktop</launchable>
@@ -56,25 +61,9 @@
   </screenshots>
 
   <releases>
-    <release version="0.1.3" date="2024-04-26">
-      <description>
-        <p>First release on Flathub</p>
-        <ul>
-          <li>Flatpak support</li>
-          <li>Initial graph support</li>
-        </ul>
-      </description>
-    </release>
-    <release version="0.1.2" date="2024-03-01" />
-    <release version="0.1.1" date="2024-01-28" />
-    <release version="0.1.0" date="2024-01-06">
-      <description>
-        <p>Initial release</p>
-        <ul>
-          <li>UI</li>
-          <li>Windows + Linux support</li>
-        </ul>
-      </description>
+    <release version="24.06" date="2024-06-19">
+      <url type="details">
+        https://github.com/wiiznokes/fan-control/blob/master/CHANGELOG.md#2406---2024-06-19</url>
     </release>
   </releases>
 

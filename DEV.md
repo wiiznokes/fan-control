@@ -8,6 +8,7 @@ clear && cargo test --package hardware test_time -- --nocapture
 
 - get the version: `date +"%y.%m"`
 - new release in the [CHANGELOG](./CHANGELOG.md)
+- update release section of [metadata file](./res/linux/metainfo.xml)
 - change the version in [VERSION](./VERSION)
 - change the version in [Cargo.toml](./Cargo.toml)
 - make a pull request in [here](https://github.com/flathub/io.github.wiiznokes.fan-control)
