@@ -63,7 +63,25 @@
   <releases>
     <release version="2024.6" date="2024-06-20">
       <url type="details">
-        https://github.com/wiiznokes/fan-control/blob/master/CHANGELOG.md#202406---2024-06-20</url>
+        https://github.com/wiiznokes/fan-control/blob/master/CHANGELOG.md#20246---2024-06-20</url>
+      <description>
+        <p>
+          ### Added
+
+          - german translation
+          - italian translation
+          - new versioning
+          - update lhm
+
+          ### Fixed
+
+          - udev rules
+
+          ### Changed
+
+          - hardware generic
+        </p>
+      </description>
     </release>
   </releases>
 
