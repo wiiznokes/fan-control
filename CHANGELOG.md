@@ -6,13 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [24.06] - 2024-06-19
+## [2024.6] - 2024-06-20
 
 ### Added
 
 - german translation
 - italian translation
 - new versioning
+- update lhm
 
 ### Fixed
 

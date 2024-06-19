@@ -24,11 +24,12 @@ repository.workspace = true
 keywords.workspace = true
 
 [package.metadata.packager]
-version = "24.06"
+# workarround for making cargo packager happy
+version = "2024.6.0"
 before-each-package-command = "cargo build --release"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]
-resources = ["res/icons", "res/windows/lhmbuild"]
+resources = ["res/icons", "res/lhmbuild"]
 category = "Utility"
 
 [package.metadata.packager.windows]

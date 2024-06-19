@@ -1,6 +1,6 @@
 ## Making a new release
 
-- get the version: `date +"%y.%m"`
+- get the version: `date +"%Y.%m"`
 - new release in the [CHANGELOG](./CHANGELOG.md)
 - update release section of [metadata file](./res/linux/metainfo.xml)
 - change the version in [VERSION](./VERSION)
