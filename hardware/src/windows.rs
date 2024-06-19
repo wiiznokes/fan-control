@@ -402,7 +402,6 @@ mod test {
         info!("");
 
         bridge.update().unwrap();
-        std::thread::sleep(WindowsBridge::TIME_TO_UPDATE);
 
         for h in &bridge.hardware().controls.clone() {
             bench(

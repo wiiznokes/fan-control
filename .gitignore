@@ -24,6 +24,7 @@ obj/
 /app/
 net7.0/
 LibreHardwareMonitorWrapper.sln.DotSettings.user
+/res/windows/lhmbuild
 
 # Lmsensors
 build/
