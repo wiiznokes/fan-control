@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- fix top bar icons
+
 ## [2024.6] - 2024-06-20
 
 ### Added
