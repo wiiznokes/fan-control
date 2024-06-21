@@ -15,7 +15,7 @@ use crate::{
     AppMsg, ToogleMsg,
 };
 
-static ICON_LENGHT: Length = Length::Fixed(35.0);
+static ICON_LENGHT: Length = Length::Fixed(33.0);
 
 pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
@@ -104,7 +104,10 @@ pub fn header_center<'a>(
 
     elems.push(choose_config);
 
-    let mut create_button = icon_button("add/40").tooltip(fl!("create_config"));
+    let mut create_button = icon_button("add/40")
+        .height(ICON_LENGHT)
+        .width(ICON_LENGHT)
+        .tooltip(fl!("create_config"));
 
     if dir_manager.config_names.is_valid_create(current_config) {
         create_button = create_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());

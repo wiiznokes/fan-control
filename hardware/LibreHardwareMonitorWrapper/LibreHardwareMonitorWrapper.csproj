@@ -11,11 +11,11 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <OutputPath>.\..\..\res\windows\lhmbuild</OutputPath>
+        <OutputPath>.\..\..\res\lhmbuild</OutputPath>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.3"/>
+        <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4-pre295" />
         <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     </ItemGroup>
 

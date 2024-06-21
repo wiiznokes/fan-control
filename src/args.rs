@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{Parser, ValueHint};
 
 #[derive(Parser, Debug, Default)]
-#[clap(author = "wiiznokes", version, about = "fan control app", long_about = None)]
+#[clap(author = "wiiznokes", version = env!("FAN_CONTROL_VERSION"), about = "fan control app", long_about = None)]
 pub struct Args {
     #[arg(
         short = 'p',

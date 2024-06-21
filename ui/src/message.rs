@@ -100,7 +100,11 @@ pub enum TargetMsg {
 pub enum GraphMsg {
     RemoveCoord(Coord),
     AddCoord(Coord),
-    ReplaceCoord { previous: Coord, new: Coord },
+    #[allow(dead_code)]
+    ReplaceCoord {
+        previous: Coord,
+        new: Coord,
+    },
 }
 
 impl From<SettingsMsg> for AppMsg {

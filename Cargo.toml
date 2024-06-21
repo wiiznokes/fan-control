@@ -13,7 +13,7 @@ keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
 
 [package]
 name = "fan-control"
-version = "0.1.3"
+version = "0.1.0"
 description = "Control your fans with different behaviors"
 exclude = ["/.*", "justfile", "LICENCE"]
 authors.workspace = true
@@ -24,10 +24,12 @@ repository.workspace = true
 keywords.workspace = true
 
 [package.metadata.packager]
+# workarround for making cargo packager happy
+version = "2024.6.0"
 before-each-package-command = "cargo build --release"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]
-resources = ["res/icons", "res/windows/lhmbuild"]
+resources = ["res/icons", "res/lhmbuild"]
 category = "Utility"
 
 [package.metadata.packager.windows]
@@ -58,7 +60,7 @@ hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
 utils = { path = "utils" }
-clap = { version = "4.3", features = ["derive"] }
+clap = { version = "4.3", features = ["derive", "string"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 toml = "0.8"
