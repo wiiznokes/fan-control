@@ -23,6 +23,7 @@ pub struct Args {
     )]
     pub config_name: Option<String>,
 
+    #[cfg(feature = "ui")]
     #[arg(
         long = "cli",
         default_value_t = false,
