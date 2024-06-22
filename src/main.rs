@@ -43,6 +43,7 @@ fn setup_logs(args: &Args) {
         builder.filter_level(LevelFilter::Warn);
         builder.filter_module("hardware", level_filter);
         builder.filter_module("data", level_filter);
+        #[cfg(feature = "ui")]
         builder.filter_module("ui", level_filter);
         builder.filter_module("fan-control", level_filter);
         builder
@@ -85,6 +86,7 @@ fn try_run() -> Result<()> {
     let args = Args::parse();
     setup_logs(&args);
 
+    #[cfg(feature = "ui")]
     ui::localize::localize();
     data::localize::localize();
 
@@ -112,10 +114,15 @@ fn try_run() -> Result<()> {
         update: Update::new(),
     };
 
-    match args.cli {
-        true => cli::run_cli(app_state),
-        false => ui::run_ui(app_state),
-    };
+    #[cfg(not(feature = "ui"))]
+    cli::run_cli(app_state);
+    #[cfg(feature = "ui")]
+    {
+        match args.cli {
+            true => cli::run_cli(app_state),
+            false => ui::run_ui(app_state),
+        };
+    }
 
     Ok(())
 }

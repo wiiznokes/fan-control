@@ -36,12 +36,14 @@ category = "Utility"
 allow_downgrades = true
 
 [features]
+default = ["ui"]
+ui = ["dep:ui"]
 fake_hardware = ["hardware/fake_hardware"]
 
 
 [dependencies]
 data.workspace = true
-ui.workspace = true
+ui = { workspace = true, optional = true }
 thiserror.workspace = true
 clap.workspace = true
 log.workspace = true
