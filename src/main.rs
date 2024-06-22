@@ -115,7 +115,8 @@ fn try_run() -> Result<()> {
     };
 
     #[cfg(not(feature = "ui"))]
-    cli::run_cli(app_state)
+    cli::run_cli(app_state);
+    
     #[cfg(feature = "ui")]
     {
         match args.cli {
