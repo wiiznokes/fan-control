@@ -86,3 +86,6 @@ cargo-packager-resource-resolver = { version = "0.1", features = [
 
 # [patch."https://github.com/pop-os/libcosmic"]
 # libcosmic = { path = "../libcosmic" }
+
+[profile.release]
+lto = "fat"
