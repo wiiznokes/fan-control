@@ -1,4 +1,4 @@
-use std::{collections::HashSet, hash::Hash, vec};
+use std::{collections::BTreeSet, hash::Hash, vec};
 
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
@@ -7,6 +7,7 @@ use crate::{
     app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
+    utils::{has_duplicate, is_sorted, InsertSorted, RemoveElem},
 };
 
 use super::utils::affine::Affine;
@@ -80,21 +81,22 @@ impl Default for Graph {
 
 impl ToNode for Graph {
     fn to_node(mut self, app_graph: &mut AppGraph, _hardware: &Hardware) -> Node {
-        let mut deduplicator = HashSet::new();
+        let mut deduplicator = BTreeSet::new();
 
-        for c in &self.coords {
-            deduplicator.insert(*c);
-        }
-
-        self.coords.retain_mut(|c| {
+        for mut c in self.coords.clone() {
             if c.percent > 100 {
-                warn!("coord percent is superior at 100");
+                warn!("coord percent is superior to 100");
                 c.percent = 100;
             }
-            deduplicator.contains(c)
-        });
+            if !deduplicator.insert(c) {
+                warn!("2 coords share the same temp");
+            }
+        }
 
-        self.coords.sort();
+        self.coords = deduplicator.into_iter().collect();
+
+        debug_assert!(!has_duplicate(&self.coords));
+        debug_assert!(is_sorted(&self.coords));
 
         Node::new(NodeType::Graph(self), app_graph)
     }
@@ -102,6 +104,8 @@ impl ToNode for Graph {
 
 impl IsValid for Graph {
     fn is_valid(&self) -> bool {
+        debug_assert!(!has_duplicate(&self.coords));
+        debug_assert!(is_sorted(&self.coords));
         self.input.is_some() && !self.coords.is_empty()
     }
 }
@@ -134,6 +138,9 @@ impl Graph {
     }
 
     pub fn get_value(&self, value: Value) -> Result<Value, UpdateError> {
+        debug_assert!(!has_duplicate(&self.coords));
+        debug_assert!(is_sorted(&self.coords));
+
         let dummy_coord = Coord {
             temp: value as u8,
             percent: 0,
@@ -163,79 +170,61 @@ impl Graph {
 
         Ok(res)
     }
+
+    pub fn add_coord(&mut self, new: Coord) {
+        self.coords.insert_sorted(|c| c.cmp(&new), new);
+    }
+    pub fn remove_coord(&mut self, coord: &Coord) {
+        self.coords.remove_elem(|c| c.exact_same(coord));
+    }
+    pub fn replace_coord(&mut self, prev: &Coord, new: Coord) {
+        self.remove_coord(prev);
+        self.add_coord(new);
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::config::graph::Coord;
+    use crate::{config::graph::Coord, node::IsValid};
+
+    use super::Graph;
 
     #[test]
-    fn test() {
-        let coord1 = Coord {
-            temp: 10,
-            percent: 10,
+    fn test_logic() {
+        let graph = Graph {
+            name: "name".into(),
+            coords: vec![
+                Coord {
+                    temp: 10,
+                    percent: 10,
+                },
+                Coord {
+                    temp: 20,
+                    percent: 30,
+                },
+                Coord {
+                    temp: 25,
+                    percent: 20,
+                },
+                Coord {
+                    temp: 30,
+                    percent: 25,
+                },
+                Coord {
+                    temp: 40,
+                    percent: 5,
+                },
+            ],
+            input: None,
         };
 
-        let coord2 = Coord {
-            temp: 20,
-            percent: 20,
-        };
+        graph.is_valid();
 
-        let coord3 = Coord {
-            temp: 30,
-            percent: 30,
-        };
+        assert_eq!(graph.get_value(9).unwrap(), 10);
+        assert_eq!(graph.get_value(50).unwrap(), 5);
 
-        let coord4 = Coord {
-            temp: 40,
-            percent: 40,
-        };
-
-        let coords = [coord1, coord2, coord3, coord4];
-
-        let dummy_coord = Coord {
-            temp: 50,
-            percent: 0,
-        };
-
-        let res = coords.binary_search(&dummy_coord);
-
-        match res {
-            Ok(index) => {
-                println!("use {}", index);
-            }
-            Err(index) => {
-                if index == 0 {
-                    println!("use {}", index);
-                } else if index == coords.len() {
-                    println!("use {}", index - 1);
-                } else {
-                    println!("use {} and {}", index - 1, index);
-                }
-            }
-        }
-        dbg!(&res);
+        assert_eq!(graph.get_value(22).unwrap(), 26);
+        assert_eq!(graph.get_value(27).unwrap(), 22);
+        assert_eq!(graph.get_value(35).unwrap(), 15);
     }
 }
-
-// #[derive(PartialEq)]
-// enum DupState {
-//     Init,
-//     Prev { temp: u8 },
-//     DuplicateFound,
-// }
-
-// self.coords
-//     .iter()
-//     .fold(DupState::Init, |prev, coord| match prev {
-//         DupState::Init => DupState::Prev { temp: coord.temp },
-//         DupState::Prev { temp } => {
-//             if temp == coord.temp {
-//                 DupState::DuplicateFound
-//             } else {
-//                 DupState::Prev { temp: coord.temp }
-//             }
-//         }
-//         DupState::DuplicateFound => DupState::DuplicateFound,
-//     })
-//     != DupState::DuplicateFound;

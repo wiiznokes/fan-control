@@ -5,7 +5,7 @@ use data::{
     config::Config,
     node::{validate_name, IsValid, NodeType},
     settings::AppTheme,
-    utils::{InsertSorted, RemoveElem},
+    utils::RemoveElem,
     AppState,
 };
 use graph::GraphWindow;
@@ -314,15 +314,13 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
                         match graph_msg {
                             message::GraphMsg::RemoveCoord(coord) => {
-                                graph.coords.remove_elem(|c| c.exact_same(&coord));
+                                graph.remove_coord(&coord);
                             }
                             message::GraphMsg::AddCoord(coord) => {
-                                graph.coords.insert_sorted(|c| coord.cmp(c), coord);
+                                graph.add_coord(coord);
                             }
                             message::GraphMsg::ReplaceCoord { previous, new } => {
-                                graph.coords.remove_elem(|c| c.exact_same(&previous));
-
-                                graph.coords.insert_sorted(|c| new.cmp(c), new);
+                                graph.replace_coord(&previous, new);
                             }
                         }
                     }
