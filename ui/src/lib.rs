@@ -23,7 +23,10 @@ use cosmic::{
     iced_core::Length,
     iced_runtime::command::Action,
     theme,
-    widget::{Column, Row, Space},
+    widget::{
+        toaster::{self, Toast, Toasts},
+        Column, Row, Space,
+    },
     ApplicationExt, Element,
 };
 
@@ -79,6 +82,7 @@ struct Ui<H: HardwareBridge> {
     nodes_c: NodesC,
     is_updating: bool,
     graph_window: Option<GraphWindow>,
+    toasts: Toasts<AppMsg>,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -114,6 +118,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             current_config_cached,
             is_updating: false,
             graph_window: None,
+            toasts: Toasts::default(),
         };
 
         let commands = Command::batch([
@@ -370,6 +375,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
                     if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
                         error!("can't save config: {}", e);
+                    } else {
+                        return self.toasts.push(Toast::new("config_saved"));
                     };
                 }
                 ConfigMsg::Change(selected) => {
@@ -516,6 +523,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
+            AppMsg::Toast(inner) => {
+                self.toasts.handle_message(&inner);
+            }
         }
 
         Command::none()
@@ -531,7 +541,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             .push(Space::new(0.0, Length::Fill))
             .push(add_node_button_view(self.create_button_expanded));
 
-        Row::new().push(content).push(floating_button).into()
+        let app = Row::new().push(content).push(floating_button);
+
+        toaster::toaster(&self.toasts, app)
     }
 
     fn header_start(&self) -> Vec<Element<Self::Message>> {
