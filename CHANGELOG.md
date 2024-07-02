@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- add toasts
+
 ### Fixed
 
 - fix top bar icons
