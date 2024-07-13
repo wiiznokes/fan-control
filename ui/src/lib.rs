@@ -607,8 +607,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
 fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
     match theme {
-        AppTheme::Dark => theme::Theme::dark(),
-        AppTheme::Light => theme::Theme::light(),
+        AppTheme::Dark => theme::system_dark(),
+        AppTheme::Light => theme::system_light(),
         AppTheme::System => theme::system_preference(),
     }
 }
