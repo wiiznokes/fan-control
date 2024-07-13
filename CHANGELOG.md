@@ -9,6 +9,8 @@
 ### Fixed
 
 - fix top bar icons
+- fix graph behavior
+- use system config on COSMIC
 
 ## [2024.6] - 2024-06-20
 
