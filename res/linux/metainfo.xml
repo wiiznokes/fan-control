@@ -10,7 +10,7 @@
   <summary xml:lang="de">Kontrolliere deine Lüfter mit verschiedenen Verhaltensweisen</summary>
 
   <metadata_license>MIT</metadata_license>
-  <project_license>MIT</project_license>
+  <project_license>GPL-3.0</project_license>
 
   <developer id="tld.vendor">
     <name>wiiznokes</name>

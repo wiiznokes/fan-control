@@ -5,7 +5,7 @@ resolver = "2"
 [workspace.package]
 authors = ["wiiznokes <wiiznokes2@gmail.com>"]
 edition = "2021"
-license = "MIT"
+license = "GPL-3.0"
 homepage = "https://github.com/wiiznokes/fan-control/"
 repository = "https://github.com/wiiznokes/fan-control.git"
 keywords = ["fan-control", "lhm", "lmsensors", "sensors", "iced-app"]
