@@ -8,7 +8,7 @@ default_fan = 风扇
 default_temp = 温度
 default_custom_temp = 自定义温度
 default_graph = 图表
-default_flat = 平滑
+default_flat = 水平
 default_linear = 线性
 default_target = 目标
 
