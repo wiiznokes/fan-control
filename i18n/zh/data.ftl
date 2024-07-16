@@ -1,4 +1,4 @@
-none = None
+none = 空
 average = 平均值
 max = 最大值
 min = 最小值
