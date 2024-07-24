@@ -1,4 +1,3 @@
-use cosmic::widget::toaster::ToastMessage;
 use data::{
     config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
@@ -25,7 +24,7 @@ pub enum AppMsg {
 
     GraphWindow(GraphWindowMsg),
 
-    Toast(ToastMessage),
+    RemoveToast(usize),
 }
 
 #[derive(Debug, Clone)]
@@ -137,11 +136,5 @@ impl ModifNodeMsg {
     #[allow(clippy::wrong_self_convention)]
     pub fn to_app(self, id: Id) -> AppMsg {
         AppMsg::ModifNode(id, self)
-    }
-}
-
-impl From<ToastMessage> for AppMsg {
-    fn from(value: ToastMessage) -> Self {
-        Self::Toast(value)
     }
 }

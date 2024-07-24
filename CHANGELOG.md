@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [2024.7] - 2024-07-24
 
 ### Added
 
 - add toasts
+- chinese translation
 
 ### Fixed
 

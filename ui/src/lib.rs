@@ -119,7 +119,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             current_config_cached,
             is_updating: false,
             graph_window: None,
-            toasts: Toasts::default(),
+            toasts: Toasts::new(AppMsg::RemoveToast),
         };
 
         let commands = Command::batch([cosmic::app::command::message(cosmic::app::message::app(
@@ -374,7 +374,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
                         error!("can't save config: {}", e);
                     } else {
-                        return self.toasts.push(Toast::new("config_saved"));
+                        return self
+                            .toasts
+                            .push(Toast::new("config_saved"))
+                            .map(cosmic::app::Message::App);
                     };
                 }
                 ConfigMsg::Change(selected) => {
@@ -521,8 +524,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
-            AppMsg::Toast(inner) => {
-                self.toasts.handle_message(&inner);
+            AppMsg::RemoveToast(pos) => {
+                self.toasts.remove(pos);
             }
         }
 
