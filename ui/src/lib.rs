@@ -17,7 +17,7 @@ use node_cache::{NodeC, NodesC};
 use crate::{graph::graph_window_view, settings_drawer::settings_drawer};
 
 use cosmic::{
-    app::{command, Command, Core, CosmicFlags},
+    app::{Command, Core, CosmicFlags},
     executor,
     iced::{self, time, window},
     iced_core::Length,
@@ -59,7 +59,8 @@ impl<H: HardwareBridge> CosmicFlags for Flags<H> {
 }
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
-    let settings = cosmic::app::Settings::default();
+    let settings = cosmic::app::Settings::default()
+        .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme));
 
     let flags = Flags { app_state };
 
@@ -121,12 +122,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             toasts: Toasts::default(),
         };
 
-        let commands = Command::batch([
-            command::set_theme(to_cosmic_theme(
-                &ui_state.app_state.dir_manager.settings().theme,
-            )),
-            cosmic::app::command::message(cosmic::app::message::app(AppMsg::Tick)),
-        ]);
+        let commands = Command::batch([cosmic::app::command::message(cosmic::app::message::app(
+            AppMsg::Tick,
+        ))]);
 
         (ui_state, commands)
     }
@@ -607,8 +605,16 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
 fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
     match theme {
-        AppTheme::Dark => theme::Theme::dark(),
-        AppTheme::Light => theme::Theme::light(),
+        AppTheme::Dark => {
+            let mut t = theme::system_dark();
+            t.theme_type.prefer_dark(Some(true));
+            t
+        }
+        AppTheme::Light => {
+            let mut t = theme::system_light();
+            t.theme_type.prefer_dark(Some(false));
+            t
+        }
         AppTheme::System => theme::system_preference(),
     }
 }
