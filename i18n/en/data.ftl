@@ -15,6 +15,8 @@ default_target = Target
 system_theme = System
 dark_theme = Dark
 light_theme = Light
+hight_contrast_dark_theme = HighContrastDark
+hight_contrast_light_theme = HighContrastLight
 
 value_celsius = { $value } °C
 value_percentage = { $value } %

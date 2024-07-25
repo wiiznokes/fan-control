@@ -606,18 +606,30 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 }
 
+// todo: re enable when is "work" on flatpak
+// currently, light theme will be the dark one
+// fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
+//     match theme {
+//         AppTheme::Dark => {
+//             let mut t = theme::system_dark();
+//             t.theme_type.prefer_dark(Some(true));
+//             t
+//         }
+//         AppTheme::Light => {
+//             let mut t = theme::system_light();
+//             t.theme_type.prefer_dark(Some(false));
+//             t
+//         }
+//         AppTheme::System => theme::system_preference(),
+//     }
+// }
+
 fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
     match theme {
-        AppTheme::Dark => {
-            let mut t = theme::system_dark();
-            t.theme_type.prefer_dark(Some(true));
-            t
-        }
-        AppTheme::Light => {
-            let mut t = theme::system_light();
-            t.theme_type.prefer_dark(Some(false));
-            t
-        }
+        AppTheme::Dark => theme::Theme::dark(),
+        AppTheme::Light => theme::Theme::light(),
+        AppTheme::HighContrastDark => theme::Theme::dark_hc(),
+        AppTheme::HighContrastLight => theme::Theme::light_hc(),
         AppTheme::System => theme::system_preference(),
     }
 }

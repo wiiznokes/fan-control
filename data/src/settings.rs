@@ -14,10 +14,13 @@ pub struct Settings {
     pub current_config: Option<String>,
 }
 
+// todo: find a better solution to expose themes
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, Default, Values)]
 pub enum AppTheme {
     System,
     Dark,
+    HighContrastDark,
+    HighContrastLight,
     // todo: change default to system when dark mode is fixed
     #[default]
     Light,
@@ -52,6 +55,8 @@ impl Display for AppTheme {
             AppTheme::System => fl!("system_theme"),
             AppTheme::Dark => fl!("dark_theme"),
             AppTheme::Light => fl!("light_theme"),
+            AppTheme::HighContrastDark => fl!("hight_contrast_dark_theme"),
+            AppTheme::HighContrastLight => fl!("hight_contrast_light_theme"),
         };
         write!(f, "{}", str)
     }
