@@ -376,7 +376,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     } else {
                         return self
                             .toasts
-                            .push(Toast::new("config_saved"))
+                            .push(Toast::new(fl!("config_saved")))
                             .map(cosmic::app::Message::App);
                     };
                 }

@@ -16,6 +16,7 @@ idle_speed = idle speed
 load_temp = load temp
 load_speed = load speed
 launch_graph_window = Ajout de coordonnées
+config_saved = Configuration enregistrée avec succès
 
 # Add item description
 add_item = Ajouter un item
