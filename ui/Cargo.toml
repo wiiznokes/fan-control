@@ -33,10 +33,7 @@ features = [
     "tokio",
     "multi-window",
     "single-instance",
-    "dbus-config",
-    # "smol",
+    # todo: re enable when it works on Flatpak
+    # "dbus-config",
     #"a11y",
-    #"debug",
-    #"serde-keycode",
-    #"wayland",
 ]

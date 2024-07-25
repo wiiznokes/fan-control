@@ -1230,9 +1230,7 @@ source = "git+https://github.com/pop-os/libcosmic?branch=master#a5996b4e90f6aad9
 dependencies = [
  "atomicwrites",
  "cosmic-config-derive",
- "cosmic-settings-daemon",
  "dirs",
- "futures-util",
  "iced_futures",
  "known-folders",
  "notify",
@@ -1242,7 +1240,6 @@ dependencies = [
  "tokio",
  "tracing",
  "xdg",
- "zbus 4.4.0",
 ]
 
 [[package]]
@@ -1252,14 +1249,6 @@ source = "git+https://github.com/pop-os/libcosmic?branch=master#a5996b4e90f6aad9
 dependencies = [
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "cosmic-settings-daemon"
-version = "0.1.0"
-source = "git+https://github.com/pop-os/dbus-settings-bindings#cd21ddcb1b5cbfc80ab84b34d3c8b1ff3d81179a"
-dependencies = [
- "zbus 4.4.0",
 ]
 
 [[package]]
@@ -3098,7 +3087,6 @@ dependencies = [
  "ashpd",
  "chrono",
  "cosmic-config",
- "cosmic-settings-daemon",
  "cosmic-theme",
  "css-color",
  "derive_setters",
