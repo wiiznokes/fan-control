@@ -1,5 +1,11 @@
 # Changelog
 
+## [2024.7.30]
+
+- fix french translation
+- hotfix: theme always dark
+- hotfix: no top bar icon on windows
+
 ## [2024.7] - 2024-07-24
 
 ### Added
