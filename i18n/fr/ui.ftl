@@ -1,6 +1,6 @@
 none = Aucun
 delete = Supprimer
-settings = Paramètre
+settings = Paramètres
 name = Nom
 value = Valeur
 theme = Thème
