@@ -4,7 +4,7 @@ about: Request a feature
 labels: enhancement
 ---
 
-Note: Feel free to fill only the sections that feels relevant to you
+_Note: Feel free to fill only the sections that feels relevant to you_
 
 #### Use Case
 
