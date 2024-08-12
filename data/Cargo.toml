@@ -15,7 +15,7 @@ hardware.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
-directories = "5.0"
+directories = "5"
 light_enum = "0.2"
 log.workspace = true
 i18n-embed.workspace = true
@@ -28,6 +28,6 @@ utils.workspace = true
 lexical-sort = "0.3"
 
 [dev-dependencies]
-serial_test = "3.0"
+serial_test = "3"
 const_format = "0.2"
 env_logger.workspace = true
