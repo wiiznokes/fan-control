@@ -5,9 +5,7 @@ use log::error;
 
 use cached::proc_macro::cached;
 
-// https://github.com/rust-lang/rust/issues/31383
-
-pub const APP_ID: &str = "io.github.wiiznokes.fan-control";
+pub const APP_ID: &str = constcat::concat!(QUALIFIER, ".", ORG, ".", APP);
 
 pub const QUALIFIER: &str = "io.github";
 pub const ORG: &str = "wiiznokes";

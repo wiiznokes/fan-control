@@ -21,7 +21,7 @@ lazy_static.workspace = true
 once_cell.workspace = true
 utils.workspace = true
 derive_more.workspace = true
-tokio = { version = "1.35", features = ["time"] }
+tokio = { version = "1", features = ["time"] }
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 branch = "master"
