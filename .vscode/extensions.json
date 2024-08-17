@@ -3,7 +3,8 @@
 	  "rust-lang.rust-analyzer",
 	  "vadimcn.vscode-lldb",
 	  "tamasfe.even-better-toml",
-	  "fill-labs.dependi"
+	  "fill-labs.dependi",
+	  "streetsidesoftware.code-spell-checker"
 	]
 }
   

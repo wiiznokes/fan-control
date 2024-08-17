@@ -1,5 +1,10 @@
 # Changelog
 
+## [24.8.17]
+
+- update deps
+- fix top bar color
+
 ## [2024.7.30]
 
 - fix french translation

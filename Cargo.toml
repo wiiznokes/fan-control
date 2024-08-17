@@ -24,8 +24,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [package.metadata.packager]
-# workarround for making cargo packager happy
-version = "2024.7.30"
+version = "24.8.17"
 before-each-package-command = "cargo build --release"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]

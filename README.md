@@ -18,7 +18,7 @@
 
 - You can add items with the buttons on the right of the app.
 - To save a configuration, write a name in the "Configuration name" field, and click on the `+`.
-- To modify the value of a fan, you must select it in a `Control` item (the left column), select a `Behavior`, and activate the swtich.
+- To modify the value of a fan, you must select it in a `Control` item (the left column), select a `Behavior`, and activate the switch.
 
 ## Installation
 
