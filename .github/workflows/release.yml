@@ -20,6 +20,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      version: ${{ steps.identify.outputs.version }}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,26 +36,23 @@ jobs:
 
       - id: identify
         run: |
-          export VERSION="$(date +"%-y.%-m.%-d")"
-          export RELEASE_DATE="$(date +"%Y-%m-%d")"
 
+          echo "VERSION="$(date +"%-y.%-m.%-d")"" >> $GITHUB_ENV
+          echo "RELEASE_DATE="$(date +"%Y-%m-%d")"" >> $GITHUB_ENV
 
-          sed -i '/<release /s/version="[^"]*"/version="'"$VERSION"'"/; /<release /s/date="[^"]*"/date="'"$RELEASE_DATE"'"/' "res/linux/metainfo.xml"
-          sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"$VERSION"'"/' "Cargo.toml"
-          echo $VERSION > VERSION
+          sed -i '/<release /s/version="[^"]*"/version="'"${{ env.VERSION }}"'"/; /<release /s/date="[^"]*"/date="'"${{ env.RELEASE_DATE }}"'"/' "res/linux/metainfo.xml"
+          sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"${{ env.VERSION }}"'"/' "Cargo.toml"
+          echo ${{ env.VERSION }} > VERSION
 
           changelog-gen generate --exclude-unidentified
-          changelog-gen release --version $VERSION
+          changelog-gen release --version ${{ env.VERSION }}
 
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
           tagging_message: ${{ env.VERSION }}
-
-    outputs:
-        version: ${{ env.VERSION }}
 
   upload-artifacts:
     needs:
@@ -79,6 +79,6 @@ jobs:
           changelog-gen -- show > RELEASE_CHANGELOG.md
 
           # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ github.event.inputs.tag }} --title ${{ github.event.inputs.tag }} \
+          gh release create ${{ needs.commit-changes.outputs.version }} --title ${{ needs.commit-changes.outputs.version }} \
             --notes-file RELEASE_CHANGELOG.md --target $GITHUB_SHA \
             ./fan-control*/*
