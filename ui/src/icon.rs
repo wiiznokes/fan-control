@@ -1,40 +1,29 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::LazyLock};
 
 use cosmic::{
     iced_core::Length,
     widget::{self, icon::Handle, Icon, IconButton},
 };
 use data::node::NodeTypeLight;
-use once_cell::sync::Lazy;
 
-lazy_static::lazy_static! {
-    static ref ICONS_DIR: PathBuf = utils::resource_dir().join("icons/");
-}
+static ICONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| utils::resource_dir().join("icons/"));
 
 static EXTENSION: &str = "px.svg";
-
-static mut BUF: Lazy<String> = Lazy::new(|| String::with_capacity(50));
 
 pub fn icon_button<M>(name: &str) -> widget::button::IconButton<M> {
     cosmic::widget::button::icon(get_handle_icon(name))
 }
 
-static ICON_LENGHT: Length = Length::Fixed(25.0);
+static ICON_LENGTH: Length = Length::Fixed(25.0);
 
 pub fn my_icon(name: &str) -> Icon {
     widget::icon::icon(get_handle_icon(name))
-        .height(ICON_LENGHT)
-        .width(ICON_LENGHT)
+        .height(ICON_LENGTH)
+        .width(ICON_LENGTH)
 }
 
 fn get_handle_icon(name: &str) -> Handle {
-    unsafe {
-        BUF.clear();
-        BUF.insert_str(0, name);
-        BUF.insert_str(BUF.chars().count(), EXTENSION);
-    };
-
-    let path = ICONS_DIR.join(unsafe { BUF.as_str() });
+    let path = ICONS_DIR.join(format!("{name}{EXTENSION}"));
     cosmic::widget::icon::from_path(path)
 }
 

@@ -1,11 +1,21 @@
 # Changelog
 
-## [24.8.17]
+## [Unreleased]
 
-- update deps
-- fix top bar color
+## [24.8.22](https://github.com/wiiznokes/fan-control/releases/tag/24.8.22)
 
-## [2024.7.30]
+### Removed
+
+- remove lazy_static dep in [7828ecb](https://github.com/wiiznokes/fan-control/commit/7828ecb8d1f6025ba911166814e8bd53c331b777) by [@wiiznokes](https://github.com/wiiznokes)
+- rm once_cell in [a4c292e](https://github.com/wiiznokes/fan-control/commit/a4c292e9276bef8928710d8369939a6b2cc9cfcf) by [@wiiznokes](https://github.com/wiiznokes)
+
+### Fixed
+
+- small fixes in [4f62ac9](https://github.com/wiiznokes/fan-control/commit/4f62ac958d496ddb8b553019ecab0e5644c4c372) by [@wiiznokes](https://github.com/wiiznokes)
+
+Full Changelog: https://github.com/wiiznokes/fan-control/compare/24.7.30...24.8.22
+
+## [24.7.30]
 
 - fix french translation
 - hotfix: theme always dark
@@ -33,13 +43,13 @@
 - new versioning
 - update lhm
 
-### Fixed
-
-- udev rules
-
 ### Changed
 
 - hardware generic
+
+### Fixed
+
+- udev rules
 
 Many thanks to...
 
