@@ -1,3 +1,4 @@
+use cosmic::widget::ToastId;
 use data::{
     config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
@@ -24,7 +25,7 @@ pub enum AppMsg {
 
     GraphWindow(GraphWindowMsg),
 
-    RemoveToast(usize),
+    RemoveToast(ToastId),
 }
 
 #[derive(Debug, Clone)]

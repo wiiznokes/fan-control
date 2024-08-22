@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{cell::LazyCell, path::PathBuf, sync::LazyLock};
 
 use cosmic::{
     iced_core::Length,
@@ -7,9 +7,7 @@ use cosmic::{
 use data::node::NodeTypeLight;
 use once_cell::sync::Lazy;
 
-lazy_static::lazy_static! {
-    static ref ICONS_DIR: PathBuf = utils::resource_dir().join("icons/");
-}
+static ICONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| utils::resource_dir().join("icons/"));
 
 static EXTENSION: &str = "px.svg";
 
