@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [2024.7.30]
+## [24.7.30]
 
 - fix french translation
 - hotfix: theme always dark
