@@ -33,13 +33,13 @@
 - new versioning
 - update lhm
 
-### Fixed
-
-- udev rules
-
 ### Changed
 
 - hardware generic
+
+### Fixed
+
+- udev rules
 
 Many thanks to...
 
