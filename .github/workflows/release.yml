@@ -11,12 +11,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ci:
-  #   uses: ./.github/workflows/ci.yml
+  ci:
+    uses: ./.github/workflows/ci.yml
 
   commit-changes:
-    # needs:
-    #   - ci
+    needs:
+      - ci
 
     runs-on: ubuntu-latest
 
