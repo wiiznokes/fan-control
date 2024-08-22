@@ -34,25 +34,27 @@ jobs:
         with:
           tool: changelog-gen
 
+
+      - name: Set Github env 
+        run: |
+          echo "version="$(date +"%-y.%-m.%-d")"" >> $GITHUB_ENV
+          echo "release_date="$(date +"%Y-%m-%d")"" >> $GITHUB_ENV
+
       - id: identify
         run: |
-
-          echo "VERSION="$(date +"%-y.%-m.%-d")"" >> $GITHUB_ENV
-          echo "RELEASE_DATE="$(date +"%Y-%m-%d")"" >> $GITHUB_ENV
-
-          sed -i '/<release /s/version="[^"]*"/version="'"${{ env.VERSION }}"'"/; /<release /s/date="[^"]*"/date="'"${{ env.RELEASE_DATE }}"'"/' "res/linux/metainfo.xml"
-          sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"${{ env.VERSION }}"'"/' "Cargo.toml"
-          echo ${{ env.VERSION }} > VERSION
+          sed -i '/<release /s/version="[^"]*"/version="'"${{ env.version }}"'"/; /<release /s/date="[^"]*"/date="'"${{ env.release_date }}"'"/' "res/linux/metainfo.xml"
+          sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"${{ env.version }}"'"/' "Cargo.toml"
+          echo ${{ env.version }} > VERSION
 
           changelog-gen generate --exclude-unidentified
-          changelog-gen release --version ${{ env.VERSION }}
+          changelog-gen release --version ${{ env.version }}
 
-          echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+          echo "version=${{ env.version }}" >> $GITHUB_OUTPUT
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
-          tagging_message: ${{ env.VERSION }}
+          tagging_message: ${{ env.version }}
 
   upload-artifacts:
     needs:
