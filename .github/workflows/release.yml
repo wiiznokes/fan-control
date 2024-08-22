@@ -34,8 +34,7 @@ jobs:
         with:
           tool: changelog-gen
 
-
-      - name: Set Github env 
+      - name: Set Github env
         run: |
           echo "version="$(date +"%-y.%-m.%-d")"" >> $GITHUB_ENV
           echo "release_date="$(date +"%Y-%m-%d")"" >> $GITHUB_ENV
@@ -86,3 +85,35 @@ jobs:
           gh release create ${{ needs.commit-changes.outputs.version }} --title ${{ needs.commit-changes.outputs.version }} \
             --notes-file RELEASE_CHANGELOG.md --target $GITHUB_SHA \
             ./fan-control*/*
+
+  pr-to-flathub:
+    needs:
+      - commit-changes
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: wiiznokes/io.github.wiiznokes.fan-control
+          ref: master
+
+      - uses: taiki-e/install-action@just
+
+      - run: |
+
+          git remote add upstream https://github.com/flathub/io.github.wiiznokes.fan-control
+          git fetch upstream
+          git rebase upstream/master
+          just
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7-rc
+        with:
+          title: "Automatic Release"
+          base: master
+          branch: release
+          commit-message: "new release"
+          body: ""
+          delete-branch: true
+          branch-suffix: timestamp
+          token: ${{ secrets.PAT_FLATHUB }}
