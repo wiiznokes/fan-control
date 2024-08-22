@@ -3,6 +3,10 @@ name: Upload Artifacts
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,6 +16,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2

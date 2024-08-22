@@ -58,6 +58,8 @@ jobs:
     needs:
       - commit-changes
     uses: ./.github/workflows/upload_artifacts.yml
+    with:
+      tag: ${{ needs.commit-changes.outputs.version }}
 
   release-on-github:
     needs:
