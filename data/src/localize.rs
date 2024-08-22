@@ -1,4 +1,4 @@
-use std::sync::{LazyLock, OnceLock};
+use std::sync::LazyLock;
 
 use i18n_embed::{
     fluent::{fluent_language_loader, FluentLanguageLoader},

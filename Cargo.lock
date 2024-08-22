@@ -5351,7 +5351,6 @@ dependencies = [
  "i18n-embed-fl",
  "libcosmic",
  "log",
- "once_cell",
  "rust-embed",
  "tokio",
  "utils",
