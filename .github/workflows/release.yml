@@ -1,75 +1,84 @@
 name: Release
 
 on:
-  # todo: allow this but should not build if the current HEAD is already tagger with nightly
-  #schedule:
-  # run every day
-  #- cron: 0 0 * * *
   workflow_dispatch:
-    inputs:
-      is_nightly:
-        description: "Is nightly"
-        required: false
-        default: true
-        type: boolean
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CARGO_TERM_COLOR: always
 
 jobs:
-  upload-artifacts:
-    uses: ./.github/workflows/upload_artifacts.yml
+  ci:
+    uses: ./.github/workflows/ci.yml
 
-  publish:
-    needs: upload-artifacts
+  commit-changes:
+    needs:
+      - ci
+
     runs-on: ubuntu-latest
-
-    env:
-      GH_REPO: ${{ github.repository }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
         with:
           # https://github.com/actions/checkout/issues/1471
-          fetch-tags: false
+          fetch-tags: true
+          fetch-depth: 0
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: changelog-gen
+
+      - id: identify
+        run: |
+          export VERSION="$(date +"%-y.%-m.%-d")"
+          export RELEASE_DATE="$(date +"%Y-%m-%d")"
+
+
+          sed -i '/<release /s/version="[^"]*"/version="'"$VERSION"'"/; /<release /s/date="[^"]*"/date="'"$RELEASE_DATE"'"/' "res/linux/metainfo.xml"
+          sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"$VERSION"'"/' "Cargo.toml"
+          echo $VERSION > VERSION
+
+          changelog-gen generate --exclude-unidentified
+          changelog-gen release --version $VERSION
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
+          tagging_message: ${{ env.VERSION }}
+
+    outputs:
+        version: ${{ env.VERSION }}
+
+  upload-artifacts:
+    needs:
+      - commit-changes
+    uses: ./.github/workflows/upload_artifacts.yml
+
+  release-on-github:
+    needs:
+      - upload-artifacts
+      - commit-changes
+
+    runs-on: ubuntu-latest
+
+    steps:
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v4
 
-      - name: Prepare release on Github
-        run: |
-          # get the package version from Cargo.toml
-          echo "PKG_VERSION=$(cat VERSION)" >> $GITHUB_ENV
-
-          # delete nightly release
-          gh release delete nightly --yes || true
-          git push --delete origin nightly || true
-
-      # in case is_nightly is not defined
-      - if: ${{ (github.event.inputs.is_nightly  == 'true') || (github.event.inputs.is_nightly  == '') }}
-        name: Setup options for nightly
-        run: |
-          echo "TAG_NAME=nightly" >> $GITHUB_ENV
-          echo "PRERELEASE=--prerelease" >> $GITHUB_ENV
-      - if: ${{ github.event.inputs.is_nightly == 'false' }}
-        name: Setup options for a new release
-        run: |
-          echo "TAG_NAME=v${{ env.PKG_VERSION }}" >> $GITHUB_ENV
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: changelog-gen
 
       - name: Publish release
         run: |
-          git tag ${{ env.TAG_NAME }}
-          git push origin --tags
+          changelog-gen -- show > RELEASE_CHANGELOG.md
 
           # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ env.TAG_NAME }} --title "${{ env.TAG_NAME }}" \
-            --verify-tag ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
+          gh release create ${{ github.event.inputs.tag }} --title ${{ github.event.inputs.tag }} \
+            --notes-file RELEASE_CHANGELOG.md --target $GITHUB_SHA \
             ./fan-control*/*
