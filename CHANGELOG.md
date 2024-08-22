@@ -1,9 +1,6 @@
 # Changelog
 
-## [24.8.17]
-
-- update deps
-- fix top bar color
+## [Unreleased]
 
 ## [2024.7.30]
 
