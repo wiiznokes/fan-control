@@ -92,7 +92,7 @@ jobs:
         run: |
 
           # try to not break this action
-          gh release delete ${{ needs.commit-changes.outputs.version }}
+          gh release delete ${{ needs.commit-changes.outputs.version }} || true
           git fetch --tags || true
           git tag -d ${{ github.event.inputs.tag }} || true
           git tag ${{ github.event.inputs.tag }} || true
