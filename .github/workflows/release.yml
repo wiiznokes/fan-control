@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v4
 
