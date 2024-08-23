@@ -1,10 +1,10 @@
 #!/bin/bash -ex
 
-# cargo test --workspace --all-features
+cargo test --workspace --all-features
 
-# cargo fmt --all --check --verbose
+cargo fmt --all --check --verbose
 
-# cargo clippy --workspace --all-features
+cargo clippy --workspace --all-features
 
 NEW_VERSION="$(date +"%-y.%-m.%-d")"
 
@@ -35,3 +35,25 @@ SHA="$(git rev-parse $NEW_VERSION)"
 
 gh release create $NEW_VERSION --title $NEW_VERSION \
     --notes-file RELEASE_CHANGELOG.md --target $SHA
+
+
+rm -rf io.github.wiiznokes.fan-control
+
+git clone https://github.com/flathub/io.github.wiiznokes.fan-control
+
+cd io.github.wiiznokes.fan-control
+
+git branch -d new_release || true 
+git push origin --delete new_release || true
+
+git checkout -b new_release
+
+just 
+
+git add .
+
+git commit -m "new release"
+
+git push -u origin new_release
+
+gh pr create --base master --head new_release --title "New release" --body ""
