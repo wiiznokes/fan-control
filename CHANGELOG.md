@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [24.8.23](https://github.com/wiiznokes/fan-control/releases/tag/24.8.23)
+
+### Fixed
+
+- small fixes in [4f62ac9](https://github.com/wiiznokes/fan-control/commit/4f62ac958d496ddb8b553019ecab0e5644c4c372) by [@wiiznokes](https://github.com/wiiznokes)
+
+Full Changelog: https://github.com/wiiznokes/fan-control/compare/24.7.30...24.8.23
+
 ## [24.7.30]
 
 - fix french translation
