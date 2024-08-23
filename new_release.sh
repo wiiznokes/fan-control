@@ -16,7 +16,7 @@ sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"$NEW_V
 
 echo $NEW_VERSION >VERSION
 
-changelog-gen generate --exclude-unidentified
+changelog-gen generate --repo "wiiznokes/changelog-generator" --exclude-unidentified
 changelog-gen release --version $NEW_VERSION
 
 git add .
