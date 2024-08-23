@@ -50,18 +50,23 @@ jobs:
 
           echo "version=${{ env.version }}" >> $GITHUB_OUTPUT
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
-          tagging_message: ${{ env.version }}
-          push_options: --force
+          title: "Automatic Release Notes Generation"
+          base: master
+          branch: changelog_release
+          commit-message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
+          body: ""
+          delete-branch: true
+          # branch-suffix: short-commit-hash
 
   upload-artifacts:
     needs:
       - commit-changes
     uses: ./.github/workflows/upload_artifacts.yml
     with:
-      tag: ${{ needs.commit-changes.outputs.version }}
+      ref: changelog_release
 
   release-on-github:
     needs:
@@ -73,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.commit-changes.outputs.version }}
+          ref: changelog-release
 
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v4
@@ -84,6 +89,14 @@ jobs:
 
       - name: Publish release
         run: |
+
+          # try to not break this action
+          gh release delete ${{ needs.commit-changes.outputs.version }}
+          git fetch --tags || true
+          git tag -d ${{ github.event.inputs.tag }} || true
+          git tag ${{ github.event.inputs.tag }} || true
+          git push origin --tags || true
+
           changelog-gen show > RELEASE_CHANGELOG.md
 
           # https://cli.github.com/manual/gh_release_create
@@ -100,7 +113,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: wiiznokes/io.github.wiiznokes.fan-control
-          ref: master
+          ref: changelog_release
 
       - uses: taiki-e/install-action@just
 
