@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [24.8.23]
+
+### Fixed
+
+- small fixes in [4f62ac9](https://github.com/wiiznokes/changelog-generator/commit/4f62ac958d496ddb8b553019ecab0e5644c4c372) by [@wiiznokes](https://github.com/wiiznokes)
+
 ## [24.7.30]
 
 - fix french translation
