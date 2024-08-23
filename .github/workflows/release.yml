@@ -70,6 +70,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.commit-changes.outputs.version }}
+
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v4
 
@@ -79,7 +84,7 @@ jobs:
 
       - name: Publish release
         run: |
-          changelog-gen -- show > RELEASE_CHANGELOG.md
+          changelog-gen show > RELEASE_CHANGELOG.md
 
           # https://cli.github.com/manual/gh_release_create
           gh release create ${{ needs.commit-changes.outputs.version }} --title ${{ needs.commit-changes.outputs.version }} \
