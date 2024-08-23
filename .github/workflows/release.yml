@@ -1,138 +1,30 @@
 name: Release
 
 on:
-  workflow_dispatch:
+  release:
+    types: [created]
 
 permissions:
   contents: write
-  pull-requests: write
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CARGO_TERM_COLOR: always
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
-  commit-changes:
-    needs:
-      - ci
-
-    runs-on: ubuntu-latest
-
-    outputs:
-      version: ${{ steps.identify.outputs.version }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # https://github.com/actions/checkout/issues/1471
-          fetch-tags: true
-          fetch-depth: 0
-
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: changelog-gen
-
-      - name: Set Github env
-        run: |
-          echo "version="$(date +"%-y.%-m.%-d")"" >> $GITHUB_ENV
-          echo "release_date="$(date +"%Y-%m-%d")"" >> $GITHUB_ENV
-
-      - id: identify
-        run: |
-          sed -i '/<release /s/version="[^"]*"/version="'"${{ env.version }}"'"/; /<release /s/date="[^"]*"/date="'"${{ env.release_date }}"'"/' "res/linux/metainfo.xml"
-          sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"${{ env.version }}"'"/' "Cargo.toml"
-          echo ${{ env.version }} > VERSION
-
-          changelog-gen generate --exclude-unidentified
-          changelog-gen release --version ${{ env.version }}
-
-          echo "version=${{ env.version }}" >> $GITHUB_OUTPUT
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          title: "Automatic Release Notes Generation"
-          base: master
-          branch: changelog_release
-          commit-message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
-          body: ""
-          delete-branch: true
-          # branch-suffix: short-commit-hash
-
   upload-artifacts:
-    needs:
-      - commit-changes
     uses: ./.github/workflows/upload_artifacts.yml
     with:
-      ref: changelog_release
+      ref: ${{ github.ref_name }}
 
   release-on-github:
     needs:
       - upload-artifacts
-      - commit-changes
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: changelog_release
-
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v4
 
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: changelog-gen
-
       - name: Publish release
         run: |
-
-          # try to not break this action
-          gh release delete ${{ needs.commit-changes.outputs.version }} || true
-          git fetch --tags || true
-          git tag -d ${{ github.event.inputs.tag }} || true
-          git tag ${{ github.event.inputs.tag }} || true
-          git push origin --tags || true
-
-          changelog-gen show > RELEASE_CHANGELOG.md
-
-          # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ needs.commit-changes.outputs.version }} --title ${{ needs.commit-changes.outputs.version }} \
-            --notes-file RELEASE_CHANGELOG.md --target $GITHUB_SHA \
-            ./fan-control*/*
-
-  pr-to-flathub:
-    needs:
-      - commit-changes
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: wiiznokes/io.github.wiiznokes.fan-control
-          ref: changelog_release
-
-      - uses: taiki-e/install-action@just
-
-      - run: |
-
-          git remote add upstream https://github.com/flathub/io.github.wiiznokes.fan-control
-          git fetch upstream
-          git rebase upstream/master
-          just
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7-rc
-        with:
-          title: "Automatic Release"
-          base: master
-          branch: release
-          commit-message: "new release"
-          body: ""
-          delete-branch: true
-          branch-suffix: timestamp
-          token: ${{ secrets.PAT_FLATHUB }}
+          gh release upload ${{ github.ref_name }} ./fan-control*/*
