@@ -31,5 +31,7 @@ git push origin $NEW_VERSION
 
 changelog-gen show >RELEASE_CHANGELOG.md
 
+SHA="$(git rev-parse $NEW_VERSION)"
+
 gh release create $NEW_VERSION --title $NEW_VERSION \
-    --notes-file RELEASE_CHANGELOG.md --target $NEW_VERSION
+    --notes-file RELEASE_CHANGELOG.md --target $SHA
