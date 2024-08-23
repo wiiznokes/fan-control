@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [24.8.23]
+
+### Fixed
+
+- small fixes
+
 ## [24.7.30]
 
 - fix french translation
