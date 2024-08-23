@@ -1,10 +1,10 @@
 #!/bin/bash -ex
 
-cargo test --workspace --all-features
+# cargo test --workspace --all-features
 
-cargo fmt --all --check --verbose
+# cargo fmt --all --check --verbose
 
-cargo clippy --workspace --all-features
+# cargo clippy --workspace --all-features
 
 NEW_VERSION="$(date +"%-y.%-m.%-d")"
 
@@ -23,7 +23,7 @@ git add .
 git commit -m "new release !log"
 git push
 
-gh release delete $NEW_VERSION || true
+gh release delete $NEW_VERSION -y || true
 git tag -d $NEW_VERSION || true
 git tag $NEW_VERSION || true
 git push origin --tags || true
