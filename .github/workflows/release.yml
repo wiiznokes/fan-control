@@ -54,6 +54,7 @@ jobs:
         with:
           commit_message: "chore(changelog): automatic release generation (skip changelog) [skip ci]"
           tagging_message: ${{ env.version }}
+          push_options: --force
 
   upload-artifacts:
     needs:
