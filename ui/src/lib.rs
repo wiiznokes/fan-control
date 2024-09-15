@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use data::{
-    app_graph::AppGraph,
     config::Config,
     node::{validate_name, IsValid, NodeType},
     settings::AppTheme,
@@ -395,8 +394,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         Ok(config) => match config {
                             Some((config_name, config)) => {
                                 self.current_config_cached = config_name;
-                                self.app_state.app_graph =
-                                    AppGraph::from_config(config, self.app_state.bridge.hardware());
+                                self.app_state
+                                    .app_graph
+                                    .apply_config(config, self.app_state.bridge.hardware());
                                 self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
 
                                 self.update_hardware();

@@ -19,13 +19,25 @@ pub struct AppGraph {
     pub root_nodes: RootNodes,
 }
 
+impl Default for AppGraph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AppGraph {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             nodes: Nodes::new(),
             id_generator: IdGenerator::new(),
             root_nodes: Vec::new(),
         }
+    }
+
+    pub fn from_config(config: Config, hardware: &Hardware) -> Self {
+        let mut app_graph = AppGraph::new();
+        app_graph.apply_config(config, hardware);
+        app_graph
     }
 
     pub fn insert_node(&mut self, node: Node) {
@@ -87,52 +99,51 @@ impl AppGraph {
         app_graph
     }
 
-    pub fn from_config(config: Config, hardware: &Hardware) -> Self {
-        let mut app_graph = AppGraph::new();
+    pub fn apply_config(&mut self, config: Config, hardware: &Hardware) {
+        self.nodes.clear();
+        self.root_nodes.clear();
 
         // order: fan -> temp -> custom_temp -> behavior -> control
 
         for fan in config.fans {
-            let node = fan.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = fan.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for temp in config.temps {
-            let node = temp.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = temp.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for custom_temp in config.custom_temps {
-            let node = custom_temp.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = custom_temp.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for flat in config.flats {
-            let node = flat.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = flat.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for linear in config.linears {
-            let node = linear.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = linear.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for target in config.targets {
-            let node = target.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = target.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for graph in config.graphs {
-            let node = graph.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = graph.to_node(self, hardware);
+            self.insert_node(node);
         }
 
         for control in config.controls {
-            let node = control.to_node(&mut app_graph, hardware);
-            app_graph.insert_node(node);
+            let node = control.to_node(self, hardware);
+            self.insert_node(node);
         }
-
-        app_graph
     }
 
     fn find_unused_name(nodes: &Nodes, default_name: &str, i: u32) -> String {
