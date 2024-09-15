@@ -86,3 +86,8 @@ run-lhm:
 
 expand:
 	cargo expand
+
+rules:
+	cp ./res/linux/60-fan-control.rules /etc/udev/rules.d/
+	udevadm control --reload-rules
+	udevadm trigger

@@ -29,6 +29,8 @@ utils.workspace = true
 [target.'cfg(target_os = "linux")'.dependencies]
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
 ouroboros = "0.18"
+nvml-wrapper = { git = "https://github.com/raum-dellamorte/nvml-wrapper" }
 
 [dev-dependencies]
 env_logger.workspace = true
+pretty-bytes = "0.2"

@@ -1,1 +1,5 @@
 SUBSYSTEM=="hwmon", RUN+="/bin/sh -c '/bin/chmod a+w /sys%p/pwm* || true'"
+
+KERNEL=="nvidia*", MODE="0666"
+KERNEL=="nvidiactl", MODE="0666"
+KERNEL=="nvidia-uvm", MODE="0666"
