@@ -1,0 +1,56 @@
+CustomTemp = []
+Graph = []
+Linear = []
+Target = []
+
+[[Control]]
+name = "pwm2 nct6798-isa-0290"
+id = "pwm2-nct6798-isa-0290-pwm2"
+input = "Plat 1"
+active = false
+
+[[Control]]
+name = "pwm3 nct6798-isa-0290"
+input = "Plat 1"
+active = false
+
+[[Control]]
+name = "pwm4 nct6798-isa-0290"
+input = "Plat 1"
+active = false
+
+[[Fan]]
+name = "fan2 nct6798-isa-0290"
+id = "fan2-nct6798-isa-0290-fan2_input"
+
+[[Fan]]
+name = "fan3 nct6798-isa-0290"
+id = "fan3-nct6798-isa-0290-fan3_input"
+
+[[Fan]]
+name = "fan4 nct6798-isa-0290"
+id = "fan4-nct6798-isa-0290-fan4_input"
+
+[[Temp]]
+name = "Tctl k10temp-pci-00c3"
+id = "Tctl-k10temp-pci-00c3-temp1_input"
+
+[[Temp]]
+name = "Tccd1 k10temp-pci-00c3"
+id = "Tccd1-k10temp-pci-00c3-temp3_input"
+
+[[Temp]]
+name = "CPUTIN nct6798-isa-0290"
+id = "CPUTIN-nct6798-isa-0290-temp2_input"
+
+[[Temp]]
+name = "AUXTIN1 nct6798-isa-0290"
+id = "AUXTIN1-nct6798-isa-0290-temp4_input"
+
+[[Temp]]
+name = "TSI0_TEMP nct6798-isa-0290"
+id = "TSI0_TEMP-nct6798-isa-0290-temp13_input"
+
+[[Flat]]
+name = "Plat 1"
+value = 100
