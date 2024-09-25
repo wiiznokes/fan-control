@@ -14,7 +14,9 @@ keywords.workspace = true
 [dependencies]
 cached = "0.53"
 constcat = "0.5"
-cargo-packager-resource-resolver.workspace = true
+cargo-packager-resource-resolver = { version = "0.1", features = [
+    "auto-detect-format",
+] }
 log.workspace = true
 
 [lints.rust]
