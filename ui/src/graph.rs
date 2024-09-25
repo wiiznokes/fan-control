@@ -13,7 +13,7 @@ use data::{
 };
 
 use crate::{
-    icon::icon_button,
+    icon_button,
     message::{AppMsg, GraphMsg, ModifNodeMsg},
     node_cache::GraphC,
     pick_list_utils::{self, MyOption},
@@ -49,7 +49,7 @@ pub fn graph_view<'a>(
             .push(Text::new(text).width(Length::Fixed(100.0)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
             .push(
-                icon_button("close/20")
+                icon_button!("close/20")
                     .on_press(ModifNodeMsg::Graph(GraphMsg::RemoveCoord(*coord)).to_app(node.id)),
             )
             .align_items(Alignment::Center)
@@ -59,7 +59,7 @@ pub fn graph_view<'a>(
     let launch_window = Row::new()
         .push(Text::new(fl!("launch_graph_window")).width(Length::Fixed(100.0)))
         .push(Space::new(Length::Fill, Length::Fixed(0.0)))
-        .push(icon_button("add/20").on_press(GraphWindowMsg::Toogle(Some(node.id)).into()))
+        .push(icon_button!("add/20").on_press(GraphWindowMsg::Toogle(Some(node.id)).into()))
         .align_items(Alignment::Center)
         .into();
 

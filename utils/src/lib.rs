@@ -4,8 +4,9 @@ use cargo_packager_resource_resolver as resource_resolver;
 use log::error;
 
 use cached::proc_macro::cached;
+use constcat::concat;
 
-pub const APP_ID: &str = constcat::concat!(QUALIFIER, ".", ORG, ".", APP);
+pub const APP_ID: &str = concat!(QUALIFIER, ".", ORG, ".", APP);
 
 pub const QUALIFIER: &str = "io.github";
 pub const ORG: &str = "wiiznokes";

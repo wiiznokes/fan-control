@@ -7,7 +7,7 @@ use cosmic::{
 use data::{dir_manager::DirManager, settings::AppTheme};
 
 use crate::{
-    icon::icon_button,
+    icon_button,
     message::{AppMsg, SettingsMsg},
 };
 
@@ -16,7 +16,7 @@ pub fn settings_drawer(show: bool, dir_manager: &DirManager) -> Option<Element<'
         return None;
     }
 
-    let settings_context = widget::settings::view_column(vec![widget::settings::view_section("")
+    let settings_context = widget::settings::view_column(vec![widget::settings::section()
         .add(
             widget::settings::item::builder(fl!("theme")).control(PickList::new(
                 AppTheme::VALUES.to_vec(),
@@ -54,9 +54,9 @@ fn update_delay(dir_manager: &DirManager) -> Element<'_, AppMsg> {
         .map(|value| SettingsMsg::UpdateDelay(value).into());
 
     Row::new()
-        .push(icon_button("remove/20").on_press_maybe(sub_message))
+        .push(icon_button!("remove/20").on_press_maybe(sub_message))
         .push(Text::new(fl!("update_delay_value", value = update_delay)))
-        .push(icon_button("add/20").on_press_maybe(plus_message))
+        .push(icon_button!("add/20").on_press_maybe(plus_message))
         .align_items(Alignment::Center)
         .into()
 }

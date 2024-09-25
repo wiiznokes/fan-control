@@ -25,13 +25,15 @@ use hardware::{HItem, Hardware};
 
 use crate::{
     graph::graph_view,
-    icon::{icon_button, icon_path_for_node_type, my_icon},
+    icon::icon_from_handle,
+    icon_button,
     input_line::{input_line, InputLineUnit},
     message::{
         AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },
     my_widgets::{self, drop_down::DropDown, offset::Offset},
     node_cache::{LinearC, NodeC, NodesC, TargetC},
+    node_icon_handle,
     pick_list_utils::{self, MyOption},
 };
 
@@ -107,7 +109,7 @@ fn item_view<'a>(
     nodes: &'a Nodes,
     hardware: &'a Hardware,
 ) -> Element<'a, AppMsg> {
-    let item_icon = my_icon(icon_path_for_node_type(&node.node_type.to_light()));
+    let item_icon = icon_from_handle(node_icon_handle!(&node.node_type.to_light()));
 
     let mut name = TextInput::new(fl!("name"), &node_c.name)
         .on_input(|s| AppMsg::Rename(node.id, s))
@@ -131,7 +133,7 @@ fn item_view<'a>(
     .style(theme::Container::Dropdown);
 
     let context_menu = DropDown::new(
-        icon_button("more_vert/24")
+        icon_button!("more_vert/24")
             .on_press(ToogleMsg::NodeContextMenu(node.id, !node_c.context_menu_expanded).into()),
         overlay,
         node_c.context_menu_expanded,
@@ -272,7 +274,7 @@ fn custom_temp_view<'a>(
             .push(Text::new(input.name.clone()).width(Length::Fixed(100.0)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
             .push(
-                icon_button("close/20")
+                icon_button!("close/20")
                     .on_press(ModifNodeMsg::RemoveInput(input.clone()).to_app(node.id)),
             )
             .align_items(Alignment::Center)
@@ -304,13 +306,13 @@ fn custom_temp_view<'a>(
 }
 
 fn flat_view<'a>(node: &'a Node, flat: &'a Flat) -> Element<'a, AppMsg> {
-    let mut sub_button = icon_button("remove/24");
+    let mut sub_button = icon_button!("remove/24");
     if flat.value > 0 {
         sub_button =
             sub_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value - 1)).to_app(node.id));
     }
 
-    let mut add_button = icon_button("add/24");
+    let mut add_button = icon_button!("add/24");
     if flat.value < 100 {
         add_button =
             add_button.on_press(ModifNodeMsg::Flat(FlatMsg::Value(flat.value + 1)).to_app(node.id));

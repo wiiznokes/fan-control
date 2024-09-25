@@ -6,7 +6,7 @@ use cosmic::{
     Element,
 };
 
-use crate::{icon::icon_button, ModifNodeMsg};
+use crate::{icon_button, ModifNodeMsg};
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;
@@ -107,13 +107,13 @@ where
                 .push(
                     Column::new()
                         .push(
-                            icon_button("add/20")
+                            icon_button!("add/20")
                                 .on_press_maybe(plus_message)
                                 .width(icon_lenght)
                                 .height(icon_lenght),
                         )
                         .push(
-                            icon_button("remove/20")
+                            icon_button!("remove/20")
                                 .on_press_maybe(sub_message)
                                 .width(icon_lenght)
                                 .height(icon_lenght),

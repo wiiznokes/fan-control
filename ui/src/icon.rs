@@ -1,49 +1,71 @@
-use std::{path::PathBuf, sync::LazyLock};
-
 use cosmic::{
     iced_core::Length,
     widget::{self, icon::Handle, Icon, IconButton},
 };
-use data::node::NodeTypeLight;
 
-static ICONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| utils::resource_dir().join("icons/"));
+use crate::icon_handle;
 
-static EXTENSION: &str = "px.svg";
+pub static ICON_LENGTH: Length = Length::Fixed(25.0);
 
-pub fn icon_button<M>(name: &str) -> widget::button::IconButton<M> {
-    cosmic::widget::button::icon(get_handle_icon(name))
+#[macro_export]
+macro_rules! icon_handle {
+    ($name:literal) => {{
+        let bytes = include_bytes!(concat!("../../res/icons/", $name, "px.svg"));
+        cosmic::widget::icon::from_svg_bytes(bytes)
+    }};
 }
 
-static ICON_LENGTH: Length = Length::Fixed(25.0);
+#[macro_export]
+macro_rules! icon {
+    ($name:literal) => {{
+        use $crate::icon::ICON_LENGTH;
+        use $crate::icon_handle;
 
-pub fn my_icon(name: &str) -> Icon {
-    widget::icon::icon(get_handle_icon(name))
+        cosmic::widget::icon::icon(icon_handle!($name))
+            .height(ICON_LENGTH)
+            .width(ICON_LENGTH)
+    }};
+}
+#[macro_export]
+macro_rules! icon_button {
+    ($name:literal) => {{
+        use $crate::icon_handle;
+        cosmic::widget::button::icon(icon_handle!($name))
+    }};
+}
+
+#[macro_export]
+macro_rules! node_icon_handle {
+    ($node_type:expr) => {{
+        use $crate::icon_handle;
+
+        match $node_type {
+            NodeTypeLight::Control => icon_handle!("speed/24"),
+            NodeTypeLight::Fan => icon_handle!("toys_fan/24"),
+            NodeTypeLight::Temp => icon_handle!("thermometer/24"),
+            NodeTypeLight::CustomTemp => icon_handle!("thermostat/24"),
+            NodeTypeLight::Graph => icon_handle!("psychology/24"),
+            NodeTypeLight::Flat => icon_handle!("horizontal_rule/24"),
+            NodeTypeLight::Linear => icon_handle!("linear/24"),
+            NodeTypeLight::Target => icon_handle!("my_location/24"),
+        }
+    }};
+}
+
+pub fn icon_from_handle(handle: Handle) -> Icon {
+    widget::icon::icon(handle)
         .height(ICON_LENGTH)
         .width(ICON_LENGTH)
 }
 
-fn get_handle_icon(name: &str) -> Handle {
-    let path = ICONS_DIR.join(format!("{name}{EXTENSION}"));
-    cosmic::widget::icon::from_path(path)
-}
-
-pub fn icon_path_for_node_type(node_type: &NodeTypeLight) -> &'static str {
-    match node_type {
-        NodeTypeLight::Control => "speed/24",
-        NodeTypeLight::Fan => "toys_fan/24",
-        NodeTypeLight::Temp => "thermometer/24",
-        NodeTypeLight::CustomTemp => "thermostat/24",
-        NodeTypeLight::Graph => "psychology/24",
-        NodeTypeLight::Flat => "horizontal_rule/24",
-        NodeTypeLight::Linear => "linear/24",
-        NodeTypeLight::Target => "my_location/24",
-    }
+pub fn icon_button_from_handle<'a, M>(handle: Handle) -> IconButton<'a, M> {
+    cosmic::widget::button::icon(handle)
 }
 
 pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
     if expanded {
-        icon_button("expand_less/24")
+        icon_button!("expand_less/24")
     } else {
-        icon_button("expand_more/24")
+        icon_button!("expand_more/24")
     }
 }
