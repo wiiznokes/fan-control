@@ -227,6 +227,10 @@ fn generate_hardware<'a>(
 
 impl HardwareBridge for LinuxBridge {
     fn new() -> crate::Result<Self> {
+
+        test::b().unwrap();
+        test::set_default().unwrap();
+
         let mut hardware = Hardware::default();
 
         let lib = match lm_sensors::Initializer::default().initialize() {
@@ -331,7 +335,7 @@ impl HardwareBridge for LinuxBridge {
     }
 }
 
-#[cfg(test)]
+// #[cfg(test)]
 mod test {
     use nvml_wrapper::{
         cuda_driver_version_major, cuda_driver_version_minor,
@@ -343,11 +347,11 @@ mod test {
 
     #[test]
     fn a() {
-        // b().unwrap();
+        b().unwrap();
         set_default().unwrap();
     }
 
-    fn set_default() -> Result<(), NvmlError> {
+    pub fn set_default() -> Result<(), NvmlError> {
         let nvml = Nvml::init()?;
 
         for device_id in 0..nvml.device_count()? {
@@ -361,7 +365,7 @@ mod test {
         Ok(())
     }
 
-    fn d() -> Result<(), NvmlError> {
+    pub fn d() -> Result<(), NvmlError> {
         let nvml = Nvml::init()?;
 
         let device = nvml.device_by_index(0)?;
@@ -371,7 +375,7 @@ mod test {
         Ok(())
     }
 
-    fn c() -> Result<(), NvmlError> {
+    pub fn c() -> Result<(), NvmlError> {
         let nvml = Nvml::init()?;
 
         for device_id in 0..nvml.device_count()? {
@@ -387,7 +391,7 @@ mod test {
         Ok(())
     }
 
-    fn b() -> Result<(), NvmlError> {
+    pub fn b() -> Result<(), NvmlError> {
         let nvml = Nvml::init()?;
 
         let cuda_version = nvml.sys_cuda_driver_version()?;

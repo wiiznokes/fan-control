@@ -30,7 +30,7 @@ utils.workspace = true
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
 ouroboros = "0.18"
 nvml-wrapper = { git = "https://github.com/raum-dellamorte/nvml-wrapper" }
+pretty-bytes = "0.2"
 
 [dev-dependencies]
 env_logger.workspace = true
-pretty-bytes = "0.2"
