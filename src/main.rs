@@ -83,6 +83,10 @@ fn setup_logs(args: &Args) {
 }
 
 fn try_run() -> Result<()> {
+
+
+    let bridge = hardware::new()?;
+    
     let args = Args::parse();
     setup_logs(&args);
 
@@ -92,7 +96,6 @@ fn try_run() -> Result<()> {
 
     let dir_manager = DirManager::new(&args.config_dir_path, &args.config_name);
 
-    let bridge = hardware::new()?;
     let hardware = bridge.hardware();
 
     debug!("sensors found: {:?}", hardware);
