@@ -10,11 +10,14 @@
   <summary xml:lang="de">Kontrolliere deine Lüfter mit verschiedenen Verhaltensweisen</summary>
 
   <metadata_license>MIT</metadata_license>
-  <project_license>GPL-3.0</project_license>
+  <project_license>GPL-3.0-only</project_license>
 
   <developer id="tld.vendor">
     <name>wiiznokes</name>
   </developer>
+
+  <icon type="remote" height="256" width="256">
+    https://raw.githubusercontent.com/wiiznokes/fan-control/master/res/linux/app_icon.svg</icon>
 
   <url type="homepage">https://github.com/wiiznokes/fan-control</url>
   <url type="bugtracker">https://github.com/wiiznokes/fan-control/issues</url>
@@ -59,6 +62,11 @@
         https://media.githubusercontent.com/media/wiiznokes/fan-control/master/res/screenshots/app.png</image>
     </screenshot>
   </screenshots>
+  
+  <provides>
+    <id>com.system76.CosmicApplication</id>
+    <binary>fan-control</binary>
+  </provides>
 
   <releases>
     <release version="24.8.23" date="2024-08-23">
