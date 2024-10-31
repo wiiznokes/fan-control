@@ -57,6 +57,6 @@ fn update_delay(dir_manager: &DirManager) -> Element<'_, AppMsg> {
         .push(icon_button!("remove/20").on_press_maybe(sub_message))
         .push(Text::new(fl!("update_delay_value", value = update_delay)))
         .push(icon_button!("add/20").on_press_maybe(plus_message))
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .into()
 }

@@ -119,8 +119,8 @@ where
                                 .height(icon_lenght),
                         ),
                 )
-                .align_items(Alignment::Center),
+                .align_y(Alignment::Center),
         )
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .into()
 }

@@ -16,11 +16,11 @@ use node_cache::{NodeC, NodesC};
 use crate::{graph::graph_window_view, settings_drawer::settings_drawer};
 
 use cosmic::{
-    app::{Command, Core, CosmicFlags},
+    app::{Core, CosmicFlags, Task},
     executor,
     iced::{self, time, window},
     iced_core::Length,
-    iced_runtime::command::Action,
+    iced_runtime::Action,
     theme,
     widget::{
         toaster::{self, Toast, Toasts},
@@ -100,7 +100,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         &mut self.core
     }
 
-    fn init(core: Core, flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn init(core: Core, flags: Self::Flags) -> (Self, Task<Self::Message>) {
         let app_state = flags.app_state;
 
         let current_config_cached = app_state
@@ -121,14 +121,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             toasts: Toasts::new(AppMsg::RemoveToast),
         };
 
-        let commands = Command::batch([cosmic::app::command::message(cosmic::app::message::app(
+        let commands = Task::batch([cosmic::app::command::message(cosmic::app::message::app(
             AppMsg::Tick,
         ))]);
 
         (ui_state, commands)
     }
 
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+    fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
         let dir_manager = &mut self.app_state.dir_manager;
 
         match message {
@@ -479,16 +479,18 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
                 graph::GraphWindowMsg::Toogle(node_id) => match node_id {
                     Some(node_id) => {
-                        let mut commands = Vec::new();
+                        let mut commands: Vec<iced::Task<cosmic::app::Message<AppMsg>>> =
+                            Vec::new();
 
                         if let Some(graph_window) = &self.graph_window {
-                            let command = Command::single(Action::Window(window::Action::Close(
-                                graph_window.window_id,
-                            )));
+                            let command = cosmic::iced::runtime::task::effect(Action::Window(
+                                window::Action::Close(graph_window.window_id),
+                            ));
                             commands.push(command);
                         }
 
-                        let new_id = window::Id::unique();
+                        let (new_id, command) =
+                            cosmic::iced::runtime::window::open(graph::window_settings());
 
                         self.graph_window = Some(GraphWindow {
                             window_id: new_id,
@@ -497,19 +499,15 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             percent_c: String::new(),
                         });
 
-                        let command = Command::single(Action::Window(window::Action::Spawn(
-                            new_id,
-                            graph::window_settings(),
-                        )));
-                        commands.push(command);
+                        commands.push(command.map(|_| cosmic::app::Message::None));
 
-                        return Command::batch(commands);
+                        return Task::batch(commands);
                     }
                     None => {
                         if let Some(graph_window) = &self.graph_window {
-                            return Command::single(Action::Window(window::Action::Close(
-                                graph_window.window_id,
-                            )));
+                            return cosmic::iced::runtime::task::effect(Action::Window(
+                                window::Action::Close(graph_window.window_id),
+                            ));
                         }
                     }
                 },
@@ -529,7 +527,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             }
         }
 
-        Command::none()
+        Task::none()
     }
 
     fn view(&self) -> Element<Self::Message> {

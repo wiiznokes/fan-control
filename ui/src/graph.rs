@@ -52,7 +52,7 @@ pub fn graph_view<'a>(
                 icon_button!("close/20")
                     .on_press(ModifNodeMsg::Graph(GraphMsg::RemoveCoord(*coord)).to_app(node.id)),
             )
-            .align_items(Alignment::Center)
+            .align_y(Alignment::Center)
             .into()
     });
 
@@ -60,7 +60,7 @@ pub fn graph_view<'a>(
         .push(Text::new(fl!("launch_graph_window")).width(Length::Fixed(100.0)))
         .push(Space::new(Length::Fill, Length::Fixed(0.0)))
         .push(icon_button!("add/20").on_press(GraphWindowMsg::Toogle(Some(node.id)).into()))
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .into();
 
     // todo: add scrollable ?
@@ -102,7 +102,7 @@ pub fn graph_window_view<'a>(
         )
         .push(text("°C"))
         .spacing(5)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     let percent_input = Row::new()
         .push(
@@ -112,7 +112,7 @@ pub fn graph_window_view<'a>(
         )
         .push(text("%"))
         .spacing(5)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     let coord = graph.try_new_coord(
         graph_window.temp_c.as_ref(),
@@ -130,7 +130,7 @@ pub fn graph_window_view<'a>(
         .push(temp_input)
         .push(text("="))
         .push(percent_input)
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .spacing(5);
 
     let close_button = button("close").on_press(GraphWindowMsg::Toogle(None).into());
@@ -138,18 +138,13 @@ pub fn graph_window_view<'a>(
         .push(close_button)
         .push(add_button)
         .spacing(20)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     let content = Column::new()
         .push(inputs_row)
         .push(actions_row)
-        .align_items(Alignment::Center)
+        .align_x(Alignment::Center)
         .spacing(20);
 
-    container(content)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
-        .into()
+    container(content).center(Length::Fill).into()
 }

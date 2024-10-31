@@ -1,7 +1,6 @@
 use cosmic::{
     iced_core::{Alignment, Length},
     iced_widget::{Button, Column},
-    prelude::CollectionWidget,
     theme,
     widget::{Container, Row, Text, TextInput},
     Element,
@@ -91,10 +90,10 @@ pub fn header_center<'a>(
     let underlay = Row::new()
         .push(name)
         .push_maybe(expand_icon)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
-    let overlay = Container::new(Column::with_children(configs).align_items(Alignment::Start))
-        .style(theme::Container::Dropdown);
+    let overlay = Container::new(Column::with_children(configs).align_x(Alignment::Start))
+        .class(theme::Container::Dropdown);
 
     let choose_config = drop_down::DropDown::new(underlay, overlay, expanded)
         .on_dismiss(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(false)))
@@ -133,7 +132,7 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
         );
     }
     Row::with_children(elements)
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .width(Length::Fill)
         .into()
 }

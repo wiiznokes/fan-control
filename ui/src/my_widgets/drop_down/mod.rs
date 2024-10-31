@@ -2,7 +2,7 @@
 
 use cosmic::{
     iced::{self, keyboard, touch},
-    iced_core::{keyboard::key::Named, widget::OperationOutputWrapper, Size, Vector},
+    iced_core::{keyboard::key::Named, Size, Vector},
     iced_widget,
 };
 use iced_widget::core::{
@@ -136,7 +136,7 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn Operation<OperationOutputWrapper<Message>>,
+        operation: &mut dyn Operation,
     ) {
         self.underlay
             .as_widget()
@@ -188,29 +188,27 @@ where
         state: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
+        translation: Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         if !self.expanded {
-            return self
-                .underlay
-                .as_widget_mut()
-                .overlay(&mut state.children[0], layout, renderer);
+            return self.underlay.as_widget_mut().overlay(
+                &mut state.children[0],
+                layout,
+                renderer,
+                translation,
+            );
         }
 
-        let bounds = layout.bounds();
-
-        Some(overlay::Element::new(
-            bounds.position(),
-            Box::new(DropDownOverlay::new(
-                &mut state.children[1],
-                &mut self.overlay,
-                &self.on_dismiss,
-                &self.width,
-                &self.height,
-                &self.alignment,
-                &self.offset,
-                layout.bounds(),
-            )),
-        ))
+        Some(overlay::Element::new(Box::new(DropDownOverlay::new(
+            &mut state.children[1],
+            &mut self.overlay,
+            &self.on_dismiss,
+            &self.width,
+            &self.height,
+            &self.alignment,
+            &self.offset,
+            layout.bounds(),
+        ))))
     }
 }
 
@@ -273,13 +271,7 @@ where
     Message: Clone,
     Renderer: core::Renderer,
 {
-    fn layout(
-        &mut self,
-        renderer: &Renderer,
-        bounds: Size,
-        position: Point,
-        _translation: Vector,
-    ) -> Node {
+    fn layout(&mut self, renderer: &Renderer, bounds: Size) -> Node {
         let limits = Limits::new(Size::ZERO, bounds)
             .width(
                 self.width
@@ -291,6 +283,8 @@ where
             .element
             .as_widget()
             .layout(self.state, renderer, &limits);
+
+        let position = self.underlay_bounds.position();
 
         let position = match self.alignment {
             Alignment::TopStart => Point::new(
@@ -407,6 +401,6 @@ where
     ) -> Option<overlay::Element<'c, Message, Theme, Renderer>> {
         self.element
             .as_widget_mut()
-            .overlay(self.state, layout, renderer)
+            .overlay(self.state, layout, renderer, Vector::ZERO)
     }
 }

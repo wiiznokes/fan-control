@@ -3,7 +3,7 @@ use std::rc::Rc;
 use cosmic::{
     iced_core::{Alignment, Length, Padding},
     iced_widget::{
-        scrollable::{Direction, Properties},
+        scrollable::{Direction, Scrollbar},
         Button, PickList, Scrollable, Toggler,
     },
     style, theme,
@@ -88,8 +88,8 @@ pub fn items_view<'a>(
 
     Scrollable::new(container)
         .direction(Direction::Both {
-            vertical: Properties::default(),
-            horizontal: Properties::default(),
+            vertical: Scrollbar::default(),
+            horizontal: Scrollbar::default(),
         })
         .width(Length::Fill)
         .height(Length::Fill)
@@ -130,7 +130,7 @@ fn item_view<'a>(
         fl!("delete"),
         ModifNodeMsg::Delete.to_app(node.id),
     )))
-    .style(theme::Container::Dropdown);
+    .class(theme::Container::Dropdown);
 
     let context_menu = DropDown::new(
         icon_button!("more_vert/24")
@@ -148,7 +148,7 @@ fn item_view<'a>(
         .push(Space::new(5.0, 0.0))
         .push(name)
         .push(context_menu)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     let node_specific_content = match &node.node_type {
         data::node::NodeType::Control(control) => control_view(node, control, nodes, hardware),
@@ -170,13 +170,13 @@ fn item_view<'a>(
     let content = Column::new()
         .push(top)
         .push(node_specific_content)
-        .align_items(Alignment::Center)
+        .align_x(Alignment::Center)
         .spacing(5);
 
     Container::new(content)
         .width(Length::Fixed(200.0))
         .padding(Padding::new(10.0))
-        .style(style::Container::Card)
+        .class(style::Container::Card)
         .into()
 }
 
@@ -223,10 +223,10 @@ fn control_view<'a>(
         Row::new()
             .push(Text::new(node.value_text(&ValueKind::Porcentage)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
-            .push(Toggler::new(None, control.active, |is_active| {
+            .push(Toggler::new(control.active).on_toggle(|is_active| {
                 ModifNodeMsg::Control(ControlMsg::Active(is_active)).to_app(node.id)
             }))
-            .align_items(Alignment::Center)
+            .align_y(Alignment::Center)
             .width(Length::Fill)
             .into(),
     ];
@@ -277,7 +277,7 @@ fn custom_temp_view<'a>(
                 icon_button!("close/20")
                     .on_press(ModifNodeMsg::RemoveInput(input.clone()).to_app(node.id)),
             )
-            .align_items(Alignment::Center)
+            .align_y(Alignment::Center)
             .into()
     });
 
@@ -321,13 +321,13 @@ fn flat_view<'a>(node: &'a Node, flat: &'a Flat) -> Element<'a, AppMsg> {
     let buttons = Row::new()
         .push(sub_button)
         .push(add_button)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     let buttons = Row::new()
         .push(Text::new(node.value_text(&ValueKind::Porcentage)))
         .push(Space::new(Length::Fill, Length::Fixed(0.0)))
         .push(buttons)
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .into();
 
     let slider = Slider::new(0..=100, flat.value, |v| {
