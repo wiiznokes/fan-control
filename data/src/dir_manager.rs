@@ -9,7 +9,11 @@ use hardware::Hardware;
 use thiserror::Error;
 use utils::{APP, ORG, QUALIFIER};
 
-use crate::{config::Config, settings::Settings, utils::RemoveElem};
+use crate::{
+    config::Config,
+    settings::{Settings, SettingsState},
+    utils::RemoveElem,
+};
 
 use self::helper::{deserialize, serialize};
 
@@ -21,8 +25,10 @@ pub struct ConfigNames {
 #[derive(Debug)]
 pub struct DirManager {
     pub config_dir_path: PathBuf,
+    pub state_dir_path: PathBuf,
     pub config_names: ConfigNames,
     settings: Settings,
+    state: SettingsState,
 }
 
 #[derive(Error, Debug)]
@@ -40,18 +46,17 @@ pub enum ConfigError {
 type Result<T> = std::result::Result<T, ConfigError>;
 
 static SETTINGS_FILENAME: &str = "settings.toml";
+static STATE_FILENAME: &str = "state.toml";
 static HARDWARE_FILENAME: &str = "hardware.toml";
 
 impl DirManager {
-    pub fn new(config_dir_path: &Option<PathBuf>, config_name: &Option<String>) -> DirManager {
-        fn default_config_dir_path() -> PathBuf {
-            ProjectDirs::from(QUALIFIER, ORG, APP)
-                .unwrap()
-                .config_dir()
-                .to_path_buf()
-        }
+    pub fn new(
+        custom_config_dir_path: &Option<PathBuf>,
+        custom_config_name: &Option<String>,
+    ) -> DirManager {
+        let project_dirs = ProjectDirs::from(QUALIFIER, ORG, APP).unwrap();
 
-        let config_dir_path = match config_dir_path {
+        let config_dir_path = match custom_config_dir_path {
             Some(config_dir_path) => {
                 if config_dir_path.exists() {
                     if config_dir_path.is_dir() {
@@ -61,7 +66,7 @@ impl DirManager {
                             "The path {} is not a directory. Fall back to default directory.",
                             config_dir_path.display()
                         );
-                        default_config_dir_path()
+                        project_dirs.config_dir().to_path_buf()
                     }
                 } else {
                     warn!(
@@ -71,7 +76,7 @@ impl DirManager {
                     config_dir_path.clone()
                 }
             }
-            None => default_config_dir_path(),
+            None => project_dirs.config_dir().to_path_buf(),
         };
 
         if !config_dir_path.exists() {
@@ -80,11 +85,25 @@ impl DirManager {
             }
         }
 
-        let mut settings = init_settings(&config_dir_path);
+        let mut settings = {
+            let settings_file_path = config_dir_path.join(SETTINGS_FILENAME);
+
+            if !settings_file_path.exists() {
+                Settings::default()
+            } else {
+                match deserialize(&settings_file_path) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        error!("can't deserialize settings at init: {}", e);
+                        Settings::default()
+                    }
+                }
+            }
+        };
 
         let config_names = ConfigNames::new(&config_dir_path);
 
-        if let Some(config_name) = config_name {
+        if let Some(config_name) = custom_config_name {
             let config_name = helper::remove_toml_extension(config_name).to_owned();
             settings.current_config = if config_names.contains(&config_name) {
                 Some(config_name)
@@ -94,10 +113,36 @@ impl DirManager {
             }
         };
 
+        let state_dir_path = project_dirs.data_local_dir().to_path_buf();
+
+        if !state_dir_path.exists() {
+            if let Err(e) = fs::create_dir_all(&state_dir_path) {
+                error!("Can't create config directories: {e}.")
+            }
+        }
+
+        let state = {
+            let state_file_path = state_dir_path.join(STATE_FILENAME);
+
+            if !state_file_path.exists() {
+                SettingsState::default()
+            } else {
+                match deserialize(&state_file_path) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        error!("can't deserialize settings at init: {}", e);
+                        SettingsState::default()
+                    }
+                }
+            }
+        };
+
         DirManager {
             config_names,
             config_dir_path,
             settings,
+            state,
+            state_dir_path,
         }
     }
 
@@ -107,6 +152,10 @@ impl DirManager {
 
     fn hardware_file_path(&self) -> PathBuf {
         self.config_dir_path.join(HARDWARE_FILENAME)
+    }
+
+    fn state_file_path(&self) -> PathBuf {
+        self.state_dir_path.join(STATE_FILENAME)
     }
 
     fn config_file_path(&self, name: &str) -> PathBuf {
@@ -121,7 +170,19 @@ impl DirManager {
     pub fn update_settings(&mut self, mut f: impl FnMut(&mut Settings)) {
         f(&mut self.settings);
 
-        if let Err(e) = serialize(&self.settings_file_path(), &self.settings()) {
+        if let Err(e) = serialize(&self.settings_file_path(), &self.settings) {
+            error!("{e}");
+        }
+    }
+
+    pub fn state(&self) -> &SettingsState {
+        &self.state
+    }
+
+    pub fn update_state(&mut self, mut f: impl FnMut(&mut SettingsState)) {
+        f(&mut self.state);
+
+        if let Err(e) = serialize(&self.state_file_path(), &self.state) {
             error!("{e}");
         }
     }
@@ -231,22 +292,6 @@ impl DirManager {
         });
 
         Ok(())
-    }
-}
-
-fn init_settings(config_dir_path: &Path) -> Settings {
-    let settings_file_path = config_dir_path.join(SETTINGS_FILENAME);
-
-    if !settings_file_path.exists() {
-        Settings::default()
-    } else {
-        match deserialize(&settings_file_path) {
-            Ok(t) => t,
-            Err(e) => {
-                error!("can't deserialize settings at init: {}", e);
-                Settings::default()
-            }
-        }
     }
 }
 
