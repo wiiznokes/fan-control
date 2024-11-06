@@ -10,6 +10,8 @@ homepage.workspace = true
 repository.workspace = true
 keywords.workspace = true
 
+[lints]
+workspace = true
 
 [dependencies]
 cached = "0.53"
@@ -19,5 +21,3 @@ cargo-packager-resource-resolver = { version = "0.1", features = [
 ] }
 log.workspace = true
 
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(FAN_CONTROL_FORMAT, values("flatpak"))'] }

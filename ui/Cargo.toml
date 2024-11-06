@@ -10,6 +10,9 @@ repository.workspace = true
 keywords.workspace = true
 
 
+[lints]
+workspace = true
+
 [dependencies]
 data.workspace = true
 hardware.workspace = true

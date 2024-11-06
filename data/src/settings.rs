@@ -2,10 +2,18 @@ use light_enum::Values;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
 pub struct SettingsState {
-    show_flatpak_dialog: bool,
+    pub show_flatpak_dialog: bool,
+}
+
+impl Default for SettingsState {
+    fn default() -> Self {
+        Self {
+            show_flatpak_dialog: true,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

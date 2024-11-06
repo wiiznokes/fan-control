@@ -7,6 +7,7 @@ use data::{
     utils::RemoveElem,
     AppState,
 };
+use dialogs::Dialog;
 use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
@@ -40,6 +41,7 @@ extern crate log;
 pub mod localize;
 
 mod add_node;
+mod dialogs;
 mod graph;
 mod headers;
 mod icon;
@@ -83,6 +85,7 @@ struct Ui<H: HardwareBridge> {
     is_updating: bool,
     graph_window: Option<GraphWindow>,
     toasts: Toasts<AppMsg>,
+    dialog: Option<Dialog>,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -109,6 +112,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             .current_config_text()
             .to_owned();
 
+        let dialog = if cfg!(FAN_CONTROL_FORMAT = "flatpak")
+            && app_state.dir_manager.state().show_flatpak_dialog
+        {
+            Some(Dialog::Flatpak)
+        } else {
+            None
+        };
+
         let ui_state = Ui {
             nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
             app_state,
@@ -119,6 +130,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             is_updating: false,
             graph_window: None,
             toasts: Toasts::new(AppMsg::RemoveToast),
+            dialog,
         };
 
         let commands = Task::batch([cosmic::app::command::message(cosmic::app::message::app(
@@ -601,6 +613,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         }
 
         panic!("no view for window {id:?}");
+    }
+
+    fn dialog(&self) -> Option<Element<Self::Message>> {
+        self.dialog.as_ref().map(|dialog| dialog.view())
     }
 }
 
