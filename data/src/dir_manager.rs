@@ -238,11 +238,7 @@ fn init_settings(config_dir_path: &Path) -> Settings {
     let settings_file_path = config_dir_path.join(SETTINGS_FILENAME);
 
     if !settings_file_path.exists() {
-        let default_settings = Settings::default();
-        if let Err(e) = serialize(&settings_file_path, &default_settings) {
-            error!("can't init settings: {}", e);
-        }
-        default_settings
+        Settings::default()
     } else {
         match deserialize(&settings_file_path) {
             Ok(t) => t,

@@ -3,14 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
 pub struct Settings {
-    #[serde(default)]
     pub theme: AppTheme,
 
     #[serde(default = "default_update_delay")]
     pub update_delay: u64,
 
-    #[serde(default)]
     pub current_config: Option<String>,
 }
 
