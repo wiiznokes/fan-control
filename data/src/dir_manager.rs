@@ -151,6 +151,10 @@ impl DirManager {
         self.config_dir_path.join(SETTINGS_FILENAME)
     }
 
+    fn cached_config_file_path(&self) -> PathBuf {
+        self.cache_dir_path.join(CACHED_CONFIG_FILENAME)
+    }
+
     fn hardware_file_path(&self) -> PathBuf {
         self.config_dir_path.join(HARDWARE_FILENAME)
     }
@@ -202,17 +206,23 @@ impl DirManager {
     }
 
     pub fn get_config_cached(&self) -> Option<Config> {
-        deserialize::<Config>(&self.cache_dir_path.join(CACHED_CONFIG_FILENAME)).ok()
+        deserialize::<Config>(&self.cached_config_file_path())
+            .ok()
+            .inspect(|_| info!("load cached config"))
     }
 
     pub fn save_config_cached(&self, config: &Config) -> Result<()> {
-        serialize(&self.cache_dir_path.join(CACHED_CONFIG_FILENAME), config)?;
+        serialize(&self.cached_config_file_path(), config)?;
 
         Ok(())
     }
 
-    pub fn remove_config_cached(&self) {
-        let _ = fs::remove_file(self.cache_dir_path.join(CACHED_CONFIG_FILENAME));
+    pub fn remove_config_cached(&self) -> Result<()> {
+        if fs::exists(self.cached_config_file_path())? {
+            fs::remove_file(self.cached_config_file_path())?;
+            info!("cached config removed successfully");
+        }
+        Ok(())
     }
 
     pub fn serialize_hardware(&self, hardware: &Hardware) {

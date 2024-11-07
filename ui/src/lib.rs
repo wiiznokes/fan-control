@@ -610,7 +610,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 info!("cached config saved successfully");
             }
         } else {
-            self.app_state.dir_manager.remove_config_cached();
+            if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
+                error!("{err}")
+            }
         }
 
         None
