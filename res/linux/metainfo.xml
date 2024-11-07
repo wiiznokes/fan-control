@@ -62,11 +62,6 @@
         https://media.githubusercontent.com/media/wiiznokes/fan-control/master/res/screenshots/app.png</image>
     </screenshot>
   </screenshots>
-  
-  <provides>
-    <id>com.system76.CosmicApplication</id>
-    <binary>fan-control</binary>
-  </provides>
 
   <releases>
     <release version="24.8.23" date="2024-08-23">
