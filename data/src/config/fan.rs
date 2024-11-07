@@ -8,7 +8,7 @@ use crate::{
 use hardware::{HSensor, Hardware, HardwareBridge, Value};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, Eq)]
 pub struct Fan {
     // unique
     pub name: String,
@@ -19,6 +19,12 @@ pub struct Fan {
     // E hardware.fans
     #[serde(skip)]
     pub fan_h: Option<Rc<HSensor>>,
+}
+
+impl PartialEq for Fan {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.hardware_id == other.hardware_id
+    }
 }
 
 impl Fan {

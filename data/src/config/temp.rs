@@ -9,7 +9,7 @@ use crate::{
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, Eq)]
 pub struct Temp {
     pub name: String,
     #[serde(rename = "id")]
@@ -17,6 +17,12 @@ pub struct Temp {
 
     #[serde(skip)]
     pub temp_h: Option<Rc<HSensor>>,
+}
+
+impl PartialEq for Temp {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.hardware_id == other.hardware_id
+    }
 }
 
 impl Temp {

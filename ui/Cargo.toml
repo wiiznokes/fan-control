@@ -10,6 +10,9 @@ repository.workspace = true
 keywords.workspace = true
 
 
+[lints]
+workspace = true
+
 [dependencies]
 data.workspace = true
 hardware.workspace = true
@@ -20,6 +23,7 @@ rust-embed.workspace = true
 utils.workspace = true
 derive_more.workspace = true
 tokio = { version = "1", features = ["time"] }
+open = "5"
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 branch = "master"
@@ -31,6 +35,7 @@ features = [
     "tokio",
     "multi-window",
     "single-instance",
+    "markdown",
     # todo: re enable when it works on Flatpak
     # "dbus-config",
     #"a11y",

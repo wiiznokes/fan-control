@@ -40,19 +40,10 @@ ui = ["dep:ui"]
 fake_hardware = ["hardware/fake_hardware"]
 
 
-[dependencies]
-data.workspace = true
-ui = { workspace = true, optional = true }
-thiserror.workspace = true
-clap.workspace = true
-log.workspace = true
-env_logger.workspace = true
-hardware.workspace = true
-crossterm = "0.28"
-
-[build-dependencies]
-winres = "0.1"
-
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(FAN_CONTROL_FORMAT, values("flatpak"))',
+] }
 
 [workspace.dependencies]
 hardware = { path = "hardware" }
@@ -71,7 +62,7 @@ i18n-embed = { version = "0.15", features = [
 ] }
 rust-embed = "8"
 i18n-embed-fl = "0.9"
-thiserror = "1"
+thiserror = "2"
 derive_more = { version = "1", default-features = false, features = [
     "unwrap",
     "display",
@@ -81,6 +72,21 @@ derive_more = { version = "1", default-features = false, features = [
 # [patch."https://github.com/pop-os/libcosmic"]
 # libcosmic = { path = "../libcosmic" }
 # libcosmic = { git = "https://github.com/wiiznokes/libcosmic", rev = "2dff73b8b2871afca6c65c861954c196818f960f" }
+
+
+[dependencies]
+data.workspace = true
+ui = { workspace = true, optional = true }
+thiserror.workspace = true
+clap.workspace = true
+log.workspace = true
+env_logger.workspace = true
+hardware.workspace = true
+crossterm = "0.28"
+
+[build-dependencies]
+winres = "0.1"
+
 
 [profile.release]
 lto = "fat"

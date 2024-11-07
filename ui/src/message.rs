@@ -6,7 +6,7 @@ use data::{
     settings::AppTheme,
 };
 
-use crate::graph::GraphWindowMsg;
+use crate::{dialogs::DialogMsg, graph::GraphWindowMsg};
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -26,6 +26,7 @@ pub enum AppMsg {
     GraphWindow(GraphWindowMsg),
 
     RemoveToast(ToastId),
+    Dialog(DialogMsg),
 }
 
 #[derive(Debug, Clone)]

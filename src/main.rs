@@ -102,7 +102,10 @@ fn try_run() -> Result<()> {
         return Ok(());
     }
 
-    let app_graph = match dir_manager.get_config() {
+    let app_graph = match dir_manager
+        .get_config_cached()
+        .or_else(|| dir_manager.get_config())
+    {
         Some(config) => AppGraph::from_config(config, hardware),
         None => AppGraph::default(hardware),
     };

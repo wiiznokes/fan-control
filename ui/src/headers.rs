@@ -1,11 +1,12 @@
 use cosmic::{
     iced_core::{Alignment, Length},
-    iced_widget::{Button, Column},
+    iced_widget::{text, Button, Column},
     theme,
-    widget::{Container, Row, Text, TextInput},
+    widget::{tooltip, Container, Row, Text, TextInput},
     Element,
 };
-use data::dir_manager::DirManager;
+use data::{config::Config, AppState};
+use hardware::HardwareBridge;
 
 use crate::{
     icon, icon::expand_icon, icon_button, message::ConfigMsg, my_widgets::drop_down, AppMsg,
@@ -27,37 +28,67 @@ pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
     elems
 }
 
-pub fn header_center<'a>(
-    dir_manager: &'a DirManager,
-    current_config: &'a String,
+pub fn header_center<'a, H: HardwareBridge>(
+    app_state: &'a AppState<H>,
+    current_config_cached: &'a String,
     expanded: bool,
 ) -> Vec<Element<'a, AppMsg>> {
+    let dir_manager = &app_state.dir_manager;
     let settings = dir_manager.settings();
+
     let mut elems = Vec::new();
 
-    if settings.current_config.is_some() {
-        let mut save_button = icon_button!("save/40")
-            .tooltip(fl!("save_config"))
-            .height(ICON_LENGHT)
-            .width(ICON_LENGHT);
-
-        if dir_manager
-            .config_names
-            .is_valid_name(&settings.current_config, current_config)
-        {
-            save_button = save_button.on_press(ConfigMsg::Save.into());
+    // configuration not saved
+    if match &settings.current_config {
+        Some(current_config) => {
+            if current_config != current_config_cached {
+                true
+            } else {
+                match dir_manager.get_config() {
+                    Some(config) => config != Config::from_app_graph(&app_state.app_graph),
+                    None => true,
+                }
+            }
         }
-
-        elems.push(save_button.into());
+        None => true,
+    } {
+        elems.push(
+            tooltip(
+                icon!("warning/40").height(ICON_LENGHT).width(ICON_LENGHT),
+                text(fl!("config_not_saved")),
+                tooltip::Position::Bottom,
+            )
+            .into(),
+        );
     }
 
-    let mut name = TextInput::new(fl!("config_name"), current_config)
+    // save button
+    if settings.current_config.is_some() {
+        elems.push(
+            tooltip(
+                icon_button!("save/40")
+                    .height(ICON_LENGHT)
+                    .width(ICON_LENGHT)
+                    .on_press_maybe(
+                        dir_manager
+                            .config_names
+                            .is_valid_name(&settings.current_config, current_config_cached)
+                            .then_some(ConfigMsg::Save.into()),
+                    ),
+                text(fl!("save_config")),
+                tooltip::Position::Bottom,
+            )
+            .into(),
+        );
+    }
+
+    let mut name = TextInput::new(fl!("config_name"), current_config_cached)
         .on_input(|name| ConfigMsg::Rename(name).into())
         .width(Length::Fixed(180.0));
 
     if !dir_manager
         .config_names
-        .is_valid_name(&settings.current_config, current_config)
+        .is_valid_name(&settings.current_config, current_config_cached)
     {
         //let error_text = fl!("already_used_error");
         name = name.error("This name is already being use");
@@ -101,16 +132,23 @@ pub fn header_center<'a>(
 
     elems.push(choose_config);
 
-    let mut create_button = icon_button!("add/40")
-        .height(ICON_LENGHT)
-        .width(ICON_LENGHT)
-        .tooltip(fl!("create_config"));
-
-    if dir_manager.config_names.is_valid_create(current_config) {
-        create_button = create_button.on_press(ConfigMsg::Create(current_config.to_owned()).into());
-    }
-
-    elems.push(create_button.into());
+    // create button
+    elems.push(
+        tooltip(
+            icon_button!("add/40")
+                .height(ICON_LENGHT)
+                .width(ICON_LENGHT)
+                .on_press_maybe(
+                    dir_manager
+                        .config_names
+                        .is_valid_create(current_config_cached)
+                        .then_some(ConfigMsg::Create(current_config_cached.to_owned()).into()),
+                ),
+            text(fl!("create_config")),
+            tooltip::Position::Bottom,
+        )
+        .into(),
+    );
 
     elems
 }
@@ -125,10 +163,15 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
 
     if optional_name.is_some() {
         elements.push(
-            icon_button!("delete_forever/24")
-                .on_press(ConfigMsg::Delete(name).into())
-                .tooltip(fl!("delete_config"))
-                .into(),
+            tooltip(
+                icon_button!("delete_forever/40")
+                    .height(ICON_LENGHT)
+                    .width(ICON_LENGHT)
+                    .on_press(ConfigMsg::Delete(name).into()),
+                text(fl!("delete_config")),
+                tooltip::Position::Right,
+            )
+            .into(),
         );
     }
     Row::with_children(elements)

@@ -9,7 +9,7 @@ use crate::{
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 pub struct CustomTemp {
     pub name: String,
     pub kind: CustomTempKind,

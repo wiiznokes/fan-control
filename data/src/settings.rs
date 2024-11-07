@@ -3,14 +3,26 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
+pub struct SettingsState {
+    pub show_flatpak_dialog: bool,
+}
+
+impl Default for SettingsState {
+    fn default() -> Self {
+        Self {
+            show_flatpak_dialog: true,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
 pub struct Settings {
-    #[serde(default)]
     pub theme: AppTheme,
 
-    #[serde(default = "default_update_delay")]
     pub update_delay: u64,
 
-    #[serde(default)]
     pub current_config: Option<String>,
 }
 
@@ -30,14 +42,10 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             theme: Default::default(),
-            update_delay: default_update_delay(),
+            update_delay: 1500,
             current_config: Default::default(),
         }
     }
-}
-
-fn default_update_delay() -> u64 {
-    1500
 }
 
 impl Settings {

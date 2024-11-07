@@ -7,6 +7,7 @@ use data::{
     utils::RemoveElem,
     AppState,
 };
+use dialogs::Dialog;
 use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
@@ -40,6 +41,7 @@ extern crate log;
 pub mod localize;
 
 mod add_node;
+mod dialogs;
 mod graph;
 mod headers;
 mod icon;
@@ -83,6 +85,7 @@ struct Ui<H: HardwareBridge> {
     is_updating: bool,
     graph_window: Option<GraphWindow>,
     toasts: Toasts<AppMsg>,
+    dialog: Option<Dialog>,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -109,6 +112,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             .current_config_text()
             .to_owned();
 
+        let dialog = if cfg!(FAN_CONTROL_FORMAT = "flatpak")
+            && app_state.dir_manager.state().show_flatpak_dialog
+        {
+            Some(Dialog::Flatpak)
+        } else {
+            None
+        };
+
         let ui_state = Ui {
             nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
             app_state,
@@ -119,6 +130,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             is_updating: false,
             graph_window: None,
             toasts: Toasts::new(AppMsg::RemoveToast),
+            dialog,
         };
 
         let commands = Task::batch([cosmic::app::command::message(cosmic::app::message::app(
@@ -525,6 +537,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             AppMsg::RemoveToast(pos) => {
                 self.toasts.remove(pos);
             }
+            AppMsg::Dialog(dialog_msg) => {
+                return Dialog::update(self, dialog_msg).map(cosmic::app::Message::App);
+            }
         }
 
         Task::none()
@@ -551,7 +566,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
         headers::header_center(
-            &self.app_state.dir_manager,
+            &self.app_state,
             &self.current_config_cached,
             self.choose_config_expanded,
         )
@@ -578,11 +593,26 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         if let Err(e) = self.app_state.bridge.shutdown() {
             error!("shutdown hardware: {}", e);
         }
-        None
-    }
 
-    fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
-        // todo: pop up. Need to use settings to not close auto
+        let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if match self.app_state.dir_manager.get_config() {
+            Some(saved_config) => saved_config != runtime_config,
+            None => true,
+        } {
+            if let Err(err) = self
+                .app_state
+                .dir_manager
+                .save_config_cached(&runtime_config)
+            {
+                error!("{err}")
+            } else {
+                info!("cached config saved successfully");
+            }
+        } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
+            error!("{err}")
+        }
+
         None
     }
 
@@ -601,6 +631,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         }
 
         panic!("no view for window {id:?}");
+    }
+
+    fn dialog(&self) -> Option<Element<Self::Message>> {
+        self.dialog.as_ref().map(|dialog| dialog.view())
     }
 }
 
