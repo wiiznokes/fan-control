@@ -5,7 +5,8 @@ use cosmic::{
     widget::{tooltip, Container, Row, Text, TextInput},
     Element,
 };
-use data::dir_manager::DirManager;
+use data::{config::Config, AppState};
+use hardware::HardwareBridge;
 
 use crate::{
     icon, icon::expand_icon, icon_button, message::ConfigMsg, my_widgets::drop_down, AppMsg,
@@ -27,14 +28,39 @@ pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
     elems
 }
 
-pub fn header_center<'a>(
-    dir_manager: &'a DirManager,
-    current_config: &'a String,
+pub fn header_center<'a, H: HardwareBridge>(
+    app_state: &'a AppState<H>,
+    current_config_cached: &'a String,
     expanded: bool,
 ) -> Vec<Element<'a, AppMsg>> {
+    let dir_manager = &app_state.dir_manager;
     let settings = dir_manager.settings();
 
     let mut elems = Vec::new();
+
+    // configuration not saved
+    if match &settings.current_config {
+        Some(current_config) => {
+            if current_config != current_config_cached {
+                true
+            } else {
+                match dir_manager.get_config() {
+                    Some(config) => config != Config::from_app_graph(&app_state.app_graph),
+                    None => true,
+                }
+            }
+        }
+        None => true,
+    } {
+        elems.push(
+            tooltip(
+                icon!("warning/40").height(ICON_LENGHT).width(ICON_LENGHT),
+                text(fl!("config_not_saved")),
+                tooltip::Position::Bottom,
+            )
+            .into(),
+        );
+    }
 
     // save button
     if settings.current_config.is_some() {
@@ -46,7 +72,7 @@ pub fn header_center<'a>(
                     .on_press_maybe(
                         dir_manager
                             .config_names
-                            .is_valid_name(&settings.current_config, current_config)
+                            .is_valid_name(&settings.current_config, current_config_cached)
                             .then_some(ConfigMsg::Save.into()),
                     ),
                 text(fl!("save_config")),
@@ -56,13 +82,13 @@ pub fn header_center<'a>(
         );
     }
 
-    let mut name = TextInput::new(fl!("config_name"), current_config)
+    let mut name = TextInput::new(fl!("config_name"), current_config_cached)
         .on_input(|name| ConfigMsg::Rename(name).into())
         .width(Length::Fixed(180.0));
 
     if !dir_manager
         .config_names
-        .is_valid_name(&settings.current_config, current_config)
+        .is_valid_name(&settings.current_config, current_config_cached)
     {
         //let error_text = fl!("already_used_error");
         name = name.error("This name is already being use");
@@ -115,8 +141,8 @@ pub fn header_center<'a>(
                 .on_press_maybe(
                     dir_manager
                         .config_names
-                        .is_valid_create(current_config)
-                        .then_some(ConfigMsg::Create(current_config.to_owned()).into()),
+                        .is_valid_create(current_config_cached)
+                        .then_some(ConfigMsg::Create(current_config_cached.to_owned()).into()),
                 ),
             text(fl!("create_config")),
             tooltip::Position::Bottom,

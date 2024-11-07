@@ -163,7 +163,9 @@ fn config1() -> Config {
                     temp: 50,
                     percent: 30,
                 },
-            ],
+            ]
+            .into_iter()
+            .collect(),
             input: Some("max".into()),
         }],
         flats: vec![Flat {

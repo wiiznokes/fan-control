@@ -6,7 +6,7 @@ use crate::{
     app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
 };
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Flat {
     pub name: String,
     pub value: u16,

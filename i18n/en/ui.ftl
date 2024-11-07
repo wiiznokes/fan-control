@@ -50,6 +50,9 @@ create_config = Create configuration
 already_used_error = This name is already being use
 invalid_value_error = this value is invalid
 
+# Warning
+config_not_saved = Configuration not saved
+
 # Dialogs
 udev_rules_dialog_ok = I understand
 udev_rules_dialog_remind_later = Remind me Later

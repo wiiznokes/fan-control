@@ -23,7 +23,7 @@ use crate::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 pub struct Config {
     #[serde(default, rename = "Control")]
     pub controls: Vec<Control>,

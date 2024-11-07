@@ -6,7 +6,7 @@ use crate::{
 use hardware::{Hardware, Value};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 pub struct Target {
     pub name: String,
     #[serde(rename = "idleTemp", alias = "idle_temp")]
@@ -21,6 +21,17 @@ pub struct Target {
 
     #[serde(skip)]
     pub idle_has_been_reatch: bool,
+}
+
+impl PartialEq for Target {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.idle_temp == other.idle_temp
+            && self.idle_speed == other.idle_speed
+            && self.load_temp == other.load_temp
+            && self.load_speed == other.load_speed
+            && self.input == other.input
+    }
 }
 
 impl Target {

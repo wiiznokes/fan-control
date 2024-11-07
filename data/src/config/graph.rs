@@ -7,7 +7,6 @@ use crate::{
     app_graph::AppGraph,
     node::{IsValid, Node, NodeType, ToNode},
     update::UpdateError,
-    utils::{has_duplicate, is_sorted, InsertSorted, RemoveElem},
 };
 
 use super::utils::affine::Affine;
@@ -48,7 +47,7 @@ impl Coord {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 pub struct Graph {
     // unique
     pub name: String,
@@ -56,8 +55,21 @@ pub struct Graph {
     // temp unique
     // 0 <= percent <= 100
     #[serde(rename = "coord")]
-    pub coords: Vec<Coord>,
+    pub coords: BTreeSet<Coord>,
     pub input: Option<String>, // Temp or CustomTemp
+}
+
+impl PartialEq for Graph {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.input == other.input
+            && self.coords.len() == other.coords.len()
+            && self
+                .coords
+                .iter()
+                .zip(&other.coords)
+                .all(|(a, b)| a.exact_same(b))
+    }
 }
 
 impl Default for Graph {
@@ -73,7 +85,9 @@ impl Default for Graph {
                     temp: 70,
                     percent: 100,
                 },
-            ],
+            ]
+            .into_iter()
+            .collect(),
             input: Default::default(),
         }
     }
@@ -95,17 +109,12 @@ impl ToNode for Graph {
 
         self.coords = deduplicator.into_iter().collect();
 
-        debug_assert!(!has_duplicate(&self.coords));
-        debug_assert!(is_sorted(&self.coords));
-
         Node::new(NodeType::Graph(self), app_graph)
     }
 }
 
 impl IsValid for Graph {
     fn is_valid(&self) -> bool {
-        debug_assert!(!has_duplicate(&self.coords));
-        debug_assert!(is_sorted(&self.coords));
         self.input.is_some() && !self.coords.is_empty()
     }
 }
@@ -126,9 +135,9 @@ impl Graph {
 
         let coord = Coord { temp, percent };
 
-        if self.coords.binary_search(&coord).is_ok() {
+        if self.coords.contains(&coord) {
             return Err(format!(
-                "Can't add create this new coord {}, this temp is already present",
+                "Can't create this new coord {}, this temp is already present",
                 temp
             )
             .into());
@@ -138,32 +147,28 @@ impl Graph {
     }
 
     pub fn get_value(&self, value: Value) -> Result<Value, UpdateError> {
-        debug_assert!(!has_duplicate(&self.coords));
-        debug_assert!(is_sorted(&self.coords));
-
         let dummy_coord = Coord {
             temp: value as u8,
             percent: 0,
         };
 
-        let res = match self.coords.binary_search(&dummy_coord) {
-            Ok(index) => self.coords[index].percent as Value,
-            Err(index) => {
-                if index == 0 {
-                    self.coords[index].percent as Value
-                } else if index == self.coords.len() {
-                    self.coords[index - 1].percent as Value
-                } else {
-                    let coord1 = &self.coords[index - 1];
-                    let coord2 = &self.coords[index];
+        let res = match self.coords.get(&dummy_coord) {
+            Some(c) => c.percent as Value,
+            None => {
+                let lower_bound = self.coords.range(..=dummy_coord).next_back();
+                let upper_bound = self.coords.range(dummy_coord..).next();
 
-                    Affine {
+                match (lower_bound, upper_bound) {
+                    (Some(coord), None) | (None, Some(coord)) => coord.percent as Value,
+                    (Some(coord1), Some(coord2)) => Affine {
                         xa: coord1.temp.into(),
                         ya: coord1.percent.into(),
                         xb: coord2.temp.into(),
                         yb: coord2.percent.into(),
                     }
-                    .calcule(value) as Value
+                    .calcule(value) as Value,
+
+                    _ => panic!("internal error: no value for graph"),
                 }
             }
         };
@@ -172,10 +177,10 @@ impl Graph {
     }
 
     pub fn add_coord(&mut self, new: Coord) {
-        self.coords.insert_sorted(|c| c.cmp(&new), new);
+        self.coords.insert(new);
     }
     pub fn remove_coord(&mut self, coord: &Coord) {
-        self.coords.remove_elem(|c| c.exact_same(coord));
+        self.coords.remove(coord);
     }
     pub fn replace_coord(&mut self, prev: &Coord, new: Coord) {
         self.remove_coord(prev);
@@ -214,7 +219,9 @@ mod test {
                     temp: 40,
                     percent: 5,
                 },
-            ],
+            ]
+            .into_iter()
+            .collect(),
             input: None,
         };
 

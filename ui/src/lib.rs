@@ -566,7 +566,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
         headers::header_center(
-            &self.app_state.dir_manager,
+            &self.app_state,
             &self.current_config_cached,
             self.choose_config_expanded,
         )

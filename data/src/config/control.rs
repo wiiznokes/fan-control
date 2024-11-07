@@ -9,7 +9,7 @@ use crate::{
     update::UpdateError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, Eq)]
 pub struct Control {
     // unique
     pub name: String,
@@ -25,6 +25,15 @@ pub struct Control {
 
     #[serde(skip)]
     pub mode_set: Option<Mode>,
+}
+
+impl PartialEq for Control {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.hardware_id == other.hardware_id
+            && self.input == other.input
+            && self.active == other.active
+    }
 }
 
 impl Control {

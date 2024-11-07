@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use super::utils::affine::Affine;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Linear {
     pub name: String,
     #[serde(rename = "minTemp", alias = "min_temp")]
