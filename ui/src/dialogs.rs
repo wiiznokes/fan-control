@@ -70,7 +70,7 @@ fn view_flatpak_dialog() -> Element<'static, DialogMsg> {
         sudo udevadm control --reload-rules && sudo udevadm trigger
     "#;
 
-    let dialog: Element<_> = dialog()
+    let dialog: Element<_> = dialog("")
         .control(
             markdown::view(
                 items.iter(),

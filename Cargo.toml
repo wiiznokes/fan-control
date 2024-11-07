@@ -62,15 +62,15 @@ i18n-embed = { version = "0.15", features = [
 ] }
 rust-embed = "8"
 i18n-embed-fl = "0.9"
-thiserror = "1"
+thiserror = "2"
 derive_more = { version = "1", default-features = false, features = [
     "unwrap",
     "display",
 ] }
 # strum = { version = "0.25", features = ["derive"] }
 
-[patch."https://github.com/pop-os/libcosmic"]
-libcosmic = { path = "../libcosmic" }
+# [patch."https://github.com/pop-os/libcosmic"]
+# libcosmic = { path = "../libcosmic" }
 # libcosmic = { git = "https://github.com/wiiznokes/libcosmic", rev = "2dff73b8b2871afca6c65c861954c196818f960f" }
 
 

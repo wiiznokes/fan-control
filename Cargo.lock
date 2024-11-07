@@ -32,7 +32,7 @@ dependencies = [
  "accesskit_consumer",
  "atspi-common",
  "serde",
- "thiserror",
+ "thiserror 1.0.68",
  "zvariant 3.15.2",
 ]
 
@@ -171,7 +171,7 @@ dependencies = [
  "ndk-context",
  "ndk-sys 0.6.0+11769913",
  "num_enum",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -789,16 +789,16 @@ checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
 
 [[package]]
 name = "cached"
-version = "0.53.1"
+version = "0.54.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4d73155ae6b28cf5de4cfc29aeb02b8a1c6dab883cb015d15cd514e42766846"
+checksum = "9718806c4a2fe9e8a56fd736f97b340dd10ed1be8ed733ed50449f351dc33cae"
 dependencies = [
  "ahash",
  "cached_proc_macro",
  "cached_proc_macro_types",
  "hashbrown 0.14.5",
  "once_cell",
- "thiserror",
+ "thiserror 1.0.68",
  "web-time",
 ]
 
@@ -831,7 +831,7 @@ dependencies = [
  "polling 3.7.4",
  "rustix 0.38.39",
  "slab",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -855,7 +855,7 @@ dependencies = [
  "cargo-packager-utils",
  "heck 0.5.0",
  "log",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -1010,7 +1010,7 @@ name = "clipboard_x11"
 version = "0.4.2"
 source = "git+https://github.com/pop-os/window_clipboard.git?tag=pop-0.13#a83bf83784276aaa882ef13555295a2ad9edd265"
 dependencies = [
- "thiserror",
+ "thiserror 1.0.68",
  "x11rb",
 ]
 
@@ -1214,6 +1214,7 @@ dependencies = [
 [[package]]
 name = "cosmic-config"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "atomicwrites",
  "cosmic-config-derive",
@@ -1232,6 +1233,7 @@ dependencies = [
 [[package]]
 name = "cosmic-config-derive"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -1263,6 +1265,7 @@ dependencies = [
 [[package]]
 name = "cosmic-theme"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "almost",
  "cosmic-config",
@@ -1273,7 +1276,7 @@ dependencies = [
  "ron",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -1485,7 +1488,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "thiserror",
+ "thiserror 2.0.0",
  "toml 0.8.19",
  "utils",
 ]
@@ -1853,7 +1856,7 @@ dependencies = [
  "env_logger",
  "hardware",
  "log",
- "thiserror",
+ "thiserror 2.0.0",
  "ui",
  "winres",
 ]
@@ -1972,7 +1975,7 @@ version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a530c4694a6a8d528794ee9bbd8ba0122e779629ac908d15ad5a7ae7763a33d"
 dependencies = [
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -2082,7 +2085,7 @@ dependencies = [
  "dirs",
  "once_cell",
  "rust-ini",
- "thiserror",
+ "thiserror 1.0.68",
  "xdg",
 ]
 
@@ -2340,7 +2343,7 @@ checksum = "fdd4240fc91d3433d5e5b0fc5b67672d771850dc19bbee03c1381e19322803d7"
 dependencies = [
  "log",
  "presser",
- "thiserror",
+ "thiserror 1.0.68",
  "winapi",
  "windows 0.52.0",
 ]
@@ -2403,7 +2406,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 2.0.0",
  "utils",
 ]
 
@@ -2433,7 +2436,7 @@ dependencies = [
  "com",
  "libc",
  "libloading",
- "thiserror",
+ "thiserror 1.0.68",
  "widestring",
  "winapi",
 ]
@@ -2490,7 +2493,7 @@ dependencies = [
  "log",
  "serde",
  "serde_derive",
- "thiserror",
+ "thiserror 1.0.68",
  "unic-langid",
 ]
 
@@ -2511,7 +2514,7 @@ dependencies = [
  "log",
  "parking_lot 0.12.3",
  "rust-embed",
- "thiserror",
+ "thiserror 1.0.68",
  "unic-langid",
  "walkdir",
 ]
@@ -2576,6 +2579,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "dnd",
  "iced_accessibility",
@@ -2586,13 +2590,14 @@ dependencies = [
  "iced_winit",
  "image",
  "mime",
- "thiserror",
+ "thiserror 1.0.68",
  "window_clipboard",
 ]
 
 [[package]]
 name = "iced_accessibility"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "accesskit",
  "accesskit_winit",
@@ -2601,6 +2606,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "bitflags 2.6.0",
  "bytes",
@@ -2615,7 +2621,7 @@ dependencies = [
  "rustc-hash 2.0.0",
  "serde",
  "smol_str",
- "thiserror",
+ "thiserror 1.0.68",
  "web-time",
  "window_clipboard",
 ]
@@ -2623,6 +2629,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "futures",
  "iced_core",
@@ -2648,6 +2655,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "bitflags 2.6.0",
  "bytemuck",
@@ -2662,37 +2670,40 @@ dependencies = [
  "once_cell",
  "raw-window-handle",
  "rustc-hash 2.0.0",
- "thiserror",
+ "thiserror 1.0.68",
  "unicode-segmentation",
 ]
 
 [[package]]
 name = "iced_renderer"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
  "iced_wgpu",
  "log",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
 name = "iced_runtime"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "bytes",
  "dnd",
  "iced_core",
  "iced_futures",
  "raw-window-handle",
- "thiserror",
+ "thiserror 1.0.68",
  "window_clipboard",
 ]
 
 [[package]]
 name = "iced_tiny_skia"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2708,6 +2719,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "as-raw-xcb-connection",
  "bitflags 2.6.0",
@@ -2725,7 +2737,7 @@ dependencies = [
  "rustc-hash 2.0.0",
  "rustix 0.38.39",
  "smithay-client-toolkit",
- "thiserror",
+ "thiserror 1.0.68",
  "tiny-xlib",
  "wayland-backend",
  "wayland-client",
@@ -2738,6 +2750,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "dnd",
  "iced_renderer",
@@ -2747,7 +2760,7 @@ dependencies = [
  "ouroboros",
  "pulldown-cmark",
  "rustc-hash 2.0.0",
- "thiserror",
+ "thiserror 1.0.68",
  "unicode-segmentation",
  "url",
  "window_clipboard",
@@ -2756,6 +2769,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.14.0-dev"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "dnd",
  "iced_futures",
@@ -2763,7 +2777,7 @@ dependencies = [
  "iced_runtime",
  "log",
  "rustc-hash 2.0.0",
- "thiserror",
+ "thiserror 1.0.68",
  "tracing",
  "wasm-bindgen-futures",
  "web-sys",
@@ -3079,7 +3093,7 @@ dependencies = [
  "combine",
  "jni-sys",
  "log",
- "thiserror",
+ "thiserror 1.0.68",
  "walkdir",
  "windows-sys 0.45.0",
 ]
@@ -3222,6 +3236,7 @@ checksum = "18d287de67fe55fd7e1581fe933d965a5a9477b38e949cfa9f8574ef01506398"
 [[package]]
 name = "libcosmic"
 version = "0.1.0"
+source = "git+https://github.com/pop-os/libcosmic?branch=master#568ff097d67b93eef646d2f86937935438dba4dd"
 dependencies = [
  "apply",
  "ashpd 0.9.2",
@@ -3248,7 +3263,7 @@ dependencies = [
  "serde",
  "slotmap",
  "taffy",
- "thiserror",
+ "thiserror 1.0.68",
  "tokio",
  "tracing",
  "unicode-segmentation",
@@ -3333,7 +3348,7 @@ dependencies = [
  "libc",
  "num_enum",
  "sensors-sys",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -3561,7 +3576,7 @@ dependencies = [
  "rustc-hash 1.1.0",
  "spirv",
  "termcolor",
- "thiserror",
+ "thiserror 1.0.68",
  "unicode-xid",
 ]
 
@@ -3577,7 +3592,7 @@ dependencies = [
  "ndk-sys 0.6.0+11769913",
  "num_enum",
  "raw-window-handle",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -4587,7 +4602,7 @@ checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
 dependencies = [
  "getrandom",
  "libredox",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
@@ -5092,7 +5107,7 @@ dependencies = [
  "memmap2 0.9.5",
  "pkg-config",
  "rustix 0.38.39",
- "thiserror",
+ "thiserror 1.0.68",
  "wayland-backend",
  "wayland-client",
  "wayland-csd-frame",
@@ -5318,7 +5333,16 @@ version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 1.0.68",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15291287e9bff1bc6f9ff3409ed9af665bec7a5fc8ac079ea96be07bca0e2668"
+dependencies = [
+ "thiserror-impl 2.0.0",
 ]
 
 [[package]]
@@ -5326,6 +5350,17 @@ name = "thiserror-impl"
 version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22efd00f33f93fa62848a7cab956c3d38c8d43095efda1decfc2b3a5dc0b8972"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6069,7 +6104,7 @@ dependencies = [
  "raw-window-handle",
  "rustc-hash 1.1.0",
  "smallvec",
- "thiserror",
+ "thiserror 1.0.68",
  "wgpu-hal",
  "wgpu-types",
 ]
@@ -6112,7 +6147,7 @@ dependencies = [
  "renderdoc-sys",
  "rustc-hash 1.1.0",
  "smallvec",
- "thiserror",
+ "thiserror 1.0.68",
  "wasm-bindgen",
  "web-sys",
  "wgpu-types",
@@ -6179,7 +6214,7 @@ dependencies = [
  "dnd",
  "mime",
  "raw-window-handle",
- "thiserror",
+ "thiserror 1.0.68",
 ]
 
 [[package]]
