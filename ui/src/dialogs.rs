@@ -1,6 +1,10 @@
 use cosmic::{
-    iced::clipboard,
-    widget::{button, dialog, text},
+    iced::{clipboard, theme::Palette},
+    widget::{
+        button, dialog,
+        markdown::{self, Url},
+        text,
+    },
     Element, Task,
 };
 use hardware::HardwareBridge;
@@ -38,6 +42,9 @@ impl Dialog {
                         state.show_flatpak_dialog = false;
                     });
                 }
+                FlatpakDialogMsg::OpenUrl(url) => {
+                    // todo
+                },
             },
         }
 
@@ -50,12 +57,22 @@ pub enum FlatpakDialogMsg {
     Close,
     CopyToClipboard(String),
     CloseAndDontShowAgain,
+    OpenUrl(Url),
 }
 
 fn view_flatpak_dialog() -> Element<'static, DialogMsg> {
+    let items = markdown::parse(include_str!("../../res/linux/udev_rules.md")).collect::<Vec<_>>();
+
     let dialog: Element<_> = dialog("Udev rules")
         .body("body")
-        .control(text("control"))
+        .control(
+            markdown::view(
+                items.iter(),
+                markdown::Settings::default(),
+                markdown::Style::from_palette(Palette::CATPPUCCIN_FRAPPE),
+            )
+            .map(|url| FlatpakDialogMsg::OpenUrl(url)),
+        )
         .primary_action(button::text("Remind me latter").on_press(FlatpakDialogMsg::Close))
         .secondary_action(
             button::text("Copy command to clipboard")
