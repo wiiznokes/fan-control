@@ -26,6 +26,7 @@ pub struct ConfigNames {
 pub struct DirManager {
     pub config_dir_path: PathBuf,
     pub state_dir_path: PathBuf,
+    pub cache_dir_path: PathBuf,
     pub config_names: ConfigNames,
     settings: Settings,
     state: SettingsState,
@@ -48,6 +49,7 @@ type Result<T> = std::result::Result<T, ConfigError>;
 static SETTINGS_FILENAME: &str = "settings.toml";
 static STATE_FILENAME: &str = "state.toml";
 static HARDWARE_FILENAME: &str = "hardware.toml";
+static CACHED_CONFIG_FILENAME: &str = "cached_config.toml";
 
 impl DirManager {
     pub fn new(
@@ -119,12 +121,6 @@ impl DirManager {
             project_dirs.data_local_dir().to_path_buf()
         };
 
-        if !state_dir_path.exists() {
-            if let Err(e) = fs::create_dir_all(&state_dir_path) {
-                error!("Can't create config directories: {e}.")
-            }
-        }
-
         let state = {
             let state_file_path = state_dir_path.join(STATE_FILENAME);
 
@@ -147,6 +143,7 @@ impl DirManager {
             settings,
             state,
             state_dir_path,
+            cache_dir_path: project_dirs.cache_dir().to_path_buf(),
         }
     }
 
@@ -202,6 +199,20 @@ impl DirManager {
             },
             None => None,
         }
+    }
+
+    pub fn get_config_cached(&self) -> Option<Config> {
+        deserialize::<Config>(&self.cache_dir_path.join(CACHED_CONFIG_FILENAME)).ok()
+    }
+
+    pub fn save_config_cached(&self, config: &Config) -> Result<()> {
+        serialize(&self.cache_dir_path.join(CACHED_CONFIG_FILENAME), config)?;
+
+        Ok(())
+    }
+
+    pub fn remove_config_cached(&self) {
+        let _ = fs::remove_file(self.cache_dir_path.join(CACHED_CONFIG_FILENAME));
     }
 
     pub fn serialize_hardware(&self, hardware: &Hardware) {
@@ -446,6 +457,11 @@ mod helper {
     }
 
     pub fn serialize<T: Serialize>(path: &Path, rust_struct: &T) -> super::Result<()> {
+        let parent = path.parent().unwrap();
+        if !parent.exists() {
+            fs::create_dir_all(parent)?
+        }
+
         let str = toml::to_string_pretty(rust_struct)?;
         fs::write(path, str)?;
         Ok(())

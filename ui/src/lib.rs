@@ -593,11 +593,26 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         if let Err(e) = self.app_state.bridge.shutdown() {
             error!("shutdown hardware: {}", e);
         }
-        None
-    }
 
-    fn on_close_requested(&self, _id: iced::window::Id) -> Option<Self::Message> {
-        // todo: pop up. Need to use settings to not close auto
+        let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if match self.app_state.dir_manager.get_config() {
+            Some(saved_config) => saved_config != runtime_config,
+            None => true,
+        } {
+            if let Err(err) = self
+                .app_state
+                .dir_manager
+                .save_config_cached(&runtime_config)
+            {
+                error!("{err}")
+            } else {
+                info!("cached config saved successfully");
+            }
+        } else {
+            self.app_state.dir_manager.remove_config_cached();
+        }
+
         None
     }
 
