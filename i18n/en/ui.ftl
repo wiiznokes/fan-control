@@ -51,4 +51,6 @@ already_used_error = This name is already being use
 invalid_value_error = this value is invalid
 
 # Dialogs
-udev_rules_dialog_title = Install Udev Rules
+udev_rules_dialog_ok = Already done it
+udev_rules_dialog_remind_later = Remind me Later
+udev_rules_dialog_copy_to_clipboard = Copy Commands to Clipboard

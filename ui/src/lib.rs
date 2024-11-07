@@ -538,7 +538,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 self.toasts.remove(pos);
             }
             AppMsg::Dialog(dialog_msg) => {
-                return Dialog::update(self, dialog_msg).map(|m| cosmic::app::Message::App(m));
+                return Dialog::update(self, dialog_msg).map(cosmic::app::Message::App);
             }
         }
 

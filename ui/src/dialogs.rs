@@ -3,7 +3,6 @@ use cosmic::{
     widget::{
         button, dialog,
         markdown::{self, Url},
-        text,
     },
     Element, Task,
 };
@@ -65,23 +64,31 @@ pub enum FlatpakDialogMsg {
 fn view_flatpak_dialog() -> Element<'static, DialogMsg> {
     let items = markdown::parse(include_str!("../../res/linux/udev_rules.md")).collect::<Vec<_>>();
 
-    let dialog: Element<_> = dialog("Udev rules")
-        .body("body")
+    let commands = r#"
+        wget https://raw.githubusercontent.com/wiiznokes/fan-control/master/res/linux/60-fan-control.rules
+        sudo mv 60-fan-control.rules /etc/udev/rules.d/
+        sudo udevadm control --reload-rules && sudo udevadm trigger
+    "#;
+
+    let dialog: Element<_> = dialog()
         .control(
             markdown::view(
                 items.iter(),
                 markdown::Settings::default(),
                 markdown::Style::from_palette(Palette::CATPPUCCIN_FRAPPE),
             )
-            .map(|url| FlatpakDialogMsg::OpenUrl(url)),
+            .map(FlatpakDialogMsg::OpenUrl),
         )
-        .primary_action(button::text("Remind me latter").on_press(FlatpakDialogMsg::Close))
+        .primary_action(
+            button::text(fl!("udev_rules_dialog_ok"))
+                .on_press(FlatpakDialogMsg::CloseAndDontShowAgain),
+        )
         .secondary_action(
-            button::text("Copy command to clipboard")
-                .on_press(FlatpakDialogMsg::CopyToClipboard("todo".into())),
+            button::text(fl!("udev_rules_dialog_copy_to_clipboard"))
+                .on_press(FlatpakDialogMsg::CopyToClipboard(commands.into())),
         )
         .tertiary_action(
-            button::text("Already done it").on_press(FlatpakDialogMsg::CloseAndDontShowAgain),
+            button::text(fl!("udev_rules_dialog_remind_later")).on_press(FlatpakDialogMsg::Close),
         )
         .into();
 
