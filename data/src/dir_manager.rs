@@ -113,7 +113,11 @@ impl DirManager {
             }
         };
 
-        let state_dir_path = project_dirs.data_local_dir().to_path_buf();
+        let state_dir_path = if cfg!(target_os = "linux") {
+            project_dirs.state_dir().unwrap().to_path_buf()
+        } else {
+            project_dirs.data_local_dir().to_path_buf()
+        };
 
         if !state_dir_path.exists() {
             if let Err(e) = fs::create_dir_all(&state_dir_path) {

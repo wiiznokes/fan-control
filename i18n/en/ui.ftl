@@ -49,3 +49,6 @@ create_config = Create configuration
 # Error
 already_used_error = This name is already being use
 invalid_value_error = this value is invalid
+
+# Dialogs
+udev_rules_dialog_title = Install Udev Rules

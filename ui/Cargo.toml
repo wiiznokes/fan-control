@@ -23,6 +23,7 @@ rust-embed.workspace = true
 utils.workspace = true
 derive_more.workspace = true
 tokio = { version = "1", features = ["time"] }
+open = "5"
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 branch = "master"

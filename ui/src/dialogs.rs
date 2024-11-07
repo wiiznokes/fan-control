@@ -43,8 +43,10 @@ impl Dialog {
                     });
                 }
                 FlatpakDialogMsg::OpenUrl(url) => {
-                    // todo
-                },
+                    if let Err(e) = open::that(url.as_str()) {
+                        error!("{e}");
+                    }
+                }
             },
         }
 
