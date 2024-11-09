@@ -11,7 +11,6 @@ use crate::{dialogs::DialogMsg, graph::GraphWindowMsg};
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Tick,
-
     Config(ConfigMsg),
     Settings(SettingsMsg),
 
@@ -27,6 +26,7 @@ pub enum AppMsg {
 
     RemoveToast(ToastId),
     Dialog(DialogMsg),
+    OpenUrl(String),
 }
 
 #[derive(Debug, Clone)]
@@ -50,6 +50,7 @@ pub enum ToogleMsg {
     Settings,
     ChooseConfig(bool),
     NodeContextMenu(Id, bool),
+    About,
 }
 
 #[derive(Debug, Clone)]

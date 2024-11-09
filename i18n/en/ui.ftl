@@ -1,6 +1,7 @@
 none = None
 delete = Delete
 settings = Settings
+about = About
 name = Name
 value = Value
 theme = Theme

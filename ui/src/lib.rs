@@ -86,6 +86,7 @@ struct Ui<H: HardwareBridge> {
     graph_window: Option<GraphWindow>,
     toasts: Toasts<AppMsg>,
     dialog: Option<Dialog>,
+    about: bool,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -131,6 +132,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             graph_window: None,
             toasts: Toasts::new(AppMsg::RemoveToast),
             dialog,
+            about: false,
         };
 
         let commands = Task::batch([cosmic::app::command::message(cosmic::app::message::app(
@@ -368,6 +370,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 ToogleMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
                 ToogleMsg::Settings => {
                     self.core.window.show_context = !self.core.window.show_context;
+                    self.about = false;
                     self.set_context_title(fl!("settings"));
                 }
                 ToogleMsg::ChooseConfig(expanded) => {
@@ -376,6 +379,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 ToogleMsg::NodeContextMenu(id, expanded) => {
                     let node_c = self.nodes_c.get_mut(&id);
                     node_c.context_menu_expanded = expanded;
+                }
+                ToogleMsg::About => {
+                    self.set_context_title(fl!("about"));
+                    self.core.window.show_context = true;
+                    self.about = true;
                 }
             },
             AppMsg::Config(config_msg) => match config_msg {
@@ -540,6 +548,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             AppMsg::Dialog(dialog_msg) => {
                 return Dialog::update(self, dialog_msg).map(cosmic::app::Message::App);
             }
+            AppMsg::OpenUrl(url) => {
+                if let Err(e) = open::that(url.as_str()) {
+                    error!("{e}");
+                }
+            }
         }
 
         Task::none()
@@ -577,7 +590,16 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        settings_drawer(self.core.window.show_context, &self.app_state.dir_manager)
+        if self.core.window.show_context {
+            let drawer = if self.about {
+                settings_drawer::about()
+            } else {
+                settings_drawer(&self.app_state.dir_manager)
+            };
+            Some(drawer)
+        } else {
+            None
+        }
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
