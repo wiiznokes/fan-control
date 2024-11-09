@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use cosmic::{
     iced_core::Alignment,
     iced_widget::PickList,
-    widget::{self, button, About, Row, Text},
+    widget::{self, about::About, button, Row, Text},
     Element,
 };
 use data::{dir_manager::DirManager, settings::AppTheme};
@@ -64,13 +64,27 @@ fn update_delay(dir_manager: &DirManager) -> Element<'_, AppMsg> {
 
 static ABOUT: LazyLock<About> = LazyLock::new(|| {
     About::default()
-        .set_application_name(APP)
-        .set_application_icon(APP_ID)
-        .set_license_type("GPL-3.0-only")
-        .set_developer_name("wiiznokes")
-        .set_repository_url("https://github.com/wiiznokes/fan-control")
+        .name(APP)
+        .icon(APP_ID)
+        .license("GPL-3.0-only")
+        .author("wiiznokes")
+        .links([
+            (
+                fl!("repository"),
+                "https://github.com/wiiznokes/fan-control",
+            ),
+            (
+                fl!("donate"),
+                "https://www.paypal.com/donate/?hosted_button_id=HV84HZ4G63HQ6",
+            ),
+            (
+                fl!("issues_tracker"),
+                "https://github.com/wiiznokes/fan-control/issues",
+            ),
+        ])
+        .developers([("wiiznokes", "wiiznokes2@gmail.com")])
 });
 
 pub fn about() -> Element<'static, AppMsg> {
-    widget::about(&ABOUT, |url| AppMsg::OpenUrl(url)).into()
+    widget::about(&ABOUT, AppMsg::OpenUrl)
 }

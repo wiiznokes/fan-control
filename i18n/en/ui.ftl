@@ -18,6 +18,9 @@ load_temp = load temp
 load_speed = load speed
 launch_graph_window = Add coordinates
 config_saved = Configuration successfully saved
+repository = Repository
+donate = Donate
+issues_tracker = Report an Issue
 
 # Add item description
 add_item = Add an item
