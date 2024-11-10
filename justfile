@@ -24,17 +24,15 @@ icon-dst := share-dst / 'icons/hicolor/scalable/apps' / appid + '.svg'
 
 default: build-release
 
+# call before pull request
+pull: fmt prettier fix test
 
 build-debug *args:
 	cargo build {{args}}
 
 build-release *args:
   cargo build --release {{args}}
-
-# call before pull request
-pull: fmt prettier fix test
 	
-###################  Build Libs
 
 libsensors:
 	git submodule update --init hardware/libsensors
@@ -47,7 +45,7 @@ lhm:
 install: 
 	install -Dm0755 {{bin-src}} {{bin-dst}}
 	install -Dm0644 res/linux/desktop_entry.desktop {{desktop-dst}}
-	install -Dm0644 res/linux/metainfo.xml {{desktop-dst}}
+	install -Dm0644 res/linux/metainfo.xml {{metainfo-dst}}
 	install -Dm0644 res/linux/app_icon.svg {{icon-dst}}
 
 
