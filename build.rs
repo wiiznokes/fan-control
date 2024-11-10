@@ -1,7 +1,6 @@
 use std::{
     env,
-    fs::File,
-    io::{self, Read},
+    io::{self},
 };
 
 fn set_env(var_name: &str) {

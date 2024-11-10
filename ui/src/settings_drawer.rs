@@ -83,7 +83,11 @@ static ABOUT: LazyLock<About> = LazyLock::new(|| {
             ),
         ])
         .developers([("wiiznokes", "wiiznokes2@gmail.com")])
-        .version(format!("{}-{}", env!("FAN_CONTROL_VERSION"), env!("FAN_CONTROL_COMMIT")))
+        .version(format!(
+            "{}-{}",
+            env!("FAN_CONTROL_VERSION"),
+            env!("FAN_CONTROL_COMMIT")
+        ))
 });
 
 pub fn about() -> Element<'static, AppMsg> {

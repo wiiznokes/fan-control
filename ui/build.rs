@@ -8,7 +8,6 @@ fn set_env(var_name: &str) {
     }
 }
 
-
 fn main() {
     set_env("FAN_CONTROL_FORMAT");
     set_env("FAN_CONTROL_VERSION");
