@@ -1,11 +1,11 @@
 
 
 def NEW_VERSION [] -> string {
-    date now | format date "%-y.%m"
+    date now | format date "%Y.%m"
 }
 
 def NEW_VERSION_SEMVER_COMPAT [] -> string {
-    date now | format date "%-y.%-m.0"
+    date now | format date "%Y.%-m.0"
 }
 
 def NEW_DATE [] -> string {
