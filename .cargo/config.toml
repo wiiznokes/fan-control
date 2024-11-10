@@ -5,6 +5,8 @@ LMSENSORS_LIB_DIR = { value = "build/libsensors/lib", relative = true }
 RUST_LOG = "warn,fan_control=info,ui=info,data=info,hardware=info"
 RUST_BACKTRACE = "full"
 FAN_CONTROL_FORMAT = "flatpak"
+FAN_CONTROL_VERSION = "undefined"
+FAN_CONTROL_COMMIT = "undefined"
 
 [build]
 # Because compilation fails on Fedora 39 if not enabled

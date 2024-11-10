@@ -54,7 +54,7 @@ pub fn header_center<'a, H: HardwareBridge>(
     } {
         elems.push(
             tooltip(
-                icon!("warning/40").height(ICON_LENGHT).width(ICON_LENGHT),
+                icon!("warning/40"),
                 text(fl!("config_not_saved")),
                 tooltip::Position::Bottom,
             )

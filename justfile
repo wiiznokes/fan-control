@@ -1,12 +1,38 @@
 set windows-powershell := true
 
-all:
-	cargo run --release
+export FAN_CONTROL_VERSION := '2024.11'
+export FAN_CONTROL_COMMIT := `git rev-parse --short HEAD`
+
+rootdir := ''
+prefix := x"~/.local"
+debug := '0'
+
+name := 'fan-control'
+appid := 'io.github.wiiznokes.' + name
+
+cargo-target-dir := env('CARGO_TARGET_DIR', 'target')
+bin-src := cargo-target-dir / if debug == '1' { 'debug' / name } else { 'release' / name }
+
+base-dir := absolute_path(clean(rootdir / prefix))
+share-dst := base-dir / 'share'
+
+bin-dst := base-dir / 'bin' / name
+desktop-dst := share-dst / 'applications' / appid + '.desktop'
+metainfo-dst := share-dst / 'metainfo' / appid + '.metainfo.xml'
+icon-dst := share-dst / 'icons/hicolor/scalable/apps' / appid + '.svg'
+
+
+default: build-release
 
 # call before pull request
 pull: fmt prettier fix test
+
+build-debug *args:
+	cargo build {{args}}
+
+build-release *args:
+  cargo build --release {{args}}
 	
-###################  Build Libs
 
 libsensors:
 	git submodule update --init hardware/libsensors
@@ -15,6 +41,20 @@ libsensors:
 lhm:
 	dotnet build ./hardware/LibreHardwareMonitorWrapper/ -c Release
 
+
+install: 
+	install -Dm0755 {{bin-src}} {{bin-dst}}
+	install -Dm0644 res/linux/desktop_entry.desktop {{desktop-dst}}
+	install -Dm0644 res/linux/metainfo.xml {{metainfo-dst}}
+	install -Dm0644 res/linux/app_icon.svg {{icon-dst}}
+
+
+uninstall:
+	rm {{bin-dst}}
+	rm {{desktop-dst}}
+	rm {{metainfo-dst}}
+	rm {{icon-dst}}
+	
 ###################  Packaging
 
 nsis:

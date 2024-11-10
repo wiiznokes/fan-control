@@ -4,17 +4,13 @@ about: Report a correctness issue or violated expectation
 labels: bug
 ---
 
-_Note: Feel free to fill only the sections that feels relevant to you_
-
 #### Bug Description
 
 #### Expected Result
 
 #### Steps to Reproduce
 
-#### Possible Solutions (optional)
-
-#### Possible Additional Information (optional)
+#### Additional Information
 
 #### Operating system
 

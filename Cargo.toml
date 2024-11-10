@@ -24,7 +24,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [package.metadata.packager]
-version = "24.8.23"
+version = "2024.11.0"
 before-each-package-command = "cargo build --release"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]
@@ -72,7 +72,7 @@ derive_more = { version = "1", default-features = false, features = [
 # [patch."https://github.com/pop-os/libcosmic"]
 # libcosmic = { path = "../libcosmic" }
 # libcosmic = { git = "https://github.com/wiiznokes/libcosmic", rev = "2dff73b8b2871afca6c65c861954c196818f960f" }
-
+# libcosmic = { git = "https://github.com/edfloreshz-ext/libcosmic" }
 
 [dependencies]
 data.workspace = true

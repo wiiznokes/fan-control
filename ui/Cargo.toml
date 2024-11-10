@@ -36,6 +36,7 @@ features = [
     "multi-window",
     "single-instance",
     "markdown",
+    "desktop"
     # todo: re enable when it works on Flatpak
     # "dbus-config",
     #"a11y",
