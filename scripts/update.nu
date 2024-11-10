@@ -28,6 +28,10 @@ def "main change_version" [] {
         str replace -r '<release version=".*" date=".*">' $"<release version=\"($version)\" date=\"($date)\">" |
         save $meta_file -f
 
+    open justfile --raw | decode utf-8 |
+        str replace -r 'export FAN_CONTROL_VERSION := \'.*\'' $"export FAN_CONTROL_VERSION := \'($version)\'" |
+        save justfile -f
+
 }
 
 def "main changen" [] {

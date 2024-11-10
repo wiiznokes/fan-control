@@ -1,6 +1,6 @@
 set windows-powershell := true
 
-export FAN_CONTROL_VERSION := '24.04'
+export FAN_CONTROL_VERSION := '2024.11'
 export FAN_CONTROL_COMMIT := `git rev-parse --short HEAD`
 
 rootdir := ''
