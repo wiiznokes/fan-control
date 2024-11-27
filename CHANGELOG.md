@@ -23,6 +23,7 @@
 - small fixes in [4f62ac9](https://github.com/wiiznokes/fan-control/commit/4f62ac958d496ddb8b553019ecab0e5644c4c372) by [@wiiznokes](https://github.com/wiiznokes)
 - lost controls link when changing the config (#161) in [80c6f3a](https://github.com/wiiznokes/fan-control/commit/80c6f3aa0f57142ed05cc37aa0000c6b99011e08) by [@wiiznokes](https://github.com/wiiznokes)
 - fixes in [9179dd7](https://github.com/wiiznokes/fan-control/commit/9179dd7ba4472d34b30fa40a10385c038b70deb9) by [@wiiznokes](https://github.com/wiiznokes)
+- fixes icons colors
 
 ### Unidentified
 
