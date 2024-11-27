@@ -14,6 +14,11 @@ use crate::{
     message::{AppMsg, SettingsMsg, ToogleMsg},
 };
 
+pub enum Drawer {
+    Settings,
+    About,
+}
+
 pub fn settings_drawer(dir_manager: &DirManager) -> Element<'_, AppMsg> {
     widget::settings::view_column(vec![widget::settings::section()
         .add(
