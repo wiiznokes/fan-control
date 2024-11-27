@@ -8,16 +8,20 @@ use data::{
     AppState,
 };
 use dialogs::Dialog;
+use drawer::{about, Drawer};
 use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
 
-use crate::{graph::graph_window_view, settings_drawer::settings_drawer};
+use crate::{drawer::settings_drawer, graph::graph_window_view};
 
 use cosmic::{
-    app::{Core, CosmicFlags, Task},
+    app::{
+        context_drawer::{context_drawer, ContextDrawer},
+        Core, CosmicFlags, Task,
+    },
     executor,
     iced::{self, time, window},
     iced_core::Length,
@@ -42,6 +46,7 @@ pub mod localize;
 
 mod add_node;
 mod dialogs;
+mod drawer;
 mod graph;
 mod headers;
 mod icon;
@@ -51,7 +56,6 @@ mod message;
 mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
-mod settings_drawer;
 
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;
@@ -86,7 +90,7 @@ struct Ui<H: HardwareBridge> {
     graph_window: Option<GraphWindow>,
     toasts: Toasts<AppMsg>,
     dialog: Option<Dialog>,
-    about: bool,
+    drawer: Option<Drawer>,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -132,7 +136,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             graph_window: None,
             toasts: Toasts::new(AppMsg::RemoveToast),
             dialog,
-            about: false,
+            drawer: None,
         };
 
         let commands = Task::batch([cosmic::app::command::message(cosmic::app::message::app(
@@ -368,11 +372,22 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             }
             AppMsg::Toggle(ui_msg) => match ui_msg {
                 ToogleMsg::CreateButton(expanded) => self.create_button_expanded = expanded,
-                ToogleMsg::Settings => {
-                    self.core.window.show_context = !self.core.window.show_context;
-                    self.about = false;
-                    self.set_context_title(fl!("settings"));
-                }
+                ToogleMsg::Settings => match &self.drawer {
+                    Some(drawer) => match drawer {
+                        Drawer::Settings => {
+                            self.drawer = None;
+                            self.set_show_context(false);
+                        }
+                        Drawer::About => {
+                            self.drawer = Some(Drawer::Settings);
+                            self.set_show_context(true);
+                        }
+                    },
+                    None => {
+                        self.drawer = Some(Drawer::Settings);
+                        self.set_show_context(true);
+                    }
+                },
                 ToogleMsg::ChooseConfig(expanded) => {
                     self.choose_config_expanded = expanded;
                 }
@@ -381,9 +396,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     node_c.context_menu_expanded = expanded;
                 }
                 ToogleMsg::About => {
-                    self.set_context_title(fl!("about"));
-                    self.core.window.show_context = true;
-                    self.about = true;
+                    self.drawer = Some(Drawer::About);
+                    self.set_show_context(true)
+                }
+                ToogleMsg::CloseDrawer => {
+                    self.set_show_context(false);
+                    self.drawer = None;
                 }
             },
             AppMsg::Config(config_msg) => match config_msg {
@@ -589,17 +607,17 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         headers::header_end()
     }
 
-    fn context_drawer(&self) -> Option<Element<Self::Message>> {
-        if self.core.window.show_context {
-            let drawer = if self.about {
-                settings_drawer::about()
-            } else {
-                settings_drawer(&self.app_state.dir_manager)
-            };
-            Some(drawer)
-        } else {
-            None
-        }
+    fn context_drawer(&self) -> Option<ContextDrawer<Self::Message>> {
+        self.drawer.as_ref().map(|drawer| match drawer {
+            Drawer::Settings => context_drawer(
+                settings_drawer(&self.app_state.dir_manager),
+                AppMsg::Toggle(ToogleMsg::CloseDrawer),
+            )
+            .title(fl!("settings")),
+            Drawer::About => {
+                context_drawer(about(), AppMsg::Toggle(ToogleMsg::CloseDrawer)).title(fl!("about"))
+            }
+        })
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
