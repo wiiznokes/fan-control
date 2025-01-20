@@ -47,10 +47,11 @@ pub enum SettingsMsg {
 #[derive(Debug, Clone)]
 pub enum ToogleMsg {
     CreateButton(bool),
-    Settings,
     ChooseConfig(bool),
     NodeContextMenu(Id, bool),
+    Settings,
     About,
+    CloseDrawer,
 }
 
 #[derive(Debug, Clone)]

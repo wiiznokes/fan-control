@@ -42,6 +42,10 @@ _The configuration files will be in [`~/.var/app/io.github.wiiznokes.fan-control
    For Fedora-based systems, run: `sudo dnf install lm_sensors`
 2. Run `sudo sensors-detect` to detect available sensors
 
+## Troubleshooting
+
+See [this file](./TROUBLESHOOTING.md).
+
 ## Repo structure
 
 - [hardware](./hardware/README.md): define an abstraction around the hardware.
@@ -55,4 +59,4 @@ See instructions [here](./BUILD.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md)
+See [this file](./CONTRIBUTING.md).
