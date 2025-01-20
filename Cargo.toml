@@ -69,8 +69,8 @@ derive_more = { version = "1", default-features = false, features = [
 ] }
 # strum = { version = "0.25", features = ["derive"] }
 
-[patch."https://github.com/pop-os/libcosmic"]
-libcosmic = { path = "../libcosmic" }
+# [patch."https://github.com/pop-os/libcosmic"]
+# libcosmic = { path = "../libcosmic" }
 # libcosmic = { git = "https://github.com/wiiznokes/libcosmic", rev = "2dff73b8b2871afca6c65c861954c196818f960f" }
 # libcosmic = { git = "https://github.com/edfloreshz-ext/libcosmic" }
 
