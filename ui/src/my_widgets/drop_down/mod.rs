@@ -74,7 +74,7 @@ where
     }
 }
 
-impl<'a, Message, Theme, Renderer> DropDown<'a, Message, Theme, Renderer>
+impl<Message, Theme, Renderer> DropDown<'_, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
@@ -265,8 +265,8 @@ where
     }
 }
 
-impl<'a, 'b, Message, Theme, Renderer> core::Overlay<Message, Theme, Renderer>
-    for DropDownOverlay<'a, 'b, Message, Theme, Renderer>
+impl<Message, Theme, Renderer> core::Overlay<Message, Theme, Renderer>
+    for DropDownOverlay<'_, '_, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: core::Renderer,
