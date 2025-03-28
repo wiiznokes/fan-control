@@ -2,16 +2,15 @@
 
 use cosmic::{
     iced::{self, keyboard, touch},
-    iced_core::{keyboard::key::Named, Size, Vector},
+    iced_core::{Size, Vector, keyboard::key::Named},
     iced_widget,
 };
 use iced_widget::core::{
-    self, event,
+    self, Clipboard, Element, Event, Layout, Length, Point, Rectangle, Shell, Widget, event,
     layout::{Limits, Node},
     mouse::{self, Cursor},
     overlay, renderer,
     widget::{Operation, Tree},
-    Clipboard, Element, Event, Layout, Length, Point, Rectangle, Shell, Widget,
 };
 
 use super::{alignment::Alignment, offset::Offset};

@@ -4,6 +4,7 @@ use std::vec;
 use derive_more::{Display, Unwrap};
 use hardware::{Hardware, Value};
 use light_enum::LightEnum;
+use std::fmt::Display;
 
 use crate::app_graph::{AppGraph, Nodes};
 

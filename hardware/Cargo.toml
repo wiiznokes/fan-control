@@ -18,7 +18,7 @@ fake_hardware = ["rand"]
 thiserror.workspace = true
 log.workspace = true
 serde.workspace = true
-rand = { version = "0.8", optional = true }
+rand = { version = "0.9", optional = true }
 derive_more.workspace = true
 
 [target.'cfg(target_os = "windows")'.dependencies]

@@ -124,7 +124,10 @@ impl ToNode for Control {
                 {
                     Some(control_h) => {
                         if Rc::strong_count(control_h) > 1 {
-                            warn!("Control to Node, hardware id \"{}\" is already use by another control. {}.", hardware_id, self.name);
+                            warn!(
+                                "Control to Node, hardware id \"{}\" is already use by another control. {}.",
+                                hardware_id, self.name
+                            );
                             self.hardware_id.take();
                             self.control_h.take();
                         } else {
@@ -132,7 +135,10 @@ impl ToNode for Control {
                         }
                     }
                     None => {
-                        warn!("Control to Node, hardware id \"{}\" was not found for {}. Fall back: hardware not used.", hardware_id, self.name);
+                        warn!(
+                            "Control to Node, hardware id \"{}\" was not found for {}. Fall back: hardware not used.",
+                            hardware_id, self.name
+                        );
                         self.hardware_id.take();
                         self.control_h.take();
                     }

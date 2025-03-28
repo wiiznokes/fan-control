@@ -61,12 +61,12 @@ impl HardwareBridge for FakeHardwareBridge {
     }
 
     fn get_sensor_value(&mut self, _sensor: &HSensor) -> crate::Result<Value> {
-        let nb = rand::thread_rng().gen_range(30..80);
+        let nb = rand::rng().random_range(30..80);
         Ok(nb)
     }
 
     fn get_control_value(&mut self, _control: &HControl) -> crate::Result<Value> {
-        let nb = rand::thread_rng().gen_range(30..80);
+        let nb = rand::rng().random_range(30..80);
         Ok(nb)
     }
 

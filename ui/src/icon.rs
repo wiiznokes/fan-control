@@ -1,6 +1,6 @@
 use cosmic::{
     iced_core::Length,
-    widget::{self, icon::Handle, Icon, IconButton},
+    widget::{self, Icon, IconButton, icon::Handle},
 };
 
 use crate::icon_handle;

@@ -1,10 +1,10 @@
 use std::sync::LazyLock;
 
 use cosmic::{
+    Element,
     iced_core::Alignment,
     iced_widget::PickList,
-    widget::{self, about::About, button, Row, Text},
-    Element,
+    widget::{self, Row, Text, about::About, button},
 };
 use data::{dir_manager::DirManager, settings::AppTheme};
 use utils::{APP, APP_ID};
@@ -20,22 +20,25 @@ pub enum Drawer {
 }
 
 pub fn settings_drawer(dir_manager: &DirManager) -> Element<'_, AppMsg> {
-    widget::settings::view_column(vec![widget::settings::section()
-        .add(
-            widget::settings::item::builder(fl!("theme")).control(PickList::new(
-                AppTheme::VALUES.to_vec(),
-                Some(dir_manager.settings().theme),
-                move |theme| AppMsg::Settings(SettingsMsg::Theme(theme)),
-            )),
-        )
-        .add(
-            widget::settings::item::builder(fl!("update_delay")).control(update_delay(dir_manager)),
-        )
-        .add(
-            widget::settings::item::builder(fl!("about"))
-                .control(button::text("open").on_press(AppMsg::Toggle(ToogleMsg::About))),
-        )
-        .into()])
+    widget::settings::view_column(vec![
+        widget::settings::section()
+            .add(
+                widget::settings::item::builder(fl!("theme")).control(PickList::new(
+                    AppTheme::VALUES.to_vec(),
+                    Some(dir_manager.settings().theme),
+                    move |theme| AppMsg::Settings(SettingsMsg::Theme(theme)),
+                )),
+            )
+            .add(
+                widget::settings::item::builder(fl!("update_delay"))
+                    .control(update_delay(dir_manager)),
+            )
+            .add(
+                widget::settings::item::builder(fl!("about"))
+                    .control(button::text("open").on_press(AppMsg::Toggle(ToogleMsg::About))),
+            )
+            .into(),
+    ])
     .into()
 }
 

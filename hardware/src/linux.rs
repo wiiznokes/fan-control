@@ -1,6 +1,6 @@
 use std::{fmt::Debug, rc::Rc};
 
-use lm_sensors::{feature, value, ChipRef, FeatureRef, LMSensors, SubFeatureRef};
+use lm_sensors::{ChipRef, FeatureRef, LMSensors, SubFeatureRef, feature, value};
 use thiserror::Error;
 
 use crate::{HControl, HSensor, Hardware, HardwareBridge, HardwareError, Mode, Value};
@@ -235,7 +235,7 @@ impl HardwareBridge for LinuxBridge {
                 return Err(HardwareError::Linux(LinuxError::LmSensors(
                     "failed to init libsensor".into(),
                     e,
-                )))
+                )));
             }
         };
         let bridge = LinuxBridgeSelfRefBuilder {

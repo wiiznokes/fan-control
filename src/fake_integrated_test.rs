@@ -6,7 +6,7 @@ use crate::args::Args;
 use crate::integrated_test::init_test_logging;
 use data::app_graph::AppGraph;
 use data::dir_manager::DirManager;
-use data::{update::Update, AppState};
+use data::{AppState, update::Update};
 use hardware::HardwareBridge;
 
 #[test]

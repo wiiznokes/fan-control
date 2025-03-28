@@ -1,9 +1,9 @@
 use cosmic::{
-    iced::{window, Size},
-    iced_core::{Alignment, Length},
-    iced_widget::{button, PickList},
-    widget::{button::text, container, Column, Row, Space, Text, TextInput},
     Element,
+    iced::{Size, window},
+    iced_core::{Alignment, Length},
+    iced_widget::{PickList, button},
+    widget::{Column, Row, Space, Text, TextInput, button::text, container},
 };
 use data::{
     app_graph::Nodes,

@@ -1,11 +1,11 @@
 use cosmic::{
-    iced_widget::{text, Column},
-    widget::tooltip,
     Element,
+    iced_widget::{Column, text},
+    widget::tooltip,
 };
 use data::node::NodeTypeLight;
 
-use crate::{icon::icon_button_from_handle, icon_button, node_icon_handle, AppMsg, ToogleMsg};
+use crate::{AppMsg, ToogleMsg, icon::icon_button_from_handle, icon_button, node_icon_handle};
 
 pub fn add_node_button_view(expanded: bool) -> Element<'static, AppMsg> {
     match expanded {

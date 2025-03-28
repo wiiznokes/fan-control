@@ -6,7 +6,7 @@ use std::{env, fs};
 
 use args::Args;
 use clap::Parser;
-use data::{app_graph::AppGraph, dir_manager::DirManager, update::Update, AppState};
+use data::{AppState, app_graph::AppGraph, dir_manager::DirManager, update::Update};
 use hardware::{self, HardwareBridge};
 use log::LevelFilter;
 use thiserror::Error;
@@ -58,7 +58,9 @@ fn setup_logs(args: &Args) {
     };
 
     if let Some(log_file_path) = &args.log_file {
-        env::set_var("FAN_CONTROL_LOG_FILE", log_file_path);
+        unsafe {
+            env::set_var("FAN_CONTROL_LOG_FILE", log_file_path);
+        }
         match fs::File::create(log_file_path) {
             Ok(log_file) => {
                 if let Err(e) = log_file.set_len(0) {

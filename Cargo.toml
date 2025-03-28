@@ -1,10 +1,9 @@
 [workspace]
 members = ["data", "hardware", "ui", "utils"]
-resolver = "2"
 
 [workspace.package]
 authors = ["wiiznokes <wiiznokes2@gmail.com>"]
-edition = "2021"
+edition = "2024"
 license = "GPL-3.0-only"
 homepage = "https://github.com/wiiznokes/fan-control/"
 repository = "https://github.com/wiiznokes/fan-control.git"
@@ -63,7 +62,7 @@ i18n-embed = { version = "0.15", features = [
 rust-embed = "8"
 i18n-embed-fl = "0.9"
 thiserror = "2"
-derive_more = { version = "1", default-features = false, features = [
+derive_more = { version = "2", default-features = false, features = [
     "unwrap",
     "display",
 ] }
