@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-NEW_VERSION="$(date +"%-y.%-m.%-d")"
+NEW_VERSION="$(date +"%-Y.%-m.0")"
 
 NEW_DATE="$(date +"%Y-%m-%d")"
 
