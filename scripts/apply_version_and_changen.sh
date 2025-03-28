@@ -8,7 +8,5 @@ sed -i '/<release /s/version="[^"]*"/version="'"$NEW_VERSION"'"/; /<release /s/d
 
 sed -i '/\[package.metadata.packager\]/,/^$/s/version = ".*"/version = "'"$NEW_VERSION"'"/' "Cargo.toml"
 
-echo $NEW_VERSION >VERSION
-
-changen generate --repo "wiiznokes/changelog-generator" --exclude-unidentified
+# changen generate --repo "wiiznokes/changelog-generator" --exclude-unidentified
 changen release --version $NEW_VERSION
