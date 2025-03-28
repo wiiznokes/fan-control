@@ -8,7 +8,7 @@ use std::{
 };
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
-use data::{settings::Settings, AppState};
+use data::{AppState, settings::Settings};
 use hardware::HardwareBridge;
 
 pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
@@ -77,22 +77,24 @@ enum UserAction {
 
 #[allow(clippy::single_match)]
 fn start_listening(tx: Sender<UserAction>) {
-    let _handle = thread::spawn(move || loop {
-        match event::read() {
-            Ok(event) => match event {
-                Event::Key(KeyEvent {
-                    code: KeyCode::Char('q'),
-                    ..
-                }) => {
-                    if let Err(e) = tx.send(UserAction::Quit) {
-                        error!("can't send user action to app: {e}");
-                        break;
+    let _handle = thread::spawn(move || {
+        loop {
+            match event::read() {
+                Ok(event) => match event {
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char('q'),
+                        ..
+                    }) => {
+                        if let Err(e) = tx.send(UserAction::Quit) {
+                            error!("can't send user action to app: {e}");
+                            break;
+                        }
                     }
+                    _ => {}
+                },
+                Err(e) => {
+                    error!("can't read keyboard: {}", e);
                 }
-                _ => {}
-            },
-            Err(e) => {
-                error!("can't read keyboard: {}", e);
             }
         }
     });

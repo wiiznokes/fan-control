@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2025.3.0]
+
+### Fixed
+
+- icons
+- update deps
+
 ## [2024.11]
 
 ### Added

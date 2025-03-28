@@ -1,14 +1,14 @@
 use std::rc::Rc;
 
 use cosmic::{
+    Element,
     iced_core::{Alignment, Length, Padding},
     iced_widget::{
-        scrollable::{Direction, Scrollbar},
         Button, PickList, Scrollable, Toggler,
+        scrollable::{Direction, Scrollbar},
     },
     style, theme,
     widget::{Column, Container, Row, Slider, Space, Text, TextInput},
-    Element,
 };
 use data::{
     app_graph::Nodes,
@@ -27,7 +27,7 @@ use crate::{
     graph::graph_view,
     icon::icon_from_handle,
     icon_button,
-    input_line::{input_line, InputLineUnit},
+    input_line::{InputLineUnit, input_line},
     message::{
         AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, ModifNodeMsg, TargetMsg, ToogleMsg,
     },

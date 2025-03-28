@@ -14,8 +14,8 @@ keywords.workspace = true
 workspace = true
 
 [dependencies]
-cached = "0.54"
-constcat = "0.5"
+cached = "0.55"
+constcat = "0.6"
 cargo-packager-resource-resolver = { version = "0.1", features = [
     "auto-detect-format",
 ] }

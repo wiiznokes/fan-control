@@ -439,7 +439,7 @@ impl ConfigNames {
 mod helper {
     use std::{borrow::Cow, fs, path::Path};
 
-    use serde::{de::DeserializeOwned, Serialize};
+    use serde::{Serialize, de::DeserializeOwned};
 
     static TOML_EXT: &str = ".toml";
 

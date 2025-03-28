@@ -12,7 +12,7 @@ use thiserror::Error;
 
 use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
 
-use self::packet::{command::Command, i32::I32, Packet};
+use self::packet::{Packet, command::Command, i32::I32};
 
 pub struct WindowsBridge {
     process_handle: std::process::Child,
@@ -286,7 +286,7 @@ impl WindowsBridge {
                 return Err(WindowsError::Io(
                     "can't wait for the server to finish".into(),
                     e,
-                ))
+                ));
             }
         };
 

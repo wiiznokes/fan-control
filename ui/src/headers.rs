@@ -1,16 +1,16 @@
 use cosmic::{
-    iced_core::{Alignment, Length},
-    iced_widget::{text, Button, Column},
-    theme,
-    widget::{tooltip, Container, Row, Text, TextInput},
     Element,
+    iced_core::{Alignment, Length},
+    iced_widget::{Button, Column, text},
+    theme,
+    widget::{Container, Row, Text, TextInput, tooltip},
 };
-use data::{config::Config, AppState};
+use data::{AppState, config::Config};
 use hardware::HardwareBridge;
 
 use crate::{
-    icon, icon::expand_icon, icon_button, message::ConfigMsg, my_widgets::drop_down, AppMsg,
-    ToogleMsg,
+    AppMsg, ToogleMsg, icon, icon::expand_icon, icon_button, message::ConfigMsg,
+    my_widgets::drop_down,
 };
 
 static ICON_LENGHT: Length = Length::Fixed(33.0);
@@ -156,10 +156,12 @@ pub fn header_center<'a, H: HardwareBridge>(
 fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> {
     let name = optional_name.clone().unwrap_or(fl!("none"));
 
-    let mut elements = vec![Button::new(Text::new(name.clone()))
-        .on_press(ConfigMsg::Change(optional_name.clone()).into())
-        .width(Length::Fill)
-        .into()];
+    let mut elements = vec![
+        Button::new(Text::new(name.clone()))
+            .on_press(ConfigMsg::Change(optional_name.clone()).into())
+            .width(Length::Fill)
+            .into(),
+    ];
 
     if optional_name.is_some() {
         elements.push(

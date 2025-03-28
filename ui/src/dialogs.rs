@@ -1,14 +1,14 @@
 use cosmic::{
+    Element, Task,
     iced::{clipboard, theme::Palette},
     widget::{
         button, dialog,
         markdown::{self, Url},
     },
-    Element, Task,
 };
 use hardware::HardwareBridge;
 
-use crate::{message::AppMsg, Ui};
+use crate::{Ui, message::AppMsg};
 
 #[derive(Clone, Debug)]
 pub enum Dialog {

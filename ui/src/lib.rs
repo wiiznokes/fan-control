@@ -1,14 +1,14 @@
 use std::time::Duration;
 
 use data::{
+    AppState,
     config::Config,
-    node::{validate_name, IsValid, NodeType},
+    node::{IsValid, NodeType, validate_name},
     settings::AppTheme,
     utils::RemoveElem,
-    AppState,
 };
 use dialogs::Dialog;
-use drawer::{about, Drawer};
+use drawer::{Drawer, about};
 use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
@@ -18,9 +18,10 @@ use node_cache::{NodeC, NodesC};
 use crate::{drawer::settings_drawer, graph::graph_window_view};
 
 use cosmic::{
+    ApplicationExt, Element,
     app::{
-        context_drawer::{context_drawer, ContextDrawer},
         Core, CosmicFlags, Task,
+        context_drawer::{ContextDrawer, context_drawer},
     },
     executor,
     iced::{self, time, window},
@@ -28,10 +29,9 @@ use cosmic::{
     iced_runtime::Action,
     theme,
     widget::{
-        toaster::{self, Toast, Toasts},
         Column, Row, Space,
+        toaster::{self, Toast, Toasts},
     },
-    ApplicationExt, Element,
 };
 
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
@@ -139,9 +139,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             drawer: None,
         };
 
-        let commands = Task::batch([cosmic::app::command::message(cosmic::app::message::app(
-            AppMsg::Tick,
-        ))]);
+        let commands = Task::batch([cosmic::task::message(AppMsg::Tick)]);
 
         (ui_state, commands)
     }
@@ -164,7 +162,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             NodeType::Control(i) => {
                                 if i.is_valid() {
                                     if let Err(e) = i.set_mode(Mode::Auto, bridge) {
-                                        error!("Can't set control to auto when removing his hardware ref: {e}.");
+                                        error!(
+                                            "Can't set control to auto when removing his hardware ref: {e}."
+                                        );
                                     }
                                 }
 
@@ -358,7 +358,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     dir_manager.update_settings(|settings| {
                         settings.theme = theme;
                     });
-                    return cosmic::app::command::set_theme(to_cosmic_theme(&theme));
+
+                    return cosmic::command::set_theme(to_cosmic_theme(&theme));
                 }
                 SettingsMsg::UpdateDelay(update_delay) => dir_manager.update_settings(|settings| {
                     settings.update_delay = update_delay;
@@ -414,7 +415,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         return self
                             .toasts
                             .push(Toast::new(fl!("config_saved")))
-                            .map(cosmic::app::Message::App);
+                            .map(cosmic::action::app);
                     };
                 }
                 ConfigMsg::Change(selected) => {
@@ -505,7 +506,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                                     n.node_type.set_inputs(inputs)
                                 }
                                 None => {
-                                    error!("input id found in node inputs but the corresponding name was not found in item input")
+                                    error!(
+                                        "input id found in node inputs but the corresponding name was not found in item input"
+                                    )
                                 }
                             }
                         }
@@ -517,8 +520,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
                 graph::GraphWindowMsg::Toogle(node_id) => match node_id {
                     Some(node_id) => {
-                        let mut commands: Vec<iced::Task<cosmic::app::Message<AppMsg>>> =
-                            Vec::new();
+                        let mut commands = Vec::new();
 
                         if let Some(graph_window) = &self.graph_window {
                             let command = cosmic::iced::runtime::task::effect(Action::Window(
@@ -537,7 +539,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             percent_c: String::new(),
                         });
 
-                        commands.push(command.map(|_| cosmic::app::Message::None));
+                        commands.push(command.map(|_| cosmic::action::none()));
 
                         return Task::batch(commands);
                     }
@@ -564,7 +566,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 self.toasts.remove(pos);
             }
             AppMsg::Dialog(dialog_msg) => {
-                return Dialog::update(self, dialog_msg).map(cosmic::app::Message::App);
+                return Dialog::update(self, dialog_msg).map(cosmic::action::app);
             }
             AppMsg::OpenUrl(url) => {
                 if let Err(e) = open::that(url.as_str()) {

@@ -231,7 +231,7 @@ impl Update {
                             Ok(None)
                         }
                         None => Err(UpdateError::NodeNotFound(*node_id)),
-                    }
+                    };
                 }
             }
         }

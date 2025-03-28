@@ -1,12 +1,12 @@
 use std::ops::{Add, Range, Sub};
 
 use cosmic::{
+    Element,
     iced_core::{Alignment, Length},
     widget::{Column, Row, Space, Text, TextInput},
-    Element,
 };
 
-use crate::{icon_button, ModifNodeMsg};
+use crate::{ModifNodeMsg, icon_button};
 
 pub trait MyFrom<T> {
     fn from(value: T) -> Self;
