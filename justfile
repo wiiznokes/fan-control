@@ -1,10 +1,10 @@
 set windows-powershell := true
 
-export FAN_CONTROL_VERSION := '2024.11'
+export FAN_CONTROL_VERSION := "2025.3.0"
 export FAN_CONTROL_COMMIT := `git rev-parse --short HEAD`
 
 rootdir := ''
-prefix := x"~/.local"
+prefix := ''
 debug := '0'
 
 name := 'fan-control'
