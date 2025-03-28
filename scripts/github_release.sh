@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 
-NEW_VERSION="$(date +"%-y.%-m.%-d")"
+NEW_VERSION="2025.3.0"
 
 gh release delete $NEW_VERSION -y || true
 git tag -d $NEW_VERSION || true
