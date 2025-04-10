@@ -53,8 +53,8 @@ delete_config = Configuratie verwijderen
 create_config = Configuratie aanmaken
 
 # Error
-already_used_error = This name is already being use
-invalid_value_error = this value is invalid
+already_used_error = Deze naam wordt al gebruikt
+invalid_value_error = Deze waarde is ongeldig
 
 # Warning
 config_not_saved = De configuratie is niet opgeslagen
