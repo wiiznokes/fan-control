@@ -1,7 +1,7 @@
 none = Geen
 average = Gemiddeld
-max = Max
-min = Min
+max = Maximum
+min = Minimum
 
 default_control = Controle
 default_fan = Ventilator
