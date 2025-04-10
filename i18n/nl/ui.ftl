@@ -3,31 +3,32 @@ delete = Verwijderen
 settings = Instellingen
 about = Over
 name = Naam
-value = Waarden
+value = Waarde
 theme = Thema
-update_delay = Updatefrequentie
+update_delay = Updatevertraging
 update_delay_value = { $value } ms
 temp_selection = Temperatuur selecteren
 min_temp = Minimum temperatuur
 min_speed = Minimum snelheid
 max_temp = Maximum temperatuur
 max_speed = Maximum snelheid
-idle_temp = Stationaire temperatuur
-idle_speed = Stationaire snelheid
-load_temp = Belastingstemperatuur
-load_speed = Belastingssnelheid
+idle_temp = Temperatuur bij inactiviteit
+idle_speed = Snelheid bij inactiviteit
+load_temp = Temperatuur bij systeembelasting
+load_speed = Snelheid bij systeembelasting
 launch_graph_window = Coördinaten toevoegen
-config_saved = Configuratie opslaan succesvol
+config_saved = Configuratie succesvol opgeslagen
 repository = Repository
 donate = Doneren
-issues_tracker = Softwarefout rapporteren
+issues_tracker = Meld een fout
 
 # Add item description
 add_item = Item toevoegen
-add_fan = Een ventilatorsensor analyseren
-add_temp = Een temperatuursensor analyseren
-add_custom_temp = Define logic between values (Max, Averrage, ...)
-add_control = Assigns a certain behavior to a certain hardware component
+add_fan = Ventilatorsensor toevoegen
+add_temp = Temperatuursensor toevoegen
+add_custom_temp = Defineer het logische verband tussen waarden (max, gemiddelde, ...)
+add_control = 
+Assigns a certain behavior to a certain hardware component
 add_flat = Returns a fixed value
 add_linear = Take 5 variables:
     - a min and a max temp
