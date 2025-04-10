@@ -1,4 +1,4 @@
-none = Geen
+Enone = Geen
 delete = Verwijderen
 settings = Instellingen
 about = Over
@@ -8,10 +8,10 @@ theme = Thema
 update_delay = Updatevertraging
 update_delay_value = { $value } ms
 temp_selection = Temperatuur selecteren
-min_temp = Minimum temperatuur
-min_speed = Minimum snelheid
-max_temp = Maximum temperatuur
-max_speed = Maximum snelheid
+min_temp = Minimumtemperatuur
+min_speed = Minimumsnelheid
+max_temp = Maximumtemperatuur
+max_speed = Maximumsnelheid
 idle_temp = Temperatuur bij inactiviteit
 idle_speed = Snelheid bij inactiviteit
 load_temp = Temperatuur bij systeembelasting
@@ -27,38 +27,39 @@ add_item = Item toevoegen
 add_fan = Ventilatorsensor toevoegen
 add_temp = Temperatuursensor toevoegen
 add_custom_temp = Defineer het logische verband tussen waarden (max, gemiddelde, ...)
-add_control = 
-Assigns a certain behavior to a certain hardware component
-add_flat = Returns a fixed value
-add_linear = Take 5 variables:
-    - a min and a max temp
-    - a min and a max speed
-    - a sensor value
-    if sensor < min temp -> min speed
-    if sensor > max temp-> max speed
-    otherwise, an average is calculated (see icon)
-add_target = Take 5 variables:
-    - a ideal and a trigger temp
-    - a ideal and a trigger speed
-    - a sensor value
-    If the sensor > trigger temperature, trigger speed is set
-    until this sensor is < ideal temperature
-add_graph = Graph
+add_control = Een specifieke actie aan een specifieke hardwarecomponent toewijzen
+add_flat = Geeft een vaste waarde als resultaat
+add_linear = Gebruik 5 variabelen:
+    - een minimum- en een maximumtemperatuur
+    - een minimum- en een maximumsnelheid
+    - een sensorwaarde
+    als sensorwaarde < minimumtemperatuur; dan minimumsnelheid
+    als sensorwaarde > maximumtemperatuur; dan maximumsnelheid
+    anders wordt er een gemiddelde genomen (zie icoontje)
+
+add_target = Gebruik 5 variabelen:
+    - een optimum- en een triggertemperatuur
+    - een optimum- en een triggersnelheid
+    - een sensorwaarde
+    als sensorwaarde > triggertemperatuur; dan wordt de triggersnelheid ingesteld
+    totdat sensorwaarde < optimumtemperatuur
+
+add_graph = Grafiek
 
 # Config
-config_name = Configuration name
-save_config = Save/rename this configuration
-delete_config = Delete configuration
-create_config = Create configuration
+config_name = Configuratienaam
+save_config = Deze configuratie opslaan/hernoemen
+delete_config = Configuratie verwijderen
+create_config = Configuratie aanmaken
 
 # Error
 already_used_error = This name is already being use
 invalid_value_error = this value is invalid
 
 # Warning
-config_not_saved = Configuration not saved
+config_not_saved = De configuratie is niet opgeslagen
 
 # Dialogs
-udev_rules_dialog_ok = I understand
-udev_rules_dialog_remind_later = Remind me Later
-udev_rules_dialog_copy_to_clipboard = Copy Commands to Clipboard
+udev_rules_dialog_ok = Ik begrijp het
+udev_rules_dialog_remind_later = Herinner me er later aan
+udev_rules_dialog_copy_to_clipboard = Commando's naar het klembord kopiëren
