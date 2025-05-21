@@ -1,4 +1,4 @@
-Enone = Geen
+none = Geen
 delete = Verwijderen
 settings = Instellingen
 about = Over
