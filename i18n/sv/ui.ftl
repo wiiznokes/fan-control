@@ -17,6 +17,9 @@ load_temp = last temperatur
 load_speed = last hastighet
 launch_graph_window = Lägg till koordinater
 config_saved = Konfigurationen har sparats
+repository = Förråd
+donate = Donera
+issues_tracker = Rapportera ett problem
 
 # Lägg till objektbeskrivning
 add_item = Lägg till ett objekt
@@ -49,3 +52,11 @@ create_config = Skapa konfiguration
 # Fel
 already_used_error = Det här namnet används redan
 invalid_value_error = detta värde är ogiltigt
+
+# Varning
+config_not_saved = Konfigurationen sparades inte
+
+# Dialogrutor
+udev_rules_dialog_ok = Jag förstår
+udev_rules_dialog_remind_later = Påminn mig senare
+udev_rules_dialog_copy_to_clipboard = Kopiera kommandon till urklipp
