@@ -1,4 +1,4 @@
-<h1 align="center">fan-control</h1>
+<h1 align="center">Fan Control</h1>
 
 <div>
     <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="50" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
@@ -12,7 +12,7 @@
 - Save configuration
 - Multiplatform (Linux/Windows)
 
-![screenshot of fan-control](https://media.githubusercontent.com/media/wiiznokes/fan-control/master/res/screenshots/app.png)
+![screenshot of Fan Control](https://media.githubusercontent.com/media/wiiznokes/fan-control/master/res/screenshots/app.png)
 
 ## Usage
 
@@ -24,7 +24,7 @@
 
 ### Windows
 
-1. Install fan-control from [the release section](https://github.com/wiiznokes/fan-control/releases/latest)
+1. Install Fan Control from [the release section](https://github.com/wiiznokes/fan-control/releases/latest)
 
 _The configuration files will be in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config)._
 

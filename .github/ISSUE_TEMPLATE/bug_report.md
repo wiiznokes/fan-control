@@ -14,7 +14,7 @@ labels: bug
 
 #### Operating system
 
-#### fan-control version
+#### Fan Control version
 
 #### Logs
 

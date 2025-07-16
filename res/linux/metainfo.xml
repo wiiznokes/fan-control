@@ -5,7 +5,7 @@
 <component type="desktop-application">
   <id>io.github.wiiznokes.fan-control</id>
 
-  <name>fan-control</name>
+  <name>Fan Control</name>
   <summary>Control your fans with different behaviors</summary>
   <summary xml:lang="de">Kontrolliere deine Lüfter mit verschiedenen Verhaltensweisen</summary>
 
@@ -57,7 +57,7 @@
   <launchable type="desktop-id">io.github.wiiznokes.fan-control.desktop</launchable>
   <screenshots>
     <screenshot type="default">
-      <caption>fan-control screenshot</caption>
+      <caption>Fan Control screenshot</caption>
       <image>
         https://media.githubusercontent.com/media/wiiznokes/fan-control/master/res/screenshots/app.png</image>
     </screenshot>
