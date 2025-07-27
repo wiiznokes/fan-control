@@ -29,6 +29,9 @@ build-release *args:
 
 libsensors:
     git submodule update --init hardware/libsensors
+    just build-libsensors
+
+build-libsensors:
     make -C ./hardware/libsensors/ install PREFIX=./../../build/libsensors ETCDIR=./../../build/libsensors/etc
 
 lhm:
@@ -86,6 +89,69 @@ clean-libsensors:
 
 clean-lhm:
     dotnet clean ./hardware/LibreHardwareMonitorWrapper/ || true
+
+###################  Flatpak
+
+runf:
+    RUST_LOG="warn,fan-control=debug" flatpak run {{ appid }}
+
+uninstallf:
+    flatpak uninstall {{ appid }} -y || true
+
+update-flatpak: setup-update-flatpak update-flatpak-gen commit-update-flatpak
+
+# deps: flatpak-builder git-lfs
+build-and-installf: uninstallf
+    flatpak-builder \
+        --force-clean \
+        --verbose \
+        --user \
+        --install \
+        --install-deps-from=flathub \
+        --repo=repo \
+        flatpak-out \
+        {{ repo-name }}/{{ appid }}.json
+
+sdk-version := "24.08"
+
+install-sdk:
+    flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+    flatpak install --noninteractive --user flathub \
+        org.freedesktop.Platform//{{ sdk-version }} \
+        org.freedesktop.Sdk//{{ sdk-version }} \
+        org.freedesktop.Sdk.Extension.rust-stable//{{ sdk-version }} \
+        org.freedesktop.Sdk.Extension.llvm18//{{ sdk-version }}
+
+repo-name := "flatpak-repo"
+
+# pip install aiohttp toml
+setup-update-flatpak:
+    rm -rf {{ repo-name }}
+    git clone https://github.com/wiiznokes/io.github.wiiznokes.fan-control.git {{ repo-name }}
+    git -C {{ repo-name }} remote add upstream https://github.com/flathub/io.github.wiiznokes.fan-control.git
+    git -C {{ repo-name }} fetch upstream
+    git -C {{ repo-name }} checkout master
+    git -C {{ repo-name }} rebase upstream/master master
+    git -C {{ repo-name }} push origin master
+
+    git -C {{ repo-name }} branch -D update-{{ name }} || true
+    git -C {{ repo-name }} push origin --delete update-{{ name }} || true
+    git -C {{ repo-name }} checkout -b update-{{ name }}
+    git -C {{ repo-name }} push origin update-{{ name }}
+
+    rm -rf flatpak-builder-tools
+    git clone https://github.com/flatpak/flatpak-builder-tools
+
+update-flatpak-gen:
+    python3 flatpak-builder-tools/cargo/flatpak-cargo-generator.py Cargo.lock -o {{ repo-name }}/cargo-sources.json
+    cp flatpak_schema.json {{ repo-name }}/{{ appid }}.json
+    sed -i "s/###commit###/$(git rev-parse HEAD)/g" {{ repo-name }}/{{ appid }}.json
+
+commit-update-flatpak:
+    git -C {{ repo-name }} add .
+    git -C {{ repo-name }} commit -m "Update {{ name }}"
+    git -C {{ repo-name }} push origin update-{{ name }}
+    xdg-open https://github.com/flathub/io.github.wiiznokes.fan-control/compare/master...wiiznokes:update-{{ name }}?expand=1
 
 ###################  Handy
 
