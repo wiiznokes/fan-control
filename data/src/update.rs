@@ -145,9 +145,7 @@ impl Update {
         for node_id in root_nodes {
             if Self::validate_rec(nodes, node_id) {
                 if let Err(e) = self.set_node_to_auto(nodes, node_id, bridge) {
-                    error!(
-                        "Can't set control to auto in set_valid_controls_to_auto fn: {e}"
-                    );
+                    error!("Can't set control to auto in set_valid_controls_to_auto fn: {e}");
                 }
             }
         }
@@ -162,9 +160,7 @@ impl Update {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
                 if let Err(e) = self.set_node_to_auto(nodes, node_id, bridge) {
-                    error!(
-                        "Can't set control to auto in set_invalid_controls_to_auto fn: {e}"
-                    );
+                    error!("Can't set control to auto in set_invalid_controls_to_auto fn: {e}");
                 }
             }
         }
