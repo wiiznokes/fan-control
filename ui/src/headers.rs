@@ -13,7 +13,7 @@ use crate::{
     my_widgets::drop_down,
 };
 
-static ICON_LENGHT: Length = Length::Fixed(33.0);
+static ICON_LENGTH: Length = Length::Fixed(33.0);
 
 pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
     let mut elems = vec![];
@@ -67,8 +67,8 @@ pub fn header_center<'a, H: HardwareBridge>(
         elems.push(
             tooltip(
                 icon_button!("save/40")
-                    .height(ICON_LENGHT)
-                    .width(ICON_LENGHT)
+                    .height(ICON_LENGTH)
+                    .width(ICON_LENGTH)
                     .on_press_maybe(
                         dir_manager
                             .config_names
@@ -110,8 +110,8 @@ pub fn header_center<'a, H: HardwareBridge>(
 
     let expand_icon = if !configs.is_empty() {
         let expand_icon = expand_icon(expanded)
-            .height(ICON_LENGHT)
-            .width(ICON_LENGHT)
+            .height(ICON_LENGTH)
+            .width(ICON_LENGTH)
             .on_press(AppMsg::Toggle(crate::ToogleMsg::ChooseConfig(!expanded)));
         Some(expand_icon)
     } else {
@@ -136,8 +136,8 @@ pub fn header_center<'a, H: HardwareBridge>(
     elems.push(
         tooltip(
             icon_button!("add/40")
-                .height(ICON_LENGHT)
-                .width(ICON_LENGHT)
+                .height(ICON_LENGTH)
+                .width(ICON_LENGTH)
                 .on_press_maybe(
                     dir_manager
                         .config_names
@@ -167,8 +167,8 @@ fn config_choice_line<'a>(optional_name: Option<String>) -> Element<'a, AppMsg> 
         elements.push(
             tooltip(
                 icon_button!("delete_forever/40")
-                    .height(ICON_LENGHT)
-                    .width(ICON_LENGHT)
+                    .height(ICON_LENGTH)
+                    .width(ICON_LENGTH)
                     .on_press(ConfigMsg::Delete(name).into()),
                 text(fl!("delete_config")),
                 tooltip::Position::Right,
@@ -187,8 +187,8 @@ pub fn header_end<'a>() -> Vec<Element<'a, AppMsg>> {
 
     let settings_button = icon_button!("settings/40")
         .on_press(AppMsg::Toggle(ToogleMsg::Settings))
-        .height(ICON_LENGHT)
-        .width(ICON_LENGHT)
+        .height(ICON_LENGTH)
+        .width(ICON_LENGTH)
         .into();
     elems.push(settings_button);
 

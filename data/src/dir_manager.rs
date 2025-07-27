@@ -103,6 +103,8 @@ impl DirManager {
             }
         };
 
+        info!("config dir path: {}", config_dir_path.display());
+
         let config_names = ConfigNames::new(&config_dir_path);
 
         if let Some(config_name) = custom_config_name {

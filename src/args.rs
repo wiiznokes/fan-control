@@ -57,7 +57,7 @@ pub struct Args {
         long = "log",
         value_hint = ValueHint::FilePath,
         value_names = ["PATH"],
-        help = "Puts logs to a specific file. Usefull on Windows because logs cannot be displayed due to limitations"
+        help = "Puts logs to a specific file. Useful on Windows because logs cannot be displayed due to limitations"
     )]
     pub log_file: Option<PathBuf>,
 
