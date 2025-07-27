@@ -54,8 +54,7 @@ impl ToNode for Temp {
                     Some(temp_h) => self.temp_h = Some(temp_h.clone()),
                     None => {
                         warn!(
-                            "Temp to Node, hardware_id not found. {} from config not found. Fall back to no id",
-                            hardware_id
+                            "Temp to Node, hardware_id not found. {hardware_id} from config not found. Fall back to no id"
                         );
                         self.hardware_id.take();
                         self.temp_h.take();

@@ -54,7 +54,7 @@ impl Update {
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
             if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
-                error!("Can't update node: {}.", e);
+                error!("Can't update node: {e}.");
             }
         }
         Ok(())
@@ -77,7 +77,7 @@ impl Update {
         let mut updated = HashSet::new();
         for id in ids_to_update_sorted {
             if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge) {
-                error!("can't update node: {}", e);
+                error!("can't update node: {e}");
             }
         }
 
@@ -145,10 +145,7 @@ impl Update {
         for node_id in root_nodes {
             if Self::validate_rec(nodes, node_id) {
                 if let Err(e) = self.set_node_to_auto(nodes, node_id, bridge) {
-                    error!(
-                        "Can't set control to auto in set_valid_controls_to_auto fn: {}",
-                        e
-                    );
+                    error!("Can't set control to auto in set_valid_controls_to_auto fn: {e}");
                 }
             }
         }
@@ -163,10 +160,7 @@ impl Update {
         for node_id in root_nodes {
             if !Self::validate_rec(nodes, node_id) {
                 if let Err(e) = self.set_node_to_auto(nodes, node_id, bridge) {
-                    error!(
-                        "Can't set control to auto in set_invalid_controls_to_auto fn: {}",
-                        e
-                    );
+                    error!("Can't set control to auto in set_invalid_controls_to_auto fn: {e}");
                 }
             }
         }

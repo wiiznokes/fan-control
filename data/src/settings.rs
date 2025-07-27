@@ -66,6 +66,6 @@ impl Display for AppTheme {
             AppTheme::HighContrastDark => fl!("hight_contrast_dark_theme"),
             AppTheme::HighContrastLight => fl!("hight_contrast_light_theme"),
         };
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
 }

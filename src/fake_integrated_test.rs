@@ -40,7 +40,7 @@ fn test_config() {
 fn run<H: HardwareBridge>(mut app_state: AppState<H>) {
     for _ in 0..20 {
         if let Err(e) = app_state.bridge.update() {
-            error!("{}", e);
+            error!("{e}");
             break;
         }
 

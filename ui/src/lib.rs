@@ -70,7 +70,7 @@ pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
     let flags = Flags { app_state };
 
     if let Err(e) = cosmic::app::run::<Ui<H>>(settings, flags) {
-        error!("error while running ui: {}", e);
+        error!("error while running ui: {e}");
         panic!()
     }
 }
@@ -318,7 +318,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                                     if let Err(e) =
                                         control.set_mode(Mode::Auto, &mut self.app_state.bridge)
                                     {
-                                        error!("can't set unactive when removing a control: {}", e);
+                                        error!("can't set unactive when removing a control: {e}");
                                     }
                                 }
                             }
@@ -410,7 +410,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     let config = Config::from_app_graph(&self.app_state.app_graph);
 
                     if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
-                        error!("can't save config: {}", e);
+                        error!("can't save config: {e}");
                     } else {
                         return self
                             .toasts
@@ -445,7 +445,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             }
                         },
                         Err(e) => {
-                            error!("can't change config: {}", e);
+                            error!("can't change config: {e}");
                         }
                     }
                 }
@@ -456,7 +456,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         }
                     }
                     Err(e) => {
-                        error!("can't delete config: {}", e);
+                        error!("can't delete config: {e}");
                     }
                 },
                 ConfigMsg::Create(new_name) => {
@@ -467,7 +467,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                             self.current_config_cached = new_name;
                         }
                         Err(e) => {
-                            error!("can't create config: {}", e);
+                            error!("can't create config: {e}");
                         }
                     }
                 }
@@ -633,7 +633,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
     fn on_app_exit(&mut self) -> Option<Self::Message> {
         if let Err(e) = self.app_state.bridge.shutdown() {
-            error!("shutdown hardware: {}", e);
+            error!("shutdown hardware: {e}");
         }
 
         let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
@@ -718,7 +718,7 @@ impl<H: HardwareBridge> Ui<H> {
         self.is_updating = true;
 
         if let Err(e) = self.app_state.bridge.update() {
-            error!("{}", e);
+            error!("{e}");
             self.is_updating = false;
             return;
         }
@@ -726,7 +726,7 @@ impl<H: HardwareBridge> Ui<H> {
             &mut self.app_state.app_graph.nodes,
             &mut self.app_state.bridge,
         ) {
-            error!("{}", e);
+            error!("{e}");
             self.is_updating = false;
             return;
         }
@@ -735,7 +735,7 @@ impl<H: HardwareBridge> Ui<H> {
             &mut self.app_state.app_graph.nodes,
             &mut self.app_state.bridge,
         ) {
-            error!("{}", e);
+            error!("{e}");
             self.is_updating = false;
             return;
         }

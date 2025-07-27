@@ -49,24 +49,61 @@ hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
 utils = { path = "utils" }
+
 clap = { version = "4", features = ["derive", "string"] }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
-toml = "0.8"
+toml = "0.9"
 env_logger = "0.11"
 log = "0.4"
-i18n-embed = { version = "0.15", features = [
+i18n-embed = { version = "0.16", features = [
     "fluent-system",
     "desktop-requester",
 ] }
 rust-embed = "8"
-i18n-embed-fl = "0.9"
+i18n-embed-fl = "0.10"
 thiserror = "2"
 derive_more = { version = "2", default-features = false, features = [
     "unwrap",
     "display",
 ] }
-# strum = { version = "0.25", features = ["derive"] }
+crossterm = "0.29"
+winres = "0.1"
+directories = "6"
+light_enum = "0.2"
+lexical-sort = "0.3"
+serial_test = "3"
+const_format = "0.2"
+rand = "0.9"
+lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
+ouroboros = "0.18"
+tokio = { version = "1", features = ["time"] }
+open = "5"
+cached = "0.56"
+constcat = "0.6"
+cargo-packager-resource-resolver = { version = "0.1", features = [
+    "auto-detect-format",
+] }
+
+[workspace.dependencies.libcosmic]
+git = "https://github.com/pop-os/libcosmic"
+branch = "master"
+default-features = false
+features = [
+    # cause seg fault when quitting the app on flatpak
+    "wgpu",
+    "winit",
+    "tokio",
+    "multi-window",
+    "single-instance",
+    "markdown",
+    "highlighter",
+    "about",
+    # todo: re enable when it works on Flatpak
+    # "dbus-config",
+    #"a11y",
+]
+
 
 # [patch."https://github.com/pop-os/libcosmic"]
 # libcosmic = { path = "../libcosmic" }
@@ -81,10 +118,10 @@ clap.workspace = true
 log.workspace = true
 env_logger.workspace = true
 hardware.workspace = true
-crossterm = "0.28"
+crossterm.workspace = true
 
 [build-dependencies]
-winres = "0.1"
+winres.workspace = true
 
 
 [profile.release]

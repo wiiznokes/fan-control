@@ -97,7 +97,7 @@ fn try_run() -> Result<()> {
     let bridge = hardware::new()?;
     let hardware = bridge.hardware();
 
-    debug!("sensors found: {:?}", hardware);
+    debug!("sensors found: {hardware:?}");
 
     if args.serialize_hardware {
         dir_manager.serialize_hardware(hardware);
@@ -134,6 +134,6 @@ fn try_run() -> Result<()> {
 
 fn main() {
     if let Err(e) = try_run() {
-        error!("{}", e);
+        error!("{e}");
     }
 }

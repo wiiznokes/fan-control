@@ -71,6 +71,6 @@ impl Display for CustomTempKind {
             CustomTempKind::Max => fl!("max"),
             CustomTempKind::Min => fl!("min"),
         };
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
 }

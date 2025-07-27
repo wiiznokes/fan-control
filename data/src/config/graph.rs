@@ -137,8 +137,7 @@ impl Graph {
 
         if self.coords.contains(&coord) {
             return Err(format!(
-                "Can't create this new coord {}, this temp is already present",
-                temp
+                "Can't create this new coord {temp}, this temp is already present"
             )
             .into());
         }
