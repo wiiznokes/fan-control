@@ -22,22 +22,6 @@ i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 utils.workspace = true
 derive_more.workspace = true
-tokio = { version = "1", features = ["time"] }
-open = "5"
-[dependencies.libcosmic]
-git = "https://github.com/pop-os/libcosmic"
-branch = "master"
-default-features = false
-features = [
-    # cause seg fault when quitting the app on flatpak
-    "wgpu",
-    "winit",
-    "tokio",
-    "multi-window",
-    "single-instance",
-    "markdown",
-    "about"
-    # todo: re enable when it works on Flatpak
-    # "dbus-config",
-    #"a11y",
-]
+tokio = { workspace = true, features = ["time"] }
+open.workspace = true
+libcosmic.workspace = true

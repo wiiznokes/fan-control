@@ -15,8 +15,8 @@ hardware.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
-directories = "6"
-light_enum = "0.2"
+directories.workspace = true
+light_enum.workspace = true
 log.workspace = true
 i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
@@ -24,9 +24,9 @@ rust-embed.workspace = true
 derive_more.workspace = true
 thiserror.workspace = true
 utils.workspace = true
-lexical-sort = "0.3"
+lexical-sort.workspace = true
 
 [dev-dependencies]
-serial_test = "3"
-const_format = "0.2"
+serial_test.workspace = true
+const_format.workspace = true
 env_logger.workspace = true
