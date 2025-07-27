@@ -1,0 +1,50 @@
+{
+  "app-id": "io.github.wiiznokes.fan-control",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "24.08",
+  "base": "com.system76.Cosmic.BaseApp",
+  "base-version": "stable",
+  "sdk": "org.freedesktop.Sdk",
+  "sdk-extensions": [
+    "org.freedesktop.Sdk.Extension.rust-stable",
+    "org.freedesktop.Sdk.Extension.llvm18"
+  ],
+  "command": "fan-control",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=fallback-x11",
+    "--socket=wayland",
+    "--device=all",
+    "--filesystem=/sys",
+    "--talk-name=com.system76.CosmicSettingsDaemon"
+  ],
+  "build-options": {
+    "append-path": "/usr/lib/sdk/rust-stable/bin",
+    "env": {
+      "CARGO_HOME": "/run/build/fan-control/cargo"
+    }
+  },
+  "modules": [
+    {
+      "name": "fan-control",
+      "buildsystem": "simple",
+      "build-options": {
+        "append-path": "/usr/lib/sdk/llvm18/bin",
+        "prepend-ld-library-path": "/usr/lib/sdk/llvm18/lib"
+      },
+      "build-commands": [
+        "just build-libsensors",
+        "FAN_CONTROL_FORMAT=flatpak just build-release --verbose --offline",
+        "just prefix=/app install"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/wiiznokes/fan-control",
+          "commit": "###commit###"
+        },
+        "./cargo-sources.json"
+      ]
+    }
+  ]
+}

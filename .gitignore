@@ -37,3 +37,6 @@ package-lock.json
 
 /RELEASE_CHANGELOG.md
 /io.github.wiiznokes.fan-control
+
+/flatpak-repo
+/flatpak-builder-tools
