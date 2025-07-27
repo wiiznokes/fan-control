@@ -2,8 +2,8 @@
 
 ## Info
 
-fan-control is distributed with flatpak on Linux, which allows containerization. But fan-control need to access your sensors to work.
-This is why we use [udev](https://en.wikipedia.org/wiki/Udev), which allows normal user to access devices, without giving them sudo permission. [This is](./60-fan-control.rules) the rule that you need for fan-control.
+Fan Control is distributed with flatpak on Linux, which allows containerization. But it need to access your sensors to work.
+This is why we use [udev](https://en.wikipedia.org/wiki/Udev), which allows normal user to access devices, without giving them sudo permission. [This is](./60-fan-control.rules) the rule that you need.
 
 # Commands to install the rules
 
