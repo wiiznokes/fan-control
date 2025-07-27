@@ -31,7 +31,7 @@ pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
 
     loop {
         if let Err(e) = app_state.bridge.update() {
-            error!("{}", e);
+            error!("{e}");
             break;
         }
 
@@ -40,7 +40,7 @@ pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
             &app_state.app_graph.root_nodes,
             &mut app_state.bridge,
         ) {
-            error!("{}", e);
+            error!("{e}");
         }
 
         let settings_update_delay =
@@ -67,7 +67,7 @@ pub fn run_cli<H: HardwareBridge>(mut app_state: AppState<H>) {
     }
 
     if let Err(e) = app_state.bridge.shutdown() {
-        error!("shutdown hardware: {}", e);
+        error!("shutdown hardware: {e}");
     }
 }
 
@@ -93,7 +93,7 @@ fn start_listening(tx: Sender<UserAction>) {
                     _ => {}
                 },
                 Err(e) => {
-                    error!("can't read keyboard: {}", e);
+                    error!("can't read keyboard: {e}");
                 }
             }
         }
@@ -103,7 +103,7 @@ fn start_listening(tx: Sender<UserAction>) {
 fn display_info(settings: &Settings, current_config: &String) {
     println!();
     println!("Update delay: {} ms", settings.update_delay);
-    println!("Active configuration: {}", current_config);
+    println!("Active configuration: {current_config}");
     println!();
     println!("Available options:");
     println!("quit: q");

@@ -96,7 +96,7 @@ impl DirManager {
                 match deserialize(&settings_file_path) {
                     Ok(t) => t,
                     Err(e) => {
-                        error!("can't deserialize settings at init: {}", e);
+                        error!("can't deserialize settings at init: {e}");
                         Settings::default()
                     }
                 }
@@ -130,7 +130,7 @@ impl DirManager {
                 match deserialize(&state_file_path) {
                     Ok(t) => t,
                     Err(e) => {
-                        error!("can't deserialize settings at init: {}", e);
+                        error!("can't deserialize settings at init: {e}");
                         SettingsState::default()
                     }
                 }
@@ -197,7 +197,7 @@ impl DirManager {
             Some(config_name) => match deserialize::<Config>(&self.config_file_path(config_name)) {
                 Ok(config) => Some(config),
                 Err(e) => {
-                    warn!("{}", e);
+                    warn!("{e}");
                     None
                 }
             },
@@ -229,7 +229,7 @@ impl DirManager {
         let hardware_file_path = self.hardware_file_path();
 
         if let Err(e) = serialize(&hardware_file_path, hardware) {
-            warn!("{}", e);
+            warn!("{e}");
         } else {
             println!(
                 "hardware file successfully written in {}",
@@ -247,7 +247,7 @@ impl DirManager {
 
         let previous_path = self.config_file_path(previous_name);
         if let Err(e) = fs::remove_file(previous_path) {
-            warn!("Can't remove file while saving config: {}.", e);
+            warn!("Can't remove file while saving config: {e}.");
         }
 
         let new_path = self.config_file_path(new_name);
@@ -293,7 +293,7 @@ impl DirManager {
 
         let config_path = self.config_file_path(&config_name);
         if let Err(e) = fs::remove_file(config_path) {
-            warn!("{}", e);
+            warn!("{e}");
         }
 
         if let Some(current_config) = &self.settings().current_config {
@@ -348,7 +348,7 @@ impl ConfigNames {
             }
 
             if let Err(e) = deserialize::<Config>(&file.path()) {
-                warn!("can't deserialize potential config: {}", e);
+                warn!("can't deserialize potential config: {e}");
                 continue;
             }
 
@@ -445,7 +445,7 @@ mod helper {
 
     pub fn add_toml_extension(input: &str) -> Cow<'_, str> {
         if !input.ends_with(TOML_EXT) {
-            let val = format!("{}{}", input, TOML_EXT);
+            let val = format!("{input}{TOML_EXT}");
             Cow::Owned(val)
         } else {
             Cow::Borrowed(input)

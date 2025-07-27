@@ -147,7 +147,7 @@ impl AppGraph {
     }
 
     fn find_unused_name(nodes: &Nodes, default_name: &str, i: u32) -> String {
-        let new_name = format!("{} {}", default_name, i);
+        let new_name = format!("{default_name} {i}");
         if nodes.values().any(|n| n.name() == &new_name) {
             Self::find_unused_name(nodes, default_name, i + 1)
         } else {

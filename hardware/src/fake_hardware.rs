@@ -71,12 +71,12 @@ impl HardwareBridge for FakeHardwareBridge {
     }
 
     fn set_value(&mut self, _control: &HControl, value: Value) -> crate::Result<()> {
-        debug!("set value {}", value);
+        debug!("set value {value}");
         Ok(())
     }
 
     fn set_mode(&mut self, _control: &HControl, mode: &Mode) -> crate::Result<()> {
-        debug!("set mode {}", mode);
+        debug!("set mode {mode}");
         Ok(())
     }
 }

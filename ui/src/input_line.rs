@@ -20,10 +20,7 @@ impl MyFrom<i32> for u8 {
 
 impl MyFrom<&str> for Option<u8> {
     fn from(value: &str) -> Self {
-        match value.parse::<u8>() {
-            Ok(value) => Some(value),
-            Err(_) => None,
-        }
+        value.parse::<u8>().ok()
     }
 }
 

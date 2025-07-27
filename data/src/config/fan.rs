@@ -56,8 +56,7 @@ impl ToNode for Fan {
                     Some(fan_h) => self.fan_h = Some(fan_h.clone()),
                     None => {
                         warn!(
-                            "Fan to Node, hardware_id not found. {} from config not found. Fall back to no id",
-                            hardware_id
+                            "Fan to Node, hardware_id not found. {hardware_id} from config not found. Fall back to no id"
                         );
                         self.hardware_id.take();
                         self.fan_h.take();

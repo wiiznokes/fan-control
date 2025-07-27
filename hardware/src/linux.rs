@@ -38,7 +38,7 @@ struct LinuxBridgeSelfRef {
 impl Drop for PwmRefs<'_> {
     fn drop(&mut self) {
         if let Err(e) = self.enable.set_raw_value(self.default_enable_cached) {
-            error!("can't set auto to a pwm sensor when quitting: {}", e)
+            error!("can't set auto to a pwm sensor when quitting: {e}")
         }
     }
 }
@@ -99,8 +99,8 @@ fn generate_hardware<'a>(
         };
 
         Ok(HInfo {
-            name: format!("{} {}", label, chip_name),
-            hardware_id: format!("{}-{}-{}", label, chip_name, sub_feature_name),
+            name: format!("{label} {chip_name}"),
+            hardware_id: format!("{label}-{chip_name}-{sub_feature_name}"),
             info: format!(
                 "chip path: {}\nchip name: {}\nbus: {}\nlabel: {}\nfeature: {}",
                 chip_path.display(),
@@ -141,7 +141,7 @@ fn generate_hardware<'a>(
                                 }));
                             }
                             Err(e) => {
-                                error!("can't generate hardware metadata for fan: {}", e);
+                                error!("can't generate hardware metadata for fan: {e}");
                             }
                         }
                     }
@@ -166,7 +166,7 @@ fn generate_hardware<'a>(
                                 }));
                             }
                             Err(e) => {
-                                error!("can't generate hardware metadata for temp: {}", e);
+                                error!("can't generate hardware metadata for temp: {e}");
                             }
                         }
                     }
@@ -191,7 +191,7 @@ fn generate_hardware<'a>(
                                 }
                             }
                             Err(e) => {
-                                error!("can't read value of pwm {}", e);
+                                error!("can't read value of pwm {e}");
                                 continue;
                             }
                         };
@@ -212,7 +212,7 @@ fn generate_hardware<'a>(
                                 }));
                             }
                             Err(e) => {
-                                error!("can't generate hardware metadata for control: {}", e);
+                                error!("can't generate hardware metadata for control: {e}");
                             }
                         }
                     }
@@ -294,7 +294,7 @@ impl HardwareBridge for LinuxBridge {
                 InternalSubFeatureRef::Pwm(pwm_refs) => {
                     let value = value as f64 * 2.55;
                     if let Err(e) = pwm_refs.io.set_raw_value(value) {
-                        let explication = format!("can't set value {} to a pwm", value);
+                        let explication = format!("can't set value {value} to a pwm");
                         let e = LinuxError::LmSensors(explication, e);
                         return Err(HardwareError::Linux(e));
                     }
@@ -319,7 +319,7 @@ impl HardwareBridge for LinuxBridge {
                     };
 
                     if let Err(e) = pwm_refs.enable.set_raw_value(value) {
-                        let explication = format!("can't set mode {} to a pwm", value);
+                        let explication = format!("can't set mode {value} to a pwm");
                         let e = LinuxError::LmSensors(explication, e);
                         return Err(HardwareError::Linux(e));
                     }

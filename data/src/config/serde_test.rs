@@ -50,14 +50,14 @@ fn parse_file<T: Debug, E: Debug>(
     print: bool,
     struct_generation: impl Fn(&String) -> Result<T, E>,
 ) {
-    println!("read file: {}", path);
+    println!("read file: {path}");
     if let Ok(content) = fs::read_to_string(Path::new(path)) {
         let output: T = struct_generation(&content).unwrap();
         if print {
             dbg!(output);
         }
     }
-    println!("file {} succesfully parsed!", path);
+    println!("file {path} succesfully parsed!");
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn serialize() {
 }
 
 fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<String, E>) {
-    println!("write file: {}", path);
+    println!("write file: {path}");
 
     let path_fs = Path::new(path);
     if path_fs.exists() {
@@ -97,7 +97,7 @@ fn write_file<E: Debug>(path: &str, content_generation: impl Fn() -> Result<Stri
     let content = content_generation().unwrap();
     file.write_all(content.as_bytes()).unwrap();
 
-    println!("file {} succesfully writed!", path);
+    println!("file {path} succesfully writed!");
 }
 
 /*
