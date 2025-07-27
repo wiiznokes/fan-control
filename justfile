@@ -105,11 +105,12 @@ build-and-installf: uninstallf
     flatpak-builder \
         --force-clean \
         --verbose \
-        --user --install \
+        --user \
+        --install \
         --install-deps-from=flathub \
         --repo=repo \
         flatpak-out \
-        {{ appid }}.json
+        {{ repo-name }}/{{ appid }}.json
 
 sdk-version := "24.08"
 
