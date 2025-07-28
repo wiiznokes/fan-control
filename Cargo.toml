@@ -87,7 +87,8 @@ cargo-packager-resource-resolver = { version = "0.1", features = [
 
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
-branch = "master"
+# branch = "master"
+rev = "5e136f94994140548b4feee759c811284988f076"
 default-features = false
 features = [
     # cause seg fault when quitting the app on flatpak

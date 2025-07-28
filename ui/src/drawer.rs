@@ -7,10 +7,10 @@ use cosmic::{
     widget::{self, Row, Text, about::About, button},
 };
 use data::{dir_manager::DirManager, settings::AppTheme};
-use utils::{APP, APP_ID};
+use utils::APP;
 
 use crate::{
-    icon_button,
+    icon_button, icon_handle,
     message::{AppMsg, SettingsMsg, ToogleMsg},
 };
 
@@ -73,7 +73,7 @@ fn update_delay(dir_manager: &DirManager) -> Element<'_, AppMsg> {
 static ABOUT: LazyLock<About> = LazyLock::new(|| {
     About::default()
         .name(APP)
-        .icon(APP_ID)
+        .icon(icon_handle!("toys_fan/24"))
         .license("GPL-3.0-only")
         .author("wiiznokes")
         .links([
