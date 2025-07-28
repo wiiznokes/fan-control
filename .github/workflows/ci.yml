@@ -6,13 +6,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
-    paths-ignore:
-      - "**.md"
-      - "**.txt"
-      - "**.log"
-      - "**.desktop"
-      - "metainfo.xml"
-
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true

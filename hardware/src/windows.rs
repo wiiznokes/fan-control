@@ -62,7 +62,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
         command.arg("--log=info");
     }
 
-    debug!("Command to launch Windows server: {:?}.", command);
+    debug!("Command to launch Windows server: {command:?}.");
 
     match command.spawn() {
         Ok(handle) => Ok(handle),
@@ -114,7 +114,7 @@ fn try_connect() -> Result<TcpStream> {
                         return Err(WindowsError::Io("can't set read timeout back".into(), e));
                     }
 
-                    info!("Check passed for {}:{}.", IP, port);
+                    info!("Check passed for {IP}:{port}.");
                     return Ok(stream);
                 }
                 Err(_) => continue,
