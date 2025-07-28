@@ -10,7 +10,7 @@ updates:
   #   schedule:
   #     interval: monthly
 
-  - package-ecosystem: "nuget"
-    directory: "./hardware/LibreHardwareMonitorWrapper"
-    schedule:
-      interval: "monthly"
+  # - package-ecosystem: "nuget"
+  #   directory: "./hardware/LibreHardwareMonitorWrapper"
+  #   schedule:
+  #     interval: "monthly"
