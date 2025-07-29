@@ -7,13 +7,13 @@ use data::{
     settings::AppTheme,
     utils::RemoveElem,
 };
-use dialogs::Dialog;
 use drawer::{Drawer, about};
 use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
+use udev_dialog::Dialog;
 
 use crate::{drawer::settings_drawer, graph::graph_window_view};
 
@@ -45,7 +45,6 @@ extern crate log;
 pub mod localize;
 
 mod add_node;
-mod dialogs;
 mod drawer;
 mod graph;
 mod headers;
@@ -56,6 +55,7 @@ mod message;
 mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
+mod udev_dialog;
 
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;
@@ -120,7 +120,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         let dialog = if cfg!(FAN_CONTROL_FORMAT = "flatpak")
             && app_state.dir_manager.state().show_flatpak_dialog
         {
-            Some(Dialog::Flatpak)
+            Some(Dialog::Udev)
         } else {
             None
         };

@@ -58,6 +58,7 @@ invalid_value_error = este valor é inválido
 config_not_saved = Configuração não salva
 
 # Dialogs
-udev_rules_dialog_ok = Eu compreendo
-udev_rules_dialog_remind_later = Lembre-me depois
-udev_rules_dialog_copy_to_clipboard = Copiar comandos para a área de transferência
+udev_rules =
+    .ok = Eu compreendo
+    .copy_to_clipboard = Copiar comandos para a área de transferência
+    .remind_later = Lembre-me depois

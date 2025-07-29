@@ -57,6 +57,7 @@ invalid_value_error = detta värde är ogiltigt
 config_not_saved = Konfigurationen sparades inte
 
 # Dialogrutor
-udev_rules_dialog_ok = Jag förstår
-udev_rules_dialog_remind_later = Påminn mig senare
-udev_rules_dialog_copy_to_clipboard = Kopiera kommandon till urklipp
+udev_rules =
+    .ok = Jag förstår
+    .copy_to_clipboard = Kopiera kommandon till urklipp
+    .remind_later = Påminn mig senare

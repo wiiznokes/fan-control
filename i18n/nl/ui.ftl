@@ -60,6 +60,7 @@ invalid_value_error = Deze waarde is ongeldig
 config_not_saved = De configuratie is niet opgeslagen
 
 # Dialogs
-udev_rules_dialog_ok = Ik begrijp het
-udev_rules_dialog_remind_later = Herinner me er later aan
-udev_rules_dialog_copy_to_clipboard = Commando's naar het klembord kopiëren
+udev_rules =
+    .ok = Ik begrijp het
+    .copy_to_clipboard = Commando's naar het klembord kopiëren
+    .remind_later = Herinner me er later aan
