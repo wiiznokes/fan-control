@@ -25,3 +25,8 @@ derive_more.workspace = true
 tokio = { workspace = true, features = ["time"] }
 open.workspace = true
 libcosmic.workspace = true
+constcat.workspace = true
+
+
+[dev-dependencies]
+pretty_assertions.workspace = true
