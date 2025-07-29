@@ -5,6 +5,7 @@ use cosmic::{
     widget::{
         button, dialog,
         markdown::{self, Url},
+        scrollable,
     },
 };
 use hardware::HardwareBridge;
@@ -21,10 +22,13 @@ pub enum DialogMsg {
 
 impl Dialog {
     pub fn view(&self) -> Element<AppMsg> {
-        match self {
-            Dialog::Udev => view_udev_dialog(),
-        }
-        .map(AppMsg::Dialog)
+        scrollable(
+            match self {
+                Dialog::Udev => view_udev_dialog(),
+            }
+            .map(AppMsg::Dialog),
+        )
+        .into()
     }
 
     pub fn update<H: HardwareBridge>(app: &mut Ui<H>, message: DialogMsg) -> Task<AppMsg> {
