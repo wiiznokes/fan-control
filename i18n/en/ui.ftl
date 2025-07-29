@@ -64,7 +64,7 @@ udev_rules =
     .remind_later = Remind me Later
     .title = Install udev rules on Linux
     .info = 
-        Modifying fan sensor values is not possible for a normal user by default on Linux. This is why this app uses [udev rules](https://en.wikipedia.org/wiki/Udev), which allows normal users to access devices, without admin privilege.
+        Modifying fan sensor values is not possible for a normal user on Linux by default. This is why this app uses [udev rules](https://en.wikipedia.org/wiki/Udev), which allows normal users to access sensors, without admin privilege.
         However, we can't install these rules automatically with Flatpak. You need to install them with these commands.
     .explain_commands_title = Information
     .explain_commands = 
