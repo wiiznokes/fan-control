@@ -3,7 +3,7 @@ use cosmic::{
     iced_core::{Alignment, Length},
     iced_widget::{Button, Column, text},
     theme,
-    widget::{Container, Row, Text, TextInput, tooltip},
+    widget::{Container, Row, Space, Text, TextInput, tooltip},
 };
 use data::{AppState, config::Config};
 use hardware::HardwareBridge;
@@ -39,7 +39,7 @@ pub fn header_center<'a, H: HardwareBridge>(
     let mut elems = Vec::new();
 
     // configuration not saved
-    if match &settings.current_config {
+    let warning = if match &settings.current_config {
         Some(current_config) => {
             if current_config != current_config_cached {
                 true
@@ -52,15 +52,18 @@ pub fn header_center<'a, H: HardwareBridge>(
         }
         None => true,
     } {
-        elems.push(
-            tooltip(
-                icon!("warning/40"),
-                text(fl!("config_not_saved")),
-                tooltip::Position::Bottom,
-            )
-            .into(),
-        );
-    }
+        tooltip(
+            icon!("warning/40"),
+            text(fl!("config_not_saved")),
+            tooltip::Position::Bottom,
+        )
+        .into()
+    } else {
+        // dummy element to keep the text input at the same pos in the tree, to not lose focus
+        Space::new(0, 0).into()
+    };
+
+    elems.push(warning);
 
     // save button
     if settings.current_config.is_some() {
