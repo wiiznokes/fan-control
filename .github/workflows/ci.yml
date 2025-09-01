@@ -23,7 +23,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
@@ -51,7 +51,7 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
@@ -78,7 +78,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: rustup update
       - name: Run rustfmt
         run: cargo fmt --all --check --verbose
@@ -90,7 +90,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Prettier
         run: npx prettier --check .
 
@@ -103,7 +103,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: rustup update
       - uses: taiki-e/install-action@just
       - uses: Swatinem/rust-cache@v2
@@ -125,7 +125,7 @@ jobs:
       fail-fast: false
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Dotnet format
         run: dotnet format ./hardware/LibreHardwareMonitorWrapper/LibreHardwareMonitorWrapper.csproj --verify-no-changes --verbosity detailed
 
@@ -136,6 +136,6 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: rustup update
       - run: cargo vendor
