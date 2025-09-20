@@ -89,7 +89,7 @@ pretty_assertions = "1"
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 # branch = "master"
-rev = "5e136f94994140548b4feee759c811284988f076"
+rev = "31fa09a92a98ccbe47c81c83b41cd20a91107aae"
 default-features = false
 features = [
     # cause seg fault when quitting the app on flatpak
