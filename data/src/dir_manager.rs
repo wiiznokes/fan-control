@@ -81,10 +81,10 @@ impl DirManager {
             None => project_dirs.config_dir().to_path_buf(),
         };
 
-        if !config_dir_path.exists() {
-            if let Err(e) = fs::create_dir_all(&config_dir_path) {
-                error!("Can't create config directories: {e}.")
-            }
+        if !config_dir_path.exists()
+            && let Err(e) = fs::create_dir_all(&config_dir_path)
+        {
+            error!("Can't create config directories: {e}.")
         }
 
         let mut settings = {
@@ -298,13 +298,13 @@ impl DirManager {
             warn!("{e}");
         }
 
-        if let Some(current_config) = &self.settings().current_config {
-            if current_config == &config_name {
-                self.update_settings(|settings| {
-                    settings.current_config.take();
-                });
-                return Ok(true);
-            }
+        if let Some(current_config) = &self.settings().current_config
+            && current_config == &config_name
+        {
+            self.update_settings(|settings| {
+                settings.current_config.take();
+            });
+            return Ok(true);
         }
         Ok(false)
     }
