@@ -21,7 +21,7 @@ pub enum DialogMsg {
 }
 
 impl Dialog {
-    pub fn view(&self) -> Element<AppMsg> {
+    pub fn view(&self) -> Element<'_, AppMsg> {
         scrollable(
             match self {
                 Dialog::Udev => view_udev_dialog(),

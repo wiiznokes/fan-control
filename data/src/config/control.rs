@@ -77,11 +77,11 @@ impl Control {
         mode: Mode,
         bridge: &mut H,
     ) -> Result<(), UpdateError> {
-        if let Some(mode_set) = &self.mode_set {
-            if mode_set == &mode {
-                info!("Mode {} is already set for {}.", mode, self.name);
-                return Ok(());
-            }
+        if let Some(mode_set) = &self.mode_set
+            && mode_set == &mode
+        {
+            info!("Mode {} is already set for {}.", mode, self.name);
+            return Ok(());
         }
 
         match &self.control_h {

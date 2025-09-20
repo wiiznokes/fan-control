@@ -49,10 +49,10 @@ impl AppGraph {
 
     pub fn remove_node(&mut self, id: Id) -> Option<Node> {
         let node = self.nodes.remove(&id);
-        if let Some(node) = &node {
-            if node.is_root() {
-                self.root_nodes.remove_elem(|e| e == &id);
-            }
+        if let Some(node) = &node
+            && node.is_root()
+        {
+            self.root_nodes.remove_elem(|e| e == &id);
         }
         node
     }

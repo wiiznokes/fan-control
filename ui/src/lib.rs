@@ -160,12 +160,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
                         match &mut node.node_type {
                             NodeType::Control(i) => {
-                                if i.is_valid() {
-                                    if let Err(e) = i.set_mode(Mode::Auto, bridge) {
-                                        error!(
-                                            "Can't set control to auto when removing his hardware ref: {e}."
-                                        );
-                                    }
+                                if i.is_valid()
+                                    && let Err(e) = i.set_mode(Mode::Auto, bridge)
+                                {
+                                    error!(
+                                        "Can't set control to auto when removing his hardware ref: {e}."
+                                    );
                                 }
 
                                 i.hardware_id = hardware_id;
@@ -314,12 +314,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     ModifNodeMsg::Delete => {
                         match self.app_state.app_graph.remove_node(id) {
                             Some(mut node) => {
-                                if let NodeType::Control(control) = &mut node.node_type {
-                                    if let Err(e) =
+                                if let NodeType::Control(control) = &mut node.node_type
+                                    && let Err(e) =
                                         control.set_mode(Mode::Auto, &mut self.app_state.bridge)
-                                    {
-                                        error!("can't set unactive when removing a control: {e}");
-                                    }
+                                {
+                                    error!("can't set unactive when removing a control: {e}");
                                 }
                             }
                             None => error!("Node was not found when trying to remove it"),
@@ -578,7 +577,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         Task::none()
     }
 
-    fn view(&self) -> Element<Self::Message> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
@@ -593,11 +592,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         toaster::toaster(&self.toasts, app)
     }
 
-    fn header_start(&self) -> Vec<Element<Self::Message>> {
+    fn header_start(&self) -> Vec<Element<'_, Self::Message>> {
         headers::header_start()
     }
 
-    fn header_center(&self) -> Vec<Element<Self::Message>> {
+    fn header_center(&self) -> Vec<Element<'_, Self::Message>> {
         headers::header_center(
             &self.app_state,
             &self.current_config_cached,
@@ -605,11 +604,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         )
     }
 
-    fn header_end(&self) -> Vec<Element<Self::Message>> {
+    fn header_end(&self) -> Vec<Element<'_, Self::Message>> {
         headers::header_end()
     }
 
-    fn context_drawer(&self) -> Option<ContextDrawer<Self::Message>> {
+    fn context_drawer(&self) -> Option<ContextDrawer<'_, Self::Message>> {
         self.drawer.as_ref().map(|drawer| match drawer {
             Drawer::Settings => context_drawer(
                 settings_drawer(&self.app_state.dir_manager),
@@ -658,24 +657,24 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         None
     }
 
-    fn view_window(&self, id: window::Id) -> Element<Self::Message> {
-        if let Some(graph_window) = &self.graph_window {
-            if graph_window.window_id == id {
-                let graph = self
-                    .app_state
-                    .app_graph
-                    .get(&graph_window.node_id)
-                    .node_type
-                    .unwrap_graph_ref();
+    fn view_window(&self, id: window::Id) -> Element<'_, Self::Message> {
+        if let Some(graph_window) = &self.graph_window
+            && graph_window.window_id == id
+        {
+            let graph = self
+                .app_state
+                .app_graph
+                .get(&graph_window.node_id)
+                .node_type
+                .unwrap_graph_ref();
 
-                return graph_window_view(graph_window, graph);
-            }
+            return graph_window_view(graph_window, graph);
         }
 
         panic!("no view for window {id:?}");
     }
 
-    fn dialog(&self) -> Option<Element<Self::Message>> {
+    fn dialog(&self) -> Option<Element<'_, Self::Message>> {
         self.dialog.as_ref().map(|dialog| dialog.view())
     }
 }

@@ -38,10 +38,10 @@ where
     let mut prev = iter.next();
 
     for current in iter {
-        if let Some(ref prev) = prev {
-            if prev > &current {
-                return false;
-            }
+        if let Some(ref prev) = prev
+            && prev > &current
+        {
+            return false;
         }
         prev.replace(current);
     }
