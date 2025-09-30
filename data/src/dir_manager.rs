@@ -266,7 +266,7 @@ impl DirManager {
         Ok(())
     }
 
-    /// Return the config and her name
+    /// Return the config and its name
     pub fn change_config(
         &mut self,
         new_config_name: Option<String>,
@@ -289,8 +289,8 @@ impl DirManager {
         }
     }
 
-    /// return true if it's the current config whitch has been removed
-    pub fn remove_config(&mut self, config_name: String) -> Result<bool> {
+    /// Return true if it's the current config whitch has been removed
+    pub fn remove_config(&mut self, config_name: &str) -> Result<bool> {
         self.config_names.remove(&config_name);
 
         let config_path = self.config_file_path(&config_name);

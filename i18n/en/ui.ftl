@@ -45,8 +45,10 @@ add_target = Take 5 variables:
 add_graph = Graph
 
 # Config
+no_config = No configuration
+rename_config = Rename configuration
 config_name = Configuration name
-save_config = Save/rename this configuration
+save_config = Save this configuration
 delete_config = Delete configuration
 create_config = Create configuration
 

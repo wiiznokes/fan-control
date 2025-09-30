@@ -1,4 +1,4 @@
-use cosmic::widget::ToastId;
+use cosmic::widget::{menu::action::MenuAction, nav_bar, ToastId};
 use data::{
     config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
@@ -27,6 +27,7 @@ pub enum AppMsg {
     RemoveToast(ToastId),
     Dialog(DialogMsg),
     OpenUrl(String),
+    NavBarContextMenu(NavBarContextMenuMsg)
 }
 
 #[derive(Debug, Clone)]
@@ -140,5 +141,19 @@ impl ModifNodeMsg {
     #[allow(clippy::wrong_self_convention)]
     pub fn to_app(self, id: Id) -> AppMsg {
         AppMsg::ModifNode(id, self)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
+pub enum NavBarContextMenuMsg {
+    Delete(nav_bar::Id),
+    Rename(nav_bar::Id),
+}
+
+impl MenuAction for NavBarContextMenuMsg {
+    type Message = cosmic::Action<AppMsg>;
+
+    fn message(&self) -> Self::Message {
+        cosmic::Action::App(AppMsg::NavBarContextMenu(*self))
     }
 }
