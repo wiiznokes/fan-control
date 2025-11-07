@@ -5,7 +5,6 @@ use cosmic::{
     widget::{
         button, dialog,
         markdown::{self, Url},
-        scrollable,
     },
 };
 use hardware::HardwareBridge;

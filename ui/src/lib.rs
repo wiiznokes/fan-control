@@ -36,6 +36,9 @@ use cosmic::{
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 
 use crate::add_node::add_node_button_view;
+use crate::config_dialogs::{
+    CreateConfigDialog, CreateConfigDialogMsg, RenameConfigDialog, RenameConfigDialogMsg,
+};
 use crate::udev_dialog::UdevDialogMsg;
 
 #[macro_use]
@@ -45,6 +48,7 @@ extern crate log;
 pub mod localize;
 
 mod add_node;
+mod config_dialogs;
 mod drawer;
 mod graph;
 mod headers;
@@ -615,6 +619,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             AppMsg::Dialog(dialog_msg) => {
                 return match dialog_msg {
                     DialogMsg::Udev(message) => udev_dialog::update(self, message),
+                    DialogMsg::CreateConfig(create_config_dialog_msg) => {
+                        CreateConfigDialog::update(self, create_config_dialog_msg)
+                    }
+                    DialogMsg::RenameConfig(rename_config_dialog_msg) => {
+                        RenameConfigDialog::update(self, rename_config_dialog_msg)
+                    }
                 }
                 .map(cosmic::action::app);
             }
@@ -825,6 +835,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         self.dialog.as_ref().map(|dialog| {
             scrollable(match dialog {
                 Dialog::Udev => udev_dialog::view(),
+                Dialog::CreateConfig(dialog) => dialog.view(&self.app_state.dir_manager),
+                Dialog::RenameConfig(dialog) => dialog.view(&self.app_state.dir_manager),
             })
             .apply(Element::from)
             .map(AppMsg::Dialog)
@@ -832,16 +844,18 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 enum Dialog {
     Udev,
-    CreateConfig,
-    RenameConfig,
+    CreateConfig(CreateConfigDialog),
+    RenameConfig(RenameConfigDialog),
 }
 
 #[derive(Clone, Debug)]
 enum DialogMsg {
     Udev(UdevDialogMsg),
+    CreateConfig(CreateConfigDialogMsg),
+    RenameConfig(RenameConfigDialogMsg),
 }
 
 impl<H: HardwareBridge> Ui<H> {

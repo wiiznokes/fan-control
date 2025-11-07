@@ -6,8 +6,8 @@ use std::{
 use directories::ProjectDirs;
 use hardware::Hardware;
 
-use thiserror::Error;
 use common::{APP, ORG, QUALIFIER};
+use thiserror::Error;
 
 use crate::{
     config::Config,
@@ -242,26 +242,30 @@ impl DirManager {
 }
 
 impl DirManager {
-    pub fn save_config(&mut self, new_name: &str, config: &Config) -> Result<()> {
-        let Some(previous_name) = &self.settings().current_config else {
-            return Err(ConfigError::NoName);
-        };
+    pub fn save_config(&mut self, name: &str, config: &Config) -> Result<()> {
+        let path = self.config_file_path(name);
+        serialize(&path, config)?;
+        Ok(())
+    }
 
+    pub fn rename_config(&mut self, previous_name: &str, new_name: &str) -> Result<()> {
         let previous_path = self.config_file_path(previous_name);
-        if let Err(e) = fs::remove_file(previous_path) {
-            warn!("Can't remove file while saving config: {e}.");
-        }
-
         let new_path = self.config_file_path(new_name);
+        fs::rename(&previous_path, new_path)?;
 
-        serialize(&new_path, config)?;
-
-        self.config_names.remove(&previous_name.clone());
+        self.config_names.remove(&previous_name);
         self.config_names.add(new_name);
 
-        self.update_settings(|settings| {
-            settings.current_config = Some(new_name.to_owned());
-        });
+        if self
+            .settings
+            .current_config
+            .as_ref()
+            .is_some_and(|name| name == previous_name)
+        {
+            self.update_settings(|settings| {
+                settings.current_config = Some(new_name.to_owned());
+            });
+        }
 
         Ok(())
     }
