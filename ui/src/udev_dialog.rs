@@ -1,4 +1,4 @@
-use crate::{Ui, message::AppMsg};
+use crate::{DialogMsg, Ui, message::AppMsg};
 use cosmic::{
     Element, Task,
     iced::{clipboard, theme::Palette},
@@ -11,52 +11,6 @@ use cosmic::{
 use hardware::HardwareBridge;
 
 #[derive(Clone, Debug)]
-pub enum Dialog {
-    Udev,
-}
-
-#[derive(Clone, Debug)]
-pub enum DialogMsg {
-    Udev(UdevDialogMsg),
-}
-
-impl Dialog {
-    pub fn view(&self) -> Element<'_, AppMsg> {
-        scrollable(
-            match self {
-                Dialog::Udev => view_udev_dialog(),
-            }
-            .map(AppMsg::Dialog),
-        )
-        .into()
-    }
-
-    pub fn update<H: HardwareBridge>(app: &mut Ui<H>, message: DialogMsg) -> Task<AppMsg> {
-        match message {
-            DialogMsg::Udev(flatpak_dialog_msg) => match flatpak_dialog_msg {
-                UdevDialogMsg::Close => {
-                    app.dialog = None;
-                }
-                UdevDialogMsg::CopyToClipboard(data) => return clipboard::write(data),
-                UdevDialogMsg::CloseAndDontShowAgain => {
-                    app.dialog = None;
-                    app.app_state.dir_manager.update_state(|state| {
-                        state.show_flatpak_dialog = false;
-                    });
-                }
-                UdevDialogMsg::OpenUrl(url) => {
-                    if let Err(e) = open::that(url.as_str()) {
-                        error!("{e}");
-                    }
-                }
-            },
-        }
-
-        Task::none()
-    }
-}
-
-#[derive(Clone, Debug)]
 pub enum UdevDialogMsg {
     Close,
     CopyToClipboard(String),
@@ -64,10 +18,35 @@ pub enum UdevDialogMsg {
     OpenUrl(Url),
 }
 
+pub fn update<H: HardwareBridge>(
+    app: &mut Ui<H>,
+    flatpak_dialog_msg: UdevDialogMsg,
+) -> Task<AppMsg> {
+    match flatpak_dialog_msg {
+        UdevDialogMsg::Close => {
+            app.dialog = None;
+        }
+        UdevDialogMsg::CopyToClipboard(data) => return clipboard::write(data),
+        UdevDialogMsg::CloseAndDontShowAgain => {
+            app.dialog = None;
+            app.app_state.dir_manager.update_state(|state| {
+                state.show_flatpak_dialog = false;
+            });
+        }
+        UdevDialogMsg::OpenUrl(url) => {
+            if let Err(e) = open::that(url.as_str()) {
+                error!("{e}");
+            }
+        }
+    }
+
+    Task::none()
+}
+
 const UDEV_COMMANDS: &str = r#"wget https://raw.githubusercontent.com/wiiznokes/fan-control/master/res/linux/60-fan-control.rules
 sudo mv 60-fan-control.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger"#;
-fn view_udev_dialog() -> Element<'static, DialogMsg> {
+pub fn view() -> Element<'static, DialogMsg> {
     let content = udev_dialog_content();
 
     let items = markdown::parse(&content).collect::<Vec<_>>();

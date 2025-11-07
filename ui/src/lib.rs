@@ -13,12 +13,11 @@ use hardware::{HardwareBridge, Mode};
 use item::items_view;
 use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
-use udev_dialog::Dialog;
 
 use crate::{drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg};
 
 use cosmic::{
-    ApplicationExt, Element,
+    ApplicationExt, Apply, Element,
     app::{
         Core, CosmicFlags, Task,
         context_drawer::{ContextDrawer, context_drawer},
@@ -29,7 +28,7 @@ use cosmic::{
     iced_runtime::Action,
     theme,
     widget::{
-        Column, Row, Space, menu, nav_bar,
+        Column, Row, Space, menu, nav_bar, scrollable,
         toaster::{self, Toast, Toasts},
     },
 };
@@ -37,6 +36,7 @@ use cosmic::{
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 
 use crate::add_node::add_node_button_view;
+use crate::udev_dialog::UdevDialogMsg;
 
 #[macro_use]
 extern crate log;
@@ -58,7 +58,6 @@ mod pick_list_utils;
 mod udev_dialog;
 mod utils;
 
-
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;
 
@@ -66,7 +65,6 @@ impl<H: HardwareBridge> CosmicFlags for Flags<H> {
 }
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
-
     utils::setup_wgpu();
 
     let settings = cosmic::app::Settings::default()
@@ -615,7 +613,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 self.toasts.remove(pos);
             }
             AppMsg::Dialog(dialog_msg) => {
-                return Dialog::update(self, dialog_msg).map(cosmic::action::app);
+                return match dialog_msg {
+                    DialogMsg::Udev(message) => udev_dialog::update(self, message),
+                }
+                .map(cosmic::action::app);
             }
             AppMsg::OpenUrl(url) => {
                 if let Err(e) = open::that(url.as_str()) {
@@ -821,8 +822,26 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn dialog(&self) -> Option<Element<'_, Self::Message>> {
-        self.dialog.as_ref().map(|dialog| dialog.view())
+        self.dialog.as_ref().map(|dialog| {
+            scrollable(match dialog {
+                Dialog::Udev => udev_dialog::view(),
+            })
+            .apply(Element::from)
+            .map(AppMsg::Dialog)
+        })
     }
+}
+
+#[derive(Clone, Debug)]
+enum Dialog {
+    Udev,
+    CreateConfig,
+    RenameConfig,
+}
+
+#[derive(Clone, Debug)]
+enum DialogMsg {
+    Udev(UdevDialogMsg),
 }
 
 impl<H: HardwareBridge> Ui<H> {

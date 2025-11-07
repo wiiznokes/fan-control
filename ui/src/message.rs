@@ -6,7 +6,7 @@ use data::{
     settings::AppTheme,
 };
 
-use crate::{graph::GraphWindowMsg, udev_dialog::DialogMsg};
+use crate::{DialogMsg, graph::GraphWindowMsg};
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
