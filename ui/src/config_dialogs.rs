@@ -1,6 +1,6 @@
 use cosmic::{
     Apply, Element, Task,
-    widget::{button, dialog, text, text_input},
+    widget::{button, dialog, text_input},
 };
 use data::{config::Config, dir_manager::DirManager};
 
@@ -20,7 +20,13 @@ pub enum CreateConfigDialogMsg {
 }
 
 impl CreateConfigDialog {
-    pub fn view(&self, dir_manager: &DirManager) -> Element<DialogMsg> {
+    pub fn new() -> Self {
+        Self {
+            name: String::new(),
+        }
+    }
+
+    pub fn view(&self, dir_manager: &DirManager) -> Element<'_, DialogMsg> {
         dialog()
             .title("Create configuration")
             .control(text_input("Name", &self.name).on_input(CreateConfigDialogMsg::Input))
@@ -35,7 +41,6 @@ impl CreateConfigDialog {
             .secondary_action(button::text("Cancel").on_press(CreateConfigDialogMsg::Cancel))
             .apply(Element::from)
             .map(DialogMsg::CreateConfig)
-            .into()
     }
 
     pub fn update<H: HardwareBridge>(
@@ -79,7 +84,14 @@ pub enum RenameConfigDialogMsg {
 }
 
 impl RenameConfigDialog {
-    pub fn view(&self, dir_manager: &DirManager) -> Element<DialogMsg> {
+    pub fn new(previous_name: &str) -> Self {
+        Self {
+            previous_name: previous_name.to_string(),
+            name: String::new(),
+        }
+    }
+
+    pub fn view(&self, dir_manager: &DirManager) -> Element<'_, DialogMsg> {
         dialog()
             .title("Rename configuration")
             .control(text_input("New name", &self.name).on_input(RenameConfigDialogMsg::Input))
@@ -94,7 +106,6 @@ impl RenameConfigDialog {
             .secondary_action(button::text("Cancel").on_press(RenameConfigDialogMsg::Cancel))
             .apply(Element::from)
             .map(DialogMsg::RenameConfig)
-            .into()
     }
 
     pub fn update<H: HardwareBridge>(
@@ -106,14 +117,13 @@ impl RenameConfigDialog {
                 app.dialog = None;
             }
             RenameConfigDialogMsg::Rename(new_name) => {
-                if let Some(Dialog::RenameConfig(dialog)) = &mut app.dialog {
-                    if let Err(e) = app
+                if let Some(Dialog::RenameConfig(dialog)) = &mut app.dialog
+                    && let Err(e) = app
                         .app_state
                         .dir_manager
                         .rename_config(&dialog.previous_name, &new_name)
-                    {
-                        error!("can't rename config: {e}");
-                    }
+                {
+                    error!("can't rename config: {e}");
                 }
 
                 app.dialog = None;

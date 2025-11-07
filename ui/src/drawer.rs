@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use common::APP;
 use cosmic::{
     Element,
     iced_core::Alignment,
@@ -7,7 +8,6 @@ use cosmic::{
     widget::{self, Row, Text, about::About, button},
 };
 use data::{dir_manager::DirManager, settings::AppTheme};
-use common::APP;
 
 use crate::{
     icon_button, icon_handle,

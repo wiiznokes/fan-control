@@ -253,7 +253,7 @@ impl DirManager {
         let new_path = self.config_file_path(new_name);
         fs::rename(&previous_path, new_path)?;
 
-        self.config_names.remove(&previous_name);
+        self.config_names.remove(previous_name);
         self.config_names.add(new_name);
 
         if self
