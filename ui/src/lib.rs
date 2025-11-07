@@ -72,7 +72,8 @@ pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
     utils::setup_wgpu();
 
     let settings = cosmic::app::Settings::default()
-        .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme));
+        .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme))
+        .size(iced::Size::new(1500.0, 800.0));
 
     let flags = Flags { app_state };
 
