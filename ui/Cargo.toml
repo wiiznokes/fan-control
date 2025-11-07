@@ -20,7 +20,7 @@ log.workspace = true
 i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
 rust-embed.workspace = true
-utils.workspace = true
+common.workspace = true
 derive_more.workspace = true
 tokio = { workspace = true, features = ["time"] }
 open.workspace = true

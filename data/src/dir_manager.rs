@@ -7,7 +7,7 @@ use directories::ProjectDirs;
 use hardware::Hardware;
 
 use thiserror::Error;
-use utils::{APP, ORG, QUALIFIER};
+use common::{APP, ORG, QUALIFIER};
 
 use crate::{
     config::Config,
@@ -291,15 +291,15 @@ impl DirManager {
 
     /// Return true if it's the current config whitch has been removed
     pub fn remove_config(&mut self, config_name: &str) -> Result<bool> {
-        self.config_names.remove(&config_name);
+        self.config_names.remove(config_name);
 
-        let config_path = self.config_file_path(&config_name);
+        let config_path = self.config_file_path(config_name);
         if let Err(e) = fs::remove_file(config_path) {
             warn!("{e}");
         }
 
         if let Some(current_config) = &self.settings().current_config
-            && current_config == &config_name
+            && current_config == config_name
         {
             self.update_settings(|settings| {
                 settings.current_config.take();

@@ -29,7 +29,7 @@ use cosmic::{
     iced_runtime::Action,
     theme,
     widget::{
-        Column, Row, Space, menu, nav_bar, text,
+        Column, Row, Space, menu, nav_bar,
         toaster::{self, Toast, Toasts},
     },
 };
@@ -56,6 +56,8 @@ mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
 mod udev_dialog;
+mod utils;
+
 
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;
@@ -64,6 +66,9 @@ impl<H: HardwareBridge> CosmicFlags for Flags<H> {
 }
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
+
+    utils::setup_wgpu();
+
     let settings = cosmic::app::Settings::default()
         .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme));
 
@@ -105,7 +110,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     type Message = AppMsg;
     type Flags = Flags<H>;
 
-    const APP_ID: &'static str = utils::APP_ID;
+    const APP_ID: &'static str = common::APP_ID;
 
     fn core(&self) -> &Core {
         &self.core

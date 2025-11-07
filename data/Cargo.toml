@@ -23,7 +23,7 @@ i18n-embed-fl.workspace = true
 rust-embed.workspace = true
 derive_more.workspace = true
 thiserror.workspace = true
-utils.workspace = true
+common.workspace = true
 lexical-sort.workspace = true
 
 [dev-dependencies]
