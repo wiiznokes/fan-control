@@ -59,6 +59,8 @@ impl CreateConfigDialog {
                 }
 
                 app.dialog = None;
+
+                app.reload_nav_bar_model();
             }
             CreateConfigDialogMsg::Input(input) => {
                 if let Some(Dialog::CreateConfig(dialog)) = &mut app.dialog {
@@ -126,6 +128,7 @@ impl RenameConfigDialog {
                     error!("can't rename config: {e}");
                 }
 
+                app.reload_nav_bar_model();
                 app.dialog = None;
             }
             RenameConfigDialogMsg::Input(input) => {

@@ -131,46 +131,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             None
         };
 
-        let mut nav_bar_model = nav_bar::Model::default();
-
-        nav_bar_model
-            .insert()
-            .text(fl!("no_config"))
-            .data(NavModelData::NoConfig);
-
-        for (index, config) in app_state
-            .dir_manager
-            .config_names
-            .names()
-            .iter()
-            .enumerate()
-        {
-            nav_bar_model
-                .insert()
-                .text(config.clone())
-                .data(NavModelData::Config(config.clone()))
-                .divider_above(index == 0);
-        }
-
-        match &app_state.dir_manager.settings().current_config {
-            Some(name) => {
-                if let Some(index) = app_state.dir_manager.config_names.index_of(name) {
-                    nav_bar_model.activate_position((index + 1) as u16);
-                }
-            }
-            None => {
-                nav_bar_model.activate_position(0);
-            }
-        }
-
-        nav_bar_model
-            .insert()
-            .text(fl!("create_config"))
-            .icon(icon!("add/24"))
-            .data(NavModelData::NewConfig)
-            .divider_above(true);
-
-        let ui_state = Ui {
+        let mut ui_state = Ui {
             nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
             app_state,
             core,
@@ -180,8 +141,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             toasts: Toasts::new(AppMsg::RemoveToast),
             dialog,
             drawer: None,
-            nav_bar_model,
+            nav_bar_model: nav_bar::Model::default(),
         };
+
+        ui_state.reload_nav_bar_model();
 
         let commands = Task::batch([cosmic::task::message(AppMsg::Tick)]);
 
@@ -564,11 +527,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         }
                     }
 
-                    if self.nav_bar_model.is_active(id) {
-                        self.nav_bar_model.activate_position(0);
-                    }
-
-                    self.nav_bar_model.remove(id);
+                    self.reload_nav_bar_model();
                 }
                 NavBarContextMenuMsg::Rename(id) => {
                     if let Some(NavModelData::Config(name)) =
@@ -790,6 +749,48 @@ impl<H: HardwareBridge> Ui<H> {
                 .push(Toast::new(fl!("config_saved")))
                 .map(cosmic::action::app)
         }
+    }
+
+    fn reload_nav_bar_model(&mut self) {
+        self.nav_bar_model.clear();
+
+        self.nav_bar_model
+            .insert()
+            .text(fl!("no_config"))
+            .data(NavModelData::NoConfig);
+
+        for (index, config) in self
+            .app_state
+            .dir_manager
+            .config_names
+            .names()
+            .iter()
+            .enumerate()
+        {
+            self.nav_bar_model
+                .insert()
+                .text(config.clone())
+                .data(NavModelData::Config(config.clone()))
+                .divider_above(index == 0);
+        }
+
+        match &self.app_state.dir_manager.settings().current_config {
+            Some(name) => {
+                if let Some(index) = self.app_state.dir_manager.config_names.index_of(name) {
+                    self.nav_bar_model.activate_position((index + 1) as u16);
+                }
+            }
+            None => {
+                self.nav_bar_model.activate_position(0);
+            }
+        }
+
+        self.nav_bar_model
+            .insert()
+            .text(fl!("create_config"))
+            .icon(icon!("add/24"))
+            .data(NavModelData::NewConfig)
+            .divider_above(true);
     }
 }
 
