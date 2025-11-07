@@ -62,6 +62,7 @@ pub fn icon_button_from_handle<'a, M>(handle: Handle) -> IconButton<'a, M> {
     cosmic::widget::button::icon(handle)
 }
 
+#[allow(dead_code)]
 pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
     if expanded {
         icon_button!("expand_less/24")

@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
 use data::{
     AppState,
@@ -11,14 +11,13 @@ use drawer::{Drawer, about};
 use graph::GraphWindow;
 use hardware::{HardwareBridge, Mode};
 use item::items_view;
-use message::{ConfigMsg, ModifNodeMsg, SettingsMsg, ToogleMsg};
+use message::{ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
-use udev_dialog::Dialog;
 
-use crate::{drawer::settings_drawer, graph::graph_window_view};
+use crate::{drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg};
 
 use cosmic::{
-    ApplicationExt, Element,
+    ApplicationExt, Apply, Element,
     app::{
         Core, CosmicFlags, Task,
         context_drawer::{ContextDrawer, context_drawer},
@@ -29,7 +28,7 @@ use cosmic::{
     iced_runtime::Action,
     theme,
     widget::{
-        Column, Row, Space,
+        Column, Row, Space, menu, nav_bar, scrollable,
         toaster::{self, Toast, Toasts},
     },
 };
@@ -37,6 +36,10 @@ use cosmic::{
 use crate::message::{AppMsg, ControlMsg, CustomTempMsg, FlatMsg, LinearMsg, TargetMsg};
 
 use crate::add_node::add_node_button_view;
+use crate::config_dialogs::{
+    CreateConfigDialog, CreateConfigDialogMsg, RenameConfigDialog, RenameConfigDialogMsg,
+};
+use crate::udev_dialog::UdevDialogMsg;
 
 #[macro_use]
 extern crate log;
@@ -45,6 +48,7 @@ extern crate log;
 pub mod localize;
 
 mod add_node;
+mod config_dialogs;
 mod drawer;
 mod graph;
 mod headers;
@@ -56,6 +60,7 @@ mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
 mod udev_dialog;
+mod utils;
 
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;
@@ -64,8 +69,11 @@ impl<H: HardwareBridge> CosmicFlags for Flags<H> {
 }
 
 pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
+    utils::setup_wgpu();
+
     let settings = cosmic::app::Settings::default()
-        .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme));
+        .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme))
+        .size(iced::Size::new(1500.0, 800.0));
 
     let flags = Flags { app_state };
 
@@ -79,18 +87,23 @@ struct Flags<H: HardwareBridge> {
     app_state: AppState<H>,
 }
 
+enum NavModelData {
+    NoConfig,
+    Config(String),
+    NewConfig,
+}
+
 struct Ui<H: HardwareBridge> {
     core: Core,
     app_state: AppState<H>,
-    current_config_cached: String,
     create_button_expanded: bool,
-    choose_config_expanded: bool,
     nodes_c: NodesC,
     is_updating: bool,
     graph_window: Option<GraphWindow>,
     toasts: Toasts<AppMsg>,
     dialog: Option<Dialog>,
     drawer: Option<Drawer>,
+    nav_bar_model: nav_bar::Model,
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -98,7 +111,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     type Message = AppMsg;
     type Flags = Flags<H>;
 
-    const APP_ID: &'static str = utils::APP_ID;
+    const APP_ID: &'static str = common::APP_ID;
 
     fn core(&self) -> &Core {
         &self.core
@@ -111,12 +124,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     fn init(core: Core, flags: Self::Flags) -> (Self, Task<Self::Message>) {
         let app_state = flags.app_state;
 
-        let current_config_cached = app_state
-            .dir_manager
-            .settings()
-            .current_config_text()
-            .to_owned();
-
         let dialog = if cfg!(FAN_CONTROL_FORMAT = "flatpak")
             && app_state.dir_manager.state().show_flatpak_dialog
         {
@@ -125,19 +132,20 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             None
         };
 
-        let ui_state = Ui {
+        let mut ui_state = Ui {
             nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
             app_state,
             core,
             create_button_expanded: false,
-            choose_config_expanded: false,
-            current_config_cached,
             is_updating: false,
             graph_window: None,
             toasts: Toasts::new(AppMsg::RemoveToast),
             dialog,
             drawer: None,
+            nav_bar_model: nav_bar::Model::default(),
         };
+
+        ui_state.reload_nav_bar_model();
 
         let commands = Task::batch([cosmic::task::message(AppMsg::Tick)]);
 
@@ -151,7 +159,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             AppMsg::Tick => {
                 self.update_hardware();
             }
-
             AppMsg::ModifNode(id, modif_node_msg) => {
                 let node = self.app_state.app_graph.get_mut(&id);
                 match modif_node_msg {
@@ -351,7 +358,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     &mut self.app_state.bridge,
                 );
             }
-
             AppMsg::Settings(settings_msg) => match settings_msg {
                 SettingsMsg::Theme(theme) => {
                     dir_manager.update_settings(|settings| {
@@ -388,9 +394,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         self.set_show_context(true);
                     }
                 },
-                ToogleMsg::ChooseConfig(expanded) => {
-                    self.choose_config_expanded = expanded;
-                }
                 ToogleMsg::NodeContextMenu(id, expanded) => {
                     let node_c = self.nodes_c.get_mut(&id);
                     node_c.context_menu_expanded = expanded;
@@ -404,76 +407,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     self.drawer = None;
                 }
             },
-            AppMsg::Config(config_msg) => match config_msg {
-                ConfigMsg::Save => {
-                    let config = Config::from_app_graph(&self.app_state.app_graph);
-
-                    if let Err(e) = dir_manager.save_config(&self.current_config_cached, &config) {
-                        error!("can't save config: {e}");
-                    } else {
-                        return self
-                            .toasts
-                            .push(Toast::new(fl!("config_saved")))
-                            .map(cosmic::action::app);
-                    };
-                }
-                ConfigMsg::Change(selected) => {
-                    self.choose_config_expanded = false;
-
-                    if selected.is_some() {
-                        self.app_state.update.set_valid_root_nodes_to_auto(
-                            &mut self.app_state.app_graph.nodes,
-                            &self.app_state.app_graph.root_nodes,
-                            &mut self.app_state.bridge,
-                        );
-                    }
-
-                    match dir_manager.change_config(selected) {
-                        Ok(config) => match config {
-                            Some((config_name, config)) => {
-                                self.current_config_cached = config_name;
-                                self.app_state
-                                    .app_graph
-                                    .apply_config(config, self.app_state.bridge.hardware());
-                                self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
-
-                                self.update_hardware();
-                            }
-                            None => {
-                                self.current_config_cached.clear();
-                            }
-                        },
-                        Err(e) => {
-                            error!("can't change config: {e}");
-                        }
-                    }
-                }
-                ConfigMsg::Delete(name) => match dir_manager.remove_config(name) {
-                    Ok(is_current_config) => {
-                        if is_current_config {
-                            self.current_config_cached.clear();
-                        }
-                    }
-                    Err(e) => {
-                        error!("can't delete config: {e}");
-                    }
-                },
-                ConfigMsg::Create(new_name) => {
-                    let config = Config::from_app_graph(&self.app_state.app_graph);
-
-                    match dir_manager.create_config(&new_name, &config) {
-                        Ok(_) => {
-                            self.current_config_cached = new_name;
-                        }
-                        Err(e) => {
-                            error!("can't create config: {e}");
-                        }
-                    }
-                }
-                ConfigMsg::Rename(name) => {
-                    self.current_config_cached = name;
-                }
-            },
+            AppMsg::SaveConfig(name) => return self.save_config(&name),
             AppMsg::Rename(id, name) => {
                 let name_is_valid = validate_name(&self.app_state.app_graph.nodes, &id, &name);
 
@@ -565,13 +499,45 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 self.toasts.remove(pos);
             }
             AppMsg::Dialog(dialog_msg) => {
-                return Dialog::update(self, dialog_msg).map(cosmic::action::app);
+                return match dialog_msg {
+                    DialogMsg::Udev(message) => udev_dialog::update(self, message),
+                    DialogMsg::CreateConfig(create_config_dialog_msg) => {
+                        CreateConfigDialog::update(self, create_config_dialog_msg)
+                    }
+                    DialogMsg::RenameConfig(rename_config_dialog_msg) => {
+                        RenameConfigDialog::update(self, rename_config_dialog_msg)
+                    }
+                }
+                .map(cosmic::action::app);
             }
             AppMsg::OpenUrl(url) => {
                 if let Err(e) = open::that(url.as_str()) {
                     error!("{e}");
                 }
             }
+            AppMsg::NavBarContextMenu(nav_bar_context_menu_msg) => match nav_bar_context_menu_msg {
+                NavBarContextMenuMsg::Delete(id) => {
+                    if let Some(NavModelData::Config(name)) =
+                        self.nav_bar_model.data::<NavModelData>(id)
+                    {
+                        match dir_manager.remove_config(name) {
+                            Ok(is_current_config) => if is_current_config {},
+                            Err(e) => {
+                                error!("can't delete config: {e}");
+                            }
+                        }
+                    }
+
+                    self.reload_nav_bar_model();
+                }
+                NavBarContextMenuMsg::Rename(id) => {
+                    if let Some(NavModelData::Config(name)) =
+                        self.nav_bar_model.data::<NavModelData>(id)
+                    {
+                        self.dialog = Some(Dialog::RenameConfig(RenameConfigDialog::new(name)))
+                    }
+                }
+            },
         }
 
         Task::none()
@@ -596,16 +562,61 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         headers::header_start()
     }
 
-    fn header_center(&self) -> Vec<Element<'_, Self::Message>> {
-        headers::header_center(
-            &self.app_state,
-            &self.current_config_cached,
-            self.choose_config_expanded,
-        )
+    fn header_end(&self) -> Vec<Element<'_, Self::Message>> {
+        headers::header_end(&self.app_state)
     }
 
-    fn header_end(&self) -> Vec<Element<'_, Self::Message>> {
-        headers::header_end()
+    fn nav_model(&self) -> Option<&nav_bar::Model> {
+        Some(&self.nav_bar_model)
+    }
+
+    fn on_nav_select(&mut self, id: nav_bar::Id) -> Task<Self::Message> {
+        if let Some(data) = self.nav_bar_model.data::<NavModelData>(id) {
+            match data {
+                NavModelData::NoConfig => {
+                    self.change_config(None);
+                    self.nav_bar_model.activate(id);
+                }
+                NavModelData::Config(config) => {
+                    self.change_config(Some(config.to_owned()));
+                    self.nav_bar_model.activate(id);
+                }
+                NavModelData::NewConfig => {
+                    self.dialog = Some(Dialog::CreateConfig(CreateConfigDialog::new()));
+                }
+            }
+        }
+
+        Task::none()
+    }
+
+    fn nav_context_menu(
+        &self,
+        id: nav_bar::Id,
+    ) -> Option<Vec<menu::Tree<cosmic::Action<Self::Message>>>> {
+        let mut items = Vec::new();
+
+        if let Some(data) = self.nav_bar_model.data::<NavModelData>(id) {
+            match data {
+                NavModelData::NoConfig => {}
+                NavModelData::Config(_) => {
+                    items.push(cosmic::widget::menu::Item::Button(
+                        fl!("rename_config"),
+                        None,
+                        NavBarContextMenuMsg::Rename(id),
+                    ));
+
+                    items.push(cosmic::widget::menu::Item::Button(
+                        fl!("delete_config"),
+                        None,
+                        NavBarContextMenuMsg::Delete(id),
+                    ));
+                }
+                NavModelData::NewConfig => {}
+            }
+        }
+
+        Some(cosmic::widget::menu::items(&HashMap::new(), items))
     }
 
     fn context_drawer(&self) -> Option<ContextDrawer<'_, Self::Message>> {
@@ -675,7 +686,112 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn dialog(&self) -> Option<Element<'_, Self::Message>> {
-        self.dialog.as_ref().map(|dialog| dialog.view())
+        self.dialog.as_ref().map(|dialog| {
+            scrollable(match dialog {
+                Dialog::Udev => udev_dialog::view(),
+                Dialog::CreateConfig(dialog) => dialog.view(&self.app_state.dir_manager),
+                Dialog::RenameConfig(dialog) => dialog.view(&self.app_state.dir_manager),
+            })
+            .apply(Element::from)
+            .map(AppMsg::Dialog)
+        })
+    }
+}
+
+#[derive(Debug)]
+enum Dialog {
+    Udev,
+    CreateConfig(CreateConfigDialog),
+    RenameConfig(RenameConfigDialog),
+}
+
+#[derive(Clone, Debug)]
+enum DialogMsg {
+    Udev(UdevDialogMsg),
+    CreateConfig(CreateConfigDialogMsg),
+    RenameConfig(RenameConfigDialogMsg),
+}
+
+impl<H: HardwareBridge> Ui<H> {
+    fn change_config(&mut self, selected: Option<String>) {
+        if selected.is_some() {
+            self.app_state.update.set_valid_root_nodes_to_auto(
+                &mut self.app_state.app_graph.nodes,
+                &self.app_state.app_graph.root_nodes,
+                &mut self.app_state.bridge,
+            );
+        }
+
+        match self.app_state.dir_manager.change_config(selected) {
+            Ok(config) => {
+                if let Some((_, config)) = config {
+                    self.app_state
+                        .app_graph
+                        .apply_config(config, self.app_state.bridge.hardware());
+                    self.nodes_c = NodesC::new(self.app_state.app_graph.nodes.values());
+
+                    self.update_hardware();
+                }
+            }
+            Err(e) => {
+                error!("can't change config: {e}");
+            }
+        }
+    }
+
+    fn save_config(&mut self, name: &str) -> Task<AppMsg> {
+        let config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if let Err(e) = self.app_state.dir_manager.save_config(name, &config) {
+            error!("can't save config: {e}");
+            Task::none()
+        } else {
+            self.toasts
+                .push(Toast::new(fl!("config_saved")))
+                .map(cosmic::action::app)
+        }
+    }
+
+    fn reload_nav_bar_model(&mut self) {
+        self.nav_bar_model.clear();
+
+        self.nav_bar_model
+            .insert()
+            .text(fl!("no_config"))
+            .data(NavModelData::NoConfig);
+
+        for (index, config) in self
+            .app_state
+            .dir_manager
+            .config_names
+            .names()
+            .iter()
+            .enumerate()
+        {
+            self.nav_bar_model
+                .insert()
+                .text(config.clone())
+                .data(NavModelData::Config(config.clone()))
+                .divider_above(index == 0);
+        }
+
+        match &self.app_state.dir_manager.settings().current_config {
+            Some(name) => {
+                if let Some(index) = self.app_state.dir_manager.config_names.index_of(name) {
+                    self.nav_bar_model.activate_position((index + 1) as u16);
+                }
+            }
+            None => {
+                self.nav_bar_model.activate_position(0);
+            }
+        }
+
+        self.nav_bar_model
+            .insert()
+            .text(fl!("create_config"))
+            .icon(icon!("add/24"))
+            .data(NavModelData::NewConfig)
+            .divider_above(true);
     }
 }
 

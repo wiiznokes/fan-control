@@ -1,4 +1,4 @@
-use cosmic::widget::ToastId;
+use cosmic::widget::{ToastId, menu::action::MenuAction, nav_bar};
 use data::{
     config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
@@ -6,12 +6,11 @@ use data::{
     settings::AppTheme,
 };
 
-use crate::{graph::GraphWindowMsg, udev_dialog::DialogMsg};
+use crate::{DialogMsg, graph::GraphWindowMsg};
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Tick,
-    Config(ConfigMsg),
     Settings(SettingsMsg),
 
     NewNode(NodeTypeLight),
@@ -27,15 +26,8 @@ pub enum AppMsg {
     RemoveToast(ToastId),
     Dialog(DialogMsg),
     OpenUrl(String),
-}
-
-#[derive(Debug, Clone)]
-pub enum ConfigMsg {
-    Create(String),
-    Rename(String),
-    Save,
-    Change(Option<String>),
-    Delete(String),
+    NavBarContextMenu(NavBarContextMenuMsg),
+    SaveConfig(String),
 }
 
 #[derive(Debug, Clone)]
@@ -47,7 +39,6 @@ pub enum SettingsMsg {
 #[derive(Debug, Clone)]
 pub enum ToogleMsg {
     CreateButton(bool),
-    ChooseConfig(bool),
     NodeContextMenu(Id, bool),
     Settings,
     About,
@@ -125,11 +116,6 @@ impl From<GraphWindowMsg> for AppMsg {
     }
 }
 
-impl From<ConfigMsg> for AppMsg {
-    fn from(value: ConfigMsg) -> Self {
-        AppMsg::Config(value)
-    }
-}
 impl From<ToogleMsg> for AppMsg {
     fn from(value: ToogleMsg) -> Self {
         AppMsg::Toggle(value)
@@ -140,5 +126,19 @@ impl ModifNodeMsg {
     #[allow(clippy::wrong_self_convention)]
     pub fn to_app(self, id: Id) -> AppMsg {
         AppMsg::ModifNode(id, self)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
+pub enum NavBarContextMenuMsg {
+    Delete(nav_bar::Id),
+    Rename(nav_bar::Id),
+}
+
+impl MenuAction for NavBarContextMenuMsg {
+    type Message = cosmic::Action<AppMsg>;
+
+    fn message(&self) -> Self::Message {
+        cosmic::Action::App(AppMsg::NavBarContextMenu(*self))
     }
 }

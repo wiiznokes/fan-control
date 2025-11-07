@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "hardware", "ui", "utils"]
+members = ["data", "hardware", "ui", "common"]
 
 [workspace.package]
 authors = ["wiiznokes <wiiznokes2@gmail.com>"]
@@ -48,7 +48,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 hardware = { path = "hardware" }
 data = { path = "data" }
 ui = { path = "ui" }
-utils = { path = "utils" }
+common = { path = "common" }
 
 clap = { version = "4", features = ["derive", "string"] }
 serde = { version = "1", features = ["derive", "rc"] }
@@ -89,7 +89,7 @@ pretty_assertions = "1"
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 # branch = "master"
-rev = "31fa09a92a98ccbe47c81c83b41cd20a91107aae"
+rev = "6439507aa2d8d7e6a89c0fc016895dc0ab9252d4"
 default-features = false
 features = [
     # cause seg fault when quitting the app on flatpak
