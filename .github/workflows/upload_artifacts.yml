@@ -32,7 +32,7 @@ jobs:
 
       - run: echo "NSIS_NAME=$(basename ./packages/fan-control*-setup.exe)" >> $GITHUB_ENV
         shell: bash
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ${{ env.NSIS_NAME }}
           path: |
