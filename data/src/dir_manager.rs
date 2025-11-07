@@ -382,7 +382,7 @@ impl ConfigNames {
 
         let insert_position = match self
             .data
-            .binary_search_by(|e| lexical_sort::natural_lexical_cmp(&name, e))
+            .binary_search_by(|e| lexical_sort::natural_lexical_cmp(e, &name))
         {
             Ok(position) => position,  // Element already exists at this position
             Err(position) => position, // Element doesn't exist, insert at this position
