@@ -28,6 +28,7 @@ pub enum AppMsg {
     OpenUrl(String),
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
+    StartAtLogin(bool),
 }
 
 #[derive(Debug, Clone)]

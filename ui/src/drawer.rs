@@ -37,6 +37,14 @@ pub fn settings_drawer(dir_manager: &DirManager) -> Element<'_, AppMsg> {
                 widget::settings::item::builder(fl!("about"))
                     .control(button::text("open").on_press(AppMsg::Toggle(ToogleMsg::About))),
             )
+            .add_maybe(if cfg!(target_os = "windows") {
+                Some(
+                    widget::settings::item::builder(fl!("start_at_login"))
+                        .toggler(dir_manager.settings().start_at_login, AppMsg::StartAtLogin),
+                )
+            } else {
+                None
+            })
             .into(),
     ])
     .into()

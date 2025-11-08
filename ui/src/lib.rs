@@ -59,6 +59,7 @@ mod message;
 mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
+mod start_at_login;
 mod udev_dialog;
 mod utils;
 
@@ -538,6 +539,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
+            AppMsg::StartAtLogin(start_at_login) => {
+                start_at_login::start_at_login(start_at_login, &mut self.app_state.dir_manager);
+            }
         }
 
         Task::none()

@@ -21,6 +21,7 @@ config_saved = Configuration successfully saved
 repository = Repository
 donate = Donate
 issues_tracker = Report an Issue
+start_at_login = Start at login
 
 # Add item description
 add_item = Add an item

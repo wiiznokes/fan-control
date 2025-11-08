@@ -86,6 +86,8 @@ cargo-packager-resource-resolver = { version = "0.1", features = [
     "auto-detect-format",
 ] }
 pretty_assertions = "1"
+mslnk = "0.1"
+anyhow = "1"
 
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
@@ -124,6 +126,7 @@ log.workspace = true
 env_logger.workspace = true
 hardware.workspace = true
 crossterm.workspace = true
+
 
 [build-dependencies]
 winres.workspace = true
