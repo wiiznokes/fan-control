@@ -26,6 +26,11 @@ tokio = { workspace = true, features = ["time"] }
 open.workspace = true
 libcosmic.workspace = true
 constcat.workspace = true
+directories.workspace = true
+anyhow.workspace = true
+
+[target.'cfg(target_os = "windows")'.dependencies]
+mslnk.workspace = true
 
 
 [dev-dependencies]

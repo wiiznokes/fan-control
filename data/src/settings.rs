@@ -20,10 +20,9 @@ impl Default for SettingsState {
 #[serde(default)]
 pub struct Settings {
     pub theme: AppTheme,
-
     pub update_delay: u64,
-
     pub current_config: Option<String>,
+    pub start_at_login: bool,
 }
 
 // todo: find a better solution to expose themes
@@ -44,15 +43,7 @@ impl Default for Settings {
             theme: Default::default(),
             update_delay: 1500,
             current_config: Default::default(),
-        }
-    }
-}
-
-impl Settings {
-    pub fn current_config_text(&self) -> &str {
-        match &self.current_config {
-            Some(current_config) => current_config,
-            None => "",
+            start_at_login: false,
         }
     }
 }
