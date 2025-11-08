@@ -24,7 +24,8 @@ rust-embed.workspace = true
 derive_more.workspace = true
 thiserror.workspace = true
 common.workspace = true
-lexical-sort.workspace = true
+icu_collator.workspace = true
+icu_provider.workspace = true
 
 [dev-dependencies]
 serial_test.workspace = true

@@ -11,6 +11,7 @@ use thiserror::Error;
 
 use crate::{
     config::Config,
+    localize::LANGUAGE_SORTER,
     settings::{Settings, SettingsState},
     utils::RemoveElem,
 };
@@ -365,7 +366,7 @@ impl ConfigNames {
 
         config_names
             .data
-            .sort_by(|first, second| lexical_sort::natural_lexical_cmp(first, second));
+            .sort_by(|first, second| LANGUAGE_SORTER.compare(first, second));
 
         config_names
     }
@@ -382,7 +383,7 @@ impl ConfigNames {
 
         let insert_position = match self
             .data
-            .binary_search_by(|e| lexical_sort::natural_lexical_cmp(e, &name))
+            .binary_search_by(|e| LANGUAGE_SORTER.compare(e, &name))
         {
             Ok(position) => position,  // Element already exists at this position
             Err(position) => position, // Element doesn't exist, insert at this position

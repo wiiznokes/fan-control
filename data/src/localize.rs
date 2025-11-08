@@ -6,6 +6,12 @@ use i18n_embed::{
 };
 use rust_embed::RustEmbed;
 
+use icu_collator::{
+    Collator, CollatorBorrowed, CollatorPreferences, options::CollatorOptions,
+    preferences::CollationNumericOrdering,
+};
+use icu_provider::prelude::icu_locale_core::Locale;
+
 #[derive(RustEmbed)]
 #[folder = "./../i18n/"]
 struct Localizations;
@@ -44,3 +50,24 @@ pub fn localize() {
         eprintln!("Error while loading language for App List {error}");
     }
 }
+pub static LANGUAGE_SORTER: LazyLock<CollatorBorrowed> = LazyLock::new(|| {
+    let create_collator = |locale: Locale| {
+        let mut prefs = CollatorPreferences::from(locale);
+        prefs.numeric_ordering = Some(CollationNumericOrdering::True);
+        Collator::try_new(prefs, CollatorOptions::default()).ok()
+    };
+
+    Locale::try_from_str(&LANGUAGE_LOADER.current_language().to_string())
+            .ok()
+            .and_then(create_collator)
+            .or_else(|| {
+                Locale::try_from_str(&LANGUAGE_LOADER.fallback_language().to_string())
+                    .ok()
+                    .and_then(create_collator)
+            })
+            .unwrap_or_else(|| {
+                let locale = Locale::try_from_str("en-US").expect("en-US is a valid BCP-47 tag");
+                create_collator(locale)
+                    .expect("Creating a collator from the system's current language, the fallback language, or American English should succeed")
+            })
+});

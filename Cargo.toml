@@ -71,7 +71,8 @@ crossterm = "0.29"
 winres = "0.1"
 directories = "6"
 light_enum = "0.2"
-lexical-sort = "0.3"
+icu_collator = "2"
+icu_provider = { version = "2", features = ["sync"] }
 serial_test = "3"
 const_format = "0.2"
 rand = "0.9"
@@ -128,5 +129,6 @@ crossterm.workspace = true
 winres.workspace = true
 
 
-[profile.release]
+[profile.release-lto]
+inherits = "release"
 lto = "fat"
