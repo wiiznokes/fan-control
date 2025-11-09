@@ -66,6 +66,7 @@ mod pick_list_utils;
 mod start_at_login;
 mod udev_dialog;
 mod utils;
+mod tray;
 
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;

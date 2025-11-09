@@ -89,6 +89,7 @@ pretty_assertions = "1"
 mslnk = "0.1"
 anyhow = "1"
 fslock = "0.2"
+tray-icon = "0.21"
 
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
