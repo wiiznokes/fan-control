@@ -28,6 +28,7 @@ libcosmic.workspace = true
 constcat.workspace = true
 directories.workspace = true
 anyhow.workspace = true
+fslock.workspace = true
 
 [target.'cfg(target_os = "windows")'.dependencies]
 mslnk.workspace = true
