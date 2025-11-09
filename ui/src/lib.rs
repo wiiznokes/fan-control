@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, path::PathBuf, time::Duration};
 
 use data::{
     AppState,
@@ -41,6 +41,10 @@ use crate::config_dialogs::{
 };
 use crate::udev_dialog::UdevDialogMsg;
 
+use common::{APP, ORG, QUALIFIER};
+use directories::ProjectDirs;
+use fslock::LockFile;
+
 #[macro_use]
 extern crate log;
 
@@ -69,7 +73,27 @@ impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type Args = Vec<String>;
 }
 
-pub fn run_ui<H: HardwareBridge + 'static>(app_state: AppState<H>) {
+pub fn run_ui<H: HardwareBridge + 'static>(mut app_state: AppState<H>) {
+    // ensure single instance
+    let instance_lock_path = if cfg!(debug_assertions) {
+        let _ = std::fs::create_dir_all("temp");
+        PathBuf::from("temp").join("app.lock")
+    } else {
+        let project_dirs = ProjectDirs::from(QUALIFIER, ORG, APP).unwrap();
+        project_dirs.cache_dir().join("app.lock")
+    };
+    let mut app_lock = LockFile::open(&instance_lock_path).expect("Failed to open app lock file");
+    if !app_lock.try_lock_with_pid().unwrap_or(false) {
+        info!(
+            "Another instance is already running. PID can be found in {:?}",
+            instance_lock_path
+        );
+        if let Err(e) = app_state.bridge.shutdown() {
+            error!("shutdown hardware: {e}");
+        }
+        return;
+    }
+
     utils::setup_wgpu();
 
     let settings = cosmic::app::Settings::default()
