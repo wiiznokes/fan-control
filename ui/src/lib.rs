@@ -123,7 +123,6 @@ struct Ui<H: HardwareBridge> {
     app_state: AppState<H>,
     create_button_expanded: bool,
     nodes_c: NodesC,
-    is_updating: bool,
     graph_window: Option<GraphWindow>,
     toasts: Toasts<AppMsg>,
     dialog: Option<Dialog>,
@@ -162,7 +161,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             app_state,
             core,
             create_button_expanded: false,
-            is_updating: false,
             graph_window: None,
             toasts: Toasts::new(AppMsg::RemoveToast),
             dialog,
@@ -859,16 +857,8 @@ fn to_cosmic_theme(theme: &AppTheme) -> theme::Theme {
 
 impl<H: HardwareBridge> Ui<H> {
     fn update_hardware(&mut self) {
-        if self.is_updating {
-            warn!("An update is already processing: skipping that one.");
-            return;
-        }
-
-        self.is_updating = true;
-
         if let Err(e) = self.app_state.bridge.update() {
             error!("{e}");
-            self.is_updating = false;
             return;
         }
         if let Err(e) = self.app_state.update.all(
@@ -877,7 +867,6 @@ impl<H: HardwareBridge> Ui<H> {
             self.app_state.dir_manager.settings().inactive,
         ) {
             error!("{e}");
-            self.is_updating = false;
             return;
         }
 
@@ -886,10 +875,7 @@ impl<H: HardwareBridge> Ui<H> {
             &mut self.app_state.bridge,
         ) {
             error!("{e}");
-            self.is_updating = false;
-            return;
         }
-        self.is_updating = false;
     }
 
     fn set_inactive(&mut self, inactive: bool) {
@@ -897,10 +883,18 @@ impl<H: HardwareBridge> Ui<H> {
             settings.inactive = inactive;
         });
 
-        self.app_state.update.set_valid_root_nodes_to_auto(
+        if inactive {
+            self.app_state.update.set_valid_root_nodes_to_auto(
+                &mut self.app_state.app_graph.nodes,
+                &self.app_state.app_graph.root_nodes,
+                &mut self.app_state.bridge,
+            );
+        } else if let Err(e) = self.app_state.update.all(
             &mut self.app_state.app_graph.nodes,
-            &self.app_state.app_graph.root_nodes,
             &mut self.app_state.bridge,
-        );
+            inactive,
+        ) {
+            error!("{e}");
+        }
     }
 }
