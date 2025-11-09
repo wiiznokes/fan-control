@@ -35,12 +35,15 @@ use crate::{
     node_cache::{LinearC, NodeC, NodesC, TargetC},
     node_icon_handle,
     pick_list_utils::{self, MyOption},
+    utils::ApplyMaybe,
 };
+use data::settings::Settings;
 
 pub fn items_view<'a>(
     nodes: &'a Nodes,
     nodes_c: &'a NodesC,
     hardware: &'a Hardware,
+    settings: &'a Settings,
 ) -> Element<'a, AppMsg> {
     let mut controls = Vec::new();
     let mut behaviors = Vec::new();
@@ -50,7 +53,7 @@ pub fn items_view<'a>(
 
     for node in nodes.values() {
         let node_c = nodes_c.get(&node.id);
-        let content = item_view(node, node_c, nodes, hardware);
+        let content = item_view(node, node_c, nodes, hardware, settings);
 
         match node.node_type.to_light() {
             NodeTypeLight::Control => controls.push(content),
@@ -108,6 +111,7 @@ fn item_view<'a>(
     node_c: &'a NodeC,
     nodes: &'a Nodes,
     hardware: &'a Hardware,
+    settings: &'a Settings,
 ) -> Element<'a, AppMsg> {
     let item_icon = icon_from_handle(node_icon_handle!(&node.node_type.to_light()));
 
@@ -151,7 +155,9 @@ fn item_view<'a>(
         .align_y(Alignment::Center);
 
     let node_specific_content = match &node.node_type {
-        data::node::NodeType::Control(control) => control_view(node, control, nodes, hardware),
+        data::node::NodeType::Control(control) => {
+            control_view(node, control, nodes, hardware, settings)
+        }
         data::node::NodeType::Fan(_fan) => fan_view(node, hardware),
         data::node::NodeType::Temp(_temp) => temp_view(node, hardware),
         data::node::NodeType::CustomTemp(custom_temp) => custom_temp_view(node, custom_temp, nodes),
@@ -206,6 +212,7 @@ fn control_view<'a>(
     control: &'a Control,
     nodes: &'a Nodes,
     hardware: &'a Hardware,
+    settings: &'a Settings,
 ) -> Element<'a, AppMsg> {
     let input_options =
         pick_list_utils::input::optional_availlable_inputs(nodes, node, control.input.is_some());
@@ -223,9 +230,13 @@ fn control_view<'a>(
         Row::new()
             .push(Text::new(node.value_text(&ValueKind::Porcentage)))
             .push(Space::new(Length::Fill, Length::Fixed(0.0)))
-            .push(Toggler::new(control.active).on_toggle(|is_active| {
-                ModifNodeMsg::Control(ControlMsg::Active(is_active)).to_app(node.id)
-            }))
+            .push(
+                Toggler::new(control.active).apply_maybe(!settings.inactive, |toggler| {
+                    toggler.on_toggle(|is_active| {
+                        ModifNodeMsg::Control(ControlMsg::Active(is_active)).to_app(node.id)
+                    })
+                }),
+            )
             .align_y(Alignment::Center)
             .width(Length::Fill)
             .into(),

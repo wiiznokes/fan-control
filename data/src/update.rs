@@ -50,10 +50,11 @@ impl Update {
         nodes: &mut Nodes,
         root_nodes: &RootNodes,
         bridge: &mut H,
+        inative: bool,
     ) -> Result<()> {
         let mut updated: HashSet<Id> = HashSet::new();
         for node_id in root_nodes {
-            if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge) {
+            if let Err(e) = Self::update_rec(nodes, node_id, &mut updated, bridge, inative) {
                 error!("Can't update node: {e}.");
             }
         }
@@ -62,7 +63,12 @@ impl Update {
 
     /// Doesn't update root nodes and doesn't re update nodes that could have been updated (fans).
     /// Warning: doesn't call update from the bridge, it's the role of the caller.
-    pub fn all<H: HardwareBridge>(&mut self, nodes: &mut Nodes, bridge: &mut H) -> Result<()> {
+    pub fn all<H: HardwareBridge>(
+        &mut self,
+        nodes: &mut Nodes,
+        bridge: &mut H,
+        inative: bool,
+    ) -> Result<()> {
         let ids_to_update_sorted: Vec<Id>;
         {
             let mut key_values = nodes.iter().collect::<Vec<_>>();
@@ -76,7 +82,7 @@ impl Update {
 
         let mut updated = HashSet::new();
         for id in ids_to_update_sorted {
-            if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge) {
+            if let Err(e) = Self::update_rec(nodes, &id, &mut updated, bridge, inative) {
                 error!("can't update node: {e}");
             }
         }
@@ -188,6 +194,7 @@ impl Update {
         node_id: &Id,
         updated: &mut HashSet<Id>,
         bridge: &mut H,
+        inative: bool,
     ) -> Result<Option<Value>> {
         if updated.contains(node_id) {
             return match nodes.get(node_id) {
@@ -214,7 +221,7 @@ impl Update {
 
         let mut input_values = Vec::new();
         for id in &input_ids {
-            match Self::update_rec(nodes, id, updated, bridge)? {
+            match Self::update_rec(nodes, id, updated, bridge, inative)? {
                 Some(value) => input_values.push(value),
                 None => {
                     return match nodes.get_mut(node_id) {
@@ -234,16 +241,24 @@ impl Update {
             return Err(UpdateError::NodeNotFound(*node_id));
         };
 
-        node.update(&input_values, bridge)?;
+        node.update(&input_values, bridge, inative)?;
 
         Ok(node.value)
     }
 }
 
 impl Node {
-    fn update<H: HardwareBridge>(&mut self, input_values: &[Value], bridge: &mut H) -> Result<()> {
+    fn update<H: HardwareBridge>(
+        &mut self,
+        input_values: &[Value],
+        bridge: &mut H,
+        inative: bool,
+    ) -> Result<()> {
         let value = match &mut self.node_type {
             crate::node::NodeType::Control(control) => {
+                if inative {
+                    return Ok(());
+                }
                 let input_value = input_values[0];
                 return if self.value == Some(input_value) {
                     debug!("Control {} already set to {}", control.name, input_value);

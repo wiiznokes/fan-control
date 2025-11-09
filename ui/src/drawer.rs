@@ -40,11 +40,19 @@ pub fn settings_drawer(dir_manager: &DirManager) -> Element<'_, AppMsg> {
             .add_maybe(if cfg!(target_os = "windows") {
                 Some(
                     widget::settings::item::builder(fl!("start_at_login"))
-                        .toggler(dir_manager.settings().start_at_login, AppMsg::StartAtLogin),
+                        .toggler(dir_manager.settings().start_at_login, |b| {
+                            AppMsg::Settings(SettingsMsg::StartAtLogin(b))
+                        }),
                 )
             } else {
                 None
             })
+            .add(
+                widget::settings::item::builder(fl!("inactive"))
+                    .toggler(dir_manager.settings().inactive, |b| {
+                        AppMsg::Settings(SettingsMsg::Inactive(b))
+                    }),
+            )
             .into(),
     ])
     .into()

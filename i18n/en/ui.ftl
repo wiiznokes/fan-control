@@ -4,9 +4,6 @@ settings = Settings
 about = About
 name = Name
 value = Value
-theme = Theme
-update_delay = Update delay
-update_delay_value = { $value } ms
 temp_selection = Temp selection
 min_temp = min temp
 min_speed = min speed
@@ -21,7 +18,13 @@ config_saved = Configuration successfully saved
 repository = Repository
 donate = Donate
 issues_tracker = Report an Issue
+
+# Settings
+theme = Theme
+update_delay = Update delay
+update_delay_value = { $value } ms
 start_at_login = Start at login
+inactive = Disable all controls
 
 # Add item description
 add_item = Add an item

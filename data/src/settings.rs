@@ -23,6 +23,7 @@ pub struct Settings {
     pub update_delay: u64,
     pub current_config: Option<String>,
     pub start_at_login: bool,
+    pub inactive: bool,
 }
 
 // todo: find a better solution to expose themes
@@ -44,6 +45,7 @@ impl Default for Settings {
             update_delay: 1500,
             current_config: Default::default(),
             start_at_login: false,
+            inactive: false,
         }
     }
 }
