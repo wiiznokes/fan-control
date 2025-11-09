@@ -394,6 +394,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 SettingsMsg::UpdateDelay(update_delay) => dir_manager.update_settings(|settings| {
                     settings.update_delay = update_delay;
                 }),
+                SettingsMsg::StartAtLogin(start_at_login) => {
+                    start_at_login::start_at_login(start_at_login, &mut self.app_state.dir_manager);
+                }
+                SettingsMsg::Inactive(inactive) => self.set_inactive(inactive),
             },
             AppMsg::NewNode(node_type_light) => {
                 let node = self.app_state.app_graph.create_new_node(node_type_light);
@@ -563,9 +567,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
-            AppMsg::StartAtLogin(start_at_login) => {
-                start_at_login::start_at_login(start_at_login, &mut self.app_state.dir_manager);
-            }
         }
 
         Task::none()
@@ -575,7 +576,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         let app_state = &self.app_state;
         let app_graph = &app_state.app_graph;
 
-        let content = items_view(&app_graph.nodes, &self.nodes_c, app_state.bridge.hardware());
+        let content = items_view(
+            &app_graph.nodes,
+            &self.nodes_c,
+            app_state.bridge.hardware(),
+            app_state.dir_manager.settings(),
+        );
 
         let floating_button = Column::new()
             .push(Space::new(0.0, Length::Fill))
@@ -868,6 +874,7 @@ impl<H: HardwareBridge> Ui<H> {
         if let Err(e) = self.app_state.update.all(
             &mut self.app_state.app_graph.nodes,
             &mut self.app_state.bridge,
+            self.app_state.dir_manager.settings().inactive,
         ) {
             error!("{e}");
             self.is_updating = false;
@@ -883,5 +890,17 @@ impl<H: HardwareBridge> Ui<H> {
             return;
         }
         self.is_updating = false;
+    }
+
+    fn set_inactive(&mut self, inactive: bool) {
+        self.app_state.dir_manager.update_settings(|settings| {
+            settings.inactive = inactive;
+        });
+
+        self.app_state.update.set_valid_root_nodes_to_auto(
+            &mut self.app_state.app_graph.nodes,
+            &self.app_state.app_graph.root_nodes,
+            &mut self.app_state.bridge,
+        );
     }
 }

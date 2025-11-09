@@ -28,13 +28,14 @@ pub enum AppMsg {
     OpenUrl(String),
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
-    StartAtLogin(bool),
 }
 
 #[derive(Debug, Clone)]
 pub enum SettingsMsg {
     Theme(AppTheme),
     UpdateDelay(u64),
+    StartAtLogin(bool),
+    Inactive(bool),
 }
 
 #[derive(Debug, Clone)]

@@ -10,3 +10,17 @@ pub fn setup_wgpu() {
 pub fn setup_wgpu() {
     debug!("WGPU: Using default graphics backend.");
 }
+
+pub trait ApplyMaybe {
+    /// Apply a function which takes the parameter by value.
+    fn apply_maybe<F: FnOnce(Self) -> Self>(self, condition: bool, f: F) -> Self
+    where
+        Self: Sized,
+    {
+        if condition { f(self) } else { self }
+    }
+}
+
+impl<T: ?Sized> ApplyMaybe for T {
+    // use default definitions...
+}
