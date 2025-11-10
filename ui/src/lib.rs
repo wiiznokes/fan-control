@@ -635,23 +635,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn view(&self) -> Element<'_, Self::Message> {
-        let app_state = &self.app_state;
-        let app_graph = &app_state.app_graph;
-
-        let content = items_view(
-            &app_graph.nodes,
-            &self.nodes_c,
-            app_state.bridge.hardware(),
-            app_state.dir_manager.settings(),
-        );
-
-        let floating_button = Column::new()
-            .push(Space::new(0.0, Length::Fill))
-            .push(add_node_button_view(self.create_button_expanded));
-
-        let app = Row::new().push(content).push(floating_button);
-
-        toaster::toaster(&self.toasts, app)
+        self.view_window(self.core.main_window_id().unwrap())
     }
 
     fn header_start(&self) -> Vec<Element<'_, Self::Message>> {
@@ -778,6 +762,28 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn view_window(&self, id: window::Id) -> Element<'_, Self::Message> {
+        if let Some(main_window) = &self.main_window
+            && main_window == &id
+        {
+            let app_state = &self.app_state;
+            let app_graph = &app_state.app_graph;
+
+            let content = items_view(
+                &app_graph.nodes,
+                &self.nodes_c,
+                app_state.bridge.hardware(),
+                app_state.dir_manager.settings(),
+            );
+
+            let floating_button = Column::new()
+                .push(Space::new(0.0, Length::Fill))
+                .push(add_node_button_view(self.create_button_expanded));
+
+            let app = Row::new().push(content).push(floating_button);
+
+            return toaster::toaster(&self.toasts, app);
+        }
+
         if let Some(graph_window) = &self.graph_window
             && graph_window.window_id == id
         {
