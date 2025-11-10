@@ -53,6 +53,16 @@ pub fn settings_drawer(dir_manager: &DirManager) -> Element<'_, AppMsg> {
                         AppMsg::Settings(SettingsMsg::Inactive(b))
                     }),
             )
+            .add_maybe(if cfg!(target_os = "windows") {
+                Some(
+                    widget::settings::item::builder(fl!("start_minimized"))
+                        .toggler(dir_manager.settings().start_minimized, |b| {
+                            AppMsg::Settings(SettingsMsg::StartMinimized(b))
+                        }),
+                )
+            } else {
+                None
+            })
             .into(),
     ])
     .into()

@@ -6,7 +6,7 @@ use data::{
     settings::AppTheme,
 };
 
-use crate::{DialogMsg, graph::GraphWindowMsg};
+use crate::{DialogMsg, graph::GraphWindowMsg, tray::SystemTrayMsg};
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -28,6 +28,7 @@ pub enum AppMsg {
     OpenUrl(String),
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
+    SystemTray(SystemTrayMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -36,6 +37,7 @@ pub enum SettingsMsg {
     UpdateDelay(u64),
     StartAtLogin(bool),
     Inactive(bool),
+    StartMinimized(bool),
 }
 
 #[derive(Debug, Clone)]

@@ -14,7 +14,10 @@ use item::items_view;
 use message::{ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
 
-use crate::{drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg};
+use crate::{
+    drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg,
+    tray::SystemTrayMsg,
+};
 
 use cosmic::{
     ApplicationExt, Apply, Element,
@@ -23,7 +26,7 @@ use cosmic::{
         context_drawer::{ContextDrawer, context_drawer},
     },
     executor,
-    iced::{self, time, window},
+    iced::{self, Subscription, time, window},
     iced_core::Length,
     iced_runtime::Action,
     theme,
@@ -64,9 +67,9 @@ mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
 mod start_at_login;
+mod tray;
 mod udev_dialog;
 mod utils;
-mod tray;
 
 impl<H: HardwareBridge> CosmicFlags for Flags<H> {
     type SubCommand = String;
@@ -99,7 +102,7 @@ pub fn run_ui<H: HardwareBridge + 'static>(mut app_state: AppState<H>) {
 
     let settings = cosmic::app::Settings::default()
         .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme))
-        .size(iced::Size::new(1500.0, 800.0));
+        .no_main_window(true);
 
     let flags = Flags { app_state };
 
@@ -129,6 +132,26 @@ struct Ui<H: HardwareBridge> {
     dialog: Option<Dialog>,
     drawer: Option<Drawer>,
     nav_bar_model: nav_bar::Model,
+    tray: Option<(tray::SystemTray, tray::SystemTrayStream)>,
+    main_window: Option<window::Id>,
+}
+
+impl<H: HardwareBridge> Ui<H> {
+    fn open_main_window(&mut self) -> Task<AppMsg> {
+        let mut commands = Vec::new();
+        let settings = window::Settings {
+            size: iced::Size::new(1500.0, 800.0),
+            ..Default::default()
+        };
+
+        let (window_id, command) = cosmic::iced::window::open(settings);
+
+        commands.push(command.map(|_| cosmic::action::Action::None));
+
+        self.main_window = Some(window_id);
+
+        Task::batch(commands)
+    }
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -157,6 +180,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             None
         };
 
+        let tray = match tray::SystemTray::new() {
+            Ok(tray) => Some(tray),
+            Err(e) => {
+                error!("can't create tray {e}");
+                None
+            }
+        };
+
         let mut ui_state = Ui {
             nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
             app_state,
@@ -167,13 +198,20 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             dialog,
             drawer: None,
             nav_bar_model: nav_bar::Model::default(),
+            tray,
+            main_window: None,
         };
 
         ui_state.reload_nav_bar_model();
 
-        let commands = Task::batch([cosmic::task::message(AppMsg::Tick)]);
+        let mut commands = vec![];
+        commands.push(cosmic::task::message(AppMsg::Tick));
 
-        (ui_state, commands)
+        if !ui_state.app_state.dir_manager.settings().start_minimized {
+            commands.push(ui_state.open_main_window());
+        }
+
+        (ui_state, Task::batch(commands))
     }
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
@@ -397,6 +435,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     start_at_login::start_at_login(start_at_login, &mut self.app_state.dir_manager);
                 }
                 SettingsMsg::Inactive(inactive) => self.set_inactive(inactive),
+                SettingsMsg::StartMinimized(start_minimized) => {
+                    dir_manager.update_settings(|settings| {
+                        settings.start_minimized = start_minimized;
+                    })
+                }
             },
             AppMsg::NewNode(node_type_light) => {
                 let node = self.app_state.app_graph.create_new_node(node_type_light);
@@ -566,6 +609,26 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
+            AppMsg::SystemTray(msg) => match msg {
+                SystemTrayMsg::Show => {
+                    if let Some(main_window) = &self.main_window {
+                        // avoid duplicate window
+                        return cosmic::iced_runtime::task::effect(
+                            cosmic::iced::runtime::Action::Window(window::Action::GainFocus(
+                                *main_window,
+                            )),
+                        );
+                    } else {
+                        return self.open_main_window();
+                    }
+                }
+                SystemTrayMsg::Exit => {
+                    return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
+                }
+                SystemTrayMsg::Inactive => {
+                    self.set_inactive(!self.app_state.dir_manager.settings().inactive);
+                }
+            },
         }
 
         Task::none()
@@ -666,10 +729,23 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(
-            self.app_state.dir_manager.settings().update_delay,
-        ))
-        .map(|_| AppMsg::Tick)
+        let mut subscriptions = vec![];
+
+        subscriptions.push(
+            time::every(Duration::from_millis(
+                self.app_state.dir_manager.settings().update_delay,
+            ))
+            .map(|_| AppMsg::Tick),
+        );
+
+        if let Some(tray) = &self.tray {
+            subscriptions.push(
+                Subscription::run_with_id("system-tray", tray.1.clone().sub())
+                    .map(AppMsg::SystemTray),
+            );
+        }
+
+        Subscription::batch(subscriptions)
 
         //cosmic::iced_futures::Subscription::none()
     }

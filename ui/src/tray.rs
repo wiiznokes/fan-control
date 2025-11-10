@@ -1,5 +1,7 @@
-
-use cosmic::iced::{futures::{Stream, SinkExt}, stream};
+use cosmic::iced::{
+    futures::{SinkExt, Stream},
+    stream,
+};
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc};
 
@@ -10,13 +12,12 @@ use tray_icon::{
 };
 
 #[cfg(not(target_os = "linux"))]
-use crate::{fl, tray_icon};
+use crate::fl;
 
 #[derive(Debug, Clone)]
 pub enum SystemTrayMsg {
     Show,
-    Connect,
-    Disconnect,
+    Inactive,
     Exit,
 }
 
@@ -28,8 +29,7 @@ pub struct SystemTrayStream {
 #[cfg(not(target_os = "linux"))]
 pub struct SystemTray {
     tray_icon: TrayIcon,
-    item_connect: MenuItem,
-    item_disconnect: MenuItem,
+    item_inactive: MenuItem,
 }
 
 #[cfg(target_os = "linux")]
@@ -39,20 +39,17 @@ impl SystemTray {
     #[cfg(not(target_os = "linux"))]
     pub fn new() -> anyhow::Result<(Self, SystemTrayStream)> {
         let item_show = MenuItem::new(fl!("tray_show_window"), true, None);
-        let item_connect = MenuItem::new(fl!("tray_connect"), true, None);
-        let item_disconnect = MenuItem::new(fl!("tray_disconnect"), true, None);
+        let item_inactive = MenuItem::new(fl!("inactive"), true, None);
         let item_exit = MenuItem::new(fl!("tray_exit"), true, None);
 
         let item_show_id = item_show.id().clone();
-        let item_connect_id = item_connect.id().clone();
-        let item_disconnect_id = item_disconnect.id().clone();
+        let item_inactive_id = item_inactive.id().clone();
         let item_exit_id = item_exit.id().clone();
 
         let menu = Menu::with_items(&[
             &item_show,
             &PredefinedMenuItem::separator(),
-            &item_connect,
-            &item_disconnect,
+            &item_inactive,
             &PredefinedMenuItem::separator(),
             &item_exit,
         ])?;
@@ -60,7 +57,7 @@ impl SystemTray {
         let tray_icon = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_tooltip("fan-control")
-            .with_icon(tray_icon!("icon")?)
+            .with_icon(tray_icon()?)
             .build()?;
 
         // set up event channel
@@ -70,8 +67,7 @@ impl SystemTray {
         MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
             let _ = match event.id {
                 id if id == item_show_id => menu_sender.send(SystemTrayMsg::Show),
-                id if id == item_connect_id => menu_sender.send(SystemTrayMsg::Connect),
-                id if id == item_disconnect_id => menu_sender.send(SystemTrayMsg::Disconnect),
+                id if id == item_inactive_id => menu_sender.send(SystemTrayMsg::Inactive),
                 id if id == item_exit_id => menu_sender.send(SystemTrayMsg::Exit),
                 _ => return,
             };
@@ -87,8 +83,7 @@ impl SystemTray {
         Ok((
             Self {
                 tray_icon,
-                item_connect,
-                item_disconnect,
+                item_inactive,
             },
             SystemTrayStream {
                 receiver: Arc::new(Mutex::new(receiver)),
@@ -109,13 +104,17 @@ impl SystemTray {
     }
 
     #[cfg(not(target_os = "linux"))]
-    pub fn update_menu_state(&mut self, disconnected: bool, status: &str) {
+    pub fn update_menu_state(
+        &mut self,
+        configs: &[&str],
+        active_config: Option<String>,
+        inactive: bool,
+    ) {
         // update menu item states
-        self.item_connect.set_enabled(disconnected);
-        self.item_disconnect.set_enabled(!disconnected);
+        self.item_inactive.set_enabled(inactive);
         let _ = self
             .tray_icon
-            .set_tooltip(Some(format!("AndroidMic - {}", status)))
+            .set_tooltip(Some(format!("fan-control")))
             .map_err(|e| {
                 error!("failed to set tray icon tooltip: {e}");
             });
@@ -144,4 +143,30 @@ impl SystemTrayStream {
             }
         })
     }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn tray_icon() -> Result<tray_icon::Icon, tray_icon::BadIcon> {
+    let svg = include_bytes!("../../res/linux/app_icon.svg");
+
+    let width = 32;
+    let height = 32;
+
+    let opt = resvg::usvg::Options::default();
+    let tree = resvg::usvg::Tree::from_data(svg, &opt).unwrap();
+    let viewbox = tree.size();
+
+    let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
+    resvg::render(
+        &tree,
+        resvg::tiny_skia::Transform::from_scale(
+            width as f32 / viewbox.width(),
+            height as f32 / viewbox.height(),
+        ),
+        &mut pixmap.as_mut(),
+    );
+
+    let rgba = pixmap.data().to_vec();
+
+    tray_icon::Icon::from_rgba(rgba, width, height)
 }
