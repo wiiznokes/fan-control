@@ -16,6 +16,9 @@ use node_cache::{NodeC, NodesC};
 
 use crate::{drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg};
 
+#[cfg(not(target_os = "linux"))]
+use crate::tray::SystemTrayMsg;
+
 use cosmic::{
     ApplicationExt, Apply, Element,
     app::{
@@ -23,12 +26,12 @@ use cosmic::{
         context_drawer::{ContextDrawer, context_drawer},
     },
     executor,
-    iced::{self, time, window},
+    iced::{self, Subscription, time, window},
     iced_core::Length,
     iced_runtime::Action,
     theme,
     widget::{
-        Column, Row, Space, menu, nav_bar, scrollable,
+        Column, Row, Space, menu, nav_bar, scrollable, text,
         toaster::{self, Toast, Toasts},
     },
 };
@@ -64,6 +67,8 @@ mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
 mod start_at_login;
+#[cfg(not(target_os = "linux"))]
+mod tray;
 mod udev_dialog;
 mod utils;
 
@@ -98,7 +103,7 @@ pub fn run_ui<H: HardwareBridge + 'static>(mut app_state: AppState<H>) {
 
     let settings = cosmic::app::Settings::default()
         .theme(to_cosmic_theme(&app_state.dir_manager.settings().theme))
-        .size(iced::Size::new(1500.0, 800.0));
+        .no_main_window(true);
 
     let flags = Flags { app_state };
 
@@ -128,6 +133,55 @@ struct Ui<H: HardwareBridge> {
     dialog: Option<Dialog>,
     drawer: Option<Drawer>,
     nav_bar_model: nav_bar::Model,
+    #[cfg(not(target_os = "linux"))]
+    tray: Option<(tray::SystemTray, tray::SystemTrayStream)>,
+    main_window: Option<window::Id>,
+}
+
+impl<H: HardwareBridge> Ui<H> {
+    fn open_main_window(&mut self) -> Task<AppMsg> {
+        let mut commands = Vec::new();
+        let settings = window::Settings {
+            size: iced::Size::new(1500.0, 800.0),
+            decorations: false,
+            ..Default::default()
+        };
+
+        let (window_id, command) = cosmic::iced::window::open(settings);
+
+        commands.push(command.map(|_| cosmic::action::Action::None));
+
+        self.main_window = Some(window_id);
+
+        self.core.set_main_window_id(Some(window_id));
+
+        Task::batch(commands)
+    }
+
+    fn on_exit(&mut self) {
+        if let Err(e) = self.app_state.bridge.shutdown() {
+            error!("shutdown hardware: {e}");
+        }
+
+        let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if match self.app_state.dir_manager.get_config() {
+            Some(saved_config) => saved_config != runtime_config,
+            None => true,
+        } {
+            if let Err(err) = self
+                .app_state
+                .dir_manager
+                .save_config_cached(&runtime_config)
+            {
+                error!("{err}")
+            } else {
+                info!("cached config saved successfully");
+            }
+        } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
+            error!("{err}")
+        }
+    }
 }
 
 impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
@@ -166,13 +220,28 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             dialog,
             drawer: None,
             nav_bar_model: nav_bar::Model::default(),
+            #[cfg(not(target_os = "linux"))]
+            tray: match tray::SystemTray::new() {
+                Ok(tray) => Some(tray),
+                Err(e) => {
+                    error!("can't create tray {e}");
+                    None
+                }
+            },
+            main_window: None,
         };
 
         ui_state.reload_nav_bar_model();
+        ui_state.update_tray_state();
 
-        let commands = Task::batch([cosmic::task::message(AppMsg::Tick)]);
+        let mut commands = vec![];
+        commands.push(cosmic::task::message(AppMsg::Tick));
 
-        (ui_state, commands)
+        if !ui_state.app_state.dir_manager.settings().start_minimized {
+            commands.push(ui_state.open_main_window());
+        }
+
+        (ui_state, Task::batch(commands))
     }
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
@@ -396,6 +465,11 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     start_at_login::start_at_login(start_at_login, &mut self.app_state.dir_manager);
                 }
                 SettingsMsg::Inactive(inactive) => self.set_inactive(inactive),
+                SettingsMsg::StartMinimized(start_minimized) => {
+                    dir_manager.update_settings(|settings| {
+                        settings.start_minimized = start_minimized;
+                    })
+                }
             },
             AppMsg::NewNode(node_type_light) => {
                 let node = self.app_state.app_graph.create_new_node(node_type_light);
@@ -478,16 +552,25 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 }
             }
             AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
-                graph::GraphWindowMsg::Toogle(node_id) => match node_id {
-                    Some(node_id) => {
+                graph::GraphWindowMsg::Toogle(node_id) => match (node_id, self.graph_window.take())
+                {
+                    (None, None) => {}
+                    (None, Some(window)) => {
+                        return cosmic::iced::runtime::task::effect(Action::Window(
+                            window::Action::Close(window.window_id),
+                        ));
+                    }
+                    (Some(node_id), Some(window)) if node_id == window.node_id => {
+                        return cosmic::iced::runtime::task::effect(Action::Window(
+                            window::Action::Close(window.window_id),
+                        ));
+                    }
+                    (Some(node_id), Some(window)) => {
                         let mut commands = Vec::new();
 
-                        if let Some(graph_window) = &self.graph_window {
-                            let command = cosmic::iced::runtime::task::effect(Action::Window(
-                                window::Action::Close(graph_window.window_id),
-                            ));
-                            commands.push(command);
-                        }
+                        commands.push(cosmic::iced::runtime::task::effect(Action::Window(
+                            window::Action::Close(window.window_id),
+                        )));
 
                         let (new_id, command) =
                             cosmic::iced::runtime::window::open(graph::window_settings());
@@ -503,12 +586,22 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
                         return Task::batch(commands);
                     }
-                    None => {
-                        if let Some(graph_window) = &self.graph_window {
-                            return cosmic::iced::runtime::task::effect(Action::Window(
-                                window::Action::Close(graph_window.window_id),
-                            ));
-                        }
+                    (Some(node_id), None) => {
+                        let mut commands = Vec::new();
+
+                        let (new_id, command) =
+                            cosmic::iced::runtime::window::open(graph::window_settings());
+
+                        self.graph_window = Some(GraphWindow {
+                            window_id: new_id,
+                            node_id,
+                            temp_c: String::new(),
+                            percent_c: String::new(),
+                        });
+
+                        commands.push(command.map(|_| cosmic::action::none()));
+
+                        return Task::batch(commands);
                     }
                 },
                 graph::GraphWindowMsg::ChangeTemp(temp) => {
@@ -565,29 +658,92 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
+            #[cfg(not(target_os = "linux"))]
+            AppMsg::SystemTray(msg) => match msg {
+                SystemTrayMsg::Show => {
+                    if let Some(main_window) = &self.main_window {
+                        // avoid duplicate window
+                        return cosmic::iced_runtime::task::effect(
+                            cosmic::iced::runtime::Action::Window(window::Action::GainFocus(
+                                *main_window,
+                            )),
+                        );
+                    } else {
+                        return self.open_main_window();
+                    }
+                }
+                SystemTrayMsg::Config(name) => {
+                    self.change_config(Some(name));
+                }
+                SystemTrayMsg::Inactive => {
+                    self.set_inactive(!self.app_state.dir_manager.settings().inactive);
+                }
+                SystemTrayMsg::Exit => {
+                    self.on_exit();
+                    return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
+                }
+            },
+            #[cfg(not(target_os = "linux"))]
+            AppMsg::HideWindow => {
+                if let Some(window) = self.main_window.take() {
+                    self.main_window = None;
+                    self.core.set_main_window_id(None);
+                    return cosmic::iced::runtime::task::effect(Action::Window(
+                        window::Action::Close(window),
+                    ));
+                }
+            }
+            #[cfg(target_os = "linux")]
+            AppMsg::Exit => {
+                self.on_exit();
+                return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
+            }
         }
 
         Task::none()
     }
 
     fn view(&self) -> Element<'_, Self::Message> {
-        let app_state = &self.app_state;
-        let app_graph = &app_state.app_graph;
+        self.view_window(self.core.main_window_id().unwrap())
+    }
 
-        let content = items_view(
-            &app_graph.nodes,
-            &self.nodes_c,
-            app_state.bridge.hardware(),
-            app_state.dir_manager.settings(),
-        );
+    fn view_window(&self, id: window::Id) -> Element<'_, Self::Message> {
+        if let Some(main_window) = &self.main_window
+            && main_window == &id
+        {
+            let app_state = &self.app_state;
+            let app_graph = &app_state.app_graph;
 
-        let floating_button = Column::new()
-            .push(Space::new(0.0, Length::Fill))
-            .push(add_node_button_view(self.create_button_expanded));
+            let content = items_view(
+                &app_graph.nodes,
+                &self.nodes_c,
+                app_state.bridge.hardware(),
+                app_state.dir_manager.settings(),
+            );
 
-        let app = Row::new().push(content).push(floating_button);
+            let floating_button = Column::new()
+                .push(Space::new(0.0, Length::Fill))
+                .push(add_node_button_view(self.create_button_expanded));
 
-        toaster::toaster(&self.toasts, app)
+            let app = Row::new().push(content).push(floating_button);
+
+            return toaster::toaster(&self.toasts, app);
+        }
+
+        if let Some(graph_window) = &self.graph_window
+            && graph_window.window_id == id
+        {
+            let graph = self
+                .app_state
+                .app_graph
+                .get(&graph_window.node_id)
+                .node_type
+                .unwrap_graph_ref();
+
+            return graph_window_view(graph_window, graph);
+        }
+
+        text(format!("no view for window {id:?}")).into()
     }
 
     fn header_start(&self) -> Vec<Element<'_, Self::Message>> {
@@ -607,11 +763,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             match data {
                 NavModelData::NoConfig => {
                     self.change_config(None);
-                    self.nav_bar_model.activate(id);
                 }
                 NavModelData::Config(config) => {
                     self.change_config(Some(config.to_owned()));
-                    self.nav_bar_model.activate(id);
                 }
                 NavModelData::NewConfig => {
                     self.dialog = Some(Dialog::CreateConfig(CreateConfigDialog::new()));
@@ -664,57 +818,48 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         })
     }
 
+    #[allow(clippy::vec_init_then_push)]
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(
-            self.app_state.dir_manager.settings().update_delay,
-        ))
-        .map(|_| AppMsg::Tick)
+        let mut subscriptions = vec![];
+
+        subscriptions.push(
+            time::every(Duration::from_millis(
+                self.app_state.dir_manager.settings().update_delay,
+            ))
+            .map(|_| AppMsg::Tick),
+        );
+
+        #[cfg(not(target_os = "linux"))]
+        if let Some(tray) = &self.tray {
+            subscriptions.push(
+                Subscription::run_with_id("system-tray", tray.1.clone().sub())
+                    .map(AppMsg::SystemTray),
+            );
+        }
+
+        Subscription::batch(subscriptions)
 
         //cosmic::iced_futures::Subscription::none()
     }
 
-    fn on_app_exit(&mut self) -> Option<Self::Message> {
-        if let Err(e) = self.app_state.bridge.shutdown() {
-            error!("shutdown hardware: {e}");
+    fn on_close_requested(&self, id: window::Id) -> Option<Self::Message> {
+        if let Some(window) = &self.main_window
+            && window == &id
+        {
+            #[cfg(not(target_os = "linux"))]
+            return Some(AppMsg::HideWindow);
+
+            #[cfg(target_os = "linux")]
+            return Some(AppMsg::Exit);
         }
 
-        let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
-
-        if match self.app_state.dir_manager.get_config() {
-            Some(saved_config) => saved_config != runtime_config,
-            None => true,
-        } {
-            if let Err(err) = self
-                .app_state
-                .dir_manager
-                .save_config_cached(&runtime_config)
-            {
-                error!("{err}")
-            } else {
-                info!("cached config saved successfully");
-            }
-        } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
-            error!("{err}")
+        if let Some(window) = &self.graph_window
+            && window.window_id == id
+        {
+            return Some(AppMsg::GraphWindow(graph::GraphWindowMsg::Toogle(None)));
         }
 
         None
-    }
-
-    fn view_window(&self, id: window::Id) -> Element<'_, Self::Message> {
-        if let Some(graph_window) = &self.graph_window
-            && graph_window.window_id == id
-        {
-            let graph = self
-                .app_state
-                .app_graph
-                .get(&graph_window.node_id)
-                .node_type
-                .unwrap_graph_ref();
-
-            return graph_window_view(graph_window, graph);
-        }
-
-        panic!("no view for window {id:?}");
     }
 
     fn dialog(&self) -> Option<Element<'_, Self::Message>> {
@@ -745,6 +890,41 @@ enum DialogMsg {
 }
 
 impl<H: HardwareBridge> Ui<H> {
+    fn update_tray_state(&self) {
+        #[cfg(not(target_os = "linux"))]
+        if let Some((tray, _)) = &self.tray {
+            let dir_manager = &self.app_state.dir_manager;
+
+            if let Err(e) = tray.update_menu_state(
+                &dir_manager.config_names.data,
+                &dir_manager.settings().current_config,
+                dir_manager.settings().inactive,
+            ) {
+                error!("can't update tray icon: {e}");
+            }
+        }
+    }
+
+    fn create_config(&mut self, new_name: String) {
+        let config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if let Err(e) = self.app_state.dir_manager.create_config(&new_name, &config) {
+            error!("can't create config: {e}");
+        }
+
+        self.reload_nav_bar_model();
+        self.update_tray_state();
+    }
+
+    fn rename_config(&mut self, prev: &str, new: &str) {
+        if let Err(e) = self.app_state.dir_manager.rename_config(prev, new) {
+            error!("can't rename config: {e}");
+        }
+
+        self.reload_nav_bar_model();
+        self.update_tray_state();
+    }
+
     fn change_config(&mut self, selected: Option<String>) {
         if selected.is_some() {
             self.app_state.update.set_valid_root_nodes_to_auto(
@@ -769,6 +949,9 @@ impl<H: HardwareBridge> Ui<H> {
                 error!("can't change config: {e}");
             }
         }
+
+        self.reload_nav_bar_model();
+        self.update_tray_state();
     }
 
     fn save_config(&mut self, name: &str) -> Task<AppMsg> {
@@ -896,5 +1079,6 @@ impl<H: HardwareBridge> Ui<H> {
         ) {
             error!("{e}");
         }
+        self.update_tray_state();
     }
 }

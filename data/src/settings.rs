@@ -24,6 +24,7 @@ pub struct Settings {
     pub current_config: Option<String>,
     pub start_at_login: bool,
     pub inactive: bool,
+    pub start_minimized: bool,
 }
 
 // todo: find a better solution to expose themes
@@ -46,6 +47,7 @@ impl Default for Settings {
             current_config: Default::default(),
             start_at_login: false,
             inactive: false,
+            start_minimized: false,
         }
     }
 }

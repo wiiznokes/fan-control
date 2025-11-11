@@ -31,7 +31,7 @@ mod windows {
         let dirs = BaseDirs::new().unwrap();
         let file_path = dirs
             .data_dir()
-            .join("Microsoft/Windows/Start Menu/Programs/Startup/AndroidMic.lnk");
+            .join("Microsoft/Windows/Start Menu/Programs/Startup/fan-control.lnk");
 
         if start_at_login {
             if let Err(e) = create_shortcut(&file_path) {

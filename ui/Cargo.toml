@@ -29,9 +29,11 @@ constcat.workspace = true
 directories.workspace = true
 anyhow.workspace = true
 fslock.workspace = true
+resvg.workspace = true
 
 [target.'cfg(target_os = "windows")'.dependencies]
 mslnk.workspace = true
+tray-icon.workspace = true
 
 
 [dev-dependencies]

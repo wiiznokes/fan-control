@@ -13,19 +13,12 @@ use data::{
 };
 
 use crate::{
+    icon::window_icon,
     icon_button,
     message::{AppMsg, GraphMsg, ModifNodeMsg},
     node_cache::GraphC,
     pick_list_utils::{self, MyOption},
 };
-
-pub fn window_settings() -> window::Settings {
-    window::Settings {
-        size: Size::new(300.0, 200.0),
-        resizable: false,
-        ..Default::default()
-    }
-}
 
 pub fn graph_view<'a>(
     node: &'a Node,
@@ -88,6 +81,16 @@ pub struct GraphWindow {
     pub node_id: Id,
     pub temp_c: String,
     pub percent_c: String,
+}
+
+pub fn window_settings() -> window::Settings {
+    window::Settings {
+        size: Size::new(300.0, 200.0),
+        resizable: false,
+        position: window::Position::Centered,
+        icon: window_icon(),
+        ..Default::default()
+    }
 }
 
 pub fn graph_window_view<'a>(

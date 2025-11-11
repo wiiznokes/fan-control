@@ -25,6 +25,7 @@ update_delay = Update delay
 update_delay_value = { $value } ms
 start_at_login = Start at login
 inactive = Disable all controls
+start_minimized = Start minimized
 
 # Add item description
 add_item = Add an item
@@ -81,3 +82,7 @@ udev_rules =
             *[other] unknown command
         }
     .streamos = You need to disable the read only mode temporarily.
+
+# tray icon
+tray_show_window = Show window
+tray_exit = Exit

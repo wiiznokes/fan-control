@@ -28,6 +28,12 @@ pub enum AppMsg {
     OpenUrl(String),
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
+    #[cfg(not(target_os = "linux"))]
+    SystemTray(crate::tray::SystemTrayMsg),
+    #[cfg(not(target_os = "linux"))]
+    HideWindow,
+    #[cfg(target_os = "linux")]
+    Exit,
 }
 
 #[derive(Debug, Clone)]
@@ -36,6 +42,7 @@ pub enum SettingsMsg {
     UpdateDelay(u64),
     StartAtLogin(bool),
     Inactive(bool),
+    StartMinimized(bool),
 }
 
 #[derive(Debug, Clone)]
