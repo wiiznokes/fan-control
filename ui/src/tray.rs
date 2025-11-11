@@ -114,7 +114,7 @@ impl SystemTray {
         self.item_inactive.set_enabled(inactive);
         let _ = self
             .tray_icon
-            .set_tooltip(Some(format!("fan-control")))
+            .set_tooltip(Some("fan-control".to_string()))
             .map_err(|e| {
                 error!("failed to set tray icon tooltip: {e}");
             });

@@ -2,15 +2,15 @@ use cosmic::{Element, iced_core::Length, iced_widget::text, widget::tooltip};
 use data::AppState;
 use hardware::HardwareBridge;
 
-use crate::{AppMsg, ToogleMsg, icon, icon_button};
+use crate::{AppMsg, ToogleMsg, icon_button};
 
 static ICON_LENGTH: Length = Length::Fixed(33.0);
 
 pub fn header_start<'a>() -> Vec<Element<'a, AppMsg>> {
-    let mut elems = vec![];
+    let elems = vec![];
 
-    let app_icon = icon!("toys_fan/48").into();
-    elems.push(app_icon);
+    // let app_icon = icon!("toys_fan/48").into();
+    // elems.push(app_icon);
 
     // elems.push(Space::new(Length::Fixed(10.0), 0.0).into());
     // let app_name = Text::new("fan-control").into();

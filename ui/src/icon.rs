@@ -1,4 +1,5 @@
 use cosmic::{
+    iced,
     iced_core::Length,
     widget::{self, Icon, IconButton, icon::Handle},
 };
@@ -69,4 +70,29 @@ pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
     } else {
         icon_button!("expand_more/24")
     }
+}
+
+pub fn window_icon() -> Option<iced::window::Icon> {
+    let svg = include_bytes!("../../res/linux/app_icon.svg");
+
+    let width = 32;
+    let height = 32;
+
+    let opt = resvg::usvg::Options::default();
+    let tree = resvg::usvg::Tree::from_data(svg, &opt).unwrap();
+    let viewbox = tree.size();
+
+    let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
+    resvg::render(
+        &tree,
+        resvg::tiny_skia::Transform::from_scale(
+            width as f32 / viewbox.width(),
+            height as f32 / viewbox.height(),
+        ),
+        &mut pixmap.as_mut(),
+    );
+
+    let rgba = pixmap.data().to_vec();
+
+    cosmic::iced::window::icon::from_rgba(rgba, width, height).ok()
 }

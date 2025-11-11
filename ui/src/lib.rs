@@ -142,7 +142,6 @@ impl<H: HardwareBridge> Ui<H> {
         let settings = window::Settings {
             size: iced::Size::new(1500.0, 800.0),
             decorations: false,
-            exit_on_close_request: false,
             ..Default::default()
         };
 
@@ -155,6 +154,31 @@ impl<H: HardwareBridge> Ui<H> {
         self.core.set_main_window_id(Some(window_id));
 
         Task::batch(commands)
+    }
+
+    fn on_exit(&mut self) {
+        if let Err(e) = self.app_state.bridge.shutdown() {
+            error!("shutdown hardware: {e}");
+        }
+
+        let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if match self.app_state.dir_manager.get_config() {
+            Some(saved_config) => saved_config != runtime_config,
+            None => true,
+        } {
+            if let Err(err) = self
+                .app_state
+                .dir_manager
+                .save_config_cached(&runtime_config)
+            {
+                error!("{err}")
+            } else {
+                info!("cached config saved successfully");
+            }
+        } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
+            error!("{err}")
+        }
     }
 }
 
@@ -648,6 +672,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
                 SystemTrayMsg::Exit => {
+                    self.on_exit();
                     return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
                 }
                 SystemTrayMsg::Inactive => {
@@ -806,35 +831,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
         //cosmic::iced_futures::Subscription::none()
     }
-
-    // fn on_app_exit(&mut self) -> Option<Self::Message> {
-    //     println!("on_app_exit");
-
-    //     if let Err(e) = self.app_state.bridge.shutdown() {
-    //         error!("shutdown hardware: {e}");
-    //     }
-
-    //     let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
-
-    //     if match self.app_state.dir_manager.get_config() {
-    //         Some(saved_config) => saved_config != runtime_config,
-    //         None => true,
-    //     } {
-    //         if let Err(err) = self
-    //             .app_state
-    //             .dir_manager
-    //             .save_config_cached(&runtime_config)
-    //         {
-    //             error!("{err}")
-    //         } else {
-    //             info!("cached config saved successfully");
-    //         }
-    //     } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
-    //         error!("{err}")
-    //     }
-
-    //     None
-    // }
 
     fn on_close_requested(&self, id: window::Id) -> Option<Self::Message> {
         println!("on_close_requested {id:?}");
