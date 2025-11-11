@@ -14,10 +14,10 @@ use item::items_view;
 use message::{ModifNodeMsg, SettingsMsg, ToogleMsg};
 use node_cache::{NodeC, NodesC};
 
-use crate::{
-    drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg,
-    tray::SystemTrayMsg,
-};
+use crate::{drawer::settings_drawer, graph::graph_window_view, message::NavBarContextMenuMsg};
+
+#[cfg(not(target_os = "linux"))]
+use crate::tray::SystemTrayMsg;
 
 use cosmic::{
     ApplicationExt, Apply, Element,
@@ -67,6 +67,7 @@ mod my_widgets;
 mod node_cache;
 mod pick_list_utils;
 mod start_at_login;
+#[cfg(not(target_os = "linux"))]
 mod tray;
 mod udev_dialog;
 mod utils;
@@ -132,6 +133,7 @@ struct Ui<H: HardwareBridge> {
     dialog: Option<Dialog>,
     drawer: Option<Drawer>,
     nav_bar_model: nav_bar::Model,
+    #[cfg(not(target_os = "linux"))]
     tray: Option<(tray::SystemTray, tray::SystemTrayStream)>,
     main_window: Option<window::Id>,
 }
@@ -208,14 +210,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             None
         };
 
-        let tray = match tray::SystemTray::new() {
-            Ok(tray) => Some(tray),
-            Err(e) => {
-                error!("can't create tray {e}");
-                None
-            }
-        };
-
         let mut ui_state = Ui {
             nodes_c: NodesC::new(app_state.app_graph.nodes.values()),
             app_state,
@@ -226,7 +220,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             dialog,
             drawer: None,
             nav_bar_model: nav_bar::Model::default(),
-            tray,
+            #[cfg(not(target_os = "linux"))]
+            tray: match tray::SystemTray::new() {
+                Ok(tray) => Some(tray),
+                Err(e) => {
+                    error!("can't create tray {e}");
+                    None
+                }
+            },
             main_window: None,
         };
 
@@ -244,8 +245,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
-        dbg!(&message);
-
         let dir_manager = &mut self.app_state.dir_manager;
 
         match message {
@@ -659,6 +658,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                 }
             },
+            #[cfg(not(target_os = "linux"))]
             AppMsg::SystemTray(msg) => match msg {
                 SystemTrayMsg::Show => {
                     if let Some(main_window) = &self.main_window {
@@ -683,6 +683,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
                 }
             },
+            #[cfg(not(target_os = "linux"))]
             AppMsg::HideWindow => {
                 if let Some(window) = self.main_window.take() {
                     self.main_window = None;
@@ -691,6 +692,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         window::Action::Close(window),
                     ));
                 }
+            }
+            AppMsg::Exit => {
+                self.on_exit();
+                return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
             }
         }
 
@@ -812,6 +817,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         })
     }
 
+    #[allow(clippy::vec_init_then_push)]
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         let mut subscriptions = vec![];
 
@@ -822,6 +828,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             .map(|_| AppMsg::Tick),
         );
 
+        #[cfg(not(target_os = "linux"))]
         if let Some(tray) = &self.tray {
             subscriptions.push(
                 Subscription::run_with_id("system-tray", tray.1.clone().sub())
@@ -835,12 +842,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn on_close_requested(&self, id: window::Id) -> Option<Self::Message> {
-        println!("on_close_requested {id:?}");
-
         if let Some(window) = &self.main_window
             && window == &id
         {
+            #[cfg(not(target_os = "linux"))]
             return Some(AppMsg::HideWindow);
+
+            #[cfg(target_os = "linux")]
+            return Some(AppMsg::Exit);
         }
 
         if let Some(window) = &self.graph_window
@@ -881,6 +890,7 @@ enum DialogMsg {
 
 impl<H: HardwareBridge> Ui<H> {
     fn update_tray_state(&self) {
+        #[cfg(not(target_os = "linux"))]
         if let Some((tray, _)) = &self.tray {
             let dir_manager = &self.app_state.dir_manager;
 

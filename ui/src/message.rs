@@ -6,7 +6,7 @@ use data::{
     settings::AppTheme,
 };
 
-use crate::{DialogMsg, graph::GraphWindowMsg, tray::SystemTrayMsg};
+use crate::{DialogMsg, graph::GraphWindowMsg};
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
@@ -28,8 +28,12 @@ pub enum AppMsg {
     OpenUrl(String),
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
-    SystemTray(SystemTrayMsg),
+    #[cfg(not(target_os = "linux"))]
+    SystemTray(tray::SystemTrayMsg),
+    #[cfg(not(target_os = "linux"))]
     HideWindow,
+    #[cfg(target_os = "linux")]
+    Exit,
 }
 
 #[derive(Debug, Clone)]

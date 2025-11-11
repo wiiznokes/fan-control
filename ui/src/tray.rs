@@ -6,13 +6,11 @@ use std::sync::{Arc, LazyLock};
 use tokio::sync::{Mutex, mpsc};
 use tray_icon::menu::MenuId;
 
-#[cfg(not(target_os = "linux"))]
 use tray_icon::{
     TrayIcon, TrayIconBuilder, TrayIconEvent,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
 };
 
-#[cfg(not(target_os = "linux"))]
 use crate::fl;
 
 #[derive(Debug, Clone)]
@@ -28,13 +26,9 @@ pub struct SystemTrayStream {
     receiver: Arc<Mutex<mpsc::UnboundedReceiver<SystemTrayMsg>>>,
 }
 
-#[cfg(not(target_os = "linux"))]
 pub struct SystemTray {
     tray_icon: TrayIcon,
 }
-
-#[cfg(target_os = "linux")]
-pub struct SystemTray;
 
 static MENU_ID_SHOW: LazyLock<MenuId> = LazyLock::new(|| MenuId::new("MENU_ID_SHOW"));
 static MENU_ID_INACTIVE: LazyLock<MenuId> = LazyLock::new(|| MenuId::new("MENU_ID_INACTIVE"));
@@ -47,7 +41,6 @@ fn menu_id_for_config(name: &str) -> MenuId {
 }
 
 impl SystemTray {
-    #[cfg(not(target_os = "linux"))]
     pub fn new() -> anyhow::Result<(Self, SystemTrayStream)> {
         let tray_icon = TrayIconBuilder::new()
             .with_tooltip("fan-control")
@@ -58,7 +51,6 @@ impl SystemTray {
 
         let menu_sender = sender.clone();
         MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
-            // println!("{event:?}, menu inactive: {item_inactive_id:?}");
             let _ = match event.id {
                 id if id == *MENU_ID_SHOW => menu_sender.send(SystemTrayMsg::Show),
                 id if id == *MENU_ID_INACTIVE => menu_sender.send(SystemTrayMsg::Inactive),
@@ -88,19 +80,6 @@ impl SystemTray {
         ))
     }
 
-    #[cfg(target_os = "linux")]
-    pub fn new() -> anyhow::Result<(Self, SystemTrayStream)> {
-        // placeholder here
-        let (_sender, receiver) = mpsc::unbounded_channel();
-        Ok((
-            Self {},
-            SystemTrayStream {
-                receiver: Arc::new(Mutex::new(receiver)),
-            },
-        ))
-    }
-
-    #[cfg(not(target_os = "linux"))]
     pub fn update_menu_state(
         &self,
         configs: &[String],
@@ -155,11 +134,6 @@ impl SystemTray {
 
         Ok(())
     }
-
-    #[cfg(target_os = "linux")]
-    pub fn update_menu_state(&mut self, _disconnected: bool, _status: &str) {
-        // placeholder here
-    }
 }
 
 impl SystemTrayStream {
@@ -181,7 +155,6 @@ impl SystemTrayStream {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
 fn tray_icon() -> Result<tray_icon::Icon, tray_icon::BadIcon> {
     let svg = include_bytes!("../../res/linux/app_icon.svg");
 
