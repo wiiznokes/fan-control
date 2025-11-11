@@ -31,7 +31,7 @@ use cosmic::{
     iced_runtime::Action,
     theme,
     widget::{
-        Column, Row, Space, menu, nav_bar, scrollable,
+        Column, Row, Space, menu, nav_bar, scrollable, text,
         toaster::{self, Toast, Toasts},
     },
 };
@@ -219,6 +219,8 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
+        dbg!(&message);
+
         let dir_manager = &mut self.app_state.dir_manager;
 
         match message {
@@ -526,16 +528,25 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 }
             }
             AppMsg::GraphWindow(graph_window_msg) => match graph_window_msg {
-                graph::GraphWindowMsg::Toogle(node_id) => match node_id {
-                    Some(node_id) => {
+                graph::GraphWindowMsg::Toogle(node_id) => match (node_id, self.graph_window.take())
+                {
+                    (None, None) => {}
+                    (None, Some(window)) => {
+                        return cosmic::iced::runtime::task::effect(Action::Window(
+                            window::Action::Close(window.window_id),
+                        ));
+                    }
+                    (Some(node_id), Some(window)) if node_id == window.node_id => {
+                        return cosmic::iced::runtime::task::effect(Action::Window(
+                            window::Action::Close(window.window_id),
+                        ));
+                    }
+                    (Some(node_id), Some(window)) => {
                         let mut commands = Vec::new();
 
-                        if let Some(graph_window) = &self.graph_window {
-                            let command = cosmic::iced::runtime::task::effect(Action::Window(
-                                window::Action::Close(graph_window.window_id),
-                            ));
-                            commands.push(command);
-                        }
+                        commands.push(cosmic::iced::runtime::task::effect(Action::Window(
+                            window::Action::Close(window.window_id),
+                        )));
 
                         let (new_id, command) =
                             cosmic::iced::runtime::window::open(graph::window_settings());
@@ -551,12 +562,22 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
 
                         return Task::batch(commands);
                     }
-                    None => {
-                        if let Some(graph_window) = self.graph_window.take() {
-                            return cosmic::iced::runtime::task::effect(Action::Window(
-                                window::Action::Close(graph_window.window_id),
-                            ));
-                        }
+                    (Some(node_id), None) => {
+                        let mut commands = Vec::new();
+
+                        let (new_id, command) =
+                            cosmic::iced::runtime::window::open(graph::window_settings());
+
+                        self.graph_window = Some(GraphWindow {
+                            window_id: new_id,
+                            node_id,
+                            temp_c: String::new(),
+                            percent_c: String::new(),
+                        });
+
+                        commands.push(command.map(|_| cosmic::action::none()));
+
+                        return Task::batch(commands);
                     }
                 },
                 graph::GraphWindowMsg::ChangeTemp(temp) => {
@@ -633,22 +654,12 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     self.set_inactive(!self.app_state.dir_manager.settings().inactive);
                 }
             },
-            AppMsg::ExitWindow(id) => {
-                if let Some(window) = &self.main_window
-                    && window == &id
-                {
+            AppMsg::HideWindow => {
+                if let Some(window) = self.main_window.take() {
                     self.main_window = None;
                     self.core.set_main_window_id(None);
                     return cosmic::iced::runtime::task::effect(Action::Window(
-                        window::Action::Close(id),
-                    ));
-                }
-                if let Some(window) = &self.graph_window
-                    && window.window_id == id
-                {
-                    self.graph_window = None;
-                    return cosmic::iced::runtime::task::effect(Action::Window(
-                        window::Action::Close(id),
+                        window::Action::Close(window),
                     ));
                 }
             }
@@ -697,7 +708,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             return graph_window_view(graph_window, graph);
         }
 
-        panic!("no view for window {id:?}");
+        text(format!("no view for window {id:?}")).into()
     }
 
     fn header_start(&self) -> Vec<Element<'_, Self::Message>> {
@@ -796,35 +807,51 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         //cosmic::iced_futures::Subscription::none()
     }
 
-    fn on_app_exit(&mut self) -> Option<Self::Message> {
-        if let Err(e) = self.app_state.bridge.shutdown() {
-            error!("shutdown hardware: {e}");
+    // fn on_app_exit(&mut self) -> Option<Self::Message> {
+    //     println!("on_app_exit");
+
+    //     if let Err(e) = self.app_state.bridge.shutdown() {
+    //         error!("shutdown hardware: {e}");
+    //     }
+
+    //     let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
+
+    //     if match self.app_state.dir_manager.get_config() {
+    //         Some(saved_config) => saved_config != runtime_config,
+    //         None => true,
+    //     } {
+    //         if let Err(err) = self
+    //             .app_state
+    //             .dir_manager
+    //             .save_config_cached(&runtime_config)
+    //         {
+    //             error!("{err}")
+    //         } else {
+    //             info!("cached config saved successfully");
+    //         }
+    //     } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
+    //         error!("{err}")
+    //     }
+
+    //     None
+    // }
+
+    fn on_close_requested(&self, id: window::Id) -> Option<Self::Message> {
+        println!("on_close_requested {id:?}");
+
+        if let Some(window) = &self.main_window
+            && window == &id
+        {
+            return Some(AppMsg::HideWindow);
         }
 
-        let runtime_config = Config::from_app_graph(&self.app_state.app_graph);
-
-        if match self.app_state.dir_manager.get_config() {
-            Some(saved_config) => saved_config != runtime_config,
-            None => true,
-        } {
-            if let Err(err) = self
-                .app_state
-                .dir_manager
-                .save_config_cached(&runtime_config)
-            {
-                error!("{err}")
-            } else {
-                info!("cached config saved successfully");
-            }
-        } else if let Err(err) = self.app_state.dir_manager.remove_config_cached() {
-            error!("{err}")
+        if let Some(window) = &self.graph_window
+            && window.window_id == id
+        {
+            return Some(AppMsg::GraphWindow(graph::GraphWindowMsg::Toogle(None)));
         }
 
         None
-    }
-
-    fn on_close_requested(&self, id: window::Id) -> Option<Self::Message> {
-        return Some(AppMsg::ExitWindow(id));
     }
 
     fn dialog(&self) -> Option<Element<'_, Self::Message>> {

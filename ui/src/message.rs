@@ -29,7 +29,7 @@ pub enum AppMsg {
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
     SystemTray(SystemTrayMsg),
-    ExitWindow(window::Id),
+    HideWindow,
 }
 
 #[derive(Debug, Clone)]
