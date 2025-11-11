@@ -231,6 +231,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         };
 
         ui_state.reload_nav_bar_model();
+        ui_state.update_tray_state();
 
         let mut commands = vec![];
         commands.push(cosmic::task::message(AppMsg::Tick));
