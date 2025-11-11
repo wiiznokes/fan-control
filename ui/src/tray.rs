@@ -86,7 +86,15 @@ impl SystemTray {
         inactive: bool,
     ) -> anyhow::Result<()> {
         let item_show = MenuItem::new(fl!("tray_show_window"), true, None);
-        let item_inactive = MenuItem::new(fl!("inactive"), inactive, None);
+        let item_inactive = MenuItem::new(
+            if inactive {
+                format!("● {}", fl!("inactive"))
+            } else {
+                format!("○ {}", fl!("inactive"))
+            },
+            true,
+            None,
+        );
         let item_exit = MenuItem::new(fl!("tray_exit"), true, None);
 
         let menu = Menu::new();
@@ -100,9 +108,15 @@ impl SystemTray {
         let mut item_config_ids = Vec::with_capacity(configs.len());
 
         for config in configs {
+            let is_active = active_config.as_ref().is_some_and(|c| c == config);
+
             let item_config = MenuItem::new(
-                config,
-                active_config.as_ref().is_some_and(|c| c == config),
+                if is_active {
+                    format!("● {config}")
+                } else {
+                    format!("○ {config}")
+                },
+                true,
                 None,
             );
             item_config_ids.push((item_config.id().clone(), config.to_string()));
