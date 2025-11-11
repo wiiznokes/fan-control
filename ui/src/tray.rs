@@ -2,10 +2,9 @@ use cosmic::iced::{
     futures::{SinkExt, Stream},
     stream,
 };
-use std::sync::Arc;
-#[cfg(not(target_os = "linux"))]
-use tokio::sync::mpsc::UnboundedSender;
+use std::sync::{Arc, LazyLock};
 use tokio::sync::{Mutex, mpsc};
+use tray_icon::menu::MenuId;
 
 #[cfg(not(target_os = "linux"))]
 use tray_icon::{
@@ -32,11 +31,20 @@ pub struct SystemTrayStream {
 #[cfg(not(target_os = "linux"))]
 pub struct SystemTray {
     tray_icon: TrayIcon,
-    menu_sender: UnboundedSender<SystemTrayMsg>,
 }
 
 #[cfg(target_os = "linux")]
 pub struct SystemTray;
+
+static MENU_ID_SHOW: LazyLock<MenuId> = LazyLock::new(|| MenuId::new("MENU_ID_SHOW"));
+static MENU_ID_INACTIVE: LazyLock<MenuId> = LazyLock::new(|| MenuId::new("MENU_ID_INACTIVE"));
+static MENU_ID_EXIT: LazyLock<MenuId> = LazyLock::new(|| MenuId::new("MENU_ID_EXIT"));
+
+const MENU_ID_CONFIG_PREFIX: &str = "MENU_ID_CONFIG-";
+
+fn menu_id_for_config(name: &str) -> MenuId {
+    MenuId::new(format!("{MENU_ID_CONFIG_PREFIX}{name}"))
+}
 
 impl SystemTray {
     #[cfg(not(target_os = "linux"))]
@@ -48,7 +56,24 @@ impl SystemTray {
 
         let (sender, receiver) = mpsc::unbounded_channel();
 
-        let tray_sender = sender.clone();
+        let menu_sender = sender.clone();
+        MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
+            // println!("{event:?}, menu inactive: {item_inactive_id:?}");
+            let _ = match event.id {
+                id if id == *MENU_ID_SHOW => menu_sender.send(SystemTrayMsg::Show),
+                id if id == *MENU_ID_INACTIVE => menu_sender.send(SystemTrayMsg::Inactive),
+                id if id == *MENU_ID_EXIT => menu_sender.send(SystemTrayMsg::Exit),
+                id => {
+                    if let Some(name) = id.0.strip_prefix(MENU_ID_CONFIG_PREFIX) {
+                        menu_sender.send(SystemTrayMsg::Config(name.to_string()))
+                    } else {
+                        return;
+                    }
+                }
+            };
+        }));
+
+        let tray_sender = sender;
         TrayIconEvent::set_event_handler(Some(move |event: TrayIconEvent| {
             if let TrayIconEvent::DoubleClick { .. } = event {
                 let _ = tray_sender.send(SystemTrayMsg::Show);
@@ -56,10 +81,7 @@ impl SystemTray {
         }));
 
         Ok((
-            Self {
-                tray_icon,
-                menu_sender: sender,
-            },
+            Self { tray_icon },
             SystemTrayStream {
                 receiver: Arc::new(Mutex::new(receiver)),
             },
@@ -85,32 +107,21 @@ impl SystemTray {
         active_config: &Option<String>,
         inactive: bool,
     ) -> anyhow::Result<()> {
-        let item_show = MenuItem::new(fl!("tray_show_window"), true, None);
-        let item_inactive = MenuItem::new(
-            if inactive {
-                format!("● {}", fl!("inactive"))
-            } else {
-                format!("○ {}", fl!("inactive"))
-            },
-            true,
-            None,
-        );
-        let item_exit = MenuItem::new(fl!("tray_exit"), true, None);
-
         let menu = Menu::new();
+
+        let item_show =
+            MenuItem::with_id(MENU_ID_SHOW.clone(), fl!("tray_show_window"), true, None);
 
         menu.append(&item_show)?;
 
         let item_separator = PredefinedMenuItem::separator();
-
         menu.append(&item_separator)?;
-
-        let mut item_config_ids = Vec::with_capacity(configs.len());
 
         for config in configs {
             let is_active = active_config.as_ref().is_some_and(|c| c == config);
 
-            let item_config = MenuItem::new(
+            let item_config = MenuItem::with_id(
+                menu_id_for_config(config),
                 if is_active {
                     format!("● {config}")
                 } else {
@@ -119,37 +130,26 @@ impl SystemTray {
                 true,
                 None,
             );
-            item_config_ids.push((item_config.id().clone(), config.to_string()));
             menu.append(&item_config)?;
         }
+
+        let item_inactive = MenuItem::with_id(
+            MENU_ID_INACTIVE.clone(),
+            if inactive {
+                format!("● {}", fl!("inactive"))
+            } else {
+                format!("○ {}", fl!("inactive"))
+            },
+            true,
+            None,
+        );
+
         menu.append(&item_inactive)?;
         menu.append(&item_separator)?;
+
+        let item_exit = MenuItem::with_id(MENU_ID_EXIT.clone(), fl!("tray_exit"), true, None);
+
         menu.append(&item_exit)?;
-
-        {
-            let menu_sender = self.menu_sender.clone();
-            let item_show_id = item_show.id().clone();
-            let item_inactive_id = item_inactive.id().clone();
-            let item_exit_id = item_exit.id().clone();
-
-            MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
-                let _ = match event.id {
-                    id if id == item_show_id => menu_sender.send(SystemTrayMsg::Show),
-                    id if id == item_inactive_id => menu_sender.send(SystemTrayMsg::Inactive),
-                    id if id == item_exit_id => menu_sender.send(SystemTrayMsg::Exit),
-                    id => {
-                        if let Some((_, name)) = item_config_ids
-                            .iter()
-                            .find(|(config_id, _)| *config_id == id)
-                        {
-                            menu_sender.send(SystemTrayMsg::Config(name.clone()))
-                        } else {
-                            return;
-                        }
-                    }
-                };
-            }));
-        }
 
         self.tray_icon.set_menu(Some(Box::new(menu)));
 
