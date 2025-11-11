@@ -1,4 +1,4 @@
-use cosmic::widget::{ToastId, menu::action::MenuAction, nav_bar};
+use cosmic::{iced::window, widget::{ToastId, menu::action::MenuAction, nav_bar}};
 use data::{
     config::{custom_temp::CustomTempKind, graph::Coord},
     id::Id,
@@ -29,6 +29,7 @@ pub enum AppMsg {
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
     SystemTray(SystemTrayMsg),
+    ExitWindow(window::Id),
 }
 
 #[derive(Debug, Clone)]

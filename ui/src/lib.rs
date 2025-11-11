@@ -141,6 +141,8 @@ impl<H: HardwareBridge> Ui<H> {
         let mut commands = Vec::new();
         let settings = window::Settings {
             size: iced::Size::new(1500.0, 800.0),
+            decorations: false,
+            exit_on_close_request: false,
             ..Default::default()
         };
 
@@ -149,6 +151,8 @@ impl<H: HardwareBridge> Ui<H> {
         commands.push(command.map(|_| cosmic::action::Action::None));
 
         self.main_window = Some(window_id);
+
+        self.core.set_main_window_id(Some(window_id));
 
         Task::batch(commands)
     }
@@ -215,8 +219,6 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
     }
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
-        dbg!(&message);
-
         let dir_manager = &mut self.app_state.dir_manager;
 
         match message {
@@ -550,7 +552,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         return Task::batch(commands);
                     }
                     None => {
-                        if let Some(graph_window) = &self.graph_window {
+                        if let Some(graph_window) = self.graph_window.take() {
                             return cosmic::iced::runtime::task::effect(Action::Window(
                                 window::Action::Close(graph_window.window_id),
                             ));
@@ -631,6 +633,25 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     self.set_inactive(!self.app_state.dir_manager.settings().inactive);
                 }
             },
+            AppMsg::ExitWindow(id) => {
+                if let Some(window) = &self.main_window
+                    && window == &id
+                {
+                    self.main_window = None;
+                    self.core.set_main_window_id(None);
+                    return cosmic::iced::runtime::task::effect(Action::Window(
+                        window::Action::Close(id),
+                    ));
+                }
+                if let Some(window) = &self.graph_window
+                    && window.window_id == id
+                {
+                    self.graph_window = None;
+                    return cosmic::iced::runtime::task::effect(Action::Window(
+                        window::Action::Close(id),
+                    ));
+                }
+            }
         }
 
         Task::none()
@@ -800,6 +821,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         }
 
         None
+    }
+
+    fn on_close_requested(&self, id: window::Id) -> Option<Self::Message> {
+        return Some(AppMsg::ExitWindow(id));
     }
 
     fn dialog(&self) -> Option<Element<'_, Self::Message>> {

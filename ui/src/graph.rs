@@ -23,6 +23,7 @@ pub fn window_settings() -> window::Settings {
     window::Settings {
         size: Size::new(300.0, 200.0),
         resizable: false,
+        exit_on_close_request: false,
         ..Default::default()
     }
 }
