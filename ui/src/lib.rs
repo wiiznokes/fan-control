@@ -693,6 +693,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     ));
                 }
             }
+            #[cfg(target_os = "linux")]
             AppMsg::Exit => {
                 self.on_exit();
                 return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);

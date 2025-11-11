@@ -29,7 +29,7 @@ pub enum AppMsg {
     NavBarContextMenu(NavBarContextMenuMsg),
     SaveConfig(String),
     #[cfg(not(target_os = "linux"))]
-    SystemTray(tray::SystemTrayMsg),
+    SystemTray(crate::tray::SystemTrayMsg),
     #[cfg(not(target_os = "linux"))]
     HideWindow,
     #[cfg(target_os = "linux")]
