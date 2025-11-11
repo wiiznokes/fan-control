@@ -671,12 +671,15 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         return self.open_main_window();
                     }
                 }
-                SystemTrayMsg::Exit => {
-                    self.on_exit();
-                    return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
+                SystemTrayMsg::Config(name) => {
+                    self.change_config(Some(name));
                 }
                 SystemTrayMsg::Inactive => {
                     self.set_inactive(!self.app_state.dir_manager.settings().inactive);
+                }
+                SystemTrayMsg::Exit => {
+                    self.on_exit();
+                    return cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit);
                 }
             },
             AppMsg::HideWindow => {
@@ -753,11 +756,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
             match data {
                 NavModelData::NoConfig => {
                     self.change_config(None);
-                    self.nav_bar_model.activate(id);
                 }
                 NavModelData::Config(config) => {
                     self.change_config(Some(config.to_owned()));
-                    self.nav_bar_model.activate(id);
                 }
                 NavModelData::NewConfig => {
                     self.dialog = Some(Dialog::CreateConfig(CreateConfigDialog::new()));
@@ -878,6 +879,40 @@ enum DialogMsg {
 }
 
 impl<H: HardwareBridge> Ui<H> {
+    fn update_tray_state(&self) {
+        if let Some((tray, _)) = &self.tray {
+            let dir_manager = &self.app_state.dir_manager;
+
+            if let Err(e) = tray.update_menu_state(
+                &dir_manager.config_names.data,
+                &dir_manager.settings().current_config,
+                dir_manager.settings().inactive,
+            ) {
+                error!("can't update tray icon: {e}");
+            }
+        }
+    }
+
+    fn create_config(&mut self, new_name: String) {
+        let config = Config::from_app_graph(&self.app_state.app_graph);
+
+        if let Err(e) = self.app_state.dir_manager.create_config(&new_name, &config) {
+            error!("can't create config: {e}");
+        }
+
+        self.reload_nav_bar_model();
+        self.update_tray_state();
+    }
+
+    fn rename_config(&mut self, prev: &str, new: &str) {
+        if let Err(e) = self.app_state.dir_manager.rename_config(prev, new) {
+            error!("can't rename config: {e}");
+        }
+
+        self.reload_nav_bar_model();
+        self.update_tray_state();
+    }
+
     fn change_config(&mut self, selected: Option<String>) {
         if selected.is_some() {
             self.app_state.update.set_valid_root_nodes_to_auto(
@@ -902,6 +937,9 @@ impl<H: HardwareBridge> Ui<H> {
                 error!("can't change config: {e}");
             }
         }
+
+        self.reload_nav_bar_model();
+        self.update_tray_state();
     }
 
     fn save_config(&mut self, name: &str) -> Task<AppMsg> {
@@ -1029,5 +1067,6 @@ impl<H: HardwareBridge> Ui<H> {
         ) {
             error!("{e}");
         }
+        self.update_tray_state();
     }
 }
