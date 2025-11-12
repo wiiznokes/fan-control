@@ -41,14 +41,12 @@ jobs:
       - name: Build lhm
         run: just lhm
 
+      - run: rustup update
+      - uses: Swatinem/rust-cache@v2
       - name: Build
         run: |
           FAN_CONTROL_VERSION=${{ inputs.version }} just build
 
-        if: matrix.platform == 'windows'
-      - run: rustup update&
-        if: matrix.platform == 'windows'
-      - uses: Swatinem/rust-cache@v2
         if: matrix.platform == 'windows'
       - run: cargo install cargo-packager
 
