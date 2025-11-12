@@ -185,3 +185,6 @@ run-lhm:
 
 expand:
     cargo expand
+
+lhm-run: lhm
+    ./res/lhmbuild/LibreHardwareMonitorWrapper.exe
