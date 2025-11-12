@@ -35,8 +35,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build
         run: |
-          FAN_CONTROL_VERSION=nightly just build
-
+          FAN_CONTROL_VERSION=nightly just build-release
+        shell: bash
         if: matrix.platform == 'windows'
       - run: cargo install cargo-packager
 
@@ -56,7 +56,8 @@ jobs:
     needs:
       - build
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -86,4 +87,4 @@ jobs:
           # https://cli.github.com/manual/gh_release_create
           gh release create nightly  --title "nightly " \
             --verify-tag --prerelease --generate-notes --target $GITHUB_SHA \
-            all-artifacts/**/*
+            all-artifacts/*
