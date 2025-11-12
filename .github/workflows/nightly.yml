@@ -87,4 +87,4 @@ jobs:
           # https://cli.github.com/manual/gh_release_create
           gh release create nightly  --title "nightly " \
             --verify-tag --prerelease --generate-notes --target $GITHUB_SHA \
-            all-artifacts/**/*
+            all-artifacts/*

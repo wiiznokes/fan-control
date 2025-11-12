@@ -97,4 +97,4 @@ jobs:
           # https://cli.github.com/manual/gh_release_create
           gh release create ${{ inputs.version }} --title "${{ inputs.version }}" \
             --verify-tag ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
-            all-artifacts/**/*
+            all-artifacts/*
