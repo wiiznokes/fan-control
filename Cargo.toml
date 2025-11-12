@@ -32,6 +32,9 @@ category = "Utility"
 [package.metadata.packager.windows]
 allow_downgrades = true
 
+[package.metadata.packager.nsis]
+installer_icon = "res/windows/app_icon.ico"
+
 [features]
 default = ["ui"]
 ui = ["dep:ui"]

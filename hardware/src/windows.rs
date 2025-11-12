@@ -1,6 +1,7 @@
 use std::{
     io::{self, BufRead, BufReader, Read, Write},
     net::TcpStream,
+    path::PathBuf,
     process::{self},
     rc::Rc,
     thread,
@@ -24,8 +25,8 @@ pub struct WindowsBridge {
 pub enum WindowsError {
     #[error("{0}: {1}")]
     Io(String, std::io::Error),
-    #[error("Can't spawn the windows server: {0}")]
-    SpawnServer(std::io::Error),
+    #[error("Can't spawn the windows server: {0}. Exec path: {1}")]
+    SpawnServer(std::io::Error, PathBuf),
     #[error("No connection was found")]
     NoConnectionFound,
     #[error("Failed to parse hardware struct: {0}")]
@@ -43,7 +44,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
 
     let exe_path = resource_path.join("lhmbuild/LibreHardwareMonitorWrapper");
 
-    let mut command = process::Command::new(exe_path);
+    let mut command = process::Command::new(&exe_path);
 
     if !log_enabled!(log::Level::Info) {
         use std::os::windows::process::CommandExt;
@@ -66,7 +67,7 @@ fn spawn_windows_server() -> Result<std::process::Child> {
 
     match command.spawn() {
         Ok(handle) => Ok(handle),
-        Err(e) => Err(WindowsError::SpawnServer(e)),
+        Err(e) => Err(WindowsError::SpawnServer(e, exe_path)),
     }
 }
 

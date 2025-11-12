@@ -14,20 +14,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform: windows
+  build-nsis:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
 
       - uses: taiki-e/install-action@just
 
-        if: matrix.platform == 'windows'
       - name: Build lhm
         run: just lhm
 
@@ -35,26 +28,24 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build
         run: |
-          FAN_CONTROL_VERSION=nightly just build-release
+          CARGO_PACKAGER_FORMAT=nsis FAN_CONTROL_VERSION=nightly just build-release
         shell: bash
-        if: matrix.platform == 'windows'
+
       - run: cargo install cargo-packager
 
-        if: matrix.platform == 'windows'
       - name: Package nsis
         run: just nsis
 
-        if: matrix.platform == 'windows'
-      - name: Upload windows build
+      - name: Upload nsis build
         uses: actions/upload-artifact@v5
         with:
-          name: fan-control-windows
+          name: fan-control-nsis
           path: |
             ./target/release/fan-control*-setup.exe
 
   release-on-github:
     needs:
-      - build
+      - build-nsis
     runs-on: ubuntu-latest
     permissions:
       contents: write
