@@ -32,7 +32,8 @@ jobs:
         run: just lhm
 
       - name: Build
-        run: just build
+        run: |
+          FAN_CONTROL_VERSION=nightly just build
 
         if: matrix.platform == 'windows'
       - run: rustup update

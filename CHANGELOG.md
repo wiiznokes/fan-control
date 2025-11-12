@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [25.11.0]
+
+### Added
+
+- tray icon
+- start at login
+- start minimized
+- update deps
+- new ui for managing configs (drawer)
+
 ## [2025.3.0]
 
 ### Fixed

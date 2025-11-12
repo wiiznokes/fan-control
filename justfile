@@ -1,6 +1,5 @@
 set windows-powershell := true
 
-export FAN_CONTROL_VERSION := "2025.3.0"
 export FAN_CONTROL_COMMIT := `git rev-parse --short HEAD`
 rootdir := ''
 prefix := '/usr'

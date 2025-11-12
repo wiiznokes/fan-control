@@ -23,7 +23,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [package.metadata.packager]
-version = "2025.3.0"
+version = "25.11.0"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]
 resources = ["res/lhmbuild"]

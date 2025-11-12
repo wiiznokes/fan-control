@@ -42,10 +42,11 @@ jobs:
         run: just lhm
 
       - name: Build
-        run: just build
+        run: |
+          FAN_CONTROL_VERSION=${{ inputs.version }} just build
 
         if: matrix.platform == 'windows'
-      - run: rustup update
+      - run: rustup update&
         if: matrix.platform == 'windows'
       - uses: Swatinem/rust-cache@v2
         if: matrix.platform == 'windows'
