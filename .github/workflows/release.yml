@@ -46,7 +46,8 @@ jobs:
       - name: Build
         run: |
           FAN_CONTROL_VERSION=${{ inputs.version }} just build
-
+        shell: bash
+        
         if: matrix.platform == 'windows'
       - run: cargo install cargo-packager
 
