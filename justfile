@@ -91,7 +91,7 @@ clean-libsensors:
     rm -rf build/libsensors || true
 
 clean-lhm:
-    dotnet clean ./hardware/LibreHardwareMonitorWrapper/ || true
+    dotnet clean ./hardware/LibreHardwareMonitorWrapper
 
 ###################  Flatpak
 
@@ -185,3 +185,6 @@ run-lhm:
 
 expand:
     cargo expand
+
+lhm-run: lhm
+    ./res/lhmbuild/LibreHardwareMonitorWrapper.exe

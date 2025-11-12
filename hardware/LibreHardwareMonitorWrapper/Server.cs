@@ -136,7 +136,7 @@ public class Server
 
         client.Send(Encoding.UTF8.GetBytes(CheckResponse));
 
-        Logger.Info("Client accepted.");
+        Logger.Info("Client accepted");
         return client;
     }
 
