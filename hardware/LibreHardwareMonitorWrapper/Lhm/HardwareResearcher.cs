@@ -6,14 +6,14 @@ public class HardwareResearcher : IVisitor
 {
     private readonly Computer _mComputer = new()
     {
-        IsBatteryEnabled = false,
+        IsBatteryEnabled = true,
         IsControllerEnabled = true,
         IsCpuEnabled = true,
         IsGpuEnabled = true,
-        IsMemoryEnabled = false,
+        IsMemoryEnabled = true,
         IsMotherboardEnabled = true,
-        IsNetworkEnabled = false,
-        IsPsuEnabled = false,
+        IsNetworkEnabled = true,
+        IsPsuEnabled = true,
         IsStorageEnabled = true
     };
 
