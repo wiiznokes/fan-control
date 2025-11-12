@@ -1,6 +1,5 @@
 set windows-powershell := true
 
-export FAN_CONTROL_VERSION := "2025.3.0"
 export FAN_CONTROL_COMMIT := `git rev-parse --short HEAD`
 rootdir := ''
 prefix := '/usr'
@@ -53,8 +52,6 @@ uninstall:
 
 nsis:
     cargo packager --release --formats nsis --verbose
-    New-Item -Path .\packages -ItemType Directory -Force > $null
-    cp ./target/release/fan-control*-setup.exe ./packages/
 
 ###################  Test
 

@@ -1,20 +1,10 @@
-name: Release
+name: Nightly Build
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "App version"
-        required: true
-        type: string
-      prerelease:
-        description: "Is pre-release"
-        type: boolean
-        required: false
-        default: false
 
 concurrency:
-  group: ${{ github.workflow }}-release
+  group: ${{ github.workflow }}-nightly
   cancel-in-progress: true
 
 env:
@@ -43,10 +33,10 @@ jobs:
 
       - name: Build
         run: |
-          FAN_CONTROL_VERSION=${{ inputs.version }} just build
+          FAN_CONTROL_VERSION=nightly just build
 
         if: matrix.platform == 'windows'
-      - run: rustup update&
+      - run: rustup update
         if: matrix.platform == 'windows'
       - uses: Swatinem/rust-cache@v2
         if: matrix.platform == 'windows'
@@ -78,6 +68,9 @@ jobs:
           merge-multiple: true
           path: all-artifacts
 
+      - name: Display structure of downloaded files
+        run: find all-artifacts -type f | sort
+
       - name: Set prerelease flag
         if: ${{ github.event.inputs.prerelease == 'true' }}
         run: |
@@ -89,13 +82,10 @@ jobs:
           gh release delete nightly --yes || true
           git push --delete origin nightly || true
 
-          gh release delete ${{ inputs.version }} --yes || true
-          git push --delete origin ${{ inputs.version }} || true
-
-          git tag ${{ inputs.version }}
+          git tag nightly
           git push origin --tags
 
           # https://cli.github.com/manual/gh_release_create
-          gh release create ${{ inputs.version }} --title "${{ inputs.version }}" \
-            --verify-tag ${{ env.PRERELEASE }} --generate-notes --target $GITHUB_SHA \
+          gh release create nightly  --title "nightly " \
+            --verify-tag --prerelease --generate-notes --target $GITHUB_SHA \
             all-artifacts/**/*
