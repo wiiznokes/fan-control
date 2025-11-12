@@ -45,7 +45,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build
         run: |
-          FAN_CONTROL_VERSION=${{ inputs.version }} just build
+          FAN_CONTROL_VERSION=${{ inputs.version }} just build-release
         shell: bash
         
         if: matrix.platform == 'windows'
