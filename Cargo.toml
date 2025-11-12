@@ -24,7 +24,6 @@ keywords.workspace = true
 
 [package.metadata.packager]
 version = "2025.3.0"
-before-each-package-command = "just build-release"
 identifier = "io.github.wiiznokes.fan-control"
 icons = ["res/windows/app_icon.ico"]
 resources = ["res/lhmbuild"]
