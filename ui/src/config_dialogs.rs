@@ -28,17 +28,17 @@ impl CreateConfigDialog {
 
     pub fn view(&self, dir_manager: &DirManager) -> Element<'_, DialogMsg> {
         dialog()
-            .title("Create configuration")
-            .control(text_input("Name", &self.name).on_input(CreateConfigDialogMsg::Input))
+            .title(fl!("create_config"))
+            .control(text_input(fl!("name"), &self.name).on_input(CreateConfigDialogMsg::Input))
             .primary_action(
-                button::text("Create").on_press_maybe(
+                button::text(fl!("create")).on_press_maybe(
                     dir_manager
                         .config_names
                         .is_valid_create(&self.name)
                         .then_some(CreateConfigDialogMsg::Create(self.name.clone())),
                 ),
             )
-            .secondary_action(button::text("Cancel").on_press(CreateConfigDialogMsg::Cancel))
+            .secondary_action(button::text(fl!("cancel")).on_press(CreateConfigDialogMsg::Cancel))
             .apply(Element::from)
             .map(DialogMsg::CreateConfig)
     }
@@ -88,10 +88,10 @@ impl RenameConfigDialog {
 
     pub fn view(&self, dir_manager: &DirManager) -> Element<'_, DialogMsg> {
         dialog()
-            .title("Rename configuration")
-            .control(text_input("New name", &self.new).on_input(RenameConfigDialogMsg::Input))
+            .title(fl!("rename_config"))
+            .control(text_input(fl!("new_name"), &self.new).on_input(RenameConfigDialogMsg::Input))
             .primary_action(
-                button::text("Rename").on_press_maybe(
+                button::text(fl!("rename")).on_press_maybe(
                     dir_manager
                         .config_names
                         .is_valid_create(&self.new)
@@ -101,7 +101,7 @@ impl RenameConfigDialog {
                         }),
                 ),
             )
-            .secondary_action(button::text("Cancel").on_press(RenameConfigDialogMsg::Cancel))
+            .secondary_action(button::text(fl!("cancel")).on_press(RenameConfigDialogMsg::Cancel))
             .apply(Element::from)
             .map(DialogMsg::RenameConfig)
     }

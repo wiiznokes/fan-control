@@ -1,6 +1,7 @@
 none = Aucun
 delete = Supprimer
 settings = Paramètres
+about = À propos
 name = Nom
 value = Valeur
 theme = Thème

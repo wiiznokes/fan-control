@@ -56,6 +56,10 @@ config_name = Configuration name
 save_config = Save this configuration
 delete_config = Delete configuration
 create_config = Create configuration
+create = Create
+cancel = Cancel
+new_name = New name
+rename = Rename
 
 # Error
 already_used_error = This name is already being use
