@@ -1,7 +1,7 @@
 <h1 align="center">Fan Control</h1>
 
 <div>
-    <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="50" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.svg"/></a>&nbsp;&nbsp;
+    <a href="https://flathub.org/apps/io.github.wiiznokes.fan-control"><img align=center height="50" alt="Download on Flathub" src="https://flathub.org/api/badge?svg&locale=en"/></a>&nbsp;&nbsp;
     <a href="https://github.com/wiiznokes/fan-control/releases/latest"><img align=center alt="Download on Github release" src="https://img.shields.io/github/release/wiiznokes/fan-control.svg"/></a>&nbsp;&nbsp;
 <div>
 
