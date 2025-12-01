@@ -27,7 +27,7 @@ jobs:
   build-nsis:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: taiki-e/install-action@just
 
@@ -60,7 +60,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       # must be after checkout because it will remove artifacts
       - uses: actions/download-artifact@v6
