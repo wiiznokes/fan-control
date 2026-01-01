@@ -47,7 +47,7 @@ jobs:
         run: just nsis
 
       - name: Upload nsis build
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: fan-control-nsis
           path: |
