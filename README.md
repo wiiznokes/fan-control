@@ -24,7 +24,9 @@
 
 ### Windows
 
-1. Install Fan Control from [the release section](https://github.com/wiiznokes/fan-control/releases/latest)
+- Install Fan Control from [the release section](https://github.com/wiiznokes/fan-control/releases/latest)
+- Install the [PawnIO driver](https://pawnio.eu/)
+- Install the [.NET Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
 _The configuration files will be in [`C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config`](file:///C:\Users\wiiz\AppData\Roaming\wiiznokes\fan-control\config)._
 

@@ -16,7 +16,7 @@ cargo run --release
 
 ### Windows
 
-1. install [dotnet 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+1. install [dotnet 10 sdk](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 2. run these commands
    ```shell
    git clone https://github.com/wiiznokes/fan-control.git
