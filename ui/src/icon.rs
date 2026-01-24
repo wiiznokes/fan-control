@@ -4,8 +4,6 @@ use cosmic::{
     widget::{self, Icon, IconButton, icon::Handle},
 };
 
-use crate::icon_handle;
-
 pub static ICON_LENGTH: Length = Length::Fixed(25.0);
 
 #[macro_export]
@@ -63,14 +61,14 @@ pub fn icon_button_from_handle<'a, M>(handle: Handle) -> IconButton<'a, M> {
     cosmic::widget::button::icon(handle)
 }
 
-#[allow(dead_code)]
-pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
-    if expanded {
-        icon_button!("expand_less/24")
-    } else {
-        icon_button!("expand_more/24")
-    }
-}
+// #[allow(dead_code)]
+// pub fn expand_icon<'a, M>(expanded: bool) -> IconButton<'a, M> {
+//     if expanded {
+//         icon_button!("expand_less/24")
+//     } else {
+//         icon_button!("expand_more/24")
+//     }
+// }
 
 pub fn window_icon() -> Option<iced::window::Icon> {
     let svg = include_bytes!("../../res/linux/app_icon.svg");

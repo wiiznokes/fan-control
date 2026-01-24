@@ -11,8 +11,6 @@ use tray_icon::{
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
 };
 
-use crate::fl;
-
 #[derive(Debug, Clone)]
 pub enum SystemTrayMsg {
     Show,
