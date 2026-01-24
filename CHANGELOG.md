@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [26.01.0]
+
+### Changed
+
+- PawnIO driver for windows (lhm update)
+- doc in rdm for dotnet install
+
 ## [25.11.0]
 
 ### Added
