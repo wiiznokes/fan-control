@@ -124,6 +124,12 @@ impl DirManager {
             project_dirs.data_local_dir().to_path_buf()
         };
 
+        if !state_dir_path.exists()
+            && let Err(e) = fs::create_dir_all(&state_dir_path)
+        {
+            error!("Can't create state directories: {e}.")
+        }
+
         let state = {
             let state_file_path = state_dir_path.join(STATE_FILENAME);
 
@@ -140,13 +146,21 @@ impl DirManager {
             }
         };
 
+        let cache_dir_path = project_dirs.cache_dir().to_path_buf();
+
+        if !cache_dir_path.exists()
+            && let Err(e) = fs::create_dir_all(&cache_dir_path)
+        {
+            error!("Can't create cache directories: {e}.")
+        }
+
         DirManager {
             config_names,
             config_dir_path,
             settings,
             state,
             state_dir_path,
-            cache_dir_path: project_dirs.cache_dir().to_path_buf(),
+            cache_dir_path,
         }
     }
 

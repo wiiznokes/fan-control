@@ -6546,7 +6546,6 @@ dependencies = [
  "constcat",
  "data",
  "derive_more",
- "directories",
  "fslock",
  "hardware",
  "i18n-embed",

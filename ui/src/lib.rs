@@ -44,8 +44,6 @@ use crate::config_dialogs::{
 };
 use crate::udev_dialog::UdevDialogMsg;
 
-use common::{APP, ORG, QUALIFIER};
-use directories::ProjectDirs;
 use fslock::LockFile;
 
 #[macro_use]
@@ -84,8 +82,7 @@ pub fn run_ui<H: HardwareBridge + 'static>(mut app_state: AppState<H>) {
         let _ = std::fs::create_dir_all("temp");
         PathBuf::from("temp").join("app.lock")
     } else {
-        let project_dirs = ProjectDirs::from(QUALIFIER, ORG, APP).unwrap();
-        project_dirs.cache_dir().join("app.lock")
+        app_state.dir_manager.cache_dir_path.join("app.lock")
     };
     let mut app_lock = LockFile::open(&instance_lock_path).expect("Failed to open app lock file");
     if !app_lock.try_lock_with_pid().unwrap_or(false) {
