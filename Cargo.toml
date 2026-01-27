@@ -92,12 +92,12 @@ mslnk = "0.1"
 anyhow = "1"
 fslock = "0.2"
 tray-icon = "0.21"
-resvg = "0.45"
+resvg = "0.46"
 
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 # branch = "master"
-rev = "6439507aa2d8d7e6a89c0fc016895dc0ab9252d4"
+rev = "927035809f1564674434c27cbecdc67e199db28e"
 default-features = false
 features = [
     # cause seg fault when quitting the app on flatpak
@@ -109,9 +109,9 @@ features = [
     "markdown",
     "highlighter",
     "about",
+    #"a11y",
     # todo: re enable when it works on Flatpak
     # "dbus-config",
-    #"a11y",
 ]
 
 [patch."https://github.com/smithay/client-toolkit.git"]
