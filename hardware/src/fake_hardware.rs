@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 
 use crate::{HControl, HSensor, Hardware, HardwareBridge, Mode, Value};
 
