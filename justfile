@@ -119,9 +119,9 @@ build-and-installf: uninstallf
         --install-deps-from=flathub \
         --repo=repo \
         flatpak-out \
-        {{ repo-name }}/{{ appid }}.json
+        {{ appid }}.json
 
-sdk-version := "24.08"
+sdk-version := "25.08"
 
 flatpak-install-sdk:
     flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
