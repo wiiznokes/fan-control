@@ -129,7 +129,8 @@ flatpak-install-sdk:
         org.freedesktop.Platform//{{ sdk-version }} \
         org.freedesktop.Sdk//{{ sdk-version }} \
         org.freedesktop.Sdk.Extension.rust-stable//{{ sdk-version }} \
-        org.freedesktop.Sdk.Extension.llvm22//{{ sdk-version }}
+        org.freedesktop.Sdk.Extension.llvm22//{{ sdk-version }} \
+        com.system76.Cosmic.BaseApp//stable
 
 repo-name := "flatpak-repo"
 branch-name := 'update-' + name
