@@ -633,16 +633,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         RenameConfigDialog::update(self, rename_config_dialog_msg)
                     }
                     DialogMsg::ConfirmClose(confirm_close_msg) => {
+                        self.dialog = None;
                         match confirm_close_msg {
-                            ConfirmCloseDialogMsg::Cancel => {
-                                self.dialog = None;
-                                Task::none()
-                            }
-                            ConfirmCloseDialogMsg::Close => {
-                                self.dialog = None;
-                                self.on_exit();
-                                cosmic::iced_runtime::task::effect(cosmic::iced::runtime::Action::Exit)
-                            }
+                            ConfirmCloseDialogMsg::Cancel => Task::none(),
+                            ConfirmCloseDialogMsg::Close => Task::done(AppMsg::Exit),
                         }
                     }
                 }
