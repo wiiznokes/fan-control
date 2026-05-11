@@ -123,10 +123,10 @@ void SetupLog()
         Logger.LogLevel = LogLevel.Debug;
     }
     else
-    if (args.Contains("--log=info"))
-    {
-        Logger.LogLevel = LogLevel.Info;
-    }
+        if (args.Contains("--log=info"))
+        {
+            Logger.LogLevel = LogLevel.Info;
+        }
 
     return;
 
