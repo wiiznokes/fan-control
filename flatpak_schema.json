@@ -7,7 +7,7 @@
   "sdk": "org.freedesktop.Sdk",
   "sdk-extensions": [
     "org.freedesktop.Sdk.Extension.rust-stable",
-    "org.freedesktop.Sdk.Extension.llvm18"
+    "org.freedesktop.Sdk.Extension.llvm22"
   ],
   "command": "fan-control",
   "finish-args": [
@@ -29,8 +29,8 @@
       "name": "fan-control",
       "buildsystem": "simple",
       "build-options": {
-        "append-path": "/usr/lib/sdk/llvm18/bin",
-        "prepend-ld-library-path": "/usr/lib/sdk/llvm18/lib"
+        "append-path": "/usr/lib/sdk/llvm22/bin",
+        "prepend-ld-library-path": "/usr/lib/sdk/llvm22/lib"
       },
       "build-commands": [
         "just build-libsensors",

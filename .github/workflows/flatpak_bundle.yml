@@ -1,0 +1,58 @@
+name: Flatpak bundle
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build app bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: taiki-e/install-action@just
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder ostree
+
+      - name: Install flatpak SDKs
+        run: just flatpak-install-sdk
+
+      - name: Generate manifest
+        run: |
+          just flatpak-install-flatpak-builder-tools
+          just flatpak-gen-manifest
+
+      - name: Build app
+        run: |
+          flatpak-builder \
+              --verbose \
+              --ccache \
+              --repo=repo \
+              --default-branch=testing \
+              --user \
+              flatpak-out \
+              io.github.wiiznokes.fan-control.json
+
+      - name: Create Flatpak bundle
+        run: |
+          flatpak build-bundle \
+            repo \
+            fan-control.flatpak \
+            io.github.wiiznokes.fan-control \
+            testing
+
+      - name: Upload Flatpak bundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fan-control-bundle
+          path: fan-control.flatpak
+          if-no-files-found: error
