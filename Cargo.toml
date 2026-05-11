@@ -55,7 +55,7 @@ common = { path = "common" }
 clap = { version = "4", features = ["derive", "string"] }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
-toml = "0.9"
+toml = "1"
 env_logger = "0.11"
 log = "0.4"
 i18n-embed = { version = "0.16", features = [
@@ -77,12 +77,12 @@ icu_collator = "2"
 icu_provider = { version = "2", features = ["sync"] }
 serial_test = "3"
 const_format = "0.2"
-rand = "0.9"
+rand = "0.10"
 lm-sensors = { git = "https://github.com/wiiznokes/lm-sensors.git", branch = "pwm" }
 ouroboros = "0.18"
 tokio = { version = "1", features = ["time"] }
 open = "5"
-cached = "0.56"
+cached = "0.59"
 constcat = "0.6"
 cargo-packager-resource-resolver = { version = "0.1", features = [
     "auto-detect-format",
@@ -91,13 +91,13 @@ pretty_assertions = "1"
 mslnk = "0.1"
 anyhow = "1"
 fslock = "0.2"
-tray-icon = "0.21"
-resvg = "0.46"
+tray-icon = "0.24"
+resvg = "0.47"
 
 [workspace.dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic"
 # branch = "master"
-rev = "927035809f1564674434c27cbecdc67e199db28e"
+rev = "3e78eb238159d90956e85e95e868164671b649f6"
 default-features = false
 features = [
     # cause seg fault when quitting the app on flatpak
@@ -109,18 +109,11 @@ features = [
     "markdown",
     "highlighter",
     "about",
-    #"a11y",
+    "a11y",
     # todo: re enable when it works on Flatpak
     # "dbus-config",
 ]
 
-[patch."https://github.com/smithay/client-toolkit.git"]
-sctk = { package = "smithay-client-toolkit", version = "=0.19.2" }
-
-# [patch."https://github.com/pop-os/libcosmic"]
-# libcosmic = { path = "../libcosmic" }
-# libcosmic = { git = "https://github.com/wiiznokes/libcosmic", rev = "2dff73b8b2871afca6c65c861954c196818f960f" }
-# libcosmic = { git = "https://github.com/edfloreshz-ext/libcosmic" }
 
 [dependencies]
 data.workspace = true
@@ -140,3 +133,15 @@ winres.workspace = true
 [profile.release-lto]
 inherits = "release"
 lto = "fat"
+
+# [patch."https://github.com/smithay/client-toolkit.git"]
+# sctk = { package = "smithay-client-toolkit", version = "=0.19.2" }
+
+# [patch."https://github.com/pop-os/libcosmic"]
+# libcosmic = { path = "../libcosmic" }
+# libcosmic = { git = "https://github.com/wiiznokes/libcosmic", rev = "2dff73b8b2871afca6c65c861954c196818f960f" }
+# libcosmic = { git = "https://github.com/edfloreshz-ext/libcosmic" }
+
+
+[patch."https://github.com/pop-os/cosmic-text"]
+cosmic-text = { git = "https://github.com/wiiznokes/cosmic-text", rev = "4fd11f0e5e076fc16f5c7c239da22ac99a3a60b9" }
