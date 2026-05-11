@@ -175,17 +175,13 @@ pub mod hardware {
             .iter()
             .filter_map(|h| {
                 let is_equal = match hardware_id {
-                    Some(hardware_id) => {
-                        if hardware_id == h.id() {
-                            selected_hardware_info = MyOption::Some(h.into());
-                            true
-                        } else {
-                            false
-                        }
+                    Some(hardware_id) if hardware_id == h.id() => {
+                        selected_hardware_info = MyOption::Some(h.into());
+                        true
                     }
-                    None => false,
+                    _ => false,
                 };
-                
+
                 if one_ref {
                     // we leverage rc to know if this specific hardware
                     // is already in use by one node
