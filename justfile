@@ -1,4 +1,4 @@
-set windows-powershell := true
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 export FAN_CONTROL_COMMIT := `git rev-parse --short HEAD`
 rootdir := ''
