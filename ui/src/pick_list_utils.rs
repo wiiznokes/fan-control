@@ -185,7 +185,7 @@ pub mod hardware {
                     }
                     None => false,
                 };
-
+                
                 if one_ref {
                     // we leverage rc to know if this specific hardware
                     // is already in use by one node
