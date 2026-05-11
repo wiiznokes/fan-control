@@ -57,8 +57,7 @@ nsis:
     cargo packager --release --formats nsis --verbose
 
 install-nsis: build-nsis nsis
-      Start-Process (Get-ChildItem .\target\release\fan-control_*_x64-setup.exe | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
-
+    Start-Process (Get-ChildItem .\target\release\fan-control_*_x64-setup.exe | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
 
 ###################  Test
 
@@ -107,6 +106,8 @@ uninstallf:
 
 update-flatpak: flatpak-setup-upstream-repo flatpak-gen-manifest flatpak-commit-upstream
 
+update-flatpak-iterate: flatpak-gen-manifest flatpak-commit-upstream
+
 update-flatpak-test: flatpak-setup-upstream-repo flatpak-gen-manifest build-and-installf runf
 
 # deps: flatpak-builder git-lfs
@@ -136,6 +137,11 @@ repo-name := "flatpak-repo"
 branch-name := 'update-' + name
 
 # pip install aiohttp toml
+flatpak-install-flatpak-builder-tools:
+    rm -rf flatpak-builder-tools
+    git clone https://github.com/flatpak/flatpak-builder-tools --branch master --depth 1
+    pip install aiohttp tomlkit
+    
 flatpak-setup-upstream-repo:
     rm -rf {{ repo-name }}
     git clone https://github.com/wiiznokes/io.github.wiiznokes.fan-control.git {{ repo-name }}
@@ -147,13 +153,8 @@ flatpak-setup-upstream-repo:
 
     git -C {{ repo-name }} branch -D {{ branch-name }} || true
     git -C {{ repo-name }} push origin --delete {{ branch-name }}  || true
-    git -C {{ repo-name }} checkout -b {{ branch-name }} 
-    git -C {{ repo-name }} push origin {{ branch-name }} 
-
-flatpak-install-flatpak-builder-tools:
-    rm -rf flatpak-builder-tools
-    git clone https://github.com/flatpak/flatpak-builder-tools --branch master --depth 1
-    pip install aiohttp tomlkit
+    git -C {{ repo-name }} checkout -b {{ branch-name }}
+    git -C {{ repo-name }} push origin {{ branch-name }}
 
 flatpak-gen-manifest:
     python3 flatpak-builder-tools/cargo/flatpak-cargo-generator.py Cargo.lock -o cargo-sources.json

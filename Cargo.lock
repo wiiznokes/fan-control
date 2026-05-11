@@ -5797,8 +5797,7 @@ checksum = "8a7852d02fc848982e0c167ef163aaff9cd91dc640ba85e263cb1ce46fae51cd"
 [[package]]
 name = "sensors-sys"
 version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce9233a28c31f346320b4f989498e719b6be53e62c47605aa95f7d5c7d4e7373"
+source = "git+https://github.com/wiiznokes/sensors-sys?rev=bd861b11e34df13fc6b621293886c5565e8b079e#bd861b11e34df13fc6b621293886c5565e8b079e"
 dependencies = [
  "bindgen",
  "cc",
