@@ -143,5 +143,5 @@ lto = "fat"
 # libcosmic = { git = "https://github.com/edfloreshz-ext/libcosmic" }
 
 
-[patch."https://github.com/pop-os/cosmic-text.git"]
-cosmic-text = { git = "https://github.com/pop-os//cosmic-text.git", rev = "4fd11f0e5e076fc16f5c7c239da22ac99a3a60b9" }
+[patch."https://github.com/pop-os/cosmic-text"]
+cosmic-text = { git = "https://github.com/wiiznokes/cosmic-text", rev = "4fd11f0e5e076fc16f5c7c239da22ac99a3a60b9" }
