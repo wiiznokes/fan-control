@@ -467,11 +467,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         settings.start_minimized = start_minimized;
                     })
                 }
-                SettingsMsg::ConfirmBeforeClose(confirm_before_close) => {
-                    dir_manager.update_settings(|settings| {
+                SettingsMsg::ConfirmBeforeClose(confirm_before_close) => dir_manager
+                    .update_settings(|settings| {
                         settings.confirm_before_close = confirm_before_close;
-                    })
-                }
+                    }),
             },
             AppMsg::NewNode(node_type_light) => {
                 let node = self.app_state.app_graph.create_new_node(node_type_light);
@@ -925,13 +924,9 @@ fn confirm_close_dialog<'a>() -> Element<'a, DialogMsg> {
         .title(fl!("confirm_close_title"))
         .body(fl!("confirm_close_message"))
         .primary_action(
-            button::destructive(fl!("close_app"))
-                .on_press(ConfirmCloseDialogMsg::Close)
+            button::destructive(fl!("close_app")).on_press(ConfirmCloseDialogMsg::Close),
         )
-        .secondary_action(
-            button::text(fl!("cancel"))
-                .on_press(ConfirmCloseDialogMsg::Cancel)
-        )
+        .secondary_action(button::text(fl!("cancel")).on_press(ConfirmCloseDialogMsg::Cancel))
         .apply(Element::from)
         .map(DialogMsg::ConfirmClose)
 }
