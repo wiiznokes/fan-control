@@ -43,6 +43,7 @@ pub enum SettingsMsg {
     StartAtLogin(bool),
     Inactive(bool),
     StartMinimized(bool),
+    ConfirmBeforeClose(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -52,6 +53,7 @@ pub enum ToogleMsg {
     Settings,
     About,
     CloseDrawer,
+    ConfirmCloseDialog,
 }
 
 #[derive(Debug, Clone)]

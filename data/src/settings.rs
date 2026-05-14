@@ -25,6 +25,7 @@ pub struct Settings {
     pub start_at_login: bool,
     pub inactive: bool,
     pub start_minimized: bool,
+    pub confirm_before_close: bool,
 }
 
 // todo: find a better solution to expose themes
@@ -48,6 +49,7 @@ impl Default for Settings {
             start_at_login: false,
             inactive: false,
             start_minimized: false,
+            confirm_before_close: false,
         }
     }
 }
