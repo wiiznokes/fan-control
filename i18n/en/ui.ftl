@@ -26,6 +26,7 @@ update_delay_value = { $value } ms
 start_at_login = Start at login
 inactive = Disable all controls
 start_minimized = Start minimized
+confirm_before_close = Ask confirmation before closing
 
 # Add item description
 add_item = Add an item
@@ -86,6 +87,11 @@ udev_rules =
             *[other] unknown command
         }
     .streamos = You need to disable the read only mode temporarily.
+
+# Confirm close dialog
+confirm_close_title = Confirm Close
+confirm_close_message = Fan control will stop managing your fans. Are you sure you want to close the application?
+close_app = Close Application
 
 # tray icon
 tray_show_window = Show window

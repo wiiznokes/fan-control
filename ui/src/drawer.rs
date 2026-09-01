@@ -63,6 +63,16 @@ pub fn settings_drawer(dir_manager: &DirManager) -> Element<'_, AppMsg> {
             } else {
                 None
             })
+            .add_maybe(if cfg!(target_os = "linux") {
+                Some(
+                    widget::settings::item::builder(fl!("confirm_before_close"))
+                        .toggler(dir_manager.settings().confirm_before_close, |b| {
+                            AppMsg::Settings(SettingsMsg::ConfirmBeforeClose(b))
+                        }),
+                )
+            } else {
+                None
+            })
             .into(),
     ])
     .into()

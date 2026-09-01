@@ -467,6 +467,10 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                         settings.start_minimized = start_minimized;
                     })
                 }
+                SettingsMsg::ConfirmBeforeClose(confirm_before_close) => dir_manager
+                    .update_settings(|settings| {
+                        settings.confirm_before_close = confirm_before_close;
+                    }),
             },
             AppMsg::NewNode(node_type_light) => {
                 let node = self.app_state.app_graph.create_new_node(node_type_light);
@@ -503,6 +507,9 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 ToogleMsg::CloseDrawer => {
                     self.set_show_context(false);
                     self.drawer = None;
+                }
+                ToogleMsg::ConfirmCloseDialog => {
+                    self.dialog = Some(Dialog::ConfirmClose);
                 }
             },
             AppMsg::SaveConfig(name) => return self.save_config(&name),
@@ -623,6 +630,13 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                     }
                     DialogMsg::RenameConfig(rename_config_dialog_msg) => {
                         RenameConfigDialog::update(self, rename_config_dialog_msg)
+                    }
+                    DialogMsg::ConfirmClose(confirm_close_msg) => {
+                        self.dialog = None;
+                        match confirm_close_msg {
+                            ConfirmCloseDialogMsg::Cancel => Task::none(),
+                            ConfirmCloseDialogMsg::Close => Task::done(AppMsg::Exit),
+                        }
                     }
                 }
                 .map(cosmic::action::app);
@@ -843,6 +857,14 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
         if let Some(window) = &self.main_window
             && window == &id
         {
+            // Check if confirmation is enabled (Linux only) and dialog is not already shown
+            #[cfg(target_os = "linux")]
+            if self.app_state.dir_manager.settings().confirm_before_close
+                && !matches!(self.dialog, Some(Dialog::ConfirmClose))
+            {
+                return Some(AppMsg::Toggle(ToogleMsg::ConfirmCloseDialog));
+            }
+
             #[cfg(not(target_os = "linux"))]
             return Some(AppMsg::HideWindow);
 
@@ -865,6 +887,7 @@ impl<H: HardwareBridge + 'static> cosmic::Application for Ui<H> {
                 Dialog::Udev => udev_dialog::view(),
                 Dialog::CreateConfig(dialog) => dialog.view(&self.app_state.dir_manager),
                 Dialog::RenameConfig(dialog) => dialog.view(&self.app_state.dir_manager),
+                Dialog::ConfirmClose => confirm_close_dialog(),
             })
             .apply(Element::from)
             .map(AppMsg::Dialog)
@@ -877,6 +900,7 @@ enum Dialog {
     Udev,
     CreateConfig(CreateConfigDialog),
     RenameConfig(RenameConfigDialog),
+    ConfirmClose,
 }
 
 #[derive(Clone, Debug)]
@@ -884,6 +908,27 @@ enum DialogMsg {
     Udev(UdevDialogMsg),
     CreateConfig(CreateConfigDialogMsg),
     RenameConfig(RenameConfigDialogMsg),
+    ConfirmClose(ConfirmCloseDialogMsg),
+}
+
+#[derive(Clone, Debug)]
+enum ConfirmCloseDialogMsg {
+    Cancel,
+    Close,
+}
+
+fn confirm_close_dialog<'a>() -> Element<'a, DialogMsg> {
+    use cosmic::widget::{button, dialog, text};
+
+    dialog()
+        .title(fl!("confirm_close_title"))
+        .body(fl!("confirm_close_message"))
+        .primary_action(
+            button::destructive(fl!("close_app")).on_press(ConfirmCloseDialogMsg::Close),
+        )
+        .secondary_action(button::text(fl!("cancel")).on_press(ConfirmCloseDialogMsg::Cancel))
+        .apply(Element::from)
+        .map(DialogMsg::ConfirmClose)
 }
 
 impl<H: HardwareBridge> Ui<H> {
